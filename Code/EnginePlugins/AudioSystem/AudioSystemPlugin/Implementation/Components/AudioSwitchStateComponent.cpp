@@ -122,3 +122,5 @@ void ezAudioSwitchStateComponent::OnSetState(ezMsgAudioSystemSetSwitchState& msg
 {
   SetState(msg.m_sSwitchState, msg.m_bSync);
 }
+
+EZ_STATICLINK_FILE(AudioSystemPlugin, AudioSystemPlugin_Implementation_Components_AudioSwitchStateComponent);
