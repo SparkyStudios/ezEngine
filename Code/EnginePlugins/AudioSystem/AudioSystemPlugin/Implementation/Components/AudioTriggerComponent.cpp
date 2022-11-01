@@ -48,12 +48,10 @@ EZ_END_COMPONENT_TYPE;
 // clang-format on
 
 ezAudioTriggerComponent::ezAudioTriggerComponent()
-  : ezAudioSystemComponent()
+  : ezAudioSystemProxyDependentComponent()
   , m_eState(ezAudioSystemTriggerState::Invalid)
   , m_uiPlayEventId(++s_uiLastEventId)
   , m_uiStopEventId(++s_uiLastEventId)
-  , m_sPlayTrigger()
-  , m_sStopTrigger()
   , m_eObstructionType(ezAudioSystemSoundObstructionType::SingleRay)
   , m_bLoadOnInit(false)
   , m_bPlayOnActivate(false)
@@ -108,7 +106,7 @@ void ezAudioTriggerComponent::Play(bool bSync)
 
   ezAudioSystemRequestActivateTrigger request;
 
-  request.m_uiEntityId = GetOwner()->GetHandle().GetInternalID().m_Data;
+  request.m_uiEntityId = GetEntityId();
   request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sPlayTrigger);
   request.m_uiEventId = m_uiPlayEventId;
 
@@ -120,15 +118,13 @@ void ezAudioTriggerComponent::Play(bool bSync)
       m_eState = ezAudioSystemTriggerState::Invalid;
   };
 
-  ezVariant v(request);
-
   if (bSync)
   {
-    ezAudioSystem::GetSingleton()->SendRequestSync(std::move(v));
+    ezAudioSystem::GetSingleton()->SendRequestSync(request);
   }
   else
   {
-    ezAudioSystem::GetSingleton()->SendRequest(std::move(v));
+    ezAudioSystem::GetSingleton()->SendRequest(request);
   }
 }
 
@@ -140,7 +136,7 @@ void ezAudioTriggerComponent::Stop(bool bSync)
   {
     ezAudioSystemRequestStopEvent request;
 
-    request.m_uiEntityId = GetOwner()->GetHandle().GetInternalID().m_Data;
+    request.m_uiEntityId = GetEntityId();
     request.m_uiTriggerId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sPlayTrigger);
     request.m_uiObjectId = m_uiPlayEventId;
 
@@ -152,16 +148,13 @@ void ezAudioTriggerComponent::Stop(bool bSync)
         m_eState = ezAudioSystemTriggerState::Invalid;
     };
 
-    ezVariant v(request);
-
-
     if (bSync)
     {
-      ezAudioSystem::GetSingleton()->SendRequestSync(std::move(v));
+      ezAudioSystem::GetSingleton()->SendRequestSync(request);
     }
     else
     {
-      ezAudioSystem::GetSingleton()->SendRequest(std::move(v));
+      ezAudioSystem::GetSingleton()->SendRequest(request);
     }
   }
   else
@@ -171,7 +164,7 @@ void ezAudioTriggerComponent::Stop(bool bSync)
 
     ezAudioSystemRequestActivateTrigger request;
 
-    request.m_uiEntityId = GetOwner()->GetHandle().GetInternalID().m_Data;
+    request.m_uiEntityId = GetEntityId();
     request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sStopTrigger);
     request.m_uiEventId = m_uiStopEventId;
 
@@ -183,9 +176,7 @@ void ezAudioTriggerComponent::Stop(bool bSync)
         m_eState = ezAudioSystemTriggerState::Invalid;
     };
 
-    ezVariant v(request);
-
-    ezAudioSystem::GetSingleton()->SendRequest(std::move(v));
+    ezAudioSystem::GetSingleton()->SendRequest(request);
   }
 }
 
@@ -276,11 +267,6 @@ void ezAudioTriggerComponent::Deinitialize()
   SUPER::Deinitialize();
 }
 
-void ezAudioTriggerComponent::Update()
-{
-  // noop
-}
-
 void ezAudioTriggerComponent::LoadPlayTrigger(bool bSync)
 {
   if (m_sPlayTrigger.IsEmpty())
@@ -296,7 +282,7 @@ void ezAudioTriggerComponent::LoadPlayTrigger(bool bSync)
 
   ezAudioSystemRequestLoadTrigger request;
 
-  request.m_uiEntityId = GetOwner()->GetHandle().GetInternalID().m_Data;
+  request.m_uiEntityId = GetEntityId();
   request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sPlayTrigger);
   request.m_uiEventId = m_uiPlayEventId;
 
@@ -313,15 +299,13 @@ void ezAudioTriggerComponent::LoadPlayTrigger(bool bSync)
     ezLog::Info("[AudioSystem] Loaded Play Trigger '{0}'.", m_sPlayTrigger);
   };
 
-  ezVariant v(request);
-
   if (bSync)
   {
-    ezAudioSystem::GetSingleton()->SendRequestSync(std::move(v));
+    ezAudioSystem::GetSingleton()->SendRequestSync(request);
   }
   else
   {
-    ezAudioSystem::GetSingleton()->SendRequest(std::move(v));
+    ezAudioSystem::GetSingleton()->SendRequest(request);
   }
 }
 
@@ -335,7 +319,7 @@ void ezAudioTriggerComponent::LoadStopTrigger(bool bSync)
 
   ezAudioSystemRequestLoadTrigger request;
 
-  request.m_uiEntityId = GetOwner()->GetHandle().GetInternalID().m_Data;
+  request.m_uiEntityId = GetEntityId();
   request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sStopTrigger);
   request.m_uiEventId = m_uiStopEventId;
 
@@ -348,15 +332,13 @@ void ezAudioTriggerComponent::LoadStopTrigger(bool bSync)
     ezLog::Info("[AudioSystem] Loaded Stop Trigger '{0}'.", m_sStopTrigger);
   };
 
-  ezVariant v(request);
-
   if (bSync)
   {
-    ezAudioSystem::GetSingleton()->SendRequestSync(std::move(v));
+    ezAudioSystem::GetSingleton()->SendRequestSync(request);
   }
   else
   {
-    ezAudioSystem::GetSingleton()->SendRequest(std::move(v));
+    ezAudioSystem::GetSingleton()->SendRequest(request);
   }
 }
 
@@ -369,7 +351,7 @@ void ezAudioTriggerComponent::UnloadPlayTrigger()
 
   ezAudioSystemRequestUnloadTrigger request;
 
-  request.m_uiEntityId = GetOwner()->GetHandle().GetInternalID().m_Data;
+  request.m_uiEntityId = GetEntityId();
   request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sPlayTrigger);
 
   request.m_Callback = [this](const ezAudioSystemRequestUnloadTrigger& m)
@@ -385,9 +367,7 @@ void ezAudioTriggerComponent::UnloadPlayTrigger()
     ezLog::Info("[AudioSystem] Unloaded Play Trigger '{0}'.", m_sPlayTrigger);
   };
 
-  ezVariant v(request);
-
-  ezAudioSystem::GetSingleton()->SendRequest(std::move(v));
+  ezAudioSystem::GetSingleton()->SendRequest(request);
 }
 
 void ezAudioTriggerComponent::UnloadStopTrigger()
@@ -397,7 +377,7 @@ void ezAudioTriggerComponent::UnloadStopTrigger()
 
   ezAudioSystemRequestUnloadTrigger request;
 
-  request.m_uiEntityId = GetOwner()->GetHandle().GetInternalID().m_Data;
+  request.m_uiEntityId = GetEntityId();
   request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sStopTrigger);
 
   request.m_Callback = [this](const ezAudioSystemRequestUnloadTrigger& m)
@@ -409,9 +389,7 @@ void ezAudioTriggerComponent::UnloadStopTrigger()
     ezLog::Info("[AudioSystem] Unloaded Stop Trigger '{0}'.", m_sStopTrigger);
   };
 
-  ezVariant v(request);
-
-  ezAudioSystem::GetSingleton()->SendRequest(std::move(v));
+  ezAudioSystem::GetSingleton()->SendRequest(request);
 }
 
 void ezAudioTriggerComponent::SerializeComponent(ezWorldWriter& stream) const

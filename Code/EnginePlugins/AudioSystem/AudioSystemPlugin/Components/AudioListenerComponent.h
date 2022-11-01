@@ -4,7 +4,7 @@
 
 #include <AudioSystemPlugin/Components/AudioSystemComponent.h>
 
-typedef ezComponentManagerSimple<class ezAudioListenerComponent, ezComponentUpdateType::WhenSimulating> ezAudioListenerComponentManager;
+typedef ezAudioSystemComponentManager<class ezAudioListenerComponent> ezAudioListenerComponentManager;
 
 /// \brief Component used to add an audio listener in the scene, allowing to render sounds.
 ///
@@ -68,4 +68,6 @@ private:
   ezGameObjectHandle m_hListenerPositionObject;
   ezGameObjectHandle m_hListenerRotationObject;
   ezUInt32 m_uiListenerId;
+
+  ezAudioSystemTransform m_LastTransform;
 };

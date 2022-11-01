@@ -1,9 +1,21 @@
 #include <AudioSystemPlugin/AudioSystemPluginPCH.h>
 
-#include <AudioSystemPlugin/Core/AudioSystemAllocator.h>
 #include <AudioSystemPlugin/Core/AudioSystemData.h>
 
 // clang-format off
+EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemTransform, ezNoBase, 1, ezRTTINoAllocator)
+{
+  EZ_BEGIN_PROPERTIES
+  {
+    EZ_MEMBER_PROPERTY("Position", m_vPosition),
+    EZ_MEMBER_PROPERTY("Velocity", m_vVelocity),
+    EZ_MEMBER_PROPERTY("Forward", m_vForward),
+    EZ_MEMBER_PROPERTY("Up", m_vUp),
+  }
+  EZ_END_PROPERTIES;
+}
+EZ_END_STATIC_REFLECTED_TYPE;
+
 EZ_BEGIN_STATIC_REFLECTED_ENUM(ezAudioSystemSoundObstructionType, 1)
   EZ_ENUM_CONSTANT(ezAudioSystemSoundObstructionType::None),
   EZ_ENUM_CONSTANT(ezAudioSystemSoundObstructionType::SingleRay),

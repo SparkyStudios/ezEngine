@@ -10,9 +10,9 @@
 typedef ezComponentManager<class ezAudioRtpcComponent, ezBlockStorageType::FreeList> ezAudioRtpcComponentManager;
 
 /// \brief Component used to set the value of a real-time parameter in the audio middleware.
-class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioRtpcComponent : public ezAudioSystemComponent
+class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioRtpcComponent : public ezAudioSystemProxyDependentComponent
 {
-  EZ_DECLARE_COMPONENT_TYPE(ezAudioRtpcComponent, ezAudioSystemComponent, ezAudioRtpcComponentManager);
+  EZ_DECLARE_COMPONENT_TYPE(ezAudioRtpcComponent, ezAudioSystemProxyDependentComponent, ezAudioRtpcComponentManager);
 
   // ezComponent
 

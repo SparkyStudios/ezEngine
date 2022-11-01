@@ -8,6 +8,58 @@
 typedef ezUInt64 ezAudioSystemDataID;
 typedef ezUInt64 ezAudioSystemControlID;
 
+/// \brief Represents the value which marks an audio system data as invalid.
+/// Valid audio system data should be greater than this number.
+constexpr ezAudioSystemDataID kInvalidAudioSystemId = 0;
+
+/// \brief Stores the transformation data for an audio entity.
+struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemTransform
+{
+  /// \brief The position of the entity in world space.
+  ezVec3 m_vPosition{0, 0, 0};
+
+  /// \brief The velocity of the entity.
+  ezVec3 m_vVelocity{0, 0, 0};
+
+  /// \brief The forward direction of the entity in world space.
+  ezVec3 m_vForward{0, 0, 0};
+
+  /// \brief The up direction of the entity in world space.
+  ezVec3 m_vUp{0, 0, 0};
+
+  bool operator==(const ezAudioSystemTransform& rhs) const
+  {
+    return m_vPosition == rhs.m_vPosition && m_vForward == rhs.m_vForward && m_vUp == rhs.m_vUp && m_vVelocity == rhs.m_vVelocity;
+  }
+
+  bool operator!=(const ezAudioSystemTransform& rhs) const
+  {
+    return !(*this == rhs);
+  }
+};
+
+template <>
+struct ezHashHelper<ezAudioSystemTransform>
+{
+  EZ_ALWAYS_INLINE static ezUInt32 Hash(const ezAudioSystemTransform& value)
+  {
+    return ezHashingUtils::CombineHashValues32(
+      ezHashHelper<ezUInt64>::Hash(ezMath::FloatToInt(value.m_vForward.x * value.m_vForward.y * value.m_vForward.z)),
+      ezHashingUtils::CombineHashValues32(
+        ezHashHelper<ezUInt64>::Hash(ezMath::FloatToInt(value.m_vPosition.x * value.m_vPosition.y * value.m_vPosition.z)),
+        ezHashingUtils::CombineHashValues32(
+          ezHashHelper<ezUInt64>::Hash(ezMath::FloatToInt(value.m_vUp.x * value.m_vUp.y * value.m_vUp.z)),
+          ezHashHelper<ezUInt64>::Hash(ezMath::FloatToInt(value.m_vVelocity.x * value.m_vVelocity.y * value.m_vVelocity.z)))));
+  }
+
+  EZ_ALWAYS_INLINE static bool Equal(const ezAudioSystemTransform& a, const ezAudioSystemTransform& b)
+  {
+    return a == b;
+  }
+};
+
+EZ_DECLARE_REFLECTABLE_TYPE(EZ_AUDIOSYSTEMPLUGIN_DLL, ezAudioSystemTransform);
+
 /// \brief The type of a control. This is used by control assets to determine the type of the control
 /// when the audio system is parsing them.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemControlType
@@ -86,11 +138,11 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemTriggerState
 
     /// \brief The trigger is activated and currently playing an event.
     Playing = 1,
-    
+
     /// \brief The trigger is ready to be activated. This state is set after the
     /// trigger is loaded through LoadTrigger.
     Ready = 2,
-    
+
     /// \brief The trigger is being loaded.
     Loading = 3,
 
@@ -123,10 +175,10 @@ enum class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemEventState : ezUInt8
 
   /// \brief The event is currently playing audio.
   Playing = 1,
-  
+
   /// \brief The event is loading.
   Loading = 2,
-  
+
   /// \brief The event is being unloaded.
   Unloading = 3,
 };

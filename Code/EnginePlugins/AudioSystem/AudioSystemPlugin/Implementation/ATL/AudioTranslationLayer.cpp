@@ -148,6 +148,22 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     needCallback = audioRequest.m_Callback.IsValid();
   }
 
+  else if (request.IsA<ezAudioSystemRequestSetEntityTransform>())
+  {
+    auto& audioRequest = request.GetWritable<ezAudioSystemRequestSetEntityTransform>();
+
+    if (!m_mEntities.Contains(audioRequest.m_uiEntityId))
+    {
+      ezLog::Error("Failed to set entity transform {0}. Make sure it was registered before.", audioRequest.m_uiEntityId);
+      return;
+    }
+
+    const auto& entity = m_mEntities[audioRequest.m_uiEntityId];
+    audioRequest.m_eStatus = pAudioMiddleware->SetEntityTransform(entity->m_pEntityData, audioRequest.m_Transform);
+
+    needCallback = audioRequest.m_Callback.IsValid();
+  }
+
   else if (request.IsA<ezAudioSystemRequestUnregisterEntity>())
   {
     auto& audioRequest = request.GetWritable<ezAudioSystemRequestUnregisterEntity>();
@@ -161,6 +177,12 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     const auto& entity = m_mEntities[audioRequest.m_uiEntityId];
     pAudioMiddleware->RemoveEntity(entity->m_pEntityData).IgnoreResult();
     audioRequest.m_eStatus = pAudioMiddleware->DestroyEntityData(entity->m_pEntityData);
+
+    if (audioRequest.m_eStatus.Succeeded())
+    {
+      EZ_AUDIOSYSTEM_DELETE(m_mEntities[audioRequest.m_uiEntityId]);
+      m_mEntities.Remove(audioRequest.m_uiEntityId);
+    }
 
     needCallback = audioRequest.m_Callback.IsValid();
   }
@@ -182,6 +204,22 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     needCallback = audioRequest.m_Callback.IsValid();
   }
 
+  else if (request.IsA<ezAudioSystemRequestSetListenerTransform>())
+  {
+    auto& audioRequest = request.GetWritable<ezAudioSystemRequestSetListenerTransform>();
+
+    if (!m_mListeners.Contains(audioRequest.m_uiListenerId))
+    {
+      ezLog::Error("Failed to set listener transform {0}. Make sure it was registered before.", audioRequest.m_uiListenerId);
+      return;
+    }
+
+    const auto& listener = m_mListeners[audioRequest.m_uiListenerId];
+    audioRequest.m_eStatus = pAudioMiddleware->SetListenerTransform(listener->m_pListenerData, audioRequest.m_Transform);
+
+    needCallback = audioRequest.m_Callback.IsValid();
+  }
+
   else if (request.IsA<ezAudioSystemRequestUnregisterListener>())
   {
     auto& audioRequest = request.GetWritable<ezAudioSystemRequestUnregisterListener>();
@@ -196,21 +234,11 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     pAudioMiddleware->RemoveListener(listener->m_pListenerData).IgnoreResult();
     audioRequest.m_eStatus = pAudioMiddleware->DestroyListenerData(listener->m_pListenerData);
 
-    needCallback = audioRequest.m_Callback.IsValid();
-  }
-
-  else if (request.IsA<ezAudioSystemRequestSetListenerTransform>())
-  {
-    auto& audioRequest = request.GetWritable<ezAudioSystemRequestSetListenerTransform>();
-
-    if (!m_mListeners.Contains(audioRequest.m_uiListenerId))
+    if (audioRequest.m_eStatus.Succeeded())
     {
-      ezLog::Error("Failed to set listener transform {0}. Make sure it was registered before.", audioRequest.m_uiListenerId);
-      return;
+      EZ_AUDIOSYSTEM_DELETE(m_mListeners[audioRequest.m_uiListenerId]);
+      m_mListeners.Remove(audioRequest.m_uiListenerId);
     }
-
-    const auto& listener = m_mListeners[audioRequest.m_uiListenerId];
-    audioRequest.m_eStatus = pAudioMiddleware->SetListenerTransform(listener->m_pListenerData, audioRequest.m_vPosition, audioRequest.m_vForward, audioRequest.m_vUp, audioRequest.m_vVelocity);
 
     needCallback = audioRequest.m_Callback.IsValid();
   }
@@ -309,6 +337,8 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
 
     needCallback = audioRequest.m_Callback.IsValid();
   }
+
+  // TODO: Unload Trigger
 
   else if (request.IsA<ezAudioSystemRequestSetRtpcValue>())
   {

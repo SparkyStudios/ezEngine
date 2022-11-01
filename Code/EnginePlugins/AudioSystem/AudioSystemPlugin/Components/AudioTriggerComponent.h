@@ -5,7 +5,7 @@
 #include <AudioSystemPlugin/Components/AudioSystemComponent.h>
 #include <AudioSystemPlugin/Core/AudioSystemData.h>
 
-typedef ezComponentManagerSimple<class ezAudioTriggerComponent, ezComponentUpdateType::WhenSimulating> ezAudioTriggerComponentManager;
+typedef ezComponentManager<class ezAudioTriggerComponent, ezBlockStorageType::FreeList> ezAudioTriggerComponentManager;
 
 /// \brief Audio System Component that triggers an audio event.
 ///
@@ -15,16 +15,18 @@ typedef ezComponentManagerSimple<class ezAudioTriggerComponent, ezComponentUpdat
 /// the event triggered by the play trigger should be stoppable that way.
 ///
 /// The component also exposes a property that allows to access the internal state through scripting.
-class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioTriggerComponent : public ezAudioSystemComponent
+class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioTriggerComponent : public ezAudioSystemProxyDependentComponent
 {
-  EZ_DECLARE_COMPONENT_TYPE(ezAudioTriggerComponent, ezAudioSystemComponent, ezAudioTriggerComponentManager);
+  EZ_DECLARE_COMPONENT_TYPE(ezAudioTriggerComponent, ezAudioSystemProxyDependentComponent, ezAudioTriggerComponentManager);
 
   // ezComponent
 
 public:
-  ezAudioTriggerComponent();
-  ~ezAudioTriggerComponent() override;
-
+  void Initialize() override;
+  void OnActivated() override;
+  void OnSimulationStarted() override;
+  void OnDeactivated() override;
+  void Deinitialize() override;
   void SerializeComponent(ezWorldWriter& stream) const override;
   void DeserializeComponent(ezWorldReader& stream) override;
 
@@ -36,6 +38,9 @@ private:
   // ezAudioTriggerComponent
 
 public:
+  ezAudioTriggerComponent();
+  ~ezAudioTriggerComponent() override;
+
   /// \brief Sets the name of the play trigger. If the provided name is the same than the
   /// current name, nothing will happen.
   ///
@@ -102,12 +107,6 @@ public:
   void Stop(bool bSync = false);
 
 protected:
-  void Initialize() override;
-  void OnActivated() override;
-  void OnSimulationStarted() override;
-  void OnDeactivated() override;
-  void Deinitialize() override;
-
   void Update();
 
 private:

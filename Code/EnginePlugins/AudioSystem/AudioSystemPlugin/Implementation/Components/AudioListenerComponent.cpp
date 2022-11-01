@@ -113,8 +113,10 @@ ezVec3 ezAudioListenerComponent::GetListenerPosition()
   {
     position = pObject->GetGlobalPosition();
   }
-
-  position = GetOwner()->GetGlobalPosition();
+  else
+  {
+    position = GetOwner()->GetGlobalPosition();
+  }
 
   return position + m_vListenerPositionOffset;
 }
@@ -147,6 +149,17 @@ void ezAudioListenerComponent::Update()
 
   const auto& fw = (rotation * ezVec3::UnitXAxis()).GetNormalized();
   const auto& up = (rotation * ezVec3::UnitZAxis()).GetNormalized();
+
+  {
+    ezAudioSystemTransform transform;
+    transform.m_vForward = fw;
+    transform.m_vPosition = position;
+    transform.m_vUp = up;
+    transform.m_vVelocity = velocity;
+
+    if (m_LastTransform == transform)
+      return;
+  }
 
   ezAudioSystem::GetSingleton()->SetListener(m_uiListenerId, position, fw, up, velocity);
 }

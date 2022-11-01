@@ -60,19 +60,19 @@
 
 
 /// \brief Helper macro to declare an ezHashHelper implementation of an audio system request.
-#define EZ_DECLARE_AUDIOSYSTEM_REQUEST_HASH(name, hash_ex)                \
-  template <>                                                             \
-  struct ezHashHelper<name>                                               \
-  {                                                                       \
-    EZ_ALWAYS_INLINE static ezUInt32 Hash(const name& value)              \
-    {                                                                     \
-      return ezHashHelper<ezAudioSystemRequest>::Hash(value) * (hash_ex); \
-    }                                                                     \
-    EZ_ALWAYS_INLINE static bool                                          \
-    Equal(const name& a, const name& b)                                   \
-    {                                                                     \
-      return a == b;                                                      \
-    }                                                                     \
+#define EZ_DECLARE_AUDIOSYSTEM_REQUEST_HASH(name, hash_ex)                                                    \
+  template <>                                                                                                 \
+  struct ezHashHelper<name>                                                                                   \
+  {                                                                                                           \
+    EZ_ALWAYS_INLINE static ezUInt32 Hash(const name& value)                                                  \
+    {                                                                                                         \
+      return ezHashingUtils::CombineHashValues32(ezHashHelper<ezAudioSystemRequest>::Hash(value), (hash_ex)); \
+    }                                                                                                         \
+    EZ_ALWAYS_INLINE static bool                                                                              \
+    Equal(const name& a, const name& b)                                                                       \
+    {                                                                                                         \
+      return a == b;                                                                                          \
+    }                                                                                                         \
   }
 
 
@@ -176,6 +176,14 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestRegisterEntity : public ezAu
   ezString m_sName;
 };
 
+/// \brief Audio request to set the transform and velocity of an entity.
+struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestSetEntityTransform : public ezAudioSystemRequest
+{
+  EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE(ezAudioSystemRequestSetEntityTransform, m_Transform == rhs.m_Transform);
+
+  ezAudioSystemTransform m_Transform;
+};
+
 /// \brief Audio request to unregister an entity from the audio system.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestUnregisterEntity : public ezAudioSystemRequest
 {
@@ -192,26 +200,18 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestRegisterListener : public ez
   ezString m_sName;
 };
 
+/// \brief Audio request to set the transform and velocity of a listener.
+struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestSetListenerTransform : public ezAudioSystemRequest
+{
+  EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE(ezAudioSystemRequestSetListenerTransform, m_Transform == rhs.m_Transform);
+
+  ezAudioSystemTransform m_Transform;
+};
+
 /// \brief Audio request to unregister a listener from the audio system.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestUnregisterListener : public ezAudioSystemRequest
 {
   EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE_SIMPLE(ezAudioSystemRequestUnregisterListener);
-};
-
-/// \brief Audio request to set the transform and velocity of a listener.
-struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestSetListenerTransform : public ezAudioSystemRequest
-{
-  // clang-format off
-  EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE(
-    ezAudioSystemRequestSetListenerTransform,
-    m_vPosition == rhs.m_vPosition && m_vForward == rhs.m_vForward && m_vUp == rhs.m_vUp && m_vVelocity == rhs.m_vVelocity
-  );
-  // clang-format on
-
-  ezVec3 m_vPosition;
-  ezVec3 m_vForward;
-  ezVec3 m_vUp;
-  ezVec3 m_vVelocity;
 };
 
 /// \brief Audio request to load data needed to activate a trigger.
@@ -267,10 +267,11 @@ EZ_DECLARE_AUDIOSYSTEM_REQUEST_STREAM_OPERATORS(ezAudioSystemRequest);
 EZ_DECLARE_REFLECTABLE_TYPE(EZ_AUDIOSYSTEMPLUGIN_DLL, ezAudioSystemRequest);
 
 EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestRegisterEntity, ezHashHelper<ezString>::Hash(value.m_sName));
+EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestSetEntityTransform, ezHashHelper<ezAudioSystemTransform>::Hash(value.m_Transform));
 EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestUnregisterEntity);
 EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestRegisterListener, ezHashHelper<ezString>::Hash(value.m_sName));
+EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestSetListenerTransform, ezHashHelper<ezAudioSystemTransform>::Hash(value.m_Transform));
 EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestUnregisterListener);
-EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestSetListenerTransform); // TODO: Hash ezVec3
 EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestLoadTrigger, ezHashHelper<ezAudioSystemDataID>::Hash(value.m_uiEventId));
 EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestActivateTrigger, ezHashHelper<ezAudioSystemDataID>::Hash(value.m_uiEventId));
 EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestStopEvent, ezHashHelper<ezAudioSystemDataID>::Hash(value.m_uiTriggerId));
@@ -305,9 +306,25 @@ struct CallRequestCallbackFunc
     {
       Call<ezAudioSystemRequestRegisterEntity>();
     }
+    else if (m_Value.IsA<ezAudioSystemRequestSetEntityTransform>())
+    {
+      Call<ezAudioSystemRequestSetEntityTransform>();
+    }
     else if (m_Value.IsA<ezAudioSystemRequestUnregisterEntity>())
     {
       Call<ezAudioSystemRequestUnregisterEntity>();
+    }
+    else if (m_Value.IsA<ezAudioSystemRequestRegisterListener>())
+    {
+      Call<ezAudioSystemRequestRegisterListener>();
+    }
+    else if (m_Value.IsA<ezAudioSystemRequestSetListenerTransform>())
+    {
+      Call<ezAudioSystemRequestSetListenerTransform>();
+    }
+    else if (m_Value.IsA<ezAudioSystemRequestUnregisterListener>())
+    {
+      Call<ezAudioSystemRequestUnregisterListener>();
     }
     else if (m_Value.IsA<ezAudioSystemRequestLoadTrigger>())
     {

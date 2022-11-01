@@ -21,6 +21,26 @@ void operator>>(ezStreamReader& Stream, ezAudioSystemRequestRegisterEntity& Valu
   Stream >> Value.m_sName;
 }
 
+EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestSetEntityTransform);
+EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestSetEntityTransform, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestSetEntityTransform>)
+EZ_END_STATIC_REFLECTED_TYPE;
+void operator<<(ezStreamWriter& Stream, const ezAudioSystemRequestSetEntityTransform& Value)
+{
+  Stream << static_cast<const ezAudioSystemRequest&>(Value);
+  Stream << Value.m_Transform.m_vPosition;
+  Stream << Value.m_Transform.m_vForward;
+  Stream << Value.m_Transform.m_vUp;
+  Stream << Value.m_Transform.m_vVelocity;
+}
+void operator>>(ezStreamReader& Stream, ezAudioSystemRequestSetEntityTransform& Value)
+{
+  Stream >> static_cast<ezAudioSystemRequest&>(Value);
+  Stream >> Value.m_Transform.m_vPosition;
+  Stream >> Value.m_Transform.m_vForward;
+  Stream >> Value.m_Transform.m_vUp;
+  Stream >> Value.m_Transform.m_vVelocity;
+}
+
 EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestUnregisterEntity);
 EZ_DEFINE_AUDIOSYSTEM_STREAM_OPERATORS_SIMPLE(ezAudioSystemRequestUnregisterEntity);
 EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestUnregisterEntity, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestUnregisterEntity>)
@@ -40,30 +60,30 @@ void operator>>(ezStreamReader& Stream, ezAudioSystemRequestRegisterListener& Va
   Stream >> Value.m_sName;
 }
 
-EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestUnregisterListener);
-EZ_DEFINE_AUDIOSYSTEM_STREAM_OPERATORS_SIMPLE(ezAudioSystemRequestUnregisterListener);
-EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestUnregisterListener, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestUnregisterListener>)
-EZ_END_STATIC_REFLECTED_TYPE;
-
 EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestSetListenerTransform);
 EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestSetListenerTransform, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestSetListenerTransform>)
 EZ_END_STATIC_REFLECTED_TYPE;
 void operator<<(ezStreamWriter& Stream, const ezAudioSystemRequestSetListenerTransform& Value)
 {
   Stream << static_cast<const ezAudioSystemRequest&>(Value);
-  Stream << Value.m_vPosition;
-  Stream << Value.m_vForward;
-  Stream << Value.m_vUp;
-  Stream << Value.m_vVelocity;
+  Stream << Value.m_Transform.m_vPosition;
+  Stream << Value.m_Transform.m_vForward;
+  Stream << Value.m_Transform.m_vUp;
+  Stream << Value.m_Transform.m_vVelocity;
 }
 void operator>>(ezStreamReader& Stream, ezAudioSystemRequestSetListenerTransform& Value)
 {
   Stream >> static_cast<ezAudioSystemRequest&>(Value);
-  Stream >> Value.m_vPosition;
-  Stream >> Value.m_vForward;
-  Stream >> Value.m_vUp;
-  Stream >> Value.m_vVelocity;
+  Stream >> Value.m_Transform.m_vPosition;
+  Stream >> Value.m_Transform.m_vForward;
+  Stream >> Value.m_Transform.m_vUp;
+  Stream >> Value.m_Transform.m_vVelocity;
 }
+
+EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestUnregisterListener);
+EZ_DEFINE_AUDIOSYSTEM_STREAM_OPERATORS_SIMPLE(ezAudioSystemRequestUnregisterListener);
+EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestUnregisterListener, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestUnregisterListener>)
+EZ_END_STATIC_REFLECTED_TYPE;
 
 EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestLoadTrigger);
 EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestLoadTrigger, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestLoadTrigger>)

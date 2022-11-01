@@ -74,7 +74,7 @@ void ezAudioRtpcComponent::DeserializeComponent(ezWorldReader& stream)
 }
 
 ezAudioRtpcComponent::ezAudioRtpcComponent()
-  : ezAudioSystemComponent()
+  : ezAudioSystemProxyDependentComponent()
   , m_fInitialValue(0.0f)
   , m_fValue(0.0f)
 {
@@ -92,7 +92,7 @@ void ezAudioRtpcComponent::SetValue(float fValue, bool bSync)
 
   ezAudioSystemRequestSetRtpcValue request;
 
-  request.m_uiEntityId = GetOwner()->GetHandle().GetInternalID().m_Data;
+  request.m_uiEntityId = GetEntityId();
   request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetRtpcId(m_sRtpcName);
   request.m_fValue = fValue;
 
@@ -112,15 +112,13 @@ void ezAudioRtpcComponent::SetValue(float fValue, bool bSync)
     m_ValueChangedEventSender.PostEventMessage(msg, this, GetOwner(), ezTime::Zero(), ezObjectMsgQueueType::NextFrame);
   };
 
-  ezVariant v(request);
-
   if (bSync)
   {
-    ezAudioSystem::GetSingleton()->SendRequestSync(std::move(v));
+    ezAudioSystem::GetSingleton()->SendRequestSync(request);
   }
   else
   {
-    ezAudioSystem::GetSingleton()->SendRequest(std::move(v));
+    ezAudioSystem::GetSingleton()->SendRequest(request);
   }
 }
 

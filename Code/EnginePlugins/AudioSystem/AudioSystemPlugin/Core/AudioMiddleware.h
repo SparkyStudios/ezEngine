@@ -76,12 +76,9 @@ public:
 
   /// \brief Sets the global position (world position) of an entity.
   /// \param pEntityData The entity on which set the global position.
-  /// \param vPosition The global position of the entity.
-  /// \param vForward The forward direction of the entity.
-  /// \param vUp The up direction of the entity.
-  /// \param vVelocity The velocity of the entity.
+  /// \param Transform The global transform of the entity.
   /// \return EZ_SUCCESS when the operation is successful, EZ_FAILURE otherwise.
-  virtual ezResult SetEntityTransform(ezAudioSystemEntityData* pEntityData, const ezVec3& vPosition, const ezVec3& vForward, const ezVec3& vUp, const ezVec3& vVelocity) = 0;
+  virtual ezResult SetEntityTransform(ezAudioSystemEntityData* pEntityData, const ezAudioSystemTransform& Transform) = 0;
 
   /// \brief Loads a trigger for a further activation.
   /// All the data and media needed by the trigger will be loaded. Once done, the trigger status will
@@ -168,12 +165,9 @@ public:
 
   /// \brief Sets the global transform (wold position and orientation) of a listener.
   /// \param pListenerData The listener data.
-  /// \param vPosition The global position of the listener.
-  /// \param vForward The forward direction of the listener.
-  /// \param vUp The up direction of the listener.
-  /// \param vVelocity The velocity of the listener.
+  /// \param Transform The global transformation of the listener.
   /// \return EZ_SUCCESS when the operation is successful, EZ_FAILURE otherwise.
-  virtual ezResult SetListenerTransform(ezAudioSystemListenerData* pListenerData, const ezVec3& vPosition, const ezVec3& vForward, const ezVec3& vUp, const ezVec3& vVelocity) = 0;
+  virtual ezResult SetListenerTransform(ezAudioSystemListenerData* pListenerData, const ezAudioSystemTransform& Transform) = 0;
 
   /// \brief Loads a bank file.
   /// \param pBankData The bank data used for loading.

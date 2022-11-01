@@ -112,13 +112,14 @@ void ezAudioSystem::SetListener(ezInt32 iIndex, const ezVec3& vPosition, const e
 
   // Index is -1 when inside the editor, listener is overriden when simulating. Both of them seems to mean the listener is the editor camera. Need to be sure about that...
   request.m_uiListenerId = m_bListenerOverrideMode || iIndex == -1 ? kEditorListenerId : static_cast<ezAudioSystemDataID>(iIndex);
-  request.m_vPosition = vPosition;
-  request.m_vForward = vForward;
-  request.m_vUp = vUp;
-  request.m_vVelocity = vVelocity;
+  request.m_Transform.m_vPosition = vPosition;
+  request.m_Transform.m_vForward = vForward;
+  request.m_Transform.m_vUp = vUp;
+  request.m_Transform.m_vVelocity = vVelocity;
 
   if (m_bListenerOverrideMode)
   {
+    // Editor mode
     SendRequestSync(request);
   }
   else
