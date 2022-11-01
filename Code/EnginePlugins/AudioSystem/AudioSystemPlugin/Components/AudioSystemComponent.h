@@ -24,6 +24,8 @@ public:
 private:
   /// \brief A simple update function that iterates over all components and calls Update() on every component
   void Update(const ezWorldModule::UpdateContext& context);
+
+  static void UpdateFunctionName(ezStringBuilder& out_sName);
 };
 
 /// \brief Base class for audio system components.
@@ -52,7 +54,7 @@ public:
 
 protected:
   /// \brief Get the ID of the entity referenced by the proxy.
-  ezAudioSystemDataID GetEntityId() const;
+  [[nodiscard]] ezAudioSystemDataID GetEntityId() const;
 
   class ezAudioProxyComponent* m_pProxyComponent{nullptr};
 };
@@ -66,7 +68,10 @@ ezAudioSystemComponentManager<T>::ezAudioSystemComponentManager(ezWorld* pWorld)
 template <typename T>
 void ezAudioSystemComponentManager<T>::Initialize()
 {
-  auto desc = ezWorldModule::UpdateFunctionDesc(ezWorldModule::UpdateFunction(&ezAudioSystemComponentManager<T>::Update, this), "ezAudioSystemComponentManager::Update");
+  ezStringBuilder functionName;
+  UpdateFunctionName(functionName);
+
+  auto desc = ezWorldModule::UpdateFunctionDesc(ezWorldModule::UpdateFunction(&ezAudioSystemComponentManager<T>::Update, this), functionName);
   desc.m_bOnlyUpdateWhenSimulating = true;
   desc.m_Phase = ezWorldModule::UpdateFunctionDesc::Phase::PostTransform; // Should we apply entity transform after game object transform?
 
@@ -83,5 +88,27 @@ void ezAudioSystemComponentManager<T>::Update(const ezWorldModule::UpdateContext
     {
       pComponent->Update();
     }
+  }
+}
+
+// static
+template <typename T>
+void ezAudioSystemComponentManager<T>::UpdateFunctionName(ezStringBuilder& out_sName)
+{
+  ezStringView sName(EZ_SOURCE_FUNCTION);
+  const char* szEnd = sName.FindSubString(",");
+
+  if (szEnd != nullptr && sName.StartsWith("ezAudioSystemComponentManager<class "))
+  {
+    ezStringView sChoppedName(sName.GetStartPointer() + ezStringUtils::GetStringElementCount("ezAudioSystemComponentManager<class "), szEnd);
+
+    EZ_ASSERT_DEV(!sChoppedName.IsEmpty(), "Chopped name is empty: '{0}'", sName);
+
+    out_sName = sChoppedName;
+    out_sName.Append("::Update");
+  }
+  else
+  {
+    out_sName = sName;
   }
 }
