@@ -20,14 +20,6 @@ void ezAudioProxyComponent::Initialize()
   request.m_uiEntityId = m_uiEntityId;
   request.m_sName = GetOwner()->GetName();
 
-  request.m_Callback = [](const ezAudioSystemRequestRegisterEntity& m)
-  {
-    if (m.m_eStatus.Failed())
-      return;
-
-    ezLog::Info("[AudioSystem] Registered entity '{0}' in the audio system.", m.m_uiEntityId);
-  };
-
   ezAudioSystem::GetSingleton()->SendRequestSync(request);
 
   ezLog::Info("AudioSystem Component Initialized");
@@ -38,14 +30,6 @@ void ezAudioProxyComponent::Deinitialize()
   ezAudioSystemRequestUnregisterEntity request;
 
   request.m_uiEntityId = m_uiEntityId;
-
-  request.m_Callback = [](const ezAudioSystemRequestUnregisterEntity& m)
-  {
-    if (m.m_eStatus.Failed())
-      return;
-
-    ezLog::Info("[AudioSystem] Unregistered entity '{0}' in the audio system.", m.m_uiEntityId);
-  };
 
   ezAudioSystem::GetSingleton()->SendRequest(request);
 
@@ -87,7 +71,6 @@ void ezAudioProxyComponent::Update()
     if (m.m_eStatus.Failed())
       return;
 
-    ezLog::Info("[AudioSystem] Updated transform for entity '{0}'.", m.m_uiEntityId);
     m_LastTransform = m.m_Transform;
   };
 

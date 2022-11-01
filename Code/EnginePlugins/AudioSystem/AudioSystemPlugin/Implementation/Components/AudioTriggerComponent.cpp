@@ -1,5 +1,6 @@
 #include <AudioSystemPlugin/AudioSystemPluginPCH.h>
 
+#include <AudioSystemPlugin/Components/AudioProxyComponent.h>
 #include <AudioSystemPlugin/Components/AudioTriggerComponent.h>
 #include <AudioSystemPlugin/Core/AudioSystem.h>
 #include <AudioSystemPlugin/Core/AudioSystemRequests.h>
@@ -10,7 +11,7 @@
 constexpr ezTypeVersion kVersion_AudioTriggerComponent = 1;
 
 /// \brief The last used event ID for all audio trigger components.
-static ezAudioSystemDataID s_uiLastEventId = 0;
+static ezAudioSystemDataID s_uiNextEventId = 1;
 
 // clang-format off
 EZ_BEGIN_COMPONENT_TYPE(ezAudioTriggerComponent, kVersion_AudioTriggerComponent, ezComponentMode::Static)
@@ -50,8 +51,8 @@ EZ_END_COMPONENT_TYPE;
 ezAudioTriggerComponent::ezAudioTriggerComponent()
   : ezAudioSystemProxyDependentComponent()
   , m_eState(ezAudioSystemTriggerState::Invalid)
-  , m_uiPlayEventId(++s_uiLastEventId)
-  , m_uiStopEventId(++s_uiLastEventId)
+  , m_uiPlayEventId(s_uiNextEventId++)
+  , m_uiStopEventId(s_uiNextEventId++)
   , m_eObstructionType(ezAudioSystemSoundObstructionType::SingleRay)
   , m_bLoadOnInit(false)
   , m_bPlayOnActivate(false)
@@ -296,7 +297,6 @@ void ezAudioTriggerComponent::LoadPlayTrigger(bool bSync)
 
     m_bPlayTriggerLoaded = true;
     m_eState = ezAudioSystemTriggerState::Ready;
-    ezLog::Info("[AudioSystem] Loaded Play Trigger '{0}'.", m_sPlayTrigger);
   };
 
   if (bSync)
@@ -329,7 +329,6 @@ void ezAudioTriggerComponent::LoadStopTrigger(bool bSync)
       return;
 
     m_bStopTriggerLoaded = true;
-    ezLog::Info("[AudioSystem] Loaded Stop Trigger '{0}'.", m_sStopTrigger);
   };
 
   if (bSync)
@@ -364,7 +363,6 @@ void ezAudioTriggerComponent::UnloadPlayTrigger()
 
     m_bPlayTriggerLoaded = false;
     m_eState = ezAudioSystemTriggerState::Invalid;
-    ezLog::Info("[AudioSystem] Unloaded Play Trigger '{0}'.", m_sPlayTrigger);
   };
 
   ezAudioSystem::GetSingleton()->SendRequest(request);
@@ -386,7 +384,6 @@ void ezAudioTriggerComponent::UnloadStopTrigger()
       return;
 
     m_bStopTriggerLoaded = false;
-    ezLog::Info("[AudioSystem] Unloaded Stop Trigger '{0}'.", m_sStopTrigger);
   };
 
   ezAudioSystem::GetSingleton()->SendRequest(request);
