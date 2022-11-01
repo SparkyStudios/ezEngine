@@ -7,11 +7,13 @@ ezATLTrigger::~ezATLTrigger()
 {
   if (m_mEvents.IsEmpty() == false)
   {
+    auto* pAudioMiddleware = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddleware>();
+
     for (auto it = m_mEvents.GetIterator(); it.IsValid(); ++it)
     {
       ezATLEvent* event = it.Value();
 
-      if (auto* pAudioMiddleware = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddleware>(); pAudioMiddleware != nullptr)
+      if (pAudioMiddleware != nullptr)
       {
         pAudioMiddleware->DestroyEventData(event->m_pEventData).IgnoreResult();
       }

@@ -87,4 +87,31 @@ ezResult ezAudioMiddlewareControlsManager::CreateSwitchStateControl(const char* 
   return EZ_FAILURE;
 }
 
+ezResult ezAudioMiddlewareControlsManager::CreateEnvironmentControl(const char* szControlName, const ezAudioSystemEnvironmentData* pControlData)
+{
+  ezStringBuilder sbOutputFile;
+  sbOutputFile.Format(":atl/Environments/{0}.ezAudioSystemControl", szControlName);
+
+  ezStringBuilder sbAssetPath;
+  if (ezFileSystem::ResolvePath(sbOutputFile, &sbAssetPath, nullptr).Failed())
+    return EZ_FAILURE;
+
+  ezFileWriter file;
+  if (file.Open(sbAssetPath, 256).Failed())
+    return EZ_FAILURE;
+
+  // Set the control type
+  file << ezAudioSystemControlType::Environment;
+
+  // Serialize the trigger data. This method is implemented by the audio middleware.
+  if (SerializeEnvironmentControl(&file, pControlData).Succeeded())
+  {
+    file.Close();
+    return EZ_SUCCESS;
+  }
+
+  file.Close();
+  return EZ_FAILURE;
+}
+
 EZ_STATICLINK_FILE(SharedPluginAudioSystem, SharedPluginAudioSystem_Middleware_AudioMiddlewareControlsManager);

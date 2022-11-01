@@ -6,6 +6,12 @@
 
 typedef ezAudioSystemComponentManager<class ezAudioProxyComponent> ezAudioProxyComponentManager;
 
+struct ezAudioProxyEnvironmentAmounts
+{
+  float m_fNextAmount{0.0f};
+  float m_fPreviousAmount{0.0f};
+};
+
 class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioProxyComponent : public ezAudioSystemComponent
 {
   EZ_DECLARE_COMPONENT_TYPE(ezAudioProxyComponent, ezAudioSystemComponent, ezAudioProxyComponentManager);
@@ -43,4 +49,5 @@ private:
   ezUInt32 m_uiRefCount{0};
 
   ezAudioSystemTransform m_LastTransform;
+  ezMap<ezAudioSystemDataID, ezAudioProxyEnvironmentAmounts, ezCompareHelper<ezAudioSystemDataID>, ezAudioSystemAllocatorWrapper> m_mEnvironmentAmounts;
 };

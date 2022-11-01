@@ -16,6 +16,24 @@ EZ_END_ABSTRACT_COMPONENT_TYPE;
 
 EZ_BEGIN_ABSTRACT_COMPONENT_TYPE(ezAudioSystemProxyDependentComponent, 1)
 EZ_END_ABSTRACT_COMPONENT_TYPE;
+
+EZ_BEGIN_ABSTRACT_COMPONENT_TYPE(ezAudioSystemEnvironmentComponent, 1)
+{
+  EZ_BEGIN_ATTRIBUTES
+  {
+    new ezSphereManipulatorAttribute("MaxDistance"),
+  }
+  EZ_END_ATTRIBUTES;
+
+  EZ_BEGIN_PROPERTIES
+  {
+    EZ_MEMBER_PROPERTY("Environment", m_sEnvironmentName),
+    EZ_ACCESSOR_PROPERTY("MaxDistance", GetMaxDistance, SetMaxDistance)->AddAttributes(new ezDefaultValueAttribute(1.0f), new ezClampValueAttribute(0.01f, ezVariant()), new ezSuffixAttribute(" m")),
+    EZ_MEMBER_PROPERTY("Color", m_ShapeColor),
+  }
+  EZ_END_PROPERTIES;
+}
+EZ_END_ABSTRACT_COMPONENT_TYPE;
 // clang-format on
 
 void ezAudioSystemProxyDependentComponent::Initialize()
@@ -65,5 +83,36 @@ ezAudioSystemDataID ezAudioSystemProxyDependentComponent::GetEntityId() const
 
   return m_pProxyComponent->GetEntityId();
 }
+
+ezAudioSystemEnvironmentComponent::ezAudioSystemEnvironmentComponent()
+  : ezAudioSystemProxyDependentComponent()
+  , m_fMaxDistance(1)
+{
+}
+
+void ezAudioSystemEnvironmentComponent::OnActivated()
+{
+  SUPER::OnActivated();
+
+  GetWorld()->GetOrCreateModule<ezAudioWorldModule>()->AddEnvironment(this);
+}
+
+void ezAudioSystemEnvironmentComponent::OnDeactivated()
+{
+  GetWorld()->GetOrCreateModule<ezAudioWorldModule>()->RemoveEnvironment(this);
+
+  SUPER::OnDeactivated();
+}
+
+float ezAudioSystemEnvironmentComponent::GetMaxDistance() const
+{
+  return m_fMaxDistance;
+}
+
+void ezAudioSystemEnvironmentComponent::SetMaxDistance(float fFadeDistance)
+{
+  m_fMaxDistance = fFadeDistance;
+}
+
 
 EZ_STATICLINK_FILE(AudioSystemPlugin, AudioSystemPlugin_Implementation_Components_AudioSystemComponent);

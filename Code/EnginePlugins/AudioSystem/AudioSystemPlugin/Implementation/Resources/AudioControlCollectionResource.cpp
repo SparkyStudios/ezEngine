@@ -127,6 +127,9 @@ void ezAudioControlCollectionResource::Register()
       case ezAudioSystemControlType::SwitchState:
         pAudioSystem->RegisterSwitchState(entry.m_sName, &reader);
         break;
+      case ezAudioSystemControlType::Environment:
+        pAudioSystem->RegisterEnvironment(entry.m_sName, &reader);
+        break;
     }
   }
 }

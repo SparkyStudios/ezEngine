@@ -151,6 +151,20 @@ EZ_DEFINE_AUDIOSYSTEM_STREAM_OPERATORS_SIMPLE(ezAudioSystemRequestSetSwitchState
 EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestSetSwitchState, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestSetSwitchState>)
 EZ_END_STATIC_REFLECTED_TYPE;
 
+EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestSetEnvironmentAmount);
+EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestSetEnvironmentAmount, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestSetEnvironmentAmount>)
+EZ_END_STATIC_REFLECTED_TYPE;
+void operator<<(ezStreamWriter& Stream, const ezAudioSystemRequestSetEnvironmentAmount& Value)
+{
+  Stream << static_cast<const ezAudioSystemRequest&>(Value);
+  Stream << Value.m_fAmount;
+}
+void operator>>(ezStreamReader& Stream, ezAudioSystemRequestSetEnvironmentAmount& Value)
+{
+  Stream >> static_cast<ezAudioSystemRequest&>(Value);
+  Stream >> Value.m_fAmount;
+}
+
 EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestShutdown);
 EZ_DEFINE_AUDIOSYSTEM_STREAM_OPERATORS_SIMPLE(ezAudioSystemRequestShutdown);
 EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestShutdown, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestShutdown>)

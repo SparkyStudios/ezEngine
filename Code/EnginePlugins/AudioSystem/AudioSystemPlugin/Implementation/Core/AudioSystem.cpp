@@ -378,12 +378,59 @@ void ezAudioSystem::RegisterSwitchState(const char* szSwitchStateName, ezStreamR
   ezAudioSystemSwitchStateData* pSwitchStateData = pAudioMiddleware->DeserializeSwitchStateEntry(pStreamReader);
   if (pSwitchStateData == nullptr)
   {
-    ezLog::Error("Unable to register a rtpc in the audio system: Could not deserialize control.");
+    ezLog::Error("Unable to register a switch state in the audio system: Could not deserialize control.");
     return;
   }
 
-  const ezUInt32 uiRtpcId = ezHashHelper<const char*>::Hash(szSwitchStateName);
-  m_AudioTranslationLayer.RegisterSwitchState(uiRtpcId, pSwitchStateData);
+  const ezUInt32 uiSwitchStateId = ezHashHelper<const char*>::Hash(szSwitchStateName);
+  m_AudioTranslationLayer.RegisterSwitchState(uiSwitchStateId, pSwitchStateData);
+}
+
+void ezAudioSystem::RegisterEnvironment(const char* szEnvironmentName, const char* szControlFile)
+{
+  if (!m_bInitialized)
+    return;
+
+  ezFileReader file;
+  if (!file.Open(szControlFile, 256).Succeeded())
+  {
+    ezLog::Error("Unable to register an environment in the audio system: Could not open control file '{0}'", szControlFile);
+    return;
+  }
+
+  RegisterSwitchState(szEnvironmentName, &file);
+}
+
+void ezAudioSystem::RegisterEnvironment(const char* szEnvironmentName, ezStreamReader* pStreamReader)
+{
+  if (!m_bInitialized)
+    return;
+
+  auto* pAudioMiddleware = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddleware>();
+  if (pAudioMiddleware == nullptr)
+  {
+    ezLog::Error("Unable to register an environment in the audio system: No audio middleware currently running.");
+    return;
+  }
+
+  ezEnum<ezAudioSystemControlType> type;
+  *pStreamReader >> type;
+
+  if (type != ezAudioSystemControlType::Environment)
+  {
+    ezLog::Error("Unable to register an environment in the audio system: The control have an invalid file.");
+    return;
+  }
+
+  ezAudioSystemEnvironmentData* pEnvironmentData = pAudioMiddleware->DeserializeEnvironmentEntry(pStreamReader);
+  if (pEnvironmentData == nullptr)
+  {
+    ezLog::Error("Unable to register an environment in the audio system: Could not deserialize control.");
+    return;
+  }
+
+  const ezUInt32 uiEnvironmentId = ezHashHelper<const char*>::Hash(szEnvironmentName);
+  m_AudioTranslationLayer.RegisterEnvironment(uiEnvironmentId, pEnvironmentData);
 }
 
 ezAudioSystemDataID ezAudioSystem::GetTriggerId(const char* szTriggerName) const
@@ -403,7 +450,7 @@ ezAudioSystemDataID ezAudioSystem::GetSwitchStateId(const char* szSwitchStateNam
 
 ezAudioSystemDataID ezAudioSystem::GetEnvironmentId(const char* szEnvironmentName) const
 {
-  return 0;
+  return m_AudioTranslationLayer.GetEnvironmentId(szEnvironmentName);
 }
 
 ezAudioSystemDataID ezAudioSystem::GetBankId(const char* szBankName) const

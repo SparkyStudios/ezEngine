@@ -121,6 +121,8 @@ private:
   void RegisterRtpc(const char* szRtpcName, ezStreamReader* pStreamReader);
   void RegisterSwitchState(const char* szSwitchStateName, const char* szControlFile);
   void RegisterSwitchState(const char* szSwitchStateName, ezStreamReader* pStreamReader);
+  void RegisterEnvironment(const char* szEnvironmentName, const char* szControlFile);
+  void RegisterEnvironment(const char* szEnvironmentName, ezStreamReader* pStreamReader);
 
   ezAudioThread* m_pAudioThread = nullptr;
   ezAudioTranslationLayer m_AudioTranslationLayer;

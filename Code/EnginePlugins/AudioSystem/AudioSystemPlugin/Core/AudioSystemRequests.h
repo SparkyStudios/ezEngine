@@ -262,6 +262,15 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestSetSwitchState : public ezAu
   EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE_SIMPLE(ezAudioSystemRequestSetSwitchState);
 };
 
+/// \brief Audio request to set the current amount of an environment on the specified entity.
+struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestSetEnvironmentAmount : public ezAudioSystemRequest
+{
+  EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE(ezAudioSystemRequestSetEnvironmentAmount, m_fAmount == rhs.m_fAmount);
+
+  /// \brief The new environment amount.
+  float m_fAmount{0.0f};
+};
+
 /// \brief Audio request to shutdown the audio system. Used internally only. Sending this request
 /// at runtime will lead to unspecified behaviors.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestShutdown : public ezAudioSystemRequest
@@ -284,6 +293,7 @@ EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestStopEvent, ezHashHelper<ezAud
 EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestUnloadTrigger);
 EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestSetRtpcValue, ezHashHelper<ezInt32>::Hash(ezMath::FloatToInt(value.m_fValue * 1000.0f)));
 EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestSetSwitchState);
+EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestSetEnvironmentAmount, ezHashHelper<ezInt32>::Hash(value.m_fAmount));
 EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestShutdown);
 
 /// \brief A functor used by ezVariant to call an audio request callback.
@@ -352,6 +362,10 @@ struct CallRequestCallbackFunc
     else if (m_Value.IsA<ezAudioSystemRequestSetSwitchState>())
     {
       Call<ezAudioSystemRequestSetSwitchState>();
+    }
+    else if (m_Value.IsA<ezAudioSystemRequestSetEnvironmentAmount>())
+    {
+      Call<ezAudioSystemRequestSetEnvironmentAmount>();
     }
     else if (m_Value.IsA<ezAudioSystemRequestShutdown>())
     {

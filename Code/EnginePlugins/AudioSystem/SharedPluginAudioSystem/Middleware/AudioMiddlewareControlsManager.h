@@ -19,8 +19,10 @@ protected:
   virtual ezResult SerializeTriggerControl(ezStreamWriter* pStream, const ezAudioSystemTriggerData* pControlData) = 0;
   virtual ezResult SerializeRtpcControl(ezStreamWriter* pStream, const ezAudioSystemRtpcData* pControlData) = 0;
   virtual ezResult SerializeSwitchStateControl(ezStreamWriter* pStream, const ezAudioSystemSwitchStateData* pControlData) = 0;
+  virtual ezResult SerializeEnvironmentControl(ezStreamWriter* pStream, const ezAudioSystemEnvironmentData* pControlData) = 0;
 
   virtual ezResult CreateTriggerControl(const char* szControlName, const ezAudioSystemTriggerData* pControlData);
   virtual ezResult CreateRtpcControl(const char* szControlName, const ezAudioSystemRtpcData* pControlData);
   virtual ezResult CreateSwitchStateControl(const char* szControlName, const ezAudioSystemSwitchStateData* pControlData);
+  virtual ezResult CreateEnvironmentControl(const char* szControlName, const ezAudioSystemEnvironmentData* pControlData);
 };

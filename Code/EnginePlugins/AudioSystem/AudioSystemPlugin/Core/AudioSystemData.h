@@ -5,8 +5,8 @@
 #include <Foundation/Reflection/Reflection.h>
 #include <Foundation/Types/Types.h>
 
-typedef ezUInt64 ezAudioSystemDataID;
-typedef ezUInt64 ezAudioSystemControlID;
+using ezAudioSystemDataID = ezUInt64;
+using ezAudioSystemControlID = ezUInt64;
 
 /// \brief Represents the value which marks an audio system data as invalid.
 /// Valid audio system data should be greater than this number.
@@ -64,7 +64,7 @@ EZ_DECLARE_REFLECTABLE_TYPE(EZ_AUDIOSYSTEMPLUGIN_DLL, ezAudioSystemTransform);
 /// when the audio system is parsing them.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemControlType
 {
-  typedef ezUInt8 StorageType;
+  using StorageType = ezUInt8;
 
   enum Enum : StorageType
   {
@@ -99,7 +99,7 @@ EZ_DECLARE_REFLECTABLE_TYPE(EZ_AUDIOSYSTEMPLUGIN_DLL, ezAudioSystemControlType);
 /// ray casting works for an audio source.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemSoundObstructionType
 {
-  typedef ezUInt8 StorageType;
+  using StorageType = ezUInt8;
 
   enum Enum : StorageType
   {
@@ -128,7 +128,7 @@ EZ_DECLARE_REFLECTABLE_TYPE(EZ_AUDIOSYSTEMPLUGIN_DLL, ezAudioSystemSoundObstruct
 /// \brief The state of an audio trigger.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemTriggerState
 {
-  typedef ezUInt8 StorageType;
+  using StorageType = ezUInt8;
 
   enum Enum : StorageType
   {
@@ -198,7 +198,7 @@ class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemListenerData : public ezReflectedCla
   EZ_ADD_DYNAMIC_REFLECTION(ezAudioSystemListenerData, ezReflectedClass);
 
 public:
-  virtual ~ezAudioSystemListenerData() = default;
+  ~ezAudioSystemListenerData() override = default;
 };
 
 /// \brief Base class for an audio middleware trigger.
@@ -216,7 +216,7 @@ class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRtpcData : public ezReflectedClass
   EZ_ADD_DYNAMIC_REFLECTION(ezAudioSystemRtpcData, ezReflectedClass);
 
 public:
-  virtual ~ezAudioSystemRtpcData() = default;
+  ~ezAudioSystemRtpcData() override = default;
 };
 
 /// \brief Base class for an audio middleware switch state.
@@ -225,13 +225,16 @@ class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemSwitchStateData : public ezReflected
   EZ_ADD_DYNAMIC_REFLECTION(ezAudioSystemSwitchStateData, ezReflectedClass);
 
 public:
-  virtual ~ezAudioSystemSwitchStateData() = default;
+  ~ezAudioSystemSwitchStateData() override = default;
 };
 
 /// \brief Base class for an audio middleware environment.
-struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemEnvironmentData
+class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemEnvironmentData : public ezReflectedClass
 {
-  virtual ~ezAudioSystemEnvironmentData() = default;
+  EZ_ADD_DYNAMIC_REFLECTION(ezAudioSystemEnvironmentData, ezReflectedClass);
+
+public:
+  ~ezAudioSystemEnvironmentData() override = default;
 };
 
 /// \brief Base class for an audio middleware event.
@@ -239,7 +242,7 @@ class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemEventData : public ezReflectedClass
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezAudioSystemEventData, ezReflectedClass);
 
-  virtual ~ezAudioSystemEventData() = default;
+  ~ezAudioSystemEventData() override = default;
 };
 
 /// \brief Base class for an audio middleware source.

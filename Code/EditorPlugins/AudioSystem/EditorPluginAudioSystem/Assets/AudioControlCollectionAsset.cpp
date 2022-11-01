@@ -29,6 +29,9 @@ EZ_END_DYNAMIC_REFLECTED_TYPE;
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAssetSwitchEntry, 1, ezRTTIDefaultAllocator<ezAudioControlCollectionAssetSwitchEntry>)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAssetEnvironmentEntry, 1, ezRTTIDefaultAllocator<ezAudioControlCollectionAssetEnvironmentEntry>)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAsset, 2, ezRTTIDefaultAllocator<ezAudioControlCollectionAsset>)
 {
   EZ_BEGIN_PROPERTIES
@@ -36,6 +39,7 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAsset, 2, ezRTTIDefaultA
     EZ_ARRAY_MEMBER_PROPERTY("Triggers", m_TriggerEntries),
     EZ_ARRAY_MEMBER_PROPERTY("RTPCs", m_RtpcEntries),
     EZ_ARRAY_MEMBER_PROPERTY("SwitchStates", m_SwitchEntries),
+    EZ_ARRAY_MEMBER_PROPERTY("Environments", m_EnvironmentEntries),
   }
   EZ_END_PROPERTIES;
 }
@@ -60,6 +64,11 @@ ezAudioControlCollectionAssetRtpcEntry::ezAudioControlCollectionAssetRtpcEntry()
 ezAudioControlCollectionAssetSwitchEntry::ezAudioControlCollectionAssetSwitchEntry()
 {
   m_Type = ezAudioSystemControlType::SwitchState;
+}
+
+ezAudioControlCollectionAssetEnvironmentEntry::ezAudioControlCollectionAssetEnvironmentEntry()
+{
+  m_Type = ezAudioSystemControlType::Environment;
 }
 
 ezAudioControlCollectionAssetDocument::ezAudioControlCollectionAssetDocument(const char* szDocumentPath)
@@ -90,6 +99,12 @@ void ezAudioControlCollectionAssetDocument::UpdateAssetDocumentInfo(ezAssetDocum
     if (!e.m_sControlFile.IsEmpty())
       pInfo->m_AssetTransformDependencies.Insert(e.m_sControlFile);
   }
+
+  for (const auto& e : pProp->m_EnvironmentEntries)
+  {
+    if (!e.m_sControlFile.IsEmpty())
+      pInfo->m_AssetTransformDependencies.Insert(e.m_sControlFile);
+  }
 }
 
 ezStatus ezAudioControlCollectionAssetDocument::InternalTransformAsset(ezStreamWriter& stream, const char* szOutputTag, const ezPlatformProfile* pAssetProfile, const ezAssetFileHeader& AssetHeader, ezBitflags<ezTransformFlags> transformFlags)
@@ -113,6 +128,12 @@ ezStatus ezAudioControlCollectionAssetDocument::InternalTransformAsset(ezStreamW
   for (auto& e : pProp->m_SwitchEntries)
   {
     e.m_Type = ezAudioSystemControlType::SwitchState;
+    TransformAssetEntry(e, descriptor).IgnoreResult();
+  }
+
+  for (auto& e : pProp->m_EnvironmentEntries)
+  {
+    e.m_Type = ezAudioSystemControlType::Environment;
     TransformAssetEntry(e, descriptor).IgnoreResult();
   }
 

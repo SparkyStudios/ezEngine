@@ -40,6 +40,7 @@ protected:
   virtual void ezAudioSystemComponentIsAbstract() = 0;
 };
 
+/// \brief Base class for audio system components that depends on an audio proxy component.
 class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemProxyDependentComponent : public ezAudioSystemComponent
 {
   EZ_DECLARE_ABSTRACT_COMPONENT_TYPE(ezAudioSystemProxyDependentComponent, ezAudioSystemComponent);
@@ -57,6 +58,37 @@ protected:
   [[nodiscard]] ezAudioSystemDataID GetEntityId() const;
 
   class ezAudioProxyComponent* m_pProxyComponent{nullptr};
+};
+
+/// \brief Base class for audio system environment components.
+class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemEnvironmentComponent : public ezAudioSystemProxyDependentComponent
+{
+  EZ_DECLARE_ABSTRACT_COMPONENT_TYPE(ezAudioSystemEnvironmentComponent, ezAudioSystemProxyDependentComponent);
+
+  // ezAudioSystemEnvironmentComponent
+
+public:
+  ezAudioSystemEnvironmentComponent();
+
+  void OnActivated() override;
+  void OnDeactivated() override;
+
+  [[nodiscard]] virtual ezAudioSystemDataID GetEnvironmentId() const = 0;
+
+  [[nodiscard]] virtual float GetEnvironmentAmount(ezAudioProxyComponent* pProxyComponent) const = 0;
+
+  /// \brief Gets the distance from the sphere's origin
+  /// at which the environment amount will slightly start to decrease.
+  [[nodiscard]] virtual float GetMaxDistance() const;
+
+  /// \brief Sets the distance from the sphere's origin at which
+  /// the environment amount will slightly start to decrease.
+  virtual void SetMaxDistance(float fFadeDistance);
+
+protected:
+  float m_fMaxDistance;
+  ezString m_sEnvironmentName;
+  ezColor m_ShapeColor;
 };
 
 template <typename T>

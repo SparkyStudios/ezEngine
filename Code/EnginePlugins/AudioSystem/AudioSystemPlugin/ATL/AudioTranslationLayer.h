@@ -29,6 +29,8 @@ public:
 
   ezAudioSystemDataID GetSwitchStateId(const char* szSwitchStateName) const;
 
+  ezAudioSystemDataID GetEnvironmentId(const char* szEnvironmentName) const;
+
 private:
   friend class ezAudioSystem;
 
@@ -37,15 +39,17 @@ private:
   void RegisterTrigger(ezAudioSystemDataID uiId, ezAudioSystemTriggerData* pTriggerData);
   void RegisterRtpc(ezAudioSystemDataID uiId, ezAudioSystemRtpcData* pRtpcData);
   void RegisterSwitchState(ezAudioSystemDataID uiId, ezAudioSystemSwitchStateData* pSwitchStateData);
+  void RegisterEnvironment(ezAudioSystemDataID uiId, ezAudioSystemEnvironmentData* pEnvironmentData);
 
   void UnregisterEntity(ezAudioSystemDataID uiId);
   void UnregisterListener(ezAudioSystemDataID uiId);
   void UnregisterTrigger(ezAudioSystemDataID uiId);
   void UnregisterRtpc(ezAudioSystemDataID uiId);
   void UnregisterSwitchState(ezAudioSystemDataID uiId);
+  void UnregisterEnvironment(ezAudioSystemDataID uiId);
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-  void DebugRender();
+  void DebugRender() const;
 #endif
 
   // ATLObject containers
@@ -54,8 +58,8 @@ private:
   ezATLTriggerLookup m_mTriggers;
   ezATLRtpcLookup m_mRtpcs;
   ezATLSwitchStateLookup m_mSwitchStates;
+  ezATLEnvironmentLookup m_mEnvironments;
   // ezATLBanksLookup m_mBanks;
-  // ezATLEnvironmentLookup m_mEnvironments;
 
   ezTime m_LastUpdateTime;
   ezTime m_LastFrameTime;

@@ -142,6 +142,18 @@ ezAudioSystemDataID ezAudioTranslationLayer::GetSwitchStateId(const char* szSwit
   return 0;
 }
 
+ezAudioSystemDataID ezAudioTranslationLayer::GetEnvironmentId(const char* szEnvironmentName) const
+{
+  const auto uiEnvironmentId = ezHashHelper<const char*>::Hash(szEnvironmentName);
+
+  if (const auto it = m_mEnvironments.Find(uiEnvironmentId); it.IsValid())
+  {
+    return uiEnvironmentId;
+  }
+
+  return 0;
+}
+
 void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
 {
   if (m_pAudioMiddleware == nullptr)
@@ -404,12 +416,42 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     needCallback = audioRequest.m_Callback.IsValid();
   }
 
+  else if (request.IsA<ezAudioSystemRequestSetEnvironmentAmount>())
+  {
+    auto& audioRequest = request.GetWritable<ezAudioSystemRequestSetEnvironmentAmount>();
+
+    if (!m_mEntities.Contains(audioRequest.m_uiEntityId))
+    {
+      ezLog::Error("Failed to set environment amount {0}. It references an unregistered entity {1}.", audioRequest.m_uiObjectId, audioRequest.m_uiEntityId);
+      return;
+    }
+
+    if (!m_mEnvironments.Contains(audioRequest.m_uiObjectId))
+    {
+      ezLog::Error("Failed to set environment amount {0}. Make sure it was registered before.", audioRequest.m_uiObjectId);
+      return;
+    }
+
+    const auto& entity = m_mEntities[audioRequest.m_uiEntityId];
+    const auto& environment = m_mEnvironments[audioRequest.m_uiObjectId];
+
+    audioRequest.m_eStatus = m_pAudioMiddleware->SetEnvironmentAmount(entity->m_pEntityData, environment->m_pEnvironmentData, audioRequest.m_fAmount);
+    needCallback = audioRequest.m_Callback.IsValid();
+  }
+
   else if (request.IsA<ezAudioSystemRequestShutdown>())
   {
     auto& audioRequest = request.GetWritable<ezAudioSystemRequestShutdown>();
 
+    // Destroy environments
+    for (auto&& environment : m_mEnvironments)
+    {
+      m_pAudioMiddleware->DestroyEnvironmentData(environment.Value()->m_pEnvironmentData).IgnoreResult();
+      EZ_AUDIOSYSTEM_DELETE(environment.Value());
+    }
+
     // Destroy switch states
-    for (auto && switchState : m_mSwitchStates)
+    for (auto&& switchState : m_mSwitchStates)
     {
       m_pAudioMiddleware->DestroySwitchStateData(switchState.Value()->m_pSwitchStateData).IgnoreResult();
       EZ_AUDIOSYSTEM_DELETE(switchState.Value());
@@ -486,6 +528,17 @@ void ezAudioTranslationLayer::RegisterSwitchState(ezAudioSystemDataID uiId, ezAu
   m_mSwitchStates[uiId] = EZ_AUDIOSYSTEM_NEW(ezATLSwitchState, uiId, pSwitchStateData);
 }
 
+void ezAudioTranslationLayer::RegisterEnvironment(ezAudioSystemDataID uiId, ezAudioSystemEnvironmentData* pEnvironmentData)
+{
+  if (m_mEnvironments.Contains(uiId))
+  {
+    ezLog::Warning("ATL: Environment with id {0} already exists. Skipping new registration.", uiId);
+    return;
+  }
+
+  m_mEnvironments[uiId] = EZ_AUDIOSYSTEM_NEW(ezATLEnvironment, uiId, pEnvironmentData);
+}
+
 void ezAudioTranslationLayer::UnregisterEntity(const ezAudioSystemDataID uiId)
 {
   if (!m_mEntities.Contains(uiId))
@@ -531,8 +584,17 @@ void ezAudioTranslationLayer::UnregisterSwitchState(ezAudioSystemDataID uiId)
   m_mSwitchStates.Remove(uiId);
 }
 
+void ezAudioTranslationLayer::UnregisterEnvironment(ezAudioSystemDataID uiId)
+{
+  if (!m_mEnvironments.Contains(uiId))
+    return;
+
+  EZ_AUDIOSYSTEM_DELETE(m_mEnvironments[uiId]);
+  m_mEnvironments.Remove(uiId);
+}
+
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-void ezAudioTranslationLayer::DebugRender()
+void ezAudioTranslationLayer::DebugRender() const
 {
   static ezTime tAccumTime;
   static ezTime tDisplayedFrameTime = m_LastFrameTime;
@@ -561,6 +623,9 @@ void ezAudioTranslationLayer::DebugRender()
     if (const ezView* pView = ezRenderWorld::GetViewByUsageHint(ezCameraUsageHint::MainView, ezCameraUsageHint::EditorView))
     {
       ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugRenderer::ScreenPlacement::BottomRight, "AudioSystem", ezFmt("ATL ({0}) - {1} fps, {2} ms", pAudioMiddleware->GetMiddlewareName(), uiFPS, ezArgF(tDisplayedFrameTime.GetMilliseconds(), 1, false, 4)));
+      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugRenderer::ScreenPlacement::BottomRight, "AudioSystem", ezFmt("Entities Count: {0}", m_mEntities.GetCount()));
+      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugRenderer::ScreenPlacement::BottomRight, "AudioSystem", ezFmt("Listeners Count: {0}", m_mListeners.GetCount()));
+      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugRenderer::ScreenPlacement::BottomRight, "AudioSystem", ezFmt("Total Allocated Memory: {0}Mb", (ezAudioSystemAllocator::GetSingleton()->GetStats().m_uiAllocationSize + ezAudioMiddlewareAllocator::GetSingleton()->GetStats().m_uiAllocationSize) / 1048576.0f));
     }
   }
 }
