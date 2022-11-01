@@ -27,6 +27,8 @@ public:
 
   ezAudioSystemDataID GetRtpcId(const char* szRtpcName) const;
 
+  ezAudioSystemDataID GetSwitchStateId(const char* szSwitchStateName) const;
+
 private:
   friend class ezAudioSystem;
 
@@ -34,11 +36,13 @@ private:
 
   void RegisterTrigger(ezAudioSystemDataID uiId, ezAudioSystemTriggerData* pTriggerData);
   void RegisterRtpc(ezAudioSystemDataID uiId, ezAudioSystemRtpcData* pRtpcData);
+  void RegisterSwitchState(ezAudioSystemDataID uiId, ezAudioSystemSwitchStateData* pSwitchStateData);
 
   void UnregisterEntity(ezAudioSystemDataID uiId);
   void UnregisterListener(ezAudioSystemDataID uiId);
   void UnregisterTrigger(ezAudioSystemDataID uiId);
   void UnregisterRtpc(ezAudioSystemDataID uiId);
+  void UnregisterSwitchState(ezAudioSystemDataID uiId);
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
   void DebugRender();
@@ -49,7 +53,7 @@ private:
   ezATLListenerLookup m_mListeners;
   ezATLTriggerLookup m_mTriggers;
   ezATLRtpcLookup m_mRtpcs;
-  // ezATLSwitchLookup m_mSwitches;
+  ezATLSwitchStateLookup m_mSwitchStates;
   // ezATLBanksLookup m_mBanks;
   // ezATLEnvironmentLookup m_mEnvironments;
 

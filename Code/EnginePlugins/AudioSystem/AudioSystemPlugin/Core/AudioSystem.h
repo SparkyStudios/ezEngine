@@ -89,9 +89,7 @@ public:
 
   ezAudioSystemDataID GetRtpcId(const char* szRtpcName) const;
 
-  ezAudioSystemDataID GetSwitchId(const char* szSwitchName) const;
-
-  ezAudioSystemDataID GetSwitchStateId(ezAudioSystemDataID uiSwitchId, const char* szSwitchStateName) const;
+  ezAudioSystemDataID GetSwitchStateId(const char* szSwitchStateName) const;
 
   ezAudioSystemDataID GetEnvironmentId(const char* szEnvironmentName) const;
 
@@ -119,8 +117,10 @@ private:
 
   void RegisterTrigger(const char* szTriggerName, const char* szControlFile);
   void RegisterTrigger(const char* szTriggerName, ezStreamReader* pStreamReader);
-  void RegisterRtpc(const char* szTriggerName, const char* szControlFile);
+  void RegisterRtpc(const char* szRtpcName, const char* szControlFile);
   void RegisterRtpc(const char* szRtpcName, ezStreamReader* pStreamReader);
+  void RegisterSwitchState(const char* szSwitchStateName, const char* szControlFile);
+  void RegisterSwitchState(const char* szSwitchStateName, ezStreamReader* pStreamReader);
 
   ezAudioThread* m_pAudioThread = nullptr;
   ezAudioTranslationLayer m_AudioTranslationLayer;

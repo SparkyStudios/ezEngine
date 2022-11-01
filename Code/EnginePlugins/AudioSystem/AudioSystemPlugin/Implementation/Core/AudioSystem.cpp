@@ -284,7 +284,7 @@ void ezAudioSystem::RegisterTrigger(const char* szTriggerName, ezStreamReader* p
   ezAudioSystemTriggerData* pTriggerData = pAudioMiddleware->DeserializeTriggerEntry(pStreamReader);
   if (pTriggerData == nullptr)
   {
-    ezLog::Error("Unable to register a trigger in the audio system: Could not deserialize trigger control.");
+    ezLog::Error("Unable to register a trigger in the audio system: Could not deserialize control.");
     return;
   }
 
@@ -292,7 +292,7 @@ void ezAudioSystem::RegisterTrigger(const char* szTriggerName, ezStreamReader* p
   m_AudioTranslationLayer.RegisterTrigger(uiTriggerId, pTriggerData);
 }
 
-void ezAudioSystem::RegisterRtpc(const char* szTriggerName, const char* szControlFile)
+void ezAudioSystem::RegisterRtpc(const char* szRtpcName, const char* szControlFile)
 {
   if (!m_bInitialized)
     return;
@@ -300,11 +300,11 @@ void ezAudioSystem::RegisterRtpc(const char* szTriggerName, const char* szContro
   ezFileReader file;
   if (!file.Open(szControlFile, 256).Succeeded())
   {
-    ezLog::Error("Unable to register a rtpc in the audio system: Could not open trigger control file '{0}'", szControlFile);
+    ezLog::Error("Unable to register a rtpc in the audio system: Could not open control file '{0}'", szControlFile);
     return;
   }
 
-  RegisterRtpc(szTriggerName, &file);
+  RegisterRtpc(szRtpcName, &file);
 }
 
 void ezAudioSystem::RegisterRtpc(const char* szRtpcName, ezStreamReader* pStreamReader)
@@ -331,12 +331,59 @@ void ezAudioSystem::RegisterRtpc(const char* szRtpcName, ezStreamReader* pStream
   ezAudioSystemRtpcData* pSystemRtpcData = pAudioMiddleware->DeserializeRtpcEntry(pStreamReader);
   if (pSystemRtpcData == nullptr)
   {
-    ezLog::Error("Unable to register a rtpc in the audio system: Could not deserialize trigger control.");
+    ezLog::Error("Unable to register a rtpc in the audio system: Could not deserialize control.");
     return;
   }
 
   const ezUInt32 uiRtpcId = ezHashHelper<const char*>::Hash(szRtpcName);
   m_AudioTranslationLayer.RegisterRtpc(uiRtpcId, pSystemRtpcData);
+}
+
+void ezAudioSystem::RegisterSwitchState(const char* szSwitchStateName, const char* szControlFile)
+{
+    if (!m_bInitialized)
+    return;
+
+  ezFileReader file;
+  if (!file.Open(szControlFile, 256).Succeeded())
+  {
+    ezLog::Error("Unable to register a switch state in the audio system: Could not open control file '{0}'", szControlFile);
+    return;
+  }
+
+  RegisterSwitchState(szSwitchStateName, &file);
+}
+
+void ezAudioSystem::RegisterSwitchState(const char* szSwitchStateName, ezStreamReader* pStreamReader)
+{
+  if (!m_bInitialized)
+    return;
+
+  auto* pAudioMiddleware = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddleware>();
+  if (pAudioMiddleware == nullptr)
+  {
+    ezLog::Error("Unable to register a switch state in the audio system: No audio middleware currently running.");
+    return;
+  }
+
+  ezEnum<ezAudioSystemControlType> type;
+  *pStreamReader >> type;
+
+  if (type != ezAudioSystemControlType::SwitchState)
+  {
+    ezLog::Error("Unable to register a switch state in the audio system: The control have an invalid file.");
+    return;
+  }
+
+  ezAudioSystemSwitchStateData* pSwitchStateData = pAudioMiddleware->DeserializeSwitchStateEntry(pStreamReader);
+  if (pSwitchStateData == nullptr)
+  {
+    ezLog::Error("Unable to register a rtpc in the audio system: Could not deserialize control.");
+    return;
+  }
+
+  const ezUInt32 uiRtpcId = ezHashHelper<const char*>::Hash(szSwitchStateName);
+  m_AudioTranslationLayer.RegisterSwitchState(uiRtpcId, pSwitchStateData);
 }
 
 ezAudioSystemDataID ezAudioSystem::GetTriggerId(const char* szTriggerName) const
@@ -349,14 +396,9 @@ ezAudioSystemDataID ezAudioSystem::GetRtpcId(const char* szRtpcName) const
   return m_AudioTranslationLayer.GetRtpcId(szRtpcName);
 }
 
-ezAudioSystemDataID ezAudioSystem::GetSwitchId(const char* szSwitchName) const
+ezAudioSystemDataID ezAudioSystem::GetSwitchStateId(const char* szSwitchStateName) const
 {
-  return 0;
-}
-
-ezAudioSystemDataID ezAudioSystem::GetSwitchStateId(ezAudioSystemDataID uiSwitchId, const char* szSwitchStateName) const
-{
-  return 0;
+  return m_AudioTranslationLayer.GetSwitchStateId(szSwitchStateName);
 }
 
 ezAudioSystemDataID ezAudioSystem::GetEnvironmentId(const char* szEnvironmentName) const

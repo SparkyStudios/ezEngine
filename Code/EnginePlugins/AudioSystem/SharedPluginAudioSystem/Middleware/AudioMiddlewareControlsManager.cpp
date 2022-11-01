@@ -6,10 +6,10 @@
 #include <Foundation/IO/FileSystem/FileSystem.h>
 #include <Foundation/IO/FileSystem/FileWriter.h>
 
-ezResult ezAudioMiddlewareControlsManager::CreateTriggerControl(const char* szTriggerName, const ezAudioSystemTriggerData* triggerData)
+ezResult ezAudioMiddlewareControlsManager::CreateTriggerControl(const char* szControlName, const ezAudioSystemTriggerData* pControlData)
 {
   ezStringBuilder sbOutputFile;
-  sbOutputFile.Format(":atl/Triggers/{0}.ezAudioSystemControl", szTriggerName);
+  sbOutputFile.Format(":atl/Triggers/{0}.ezAudioSystemControl", szControlName);
 
   ezStringBuilder sbAssetPath;
   if (ezFileSystem::ResolvePath(sbOutputFile, &sbAssetPath, nullptr).Failed())
@@ -23,7 +23,7 @@ ezResult ezAudioMiddlewareControlsManager::CreateTriggerControl(const char* szTr
   file << ezAudioSystemControlType::Trigger;
 
   // Serialize the trigger data. This method is implemented by the audio middleware.
-  if (SerializeTriggerControl(&file, triggerData).Succeeded())
+  if (SerializeTriggerControl(&file, pControlData).Succeeded())
   {
     file.Close();
     return EZ_SUCCESS;
@@ -33,10 +33,10 @@ ezResult ezAudioMiddlewareControlsManager::CreateTriggerControl(const char* szTr
   return EZ_FAILURE;
 }
 
-ezResult ezAudioMiddlewareControlsManager::CreateRtpcControl(const char* szRtpcName, const ezAudioSystemRtpcData* prtRtpcData)
+ezResult ezAudioMiddlewareControlsManager::CreateRtpcControl(const char* szControlName, const ezAudioSystemRtpcData* pControlData)
 {
   ezStringBuilder sbOutputFile;
-  sbOutputFile.Format(":atl/Rtpcs/{0}.ezAudioSystemControl", szRtpcName);
+  sbOutputFile.Format(":atl/Rtpcs/{0}.ezAudioSystemControl", szControlName);
 
   ezStringBuilder sbAssetPath;
   if (ezFileSystem::ResolvePath(sbOutputFile, &sbAssetPath, nullptr).Failed())
@@ -50,7 +50,34 @@ ezResult ezAudioMiddlewareControlsManager::CreateRtpcControl(const char* szRtpcN
   file << ezAudioSystemControlType::Rtpc;
 
   // Serialize the trigger data. This method is implemented by the audio middleware.
-  if (SerializeRtpcControl(&file, prtRtpcData).Succeeded())
+  if (SerializeRtpcControl(&file, pControlData).Succeeded())
+  {
+    file.Close();
+    return EZ_SUCCESS;
+  }
+
+  file.Close();
+  return EZ_FAILURE;
+}
+
+ezResult ezAudioMiddlewareControlsManager::CreateSwitchStateControl(const char* szControlName, const ezAudioSystemSwitchStateData* pControlData)
+{
+  ezStringBuilder sbOutputFile;
+  sbOutputFile.Format(":atl/SwitchStates/{0}.ezAudioSystemControl", szControlName);
+
+  ezStringBuilder sbAssetPath;
+  if (ezFileSystem::ResolvePath(sbOutputFile, &sbAssetPath, nullptr).Failed())
+    return EZ_FAILURE;
+
+  ezFileWriter file;
+  if (file.Open(sbAssetPath, 256).Failed())
+    return EZ_FAILURE;
+
+  // Set the control type
+  file << ezAudioSystemControlType::SwitchState;
+
+  // Serialize the trigger data. This method is implemented by the audio middleware.
+  if (SerializeSwitchStateControl(&file, pControlData).Succeeded())
   {
     file.Close();
     return EZ_SUCCESS;

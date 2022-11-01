@@ -256,6 +256,12 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestSetRtpcValue : public ezAudi
   float m_fValue{0.0f};
 };
 
+/// \brief Audio request to set the active state of a switch.
+struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestSetSwitchState : public ezAudioSystemRequest
+{
+  EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE_SIMPLE(ezAudioSystemRequestSetSwitchState);
+};
+
 /// \brief Audio request to shutdown the audio system. Used internally only. Sending this request
 /// at runtime will lead to unspecified behaviors.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestShutdown : public ezAudioSystemRequest
@@ -277,6 +283,7 @@ EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestActivateTrigger, ezHashHelper
 EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestStopEvent, ezHashHelper<ezAudioSystemDataID>::Hash(value.m_uiTriggerId));
 EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestUnloadTrigger);
 EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestSetRtpcValue, ezHashHelper<ezInt32>::Hash(ezMath::FloatToInt(value.m_fValue * 1000.0f)));
+EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestSetSwitchState);
 EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestShutdown);
 
 /// \brief A functor used by ezVariant to call an audio request callback.
@@ -341,6 +348,10 @@ struct CallRequestCallbackFunc
     else if (m_Value.IsA<ezAudioSystemRequestSetRtpcValue>())
     {
       Call<ezAudioSystemRequestSetRtpcValue>();
+    }
+    else if (m_Value.IsA<ezAudioSystemRequestSetSwitchState>())
+    {
+      Call<ezAudioSystemRequestSetSwitchState>();
     }
     else if (m_Value.IsA<ezAudioSystemRequestShutdown>())
     {

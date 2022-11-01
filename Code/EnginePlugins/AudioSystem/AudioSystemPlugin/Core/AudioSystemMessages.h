@@ -26,7 +26,15 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezMsgAudioSystemSetSwitchState : public ezMessag
 {
   EZ_DECLARE_MESSAGE_TYPE(ezMsgAudioSystemSetSwitchState, ezMessage);
 
-  ezAudioSystemDataID m_uiStateId{0};
+  ezString m_sSwitchState{};
+  bool m_bSync{false};
+};
+
+struct EZ_AUDIOSYSTEMPLUGIN_DLL ezMsgAudioSystemSwitchStateChanged : public ezEventMessage
+{
+  EZ_DECLARE_MESSAGE_TYPE(ezMsgAudioSystemSwitchStateChanged, ezEventMessage);
+
+  ezString m_sSwitchState{};
 };
 
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezMsgAudioSystemSetEnvironmentAmount : public ezMessage

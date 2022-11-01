@@ -14,6 +14,7 @@ using ezATLListenerLookup = ezATLMapLookup<class ezATLListener>;
 using ezATLTriggerLookup = ezATLMapLookup<class ezATLTrigger>;
 using ezATLEventLookup = ezATLMapLookup<class ezATLEvent>;
 using ezATLRtpcLookup = ezATLMapLookup<class ezATLRtpc>;
+using ezATLSwitchStateLookup = ezATLMapLookup<class ezATLSwitchState>;
 
 class ezATLControl
 {
@@ -118,4 +119,19 @@ public:
   ~ezATLRtpc() override = default;
 
   ezAudioSystemRtpcData* const m_pRtpcData;
+};
+
+class ezATLSwitchState final
+  : public ezATLControl
+{
+public:
+  explicit ezATLSwitchState(const ezAudioSystemDataID uiId, ezAudioSystemSwitchStateData* const pSwitchStateData = nullptr)
+    : ezATLControl(uiId)
+    , m_pSwitchStateData(pSwitchStateData)
+  {
+  }
+
+  ~ezATLSwitchState() override = default;
+
+  ezAudioSystemSwitchStateData* const m_pSwitchStateData;
 };

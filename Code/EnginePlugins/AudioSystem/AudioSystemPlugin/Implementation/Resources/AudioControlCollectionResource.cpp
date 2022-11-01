@@ -124,6 +124,9 @@ void ezAudioControlCollectionResource::Register()
       case ezAudioSystemControlType::Rtpc:
         pAudioSystem->RegisterRtpc(entry.m_sName, &reader);
         break;
+      case ezAudioSystemControlType::SwitchState:
+        pAudioSystem->RegisterSwitchState(entry.m_sName, &reader);
+        break;
     }
   }
 }

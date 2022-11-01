@@ -42,6 +42,37 @@ EZ_END_DYNAMIC_REFLECTED_TYPE;
 
 EZ_IMPLEMENT_MESSAGE_TYPE(ezMsgAudioSystemSetSwitchState);
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezMsgAudioSystemSetSwitchState, 1, ezRTTIDefaultAllocator<ezMsgAudioSystemSetSwitchState>)
+{
+  EZ_BEGIN_PROPERTIES
+  {
+    EZ_MEMBER_PROPERTY("State", m_sSwitchState),
+    EZ_MEMBER_PROPERTY("Sync", m_bSync)->AddAttributes(new ezDefaultValueAttribute(false)),
+  }
+  EZ_END_PROPERTIES;
+
+  EZ_BEGIN_ATTRIBUTES
+  {
+    new ezAutoGenVisScriptMsgSender(),
+  }
+  EZ_END_ATTRIBUTES;
+}
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+
+EZ_IMPLEMENT_MESSAGE_TYPE(ezMsgAudioSystemSwitchStateChanged);
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezMsgAudioSystemSwitchStateChanged, 1, ezRTTIDefaultAllocator<ezMsgAudioSystemSwitchStateChanged>)
+{
+  EZ_BEGIN_PROPERTIES
+  {
+    EZ_MEMBER_PROPERTY("State", m_sSwitchState),
+  }
+  EZ_END_PROPERTIES;
+
+  EZ_BEGIN_ATTRIBUTES
+  {
+    new ezAutoGenVisScriptMsgSender(),
+  }
+  EZ_END_ATTRIBUTES;
+}
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
 EZ_IMPLEMENT_MESSAGE_TYPE(ezMsgAudioSystemSetEnvironmentAmount);

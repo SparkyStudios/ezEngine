@@ -220,8 +220,11 @@ public:
 };
 
 /// \brief Base class for an audio middleware switch state.
-struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemSwitchStateData
+class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemSwitchStateData : public ezReflectedClass
 {
+  EZ_ADD_DYNAMIC_REFLECTION(ezAudioSystemSwitchStateData, ezReflectedClass);
+
+public:
   virtual ~ezAudioSystemSwitchStateData() = default;
 };
 

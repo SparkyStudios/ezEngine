@@ -35,7 +35,7 @@ class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemComponent : public ezComponent
 
   // ezAudioSystemComponent
 
-private:
+protected:
   // Dummy method to hide this component in the editor UI.
   virtual void ezAudioSystemComponentIsAbstract() = 0;
 };

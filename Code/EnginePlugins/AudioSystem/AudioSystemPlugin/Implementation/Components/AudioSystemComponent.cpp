@@ -15,13 +15,6 @@ EZ_BEGIN_ABSTRACT_COMPONENT_TYPE(ezAudioSystemComponent, 1)
 EZ_END_ABSTRACT_COMPONENT_TYPE;
 
 EZ_BEGIN_ABSTRACT_COMPONENT_TYPE(ezAudioSystemProxyDependentComponent, 1)
-{
-  EZ_BEGIN_ATTRIBUTES
-  {
-    new ezHiddenAttribute(),
-  }
-  EZ_END_ATTRIBUTES;
-}
 EZ_END_ABSTRACT_COMPONENT_TYPE;
 // clang-format on
 

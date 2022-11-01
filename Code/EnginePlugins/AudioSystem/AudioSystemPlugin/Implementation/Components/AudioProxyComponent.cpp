@@ -22,7 +22,7 @@ void ezAudioProxyComponent::Initialize()
 
   ezAudioSystem::GetSingleton()->SendRequestSync(request);
 
-  ezLog::Info("AudioSystem Component Initialized");
+  ezLog::Info("Audio Proxy Component Initialized ({0})", m_uiEntityId);
 }
 
 void ezAudioProxyComponent::Deinitialize()
