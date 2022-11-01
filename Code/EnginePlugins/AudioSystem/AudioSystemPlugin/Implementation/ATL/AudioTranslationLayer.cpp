@@ -12,9 +12,9 @@
 #  include <RendererCore/Debug/DebugRenderer.h>
 #  include <RendererCore/Pipeline/View.h>
 #  include <RendererCore/RenderWorld/RenderWorld.h>
-#endif
 
 ezCVarBool cvar_AudioSystemDebug("Audio.Debugging.Enable", false, ezCVarFlags::None, "Defines if Audio System debug information are displayed.");
+#endif
 
 ezAudioTranslationLayer::ezAudioTranslationLayer()
 {
