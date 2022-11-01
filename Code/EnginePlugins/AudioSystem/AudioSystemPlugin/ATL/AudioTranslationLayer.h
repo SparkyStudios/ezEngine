@@ -3,6 +3,7 @@
 #include <AudioSystemPlugin/AudioSystemPluginDLL.h>
 
 #include <AudioSystemPlugin/ATL/AudioTranslationLayerData.h>
+#include <AudioSystemPlugin/Core/AudioMiddleware.h>
 #include <AudioSystemPlugin/Core/AudioSystemRequests.h>
 #include <AudioSystemPlugin/Core/AudioThread.h>
 
@@ -32,7 +33,12 @@ private:
   void ProcessRequest(ezVariant&& request);
 
   void RegisterTrigger(ezAudioSystemDataID uiId, ezAudioSystemTriggerData* pTriggerData);
-  void RegisterRtpc(ezAudioSystemDataID uiId, ezAudioSystemRtpcData* pTriggerData);
+  void RegisterRtpc(ezAudioSystemDataID uiId, ezAudioSystemRtpcData* pRtpcData);
+
+  void UnregisterEntity(ezAudioSystemDataID uiId);
+  void UnregisterListener(ezAudioSystemDataID uiId);
+  void UnregisterTrigger(ezAudioSystemDataID uiId);
+  void UnregisterRtpc(ezAudioSystemDataID uiId);
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
   void DebugRender();
@@ -49,4 +55,6 @@ private:
 
   ezTime m_LastUpdateTime;
   ezTime m_LastFrameTime;
+
+  ezAudioMiddleware* m_pAudioMiddleware{nullptr};
 };

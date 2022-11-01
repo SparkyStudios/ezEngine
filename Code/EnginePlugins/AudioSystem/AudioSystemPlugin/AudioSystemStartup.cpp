@@ -19,12 +19,26 @@ EZ_BEGIN_SUBSYSTEM_DECLARATION(AudioSystem, AudioSystemPlugin)
   END_SUBSYSTEM_DEPENDENCIES
   // clang-format on
 
+  ON_BASESYSTEMS_STARTUP
+  {
+    s_pAudioSystemAllocator = EZ_DEFAULT_NEW(ezAudioSystemAllocator);
+    s_pAudioMiddlewareAllocator = EZ_DEFAULT_NEW(ezAudioMiddlewareAllocator, s_pAudioSystemAllocator);
+    s_pAudioSystemSingleton = EZ_DEFAULT_NEW(ezAudioSystem);
+  }
+
   ON_CORESYSTEMS_STARTUP
   {
-    s_pAudioSystemAllocator = new ezAudioSystemAllocator();
-    s_pAudioMiddlewareAllocator = new ezAudioMiddlewareAllocator(s_pAudioSystemAllocator);
-    s_pAudioSystemSingleton = new ezAudioSystem();
+  }
 
+  ON_CORESYSTEMS_SHUTDOWN
+  {
+    EZ_DEFAULT_DELETE(s_pAudioSystemSingleton);
+    EZ_DEFAULT_DELETE(s_pAudioMiddlewareAllocator);
+    EZ_DEFAULT_DELETE(s_pAudioSystemAllocator);
+  }
+
+  ON_HIGHLEVELSYSTEMS_STARTUP
+  {
     // Audio Control Collection Resources
     {
       ezResourceManager::RegisterResourceForAssetType("Audio Control Collection", ezGetStaticRTTI<ezAudioControlCollectionResource>());
@@ -33,24 +47,15 @@ EZ_BEGIN_SUBSYSTEM_DECLARATION(AudioSystem, AudioSystemPlugin)
       const auto hResource = ezResourceManager::CreateResource<ezAudioControlCollectionResource>("AudioControlCollectionMissing", std::move(desc), "Fallback for missing audio control collections.");
       ezResourceManager::SetResourceTypeMissingFallback<ezAudioControlCollectionResource>(hResource);
     }
-  }
 
-  ON_CORESYSTEMS_SHUTDOWN
-  {
-  }
-
-  ON_HIGHLEVELSYSTEMS_STARTUP
-  {
     ezGameApplicationBase::GetGameApplicationBaseInstance()->m_ExecutionEvents.AddEventHandler(&ezAudioSystem::GameApplicationEventHandler);
-
-    ezAudioSystem::GetSingleton()->Startup();
   }
 
   ON_HIGHLEVELSYSTEMS_SHUTDOWN
   {
-    ezAudioSystem::GetSingleton()->Shutdown();
-
     ezGameApplicationBase::GetGameApplicationBaseInstance()->m_ExecutionEvents.RemoveEventHandler(&ezAudioSystem::GameApplicationEventHandler);
+
+    ezAudioControlCollectionResource::CleanupDynamicPluginReferences();
   }
 
 EZ_END_SUBSYSTEM_DECLARATION;

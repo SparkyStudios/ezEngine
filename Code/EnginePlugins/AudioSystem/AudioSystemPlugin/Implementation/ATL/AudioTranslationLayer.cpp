@@ -1,7 +1,6 @@
 #include <AudioSystemPlugin/AudioSystemPluginPCH.h>
 
 #include <AudioSystemPlugin/ATL/AudioTranslationLayer.h>
-#include <AudioSystemPlugin/Core/AudioMiddleware.h>
 #include <AudioSystemPlugin/Core/AudioSystem.h>
 #include <AudioSystemPlugin/Core/AudioSystemAllocator.h>
 
@@ -18,8 +17,6 @@
 ezCVarBool cvar_AudioSystemDebug("Audio.Debugging.Enable", false, ezCVarFlags::None, "Defines if Audio System debug information are displayed.");
 
 ezAudioTranslationLayer::ezAudioTranslationLayer()
-  : m_mEntities()
-  , m_mTriggers()
 {
 }
 
@@ -27,9 +24,9 @@ ezAudioTranslationLayer::~ezAudioTranslationLayer() = default;
 
 ezResult ezAudioTranslationLayer::Startup()
 {
-  auto* pAudioMiddleware = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddleware>();
+  m_pAudioMiddleware = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddleware>();
 
-  if (pAudioMiddleware == nullptr)
+  if (m_pAudioMiddleware == nullptr)
   {
     ezLog::Error("Unable to load the ATL, there is no audio middleware implementation found. Make sure you have enabled an audio middleware plugin.");
     return EZ_FAILURE;
@@ -50,11 +47,11 @@ ezResult ezAudioTranslationLayer::Startup()
 
     while (pChild)
     {
-      if (pChild->IsCustomType("Middleware") && pChild->HasName() && ezStringUtils::Compare(pChild->GetName(), pAudioMiddleware->GetMiddlewareName()) == 0)
+      if (pChild->IsCustomType("Middleware") && pChild->HasName() && ezStringUtils::Compare(pChild->GetName(), m_pAudioMiddleware->GetMiddlewareName()) == 0)
       {
         ezLog::Debug("Loading audio middleware configuration for {}...", pChild->GetName());
 
-        if (pAudioMiddleware->LoadConfiguration(*pChild).Failed())
+        if (m_pAudioMiddleware->LoadConfiguration(*pChild).Failed())
           ezLog::Error("Failed to load configuration for audio middleware: {0}.", pChild->GetName());
 
         break;
@@ -65,11 +62,11 @@ ezResult ezAudioTranslationLayer::Startup()
   }
 
   // Start the audio middleware
-  const ezResult result = pAudioMiddleware->Startup();
+  const ezResult result = m_pAudioMiddleware->Startup();
 
   if (result.Succeeded())
   {
-    ezLog::Success("ATL loaded successfully. Using {0} as the audio middleware.", pAudioMiddleware->GetMiddlewareName());
+    ezLog::Success("ATL loaded successfully. Using {0} as the audio middleware.", m_pAudioMiddleware->GetMiddlewareName());
     return EZ_SUCCESS;
   }
 
@@ -79,6 +76,16 @@ ezResult ezAudioTranslationLayer::Startup()
 
 void ezAudioTranslationLayer::Shutdown()
 {
+  if (m_pAudioMiddleware != nullptr)
+    m_pAudioMiddleware->Shutdown().IgnoreResult();
+
+  m_pAudioMiddleware = nullptr;
+
+  m_mEntities.Clear();
+  m_mListeners.Clear();
+  m_mTriggers.Clear();
+  m_mRtpcs.Clear();
+
   ezLog::Info("ATL unloaded");
 }
 
@@ -101,9 +108,9 @@ void ezAudioTranslationLayer::Update()
 ezAudioSystemDataID ezAudioTranslationLayer::GetTriggerId(const char* szTriggerName) const
 {
   const auto uiTriggerId = ezHashHelper<const char*>::Hash(szTriggerName);
+
   if (const auto it = m_mTriggers.Find(uiTriggerId); it.IsValid())
   {
-    ezLog::Info("Found trigger {0}: {1}", szTriggerName, uiTriggerId);
     return uiTriggerId;
   }
 
@@ -113,9 +120,9 @@ ezAudioSystemDataID ezAudioTranslationLayer::GetTriggerId(const char* szTriggerN
 ezAudioSystemDataID ezAudioTranslationLayer::GetRtpcId(const char* szRtpcName) const
 {
   const auto uiRtpcId = ezHashHelper<const char*>::Hash(szRtpcName);
+
   if (const auto it = m_mRtpcs.Find(uiRtpcId); it.IsValid())
   {
-    ezLog::Info("Found rtpc {0}: {1}", szRtpcName, uiRtpcId);
     return uiRtpcId;
   }
 
@@ -124,9 +131,7 @@ ezAudioSystemDataID ezAudioTranslationLayer::GetRtpcId(const char* szRtpcName) c
 
 void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
 {
-  auto* pAudioMiddleware = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddleware>();
-
-  if (pAudioMiddleware == nullptr)
+  if (m_pAudioMiddleware == nullptr)
     return;
 
   bool needCallback = false;
@@ -134,7 +139,7 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
   if (request.IsA<ezAudioSystemRequestRegisterEntity>())
   {
     auto& audioRequest = request.GetWritable<ezAudioSystemRequestRegisterEntity>();
-    ezAudioSystemEntityData* entity = pAudioMiddleware->CreateEntityData(audioRequest.m_uiEntityId);
+    ezAudioSystemEntityData* entity = m_pAudioMiddleware->CreateEntityData(audioRequest.m_uiEntityId);
 
     if (entity == nullptr)
     {
@@ -143,7 +148,7 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     }
 
     m_mEntities[audioRequest.m_uiEntityId] = EZ_AUDIOSYSTEM_NEW(ezATLEntity, audioRequest.m_uiEntityId, entity);
-    audioRequest.m_eStatus = pAudioMiddleware->AddEntity(entity, audioRequest.m_sName);
+    audioRequest.m_eStatus = m_pAudioMiddleware->AddEntity(entity, audioRequest.m_sName);
 
     needCallback = audioRequest.m_Callback.IsValid();
   }
@@ -159,7 +164,7 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     }
 
     const auto& entity = m_mEntities[audioRequest.m_uiEntityId];
-    audioRequest.m_eStatus = pAudioMiddleware->SetEntityTransform(entity->m_pEntityData, audioRequest.m_Transform);
+    audioRequest.m_eStatus = m_pAudioMiddleware->SetEntityTransform(entity->m_pEntityData, audioRequest.m_Transform);
 
     needCallback = audioRequest.m_Callback.IsValid();
   }
@@ -175,8 +180,8 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     }
 
     const auto& entity = m_mEntities[audioRequest.m_uiEntityId];
-    pAudioMiddleware->RemoveEntity(entity->m_pEntityData).IgnoreResult();
-    audioRequest.m_eStatus = pAudioMiddleware->DestroyEntityData(entity->m_pEntityData);
+    m_pAudioMiddleware->RemoveEntity(entity->m_pEntityData).IgnoreResult();
+    audioRequest.m_eStatus = m_pAudioMiddleware->DestroyEntityData(entity->m_pEntityData);
 
     if (audioRequest.m_eStatus.Succeeded())
     {
@@ -190,7 +195,7 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
   else if (request.IsA<ezAudioSystemRequestRegisterListener>())
   {
     auto& audioRequest = request.GetWritable<ezAudioSystemRequestRegisterListener>();
-    ezAudioSystemListenerData* pListenerData = pAudioMiddleware->CreateListenerData(audioRequest.m_uiListenerId);
+    ezAudioSystemListenerData* pListenerData = m_pAudioMiddleware->CreateListenerData(audioRequest.m_uiListenerId);
 
     if (pListenerData == nullptr)
     {
@@ -199,7 +204,7 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     }
 
     m_mListeners[audioRequest.m_uiListenerId] = EZ_AUDIOSYSTEM_NEW(ezATLListener, audioRequest.m_uiListenerId, pListenerData);
-    audioRequest.m_eStatus = pAudioMiddleware->AddListener(pListenerData, audioRequest.m_sName);
+    audioRequest.m_eStatus = m_pAudioMiddleware->AddListener(pListenerData, audioRequest.m_sName);
 
     needCallback = audioRequest.m_Callback.IsValid();
   }
@@ -215,7 +220,7 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     }
 
     const auto& listener = m_mListeners[audioRequest.m_uiListenerId];
-    audioRequest.m_eStatus = pAudioMiddleware->SetListenerTransform(listener->m_pListenerData, audioRequest.m_Transform);
+    audioRequest.m_eStatus = m_pAudioMiddleware->SetListenerTransform(listener->m_pListenerData, audioRequest.m_Transform);
 
     needCallback = audioRequest.m_Callback.IsValid();
   }
@@ -231,8 +236,8 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     }
 
     const auto& listener = m_mListeners[audioRequest.m_uiListenerId];
-    pAudioMiddleware->RemoveListener(listener->m_pListenerData).IgnoreResult();
-    audioRequest.m_eStatus = pAudioMiddleware->DestroyListenerData(listener->m_pListenerData);
+    m_pAudioMiddleware->RemoveListener(listener->m_pListenerData).IgnoreResult();
+    audioRequest.m_eStatus = m_pAudioMiddleware->DestroyListenerData(listener->m_pListenerData);
 
     if (audioRequest.m_eStatus.Succeeded())
     {
@@ -259,7 +264,7 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
       return;
     }
 
-    ezAudioSystemEventData* pEventData = pAudioMiddleware->CreateEventData(audioRequest.m_uiEventId);
+    ezAudioSystemEventData* pEventData = m_pAudioMiddleware->CreateEventData(audioRequest.m_uiEventId);
 
     if (pEventData == nullptr)
     {
@@ -271,7 +276,7 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     const auto& trigger = m_mTriggers[audioRequest.m_uiObjectId];
     trigger->AttachEvent(audioRequest.m_uiEventId, pEventData);
 
-    audioRequest.m_eStatus = pAudioMiddleware->LoadTrigger(entity->m_pEntityData, trigger->m_pTriggerData, pEventData);
+    audioRequest.m_eStatus = m_pAudioMiddleware->LoadTrigger(entity->m_pEntityData, trigger->m_pTriggerData, pEventData);
 
     needCallback = audioRequest.m_Callback.IsValid();
   }
@@ -302,7 +307,7 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
       return;
     }
 
-    audioRequest.m_eStatus = pAudioMiddleware->ActivateTrigger(entity->m_pEntityData, trigger->m_pTriggerData, pEventData);
+    audioRequest.m_eStatus = m_pAudioMiddleware->ActivateTrigger(entity->m_pEntityData, trigger->m_pTriggerData, pEventData);
 
     needCallback = audioRequest.m_Callback.IsValid();
   }
@@ -333,7 +338,7 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
       return;
     }
 
-    audioRequest.m_eStatus = pAudioMiddleware->StopEvent(entity->m_pEntityData, pEventData);
+    audioRequest.m_eStatus = m_pAudioMiddleware->StopEvent(entity->m_pEntityData, pEventData);
 
     needCallback = audioRequest.m_Callback.IsValid();
   }
@@ -359,14 +364,43 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     const auto& entity = m_mEntities[audioRequest.m_uiEntityId];
     const auto& rtpc = m_mRtpcs[audioRequest.m_uiObjectId];
 
-    audioRequest.m_eStatus = pAudioMiddleware->SetRtpc(entity->m_pEntityData, rtpc->m_pRtpcData, audioRequest.m_fValue);
+    audioRequest.m_eStatus = m_pAudioMiddleware->SetRtpc(entity->m_pEntityData, rtpc->m_pRtpcData, audioRequest.m_fValue);
     needCallback = audioRequest.m_Callback.IsValid();
   }
 
   else if (request.IsA<ezAudioSystemRequestShutdown>())
   {
     auto& audioRequest = request.GetWritable<ezAudioSystemRequestShutdown>();
-    audioRequest.m_eStatus = pAudioMiddleware->Shutdown();
+
+    // Destroy rtpcs
+    for (auto&& rtpc : m_mRtpcs)
+    {
+      m_pAudioMiddleware->DestroyRtpcData(rtpc.Value()->m_pRtpcData).IgnoreResult();
+      EZ_AUDIOSYSTEM_DELETE(rtpc.Value());
+    }
+
+    // Destroy triggers
+    for (auto&& trigger : m_mTriggers)
+    {
+      m_pAudioMiddleware->DestroyTriggerData(trigger.Value()->m_pTriggerData).IgnoreResult();
+      EZ_AUDIOSYSTEM_DELETE(trigger.Value());
+    }
+
+    // Destroy listeners
+    for (auto&& listener : m_mListeners)
+    {
+      m_pAudioMiddleware->DestroyListenerData(listener.Value()->m_pListenerData).IgnoreResult();
+      EZ_AUDIOSYSTEM_DELETE(listener.Value());
+    }
+
+    // Destroy entities
+    for (auto&& entity : m_mEntities)
+    {
+      m_pAudioMiddleware->DestroyEntityData(entity.Value()->m_pEntityData).IgnoreResult();
+      EZ_AUDIOSYSTEM_DELETE(entity.Value());
+    }
+
+    audioRequest.m_eStatus = {EZ_SUCCESS};
     needCallback = audioRequest.m_Callback.IsValid();
   }
 
@@ -384,11 +418,10 @@ void ezAudioTranslationLayer::RegisterTrigger(ezAudioSystemDataID uiId, ezAudioS
     return;
   }
 
-  ezLog::Info("ATL: Registering a trigger with id {0}", uiId);
   m_mTriggers[uiId] = EZ_AUDIOSYSTEM_NEW(ezATLTrigger, uiId, pTriggerData);
 }
 
-void ezAudioTranslationLayer::RegisterRtpc(ezAudioSystemDataID uiId, ezAudioSystemRtpcData* pTriggerData)
+void ezAudioTranslationLayer::RegisterRtpc(ezAudioSystemDataID uiId, ezAudioSystemRtpcData* pRtpcData)
 {
   if (m_mRtpcs.Contains(uiId))
   {
@@ -396,8 +429,43 @@ void ezAudioTranslationLayer::RegisterRtpc(ezAudioSystemDataID uiId, ezAudioSyst
     return;
   }
 
-  ezLog::Info("ATL: Registering a rtpc with id {0}", uiId);
-  m_mRtpcs[uiId] = EZ_AUDIOSYSTEM_NEW(ezATLRtpc, uiId, pTriggerData);
+  m_mRtpcs[uiId] = EZ_AUDIOSYSTEM_NEW(ezATLRtpc, uiId, pRtpcData);
+}
+
+void ezAudioTranslationLayer::UnregisterEntity(const ezAudioSystemDataID uiId)
+{
+  if (!m_mEntities.Contains(uiId))
+    return;
+
+  EZ_AUDIOSYSTEM_DELETE(m_mEntities[uiId]);
+  m_mEntities.Remove(uiId);
+}
+
+void ezAudioTranslationLayer::UnregisterListener(const ezAudioSystemDataID uiId)
+{
+  if (!m_mListeners.Contains(uiId))
+    return;
+
+  EZ_AUDIOSYSTEM_DELETE(m_mListeners[uiId]);
+  m_mListeners.Remove(uiId);
+}
+
+void ezAudioTranslationLayer::UnregisterTrigger(const ezAudioSystemDataID uiId)
+{
+  if (!m_mTriggers.Contains(uiId))
+    return;
+
+  EZ_AUDIOSYSTEM_DELETE(m_mTriggers[uiId]);
+  m_mTriggers.Remove(uiId);
+}
+
+void ezAudioTranslationLayer::UnregisterRtpc(const ezAudioSystemDataID uiId)
+{
+  if (!m_mRtpcs.Contains(uiId))
+    return;
+
+  EZ_AUDIOSYSTEM_DELETE(m_mRtpcs[uiId]);
+  m_mRtpcs.Remove(uiId);
 }
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
