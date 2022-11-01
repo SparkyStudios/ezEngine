@@ -165,6 +165,22 @@ void operator>>(ezStreamReader& Stream, ezAudioSystemRequestSetEnvironmentAmount
   Stream >> Value.m_fAmount;
 }
 
+EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestSetObstructionOcclusion);
+EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestSetObstructionOcclusion, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestSetObstructionOcclusion>)
+EZ_END_STATIC_REFLECTED_TYPE;
+void operator<<(ezStreamWriter& Stream, const ezAudioSystemRequestSetObstructionOcclusion& Value)
+{
+  Stream << static_cast<const ezAudioSystemRequest&>(Value);
+  Stream << Value.m_fObstruction;
+  Stream << Value.m_fOcclusion;
+}
+void operator>>(ezStreamReader& Stream, ezAudioSystemRequestSetObstructionOcclusion& Value)
+{
+  Stream >> static_cast<ezAudioSystemRequest&>(Value);
+  Stream >> Value.m_fObstruction;
+  Stream >> Value.m_fOcclusion;
+}
+
 EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestShutdown);
 EZ_DEFINE_AUDIOSYSTEM_STREAM_OPERATORS_SIMPLE(ezAudioSystemRequestShutdown);
 EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestShutdown, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestShutdown>)

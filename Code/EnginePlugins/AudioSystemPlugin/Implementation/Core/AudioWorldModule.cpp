@@ -6,12 +6,14 @@
 
 // clang-format off
 EZ_IMPLEMENT_WORLD_MODULE(ezAudioWorldModule);
+
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioWorldModule, 1, ezRTTINoAllocator)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 // clang-format on
 
 ezAudioWorldModule::ezAudioWorldModule(ezWorld* pWorld)
   : ezWorldModule(pWorld)
+  , m_pDefaultListener(nullptr)
 {
 }
 
@@ -38,6 +40,16 @@ void ezAudioWorldModule::RemoveEnvironment(const ezAudioSystemEnvironmentCompone
 ezAudioWorldModule::EnvironmentSet::Iterator ezAudioWorldModule::GetEnvironments() const
 {
   return m_lEnvironmentComponents.GetIterator();
+}
+
+void ezAudioWorldModule::SetDefaultListener(const ezAudioListenerComponent* pListener)
+{
+  m_pDefaultListener = pListener;
+}
+
+const ezAudioListenerComponent* ezAudioWorldModule::GetDefaultListener() const
+{
+  return m_pDefaultListener;
 }
 
 EZ_STATICLINK_FILE(AudioSystemPlugin, AudioSystemPlugin_Implementation_Core_AudioWorldModule);

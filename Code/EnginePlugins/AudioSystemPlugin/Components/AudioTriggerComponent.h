@@ -5,7 +5,74 @@
 #include <AudioSystemPlugin/Components/AudioSystemComponent.h>
 #include <AudioSystemPlugin/Core/AudioSystemData.h>
 
-typedef ezComponentManager<class ezAudioTriggerComponent, ezBlockStorageType::FreeList> ezAudioTriggerComponentManager;
+class ezPhysicsWorldModuleInterface;
+
+constexpr ezUInt32 k_MaxOcclusionRaysCount = 32;
+
+class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioTriggerComponentManager : public ezComponentManager<class ezAudioTriggerComponent, ezBlockStorageType::FreeList>
+{
+public:
+  explicit ezAudioTriggerComponentManager(ezWorld* pWorld);
+
+  void Initialize() override;
+  void Deinitialize() override;
+
+private:
+  friend class ezAudioTriggerComponent;
+
+
+  struct ObstructionOcclusionValue
+  {
+    /// \brief The new value target.
+    float m_fTarget;
+
+    /// \brief The current value.
+    float m_fValue;
+
+    /// \brief Gets the current value.
+    EZ_NODISCARD float GetValue() const;
+
+    /// \brief Sets the new value's target.
+    /// \param fTarget The value's target.
+    /// \param bReset Specifies if the value should be reset
+    /// to the new target.
+    void SetTarget(float fTarget, bool bReset = false);
+
+    /// \brief Updates the current value by moving it to the target
+    /// value with a fSmoothFactor speed.
+    /// \param fSmoothFactor The smooth factor, if not defined, will
+    /// use the default one from CVar.
+    void Update(float fSmoothFactor = -1.0f);
+
+    /// \brief Resets the value and target to the given one.
+    /// \param fInitialValue The new initial value.
+    void Reset(float fInitialValue = 0.0f);
+  };
+
+  struct ObstructionOcclusionState
+  {
+    /// \brief The audio trigger component owner of this state
+    ezAudioTriggerComponent* m_pComponent{nullptr};
+
+    ezUInt8 m_uiNextRayIndex{0};
+
+    ObstructionOcclusionValue m_ObstructionValue;
+    ObstructionOcclusionValue m_OcclusionValue;
+
+    ezStaticArray<float, k_MaxOcclusionRaysCount> m_ObstructionRaysValues;
+  };
+
+  ezUInt32 AddObstructionOcclusionState(ezAudioTriggerComponent* pComponent);
+  void RemoveObstructionOcclusionState(ezUInt32 uiIndex);
+  EZ_NODISCARD const ObstructionOcclusionState& GetObstructionOcclusionState(ezUInt32 uiIndex) const { return m_ObstructionOcclusionStates[uiIndex]; }
+
+  void ShootOcclusionRays(ObstructionOcclusionState& state, ezVec3 listenerPos, ezUInt32 uiNumRays, const ezPhysicsWorldModuleInterface* pPhysicsWorldModule);
+  void CastRay(ObstructionOcclusionState& state, ezVec3 sourcePos, ezVec3 direction, ezUInt8 collisionLayer, const ezPhysicsWorldModuleInterface* pPhysicsWorldModule, ezUInt32 rayIndex);
+  void ProcessOcclusion(const ezWorldModule::UpdateContext& context);
+  void Update(const ezWorldModule::UpdateContext& context);
+
+  ezDynamicArray<ObstructionOcclusionState> m_ObstructionOcclusionStates;
+};
 
 /// \brief Audio System Component that triggers an audio event.
 ///
@@ -40,6 +107,13 @@ private:
 public:
   ezAudioTriggerComponent();
   ~ezAudioTriggerComponent() override;
+
+  /// \brief Sets the collision layer on which rays should hit when calculating
+  /// obstruction and occlusion.
+  void SetOcclusionCollisionLayer(ezUInt8 uiCollisionLayer);
+
+  /// \brief Gets the current occlusion collision layer.
+  EZ_NODISCARD ezUInt8 GetOcclusionCollisionLayer() const { return m_uiOcclusionCollisionLayer; }
 
   /// \brief Sets the name of the play trigger. If the provided name is the same than the
   /// current name, nothing will happen.
@@ -108,9 +182,12 @@ public:
 
 private:
   void LoadPlayTrigger(bool bSync);
-  void LoadStopTrigger(bool bSync);
+  void LoadStopTrigger(bool bSync, bool bDeinit);
   void UnloadPlayTrigger(bool bSync, bool bDeinit = false);
   void UnloadStopTrigger(bool bSync, bool bDeinit = false);
+
+  void UpdateOcclusion();
+  void Update();
 
   void StopInternal(bool bSync = false, bool bDeinit = false);
 
@@ -123,6 +200,8 @@ private:
   ezString m_sStopTrigger;
 
   ezEnum<ezAudioSystemSoundObstructionType> m_eObstructionType;
+  ezUInt8 m_uiOcclusionCollisionLayer;
+  ezUInt32 m_uiObstructionOcclusionStateIndex;
 
   bool m_bLoadOnInit;
   bool m_bPlayOnActivate;

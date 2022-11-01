@@ -126,7 +126,7 @@ private:
   void StartAudioThread();
   void StopAudioThread();
 
-  void QueueRequestCallback(ezVariant&& request);
+  void QueueRequestCallback(ezVariant&& request, bool bSync);
 
   ezAudioThread* m_pAudioThread = nullptr;
   ezAudioTranslationLayer m_AudioTranslationLayer;
@@ -135,11 +135,13 @@ private:
   ezAudioSystemRequestsQueue m_PendingRequestsQueue;
   ezAudioSystemRequestsQueue m_BlockingRequestsQueue;
   ezAudioSystemRequestsQueue m_PendingRequestCallbacksQueue;
+  ezAudioSystemRequestsQueue m_BlockingRequestCallbacksQueue;
 
   mutable ezMutex m_RequestsMutex;
   mutable ezMutex m_PendingRequestsMutex;
   mutable ezMutex m_BlockingRequestsMutex;
   mutable ezMutex m_PendingRequestCallbacksMutex;
+  mutable ezMutex m_BlockingRequestCallbacksMutex;
 
   ezSemaphore m_MainEvent;
   ezSemaphore m_ProcessingEvent;

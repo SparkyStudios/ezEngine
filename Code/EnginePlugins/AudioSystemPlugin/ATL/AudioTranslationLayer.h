@@ -57,7 +57,7 @@ public:
 private:
   friend class ezAudioSystem;
 
-  void ProcessRequest(ezVariant&& request);
+  bool ProcessRequest(ezVariant&& request, bool bSync);
   void OnMasterGainChange(const ezCVarEvent& e) const;
   void OnMuteChange(const ezCVarEvent& e) const;
 

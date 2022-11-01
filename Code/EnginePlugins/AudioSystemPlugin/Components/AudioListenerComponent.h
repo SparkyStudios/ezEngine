@@ -48,6 +48,10 @@ public:
   /// is used instead.
   void SetListenerOrientationObject(const char* szGuid);
 
+  /// \brief Sets this listener as the default one. This means this listener's
+  /// position will be used when computing occlusion and obstruction data.
+  void SetDefault(bool bDefault);
+
   /// \brief Gets the current position of this listener.
   EZ_NODISCARD ezVec3 GetListenerPosition() const;
 
@@ -57,17 +61,22 @@ public:
   /// \brief Gets the current orientation of this listener.
   EZ_NODISCARD ezQuat GetListenerRotation() const;
 
+  /// \brief Gets whether this listener is the default one or not.
+  EZ_NODISCARD bool IsDefault() const;
+
 protected:
   void Update();
 
 private:
   EZ_NODISCARD const char* _DoNotCall() const;
 
-  ezVec3 m_vListenerPositionOffset;
+  ezVec3 m_vListenerPositionOffset{ezVec3::ZeroVector()};
 
   ezGameObjectHandle m_hListenerPositionObject;
   ezGameObjectHandle m_hListenerRotationObject;
   ezUInt32 m_uiListenerId;
+
+  bool m_bIsDefault;
 
   ezAudioSystemTransform m_LastTransform;
 };

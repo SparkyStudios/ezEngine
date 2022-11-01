@@ -37,8 +37,31 @@ void ezAudioSystem::UpdateSound()
   if (!m_bInitialized)
     return;
 
-  // Process callbacks
+  // Process a single synchronous request callback, if any
+  bool handleBlockingRequest = false;
+  ezVariant blockingRequest;
+
   {
+    EZ_LOCK(m_BlockingRequestCallbacksMutex);
+    handleBlockingRequest = !m_BlockingRequestCallbacksQueue.IsEmpty();
+    if (handleBlockingRequest)
+    {
+      blockingRequest = std::move(m_BlockingRequestCallbacksQueue.PeekFront());
+      m_BlockingRequestCallbacksQueue.PopFront();
+    }
+  }
+
+  if (handleBlockingRequest)
+  {
+    CallRequestCallbackFunc func(blockingRequest);
+    ezVariant::DispatchTo(func, blockingRequest.GetType());
+
+    m_ProcessingEvent.ReturnToken();
+  }
+
+  if (!handleBlockingRequest)
+  {
+    // Process asynchronous callbacks
     ezAudioSystemRequestsQueue callbacks{};
     {
       EZ_LOCK(m_PendingRequestCallbacksMutex);
@@ -64,20 +87,22 @@ void ezAudioSystem::UpdateSound()
 
 void ezAudioSystem::SetMasterChannelVolume(float volume)
 {
+  m_AudioTranslationLayer.m_pAudioMiddleware->OnMasterGainChange(volume);
 }
 
 float ezAudioSystem::GetMasterChannelVolume() const
 {
-  return 0.0f;
+  return 0.0f; // TODO
 }
 
 void ezAudioSystem::SetMasterChannelMute(bool mute)
 {
+  m_AudioTranslationLayer.m_pAudioMiddleware->OnMuteChange(mute);
 }
 
 bool ezAudioSystem::GetMasterChannelMute() const
 {
-  return false;
+  return false; // TODO
 }
 
 void ezAudioSystem::SetMasterChannelPaused(bool paused)
@@ -243,13 +268,21 @@ void ezAudioSystem::SendRequestSync(ezVariant&& request)
   m_MainEvent.AcquireToken();
 }
 
-void ezAudioSystem::QueueRequestCallback(ezVariant&& request)
+void ezAudioSystem::QueueRequestCallback(ezVariant&& request, bool bSync)
 {
   if (!m_bInitialized)
     return;
 
-  EZ_LOCK(m_PendingRequestCallbacksMutex);
-  m_PendingRequestCallbacksQueue.PushBack(std::move(request));
+  if (bSync)
+  {
+    EZ_LOCK(m_BlockingRequestCallbacksMutex);
+    m_BlockingRequestCallbacksQueue.PushBack(std::move(request));
+  }
+  else
+  {
+    EZ_LOCK(m_PendingRequestCallbacksMutex);
+    m_PendingRequestCallbacksQueue.PushBack(std::move(request));
+  }
 }
 
 ezAudioSystemDataID ezAudioSystem::GetTriggerId(const char* szTriggerName) const
@@ -402,8 +435,12 @@ void ezAudioSystem::UpdateInternal()
 
   if (handleBlockingRequest)
   {
-    m_AudioTranslationLayer.ProcessRequest(std::move(blockingRequest));
+    const bool needCallback = m_AudioTranslationLayer.ProcessRequest(std::move(blockingRequest), true);
     m_MainEvent.ReturnToken();
+
+    // If a callback is found, wait for it to be executed
+    if (needCallback)
+      m_ProcessingEvent.AcquireToken();
   }
 
   if (!handleBlockingRequest)
@@ -421,7 +458,7 @@ void ezAudioSystem::UpdateInternal()
     {
       // Normal request...
       ezVariant& request(requestsToProcess.PeekFront());
-      m_AudioTranslationLayer.ProcessRequest(std::move(request));
+      m_AudioTranslationLayer.ProcessRequest(std::move(request), false);
       requestsToProcess.PopFront();
     }
   }

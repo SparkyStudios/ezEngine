@@ -3,6 +3,7 @@
 #include <AudioSystemPlugin/Components/AudioListenerComponent.h>
 #include <AudioSystemPlugin/Core/AudioSystem.h>
 #include <AudioSystemPlugin/Core/AudioSystemRequests.h>
+#include <AudioSystemPlugin/Core/AudioWorldModule.h>
 
 #include <Core/WorldSerializer/WorldReader.h>
 #include <Core/WorldSerializer/WorldWriter.h>
@@ -18,6 +19,7 @@ EZ_BEGIN_COMPONENT_TYPE(ezAudioListenerComponent, kVersion_AudioListenerComponen
   {
     EZ_ACCESSOR_PROPERTY("PositionGameObject", _DoNotCall, SetListenerPositionObject)->AddAttributes(new ezGameObjectReferenceAttribute()),
     EZ_ACCESSOR_PROPERTY("RotationGameObject", _DoNotCall, SetListenerOrientationObject)->AddAttributes(new ezGameObjectReferenceAttribute()),
+    EZ_ACCESSOR_PROPERTY("IsDefault", IsDefault, SetDefault)->AddAttributes(new ezDefaultValueAttribute(false)),
     EZ_MEMBER_PROPERTY("PositionOffset", m_vListenerPositionOffset),
   }
   EZ_END_PROPERTIES;
@@ -76,10 +78,10 @@ void ezAudioListenerComponent::DeserializeComponent(ezWorldReader& stream)
   s >> m_vListenerPositionOffset;
 }
 
-
 ezAudioListenerComponent::ezAudioListenerComponent()
   : ezAudioSystemComponent()
   , m_uiListenerId(s_uiNextListenerId++)
+  , m_bIsDefault(false)
 {
 }
 
@@ -103,6 +105,16 @@ void ezAudioListenerComponent::SetListenerOrientationObject(const char* szGuid)
     return;
 
   m_hListenerRotationObject = resolver(szGuid, GetHandle(), "RotationGameObject");
+}
+
+void ezAudioListenerComponent::SetDefault(bool bDefault)
+{
+  m_bIsDefault = bDefault;
+
+  if (auto* const audioWorldModule = GetWorld()->GetOrCreateModule<ezAudioWorldModule>(); audioWorldModule->GetDefaultListener() != this)
+  {
+    audioWorldModule->SetDefaultListener(this);
+  }
 }
 
 ezVec3 ezAudioListenerComponent::GetListenerPosition() const
@@ -139,6 +151,11 @@ ezQuat ezAudioListenerComponent::GetListenerRotation() const
   }
 
   return GetOwner()->GetGlobalRotation();
+}
+
+bool ezAudioListenerComponent::IsDefault() const
+{
+  return m_bIsDefault;
 }
 
 void ezAudioListenerComponent::Update()
