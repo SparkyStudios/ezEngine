@@ -3,6 +3,7 @@
 #include <AudioSystemPlugin/AudioSystemPluginDLL.h>
 
 #include <AudioSystemPlugin/Components/AudioSystemComponent.h>
+#include <AudioSystemPlugin/Core/AudioSystemAllocator.h>
 
 typedef ezAudioSystemComponentManager<class ezAudioProxyComponent> ezAudioProxyComponentManager;
 
