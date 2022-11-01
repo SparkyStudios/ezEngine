@@ -14,6 +14,7 @@ constexpr ezAudioSystemDataID kEditorListenerId = 1; // EZ will send -1 as ID in
 ezThreadID gMainThreadId = static_cast<ezThreadID>(0);
 
 ezCVarInt cvar_AudioSystemMemoryEntitiesPoolSize("Audio.Memory.EntitiesPoolSize", 1024, ezCVarFlags::Save, "Specify the pre-allocated number of entities in the pool.");
+
 ezCVarFloat cvar_AudioSystemFPS("Audio.FPS", 60, ezCVarFlags::Save, "The maximum number of frames to process within one second in the audio system.");
 
 // clang-format off

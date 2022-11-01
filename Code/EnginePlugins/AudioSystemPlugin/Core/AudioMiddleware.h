@@ -264,18 +264,17 @@ public:
   /// \return The middleware folder name.
   EZ_NODISCARD virtual const char* GetMiddlewareFolderName() const = 0;
 
-  // Message Handlers
+  /// \brief Called each time the master gain value change.
+  /// \param fGain The master gain value.
+  virtual void OnMasterGainChange(float fGain) = 0;
+
+  /// \brief Called when the audio middleware should toggle the muted state.
+  /// \paarm bMute The muted state.
+  virtual void OnMuteChange(bool bMute) = 0;
 
   /// \brief Called each time the game application window loses focus.
   virtual void OnLoseFocus() = 0;
 
   /// \brief Called each time the game application window gains focus.
   virtual void OnGainFocus() = 0;
-
-  /// \brief Called when the audio middleware should be muted and stop
-  /// rendering audio.
-  virtual void OnMuteAudio() = 0;
-
-  /// \brief Called when the audio middleware should restart to render audio.
-  virtual void OnUnmuteAudio() = 0;
 };

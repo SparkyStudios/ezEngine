@@ -6,6 +6,8 @@
 #include <AudioSystemPlugin/Core/AudioMiddleware.h>
 #include <AudioSystemPlugin/Core/AudioThread.h>
 
+struct ezCVarEvent;
+
 /// \brief The Audio Translation Layer
 ///
 /// This class is the bridge between the audio system and the audio middleware
@@ -56,6 +58,8 @@ private:
   friend class ezAudioSystem;
 
   void ProcessRequest(ezVariant&& request);
+  void OnMasterGainChange(const ezCVarEvent& e) const;
+  void OnMuteChange(const ezCVarEvent& e) const;
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
   void DebugRender() const;

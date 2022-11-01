@@ -17,6 +17,9 @@
 ezCVarBool cvar_AudioSystemDebug("Audio.Debugging.Enable", false, ezCVarFlags::None, "Defines if Audio System debug information are displayed.");
 #endif
 
+ezCVarFloat cvar_AudioSystemGain("Audio.MasterGain", 1.0f, ezCVarFlags::Save, "The main volume of the audio system.");
+ezCVarBool cvar_AudioSystemMute("Audio.Mute", false, ezCVarFlags::Default, "Whether sound output is muted.");
+
 ezAudioTranslationLayer::ezAudioTranslationLayer() = default;
 ezAudioTranslationLayer::~ezAudioTranslationLayer() = default;
 
@@ -62,6 +65,10 @@ ezResult ezAudioTranslationLayer::Startup()
 
   if (result.Succeeded())
   {
+    // Register CVar update events
+    cvar_AudioSystemGain.m_CVarEvents.AddEventHandler(ezMakeDelegate(&ezAudioTranslationLayer::OnMasterGainChange, this));
+    cvar_AudioSystemMute.m_CVarEvents.AddEventHandler(ezMakeDelegate(&ezAudioTranslationLayer::OnMuteChange, this));
+
     ezLog::Success("ATL loaded successfully. Using {0} as the audio middleware.", m_pAudioMiddleware->GetMiddlewareName());
     return EZ_SUCCESS;
   }
@@ -73,7 +80,13 @@ ezResult ezAudioTranslationLayer::Startup()
 void ezAudioTranslationLayer::Shutdown()
 {
   if (m_pAudioMiddleware != nullptr)
+  {
+    // Unregister CVar update events
+    cvar_AudioSystemGain.m_CVarEvents.RemoveEventHandler(ezMakeDelegate(&ezAudioTranslationLayer::OnMasterGainChange, this));
+    cvar_AudioSystemMute.m_CVarEvents.RemoveEventHandler(ezMakeDelegate(&ezAudioTranslationLayer::OnMuteChange, this));
+
     m_pAudioMiddleware->Shutdown().IgnoreResult();
+  }
 
   m_pAudioMiddleware = nullptr;
 
@@ -508,6 +521,22 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
   if (needCallback)
   {
     ezAudioSystem::GetSingleton()->QueueRequestCallback(std::move(request));
+  }
+}
+
+void ezAudioTranslationLayer::OnMasterGainChange(const ezCVarEvent& e) const
+{
+  if (e.m_EventType == ezCVarEvent::Type::ValueChanged && m_pAudioMiddleware != nullptr)
+  {
+    m_pAudioMiddleware->OnMasterGainChange(static_cast<ezCVarFloat*>(e.m_pCVar)->GetValue());
+  }
+}
+
+void ezAudioTranslationLayer::OnMuteChange(const ezCVarEvent& e) const
+{
+  if (e.m_EventType == ezCVarEvent::Type::ValueChanged && m_pAudioMiddleware != nullptr)
+  {
+    m_pAudioMiddleware->OnMuteChange(static_cast<ezCVarBool*>(e.m_pCVar)->GetValue());
   }
 }
 

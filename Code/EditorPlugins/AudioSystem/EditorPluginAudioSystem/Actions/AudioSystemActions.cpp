@@ -2,7 +2,7 @@
 
 #include <EditorPluginAudioSystem/Actions/AudioSystemActions.h>
 //#include <EditorPluginAudioSystem/Dialogs/AudioSystemProjectSettingsDlg.moc.h>
-//#include <EditorPluginAudioSystem/Preferences/AudioSystemPreferences.h>
+#include <EditorPluginAudioSystem/Preferences/AudioSystemPreferences.h>
 
 #include <AudioSystemPlugin/Core/AudioMiddleware.h>
 
@@ -110,15 +110,15 @@ ezAudioSystemAction::ezAudioSystemAction(const ezActionContext& context, const c
     {
       SetCheckable(true);
 
-//      ezAudioSystemProjectPreferences* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
-//      pPreferences->m_ChangedEvent.AddEventHandler(ezMakeDelegate(&ezAudioSystemAction::OnPreferenceChange, this));
-//
-//      if (pPreferences->GetMute())
-//        SetIconPath(":/Icons/SoundOff16.png");
-//      else
-//        SetIconPath(":/Icons/SoundOn16.png");
-//
-//      SetChecked(pPreferences->GetMute());
+      const auto* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
+      pPreferences->m_ChangedEvent.AddEventHandler(ezMakeDelegate(&ezAudioSystemAction::OnPreferenceChange, this));
+
+      if (pPreferences->GetMute())
+        SetIconPath(":/Icons/SoundOff16.png");
+      else
+        SetIconPath(":/Icons/SoundOn16.png");
+
+      SetChecked(pPreferences->GetMute());
     }
     break;
 
@@ -134,8 +134,8 @@ ezAudioSystemAction::~ezAudioSystemAction()
 {
   if (m_Type == ActionType::MuteSound)
   {
-//    ezAudioSystemProjectPreferences* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
-//    pPreferences->m_ChangedEvent.RemoveEventHandler(ezMakeDelegate(&ezAudioSystemAction::OnPreferenceChange, this));
+    const auto* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
+    pPreferences->m_ChangedEvent.RemoveEventHandler(ezMakeDelegate(&ezAudioSystemAction::OnPreferenceChange, this));
   }
 }
 
@@ -149,13 +149,13 @@ void ezAudioSystemAction::Execute(const ezVariant& value)
 
   if (m_Type == ActionType::MuteSound)
   {
-//    ezAudioSystemProjectPreferences* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
-//    pPreferences->SetMute(!pPreferences->GetMute());
-//
-//    if (GetContext().m_pDocument)
-//    {
-//      GetContext().m_pDocument->ShowDocumentStatus(ezFmt("Sound is {}", pPreferences->GetMute() ? "muted" : "on"));
-//    }
+    auto* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
+    pPreferences->SetMute(!pPreferences->GetMute());
+
+    if (GetContext().m_pDocument)
+    {
+      GetContext().m_pDocument->ShowDocumentStatus(ezFmt("Sound is {}", pPreferences->GetMute() ? "muted" : "on"));
+    }
   }
 
   if (m_Type == ActionType::ReloadControls)
@@ -167,17 +167,17 @@ void ezAudioSystemAction::Execute(const ezVariant& value)
 
 void ezAudioSystemAction::OnPreferenceChange(ezPreferences* pref)
 {
-//  ezAudioSystemProjectPreferences* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
-//
-//  if (m_Type == ActionType::MuteSound)
-//  {
-//    if (pPreferences->GetMute())
-//      SetIconPath(":/Icons/SoundOff16.png");
-//    else
-//      SetIconPath(":/Icons/SoundOn16.png");
-//
-//    SetChecked(pPreferences->GetMute());
-//  }
+  const auto* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
+
+  if (m_Type == ActionType::MuteSound)
+  {
+    if (pPreferences->GetMute())
+      SetIconPath(":/Icons/SoundOff16.png");
+    else
+      SetIconPath(":/Icons/SoundOn16.png");
+
+    SetChecked(pPreferences->GetMute());
+  }
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,11 +191,9 @@ ezAudioSystemSliderAction::ezAudioSystemSliderAction(const ezActionContext& cont
   {
     case ActionType::MasterVolume:
     {
-//      ezAudioSystemProjectPreferences* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
-//
-//      pPreferences->m_ChangedEvent.AddEventHandler(ezMakeDelegate(&ezAudioSystemSliderAction::OnPreferenceChange, this));
-//
-//      SetRange(0, 20);
+      const auto* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
+      pPreferences->m_ChangedEvent.AddEventHandler(ezMakeDelegate(&ezAudioSystemSliderAction::OnPreferenceChange, this));
+      SetRange(0, 100);
     }
     break;
   }
@@ -209,8 +207,8 @@ ezAudioSystemSliderAction::~ezAudioSystemSliderAction()
   {
     case ActionType::MasterVolume:
     {
-//      ezAudioSystemProjectPreferences* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
-//      pPreferences->m_ChangedEvent.RemoveEventHandler(ezMakeDelegate(&ezAudioSystemSliderAction::OnPreferenceChange, this));
+      const auto* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
+      pPreferences->m_ChangedEvent.RemoveEventHandler(ezMakeDelegate(&ezAudioSystemSliderAction::OnPreferenceChange, this));
     }
     break;
   }
@@ -224,14 +222,14 @@ void ezAudioSystemSliderAction::Execute(const ezVariant& value)
   {
     case ActionType::MasterVolume:
     {
-//      ezAudioSystemProjectPreferences* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
-//
-//      pPreferences->SetVolume(iValue / 20.0f);
-//
-//      if (GetContext().m_pDocument)
-//      {
-//        GetContext().m_pDocument->ShowDocumentStatus(ezFmt("Sound Volume: {}%%", (int)(pPreferences->GetVolume() * 100.0f)));
-//      }
+      auto* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
+
+      pPreferences->SetGain(iValue / 100.0f);
+
+      if (GetContext().m_pDocument)
+      {
+        GetContext().m_pDocument->ShowDocumentStatus(ezFmt("Sound Volume: {}%%", static_cast<ezInt32>(pPreferences->GetGain() * 100.0f)));
+      }
     }
     break;
   }
@@ -248,9 +246,8 @@ void ezAudioSystemSliderAction::UpdateState()
   {
     case ActionType::MasterVolume:
     {
-//      ezAudioSystemProjectPreferences* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
-//
-//      SetValue(ezMath::Clamp((ezInt32)(pPreferences->GetVolume() * 20.0f), 0, 20));
+      const auto* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
+      SetValue(ezMath::Clamp(static_cast<ezInt32>(pPreferences->GetGain() * 100.0f), 0, 100));
     }
     break;
   }
