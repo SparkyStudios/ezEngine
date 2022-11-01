@@ -10,7 +10,8 @@ typedef ezComponentManager<class ezAudioControlsComponent, ezBlockStorageType::F
 
 /// \brief Component used to load and unload a set of audio controls.
 ///
-/// The audio controls are provided by the selected audio control collection.
+/// The audio controls are provided by the selected audio control collection. Loaded audio
+/// controls can be automatically registered to the audio system at component activation.
 class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAudioControlsComponent : public ezAmplitudeComponent
 {
   EZ_DECLARE_COMPONENT_TYPE(ezAudioControlsComponent, ezAmplitudeComponent, ezAudioControlsComponentManager);

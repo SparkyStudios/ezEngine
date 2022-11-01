@@ -1,4 +1,4 @@
-﻿#include <AmplitudeAudioPlugin/AmplitudeAudioPluginPCH.h>
+#include <AmplitudeAudioPlugin/AmplitudeAudioPluginPCH.h>
 
 #include <AmplitudeAudioPlugin/AmplitudeAudioSingleton.h>
 #include <AmplitudeAudioPlugin/Resources/AudioControlCollectionResource.h>

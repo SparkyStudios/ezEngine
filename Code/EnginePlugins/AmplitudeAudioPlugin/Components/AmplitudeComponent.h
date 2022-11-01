@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <Core/World/Component.h>
 #include <Core/World/World.h>
@@ -10,17 +10,7 @@ class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeComponent : public ezComponent
 {
   EZ_DECLARE_ABSTRACT_COMPONENT_TYPE(ezAmplitudeComponent, ezComponent);
 
-  // ezComponent
-
-public:
-  virtual void SerializeComponent(ezWorldWriter& stream) const override {}
-  virtual void DeserializeComponent(ezWorldReader& stream) override {}
-
   // ezAmplitudeComponent
-
-public:
-  ezAmplitudeComponent();
-  ~ezAmplitudeComponent();
 
 private:
   // Dummy method to hide this component in the editor UI.

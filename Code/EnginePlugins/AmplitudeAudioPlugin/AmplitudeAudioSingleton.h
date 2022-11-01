@@ -39,19 +39,18 @@ struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAssetProfiles
   ezMap<ezString, ezAmplitudeConfiguration> m_AssetProfiles;
 };
 
-class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitude : public ezAudioMiddleware
+/// \brief The Amplitude Audio Middleware.
+///
+/// This class implements the ezAudioMiddleware interface of the Audio System
+/// and allows the audio system to execute audio requests.
+class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitude final : public ezAudioMiddleware
 {
 private:
   EZ_DECLARE_SINGLETON_OF_INTERFACE(ezAmplitude, ezAudioMiddleware);
 
+  // ezAudioMiddleware
+
 public:
-  static void GameApplicationEventHandler(const ezGameApplicationExecutionEvent& e);
-
-  ezAmplitude();
-  ~ezAmplitude() override;
-
-  [[nodiscard]] SparkyStudios::Audio::Amplitude::Engine* GetEngine() const { return m_pEngine; }
-
   ezResult SaveConfiguration(ezOpenDdlWriter& writer) override;
   ezResult LoadConfiguration(const ezOpenDdlReaderElement& reader) override;
   ezResult Startup() override;
@@ -101,30 +100,38 @@ public:
   void OnLoseFocus() override;
   void OnGainFocus() override;
 
-  /// \brief Parses the implementation-specific entry that represent a bank.
-  /// It's to the audi middleware to fill the struct with required data needed to locate or to store
-  /// the file in memory. This data will be further used by LoadBank to load the bank.
-  /// \param pBankEntry The stream storing the bank entry. Serialization/deserialization of that stream is implementation specific.
+  // ezAmplitude
+
+public:
+  static void GameApplicationEventHandler(const ezGameApplicationExecutionEvent& e);
+
+  ezAmplitude();
+  ~ezAmplitude() override;
+
+  [[nodiscard]] SparkyStudios::Audio::Amplitude::Engine* GetEngine() const { return m_pEngine; }
+
+  /// \brief Parses the entry in the controls collection that represent a bank.
+  /// \param pBankEntry The stream storing the bank entry.
   /// \return The created bank data, or nullptr if no bank was created.
   ezAudioSystemBankData* DeserializeBankEntry(ezStreamReader* pBankEntry);
 
-  /// \brief Parses the implementation-specific entry that represent a trigger.
-  /// \param pTriggerEntry The stream storing the event entry. Serialization/deserialization of that stream is implementation specific.
+  /// \brief Parses the entry in the controls collection that represent a trigger.
+  /// \param pTriggerEntry The stream storing the event entry.
   /// \return The created trigger data, or nullptr if no trigger was created.
   ezAudioSystemTriggerData* DeserializeTriggerEntry(ezStreamReader* pTriggerEntry) const;
 
-  /// \brief Parses the implementation-specific entry that represent a rtpc.
-  /// \param pRtpcEntry The stream storing the rtpc entry. Serialization/deserialization of that stream is implementation specific.
+  /// \brief Parses the entry in the controls collection that represent a rtpc.
+  /// \param pRtpcEntry The stream storing the rtpc entry.
   /// \return The created rtpc data, or nullptr if no rtpc was created.
   ezAudioSystemRtpcData* DeserializeRtpcEntry(ezStreamReader* pRtpcEntry) const;
 
-  /// \brief Parses the implementation-specific entry that represent a switch state.
-  /// \param pSwitchStateEntry The stream storing the switch state entry. Serialization/deserialization of that stream is implementation specific.
+  /// \brief Parses the entry in the controls collection that represent a switch state.
+  /// \param pSwitchStateEntry The stream storing the switch state entry.
   /// \return The created switch state data, or nullptr if no switch state was created.
   ezAudioSystemSwitchStateData* DeserializeSwitchStateEntry(ezStreamReader* pSwitchStateEntry) const;
 
-  /// \brief Parses the implementation-specific entry that represent a environment effect.
-  /// \param pEnvironmentEntry The stream storing the environment effect entry. Serialization/deserialization of that stream is implementation specific.
+  /// \brief Parses the entry in the controls collection that represent a environment effect.
+  /// \param pEnvironmentEntry The stream storing the environment effect entry.
   /// \return The created environment effect data, or nullptr if no environment effect was created.
   ezAudioSystemEnvironmentData* DeserializeEnvironmentEntry(ezStreamReader* pEnvironmentEntry) const;
 

@@ -1,17 +1,3 @@
-// Copyright 2014 Google Inc. All rights reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginPCH.h>
 
 #include <AmplitudeAudioPlugin/AmplitudeAudioSingleton.h>
@@ -125,24 +111,27 @@ namespace Utils
   }
 } // namespace Utils
 
-ezAmplitude* ezAmplitude::s_pSingleton = nullptr;
+EZ_IMPLEMENT_SINGLETON(ezAmplitude);
 
 static constexpr char s_szAmplitudeMiddlewareName[] = "Amplitude";
 
+static constexpr char s_szAmplitudeConfigKeyInitBank[] = "InitBank";
+static constexpr char s_szAmplitudeConfigKeyEngineConfigFileName[] = "EngineConfigFileName";
+
 void ezAmplitudeConfiguration::Save(ezOpenDdlWriter& ddl) const
 {
-  ezOpenDdlUtils::StoreString(ddl, m_sInitSoundBank, "InitBank");
-  ezOpenDdlUtils::StoreString(ddl, m_sEngineConfigFileName, "EngineConfigFileName");
+  ezOpenDdlUtils::StoreString(ddl, m_sInitSoundBank, s_szAmplitudeConfigKeyInitBank);
+  ezOpenDdlUtils::StoreString(ddl, m_sEngineConfigFileName, s_szAmplitudeConfigKeyEngineConfigFileName);
 }
 
 void ezAmplitudeConfiguration::Load(const ezOpenDdlReaderElement& ddl)
 {
-  if (const ezOpenDdlReaderElement* pElement = ddl.FindChildOfType(ezOpenDdlPrimitiveType::String, "InitBank"))
+  if (const ezOpenDdlReaderElement* pElement = ddl.FindChildOfType(ezOpenDdlPrimitiveType::String, s_szAmplitudeConfigKeyInitBank))
   {
     m_sInitSoundBank = pElement->GetPrimitivesString()[0];
   }
 
-  if (const ezOpenDdlReaderElement* pElement = ddl.FindChildOfType(ezOpenDdlPrimitiveType::String, "EngineConfigFileName"))
+  if (const ezOpenDdlReaderElement* pElement = ddl.FindChildOfType(ezOpenDdlPrimitiveType::String, s_szAmplitudeConfigKeyEngineConfigFileName))
   {
     m_sEngineConfigFileName = pElement->GetPrimitivesString()[0];
   }

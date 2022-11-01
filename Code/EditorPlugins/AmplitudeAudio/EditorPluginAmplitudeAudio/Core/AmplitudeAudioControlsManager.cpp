@@ -84,7 +84,7 @@ ezResult ezAmplitudeAudioControlsManager::SerializeTriggerControl(ezStreamWriter
   if (pStream == nullptr || pControlData == nullptr)
     return EZ_FAILURE;
 
-  if (const auto* pAmplitudeAudioTriggerData = ezDynamicCast<const ezAmplitudeAudioTriggerData*>(pControlData); pAmplitudeAudioTriggerData != nullptr)
+  if (const auto* const pAmplitudeAudioTriggerData = ezDynamicCast<const ezAmplitudeAudioTriggerData*>(pControlData); pAmplitudeAudioTriggerData != nullptr)
   {
     *pStream << pAmplitudeAudioTriggerData->m_uiAmId;
 
@@ -99,7 +99,7 @@ ezResult ezAmplitudeAudioControlsManager::SerializeRtpcControl(ezStreamWriter* p
   if (pStream == nullptr || pControlData == nullptr)
     return EZ_FAILURE;
 
-  if (const auto* pAmplitudeAudioRtpcData = ezDynamicCast<const ezAmplitudeAudioRtpcData*>(pControlData); pAmplitudeAudioRtpcData != nullptr)
+  if (const auto* const pAmplitudeAudioRtpcData = ezDynamicCast<const ezAmplitudeAudioRtpcData*>(pControlData); pAmplitudeAudioRtpcData != nullptr)
   {
     *pStream << pAmplitudeAudioRtpcData->m_uiAmId;
 
@@ -114,7 +114,7 @@ ezResult ezAmplitudeAudioControlsManager::SerializeSwitchStateControl(ezStreamWr
   if (pStream == nullptr || pControlData == nullptr)
     return EZ_FAILURE;
 
-  if (const auto* pAmplitudeAudioSwitchStateData = ezDynamicCast<const ezAmplitudeAudioSwitchStateData*>(pControlData); pAmplitudeAudioSwitchStateData != nullptr)
+  if (const auto* const pAmplitudeAudioSwitchStateData = ezDynamicCast<const ezAmplitudeAudioSwitchStateData*>(pControlData); pAmplitudeAudioSwitchStateData != nullptr)
   {
     *pStream << pAmplitudeAudioSwitchStateData->m_uiSwitchId;
     *pStream << pAmplitudeAudioSwitchStateData->m_uiSwitchStateId;
@@ -130,7 +130,7 @@ ezResult ezAmplitudeAudioControlsManager::SerializeEnvironmentControl(ezStreamWr
   if (pStream == nullptr || pControlData == nullptr)
     return EZ_FAILURE;
 
-  if (const auto* pAmplitudeAudioEnvironmentData = ezDynamicCast<const ezAmplitudeAudioEnvironmentData*>(pControlData); pAmplitudeAudioEnvironmentData != nullptr)
+  if (const auto* const pAmplitudeAudioEnvironmentData = ezDynamicCast<const ezAmplitudeAudioEnvironmentData*>(pControlData); pAmplitudeAudioEnvironmentData != nullptr)
   {
     *pStream << pAmplitudeAudioEnvironmentData->m_uiAmId;
     *pStream << pAmplitudeAudioEnvironmentData->m_uiEffectId;
@@ -157,7 +157,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateTriggerControl(const char* szCon
   // Set the control type
   file << ezAudioSystemControlType::Trigger;
 
-  // Serialize the trigger data. This method is implemented by the audio middleware.
+  // Serialize the trigger data
   if (SerializeTriggerControl(&file, pControlData).Succeeded())
   {
     file.Close();
@@ -184,7 +184,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateRtpcControl(const char* szContro
   // Set the control type
   file << ezAudioSystemControlType::Rtpc;
 
-  // Serialize the trigger data. This method is implemented by the audio middleware.
+  // Serialize the trigger data
   if (SerializeRtpcControl(&file, pControlData).Succeeded())
   {
     file.Close();
@@ -211,7 +211,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateSwitchStateControl(const char* s
   // Set the control type
   file << ezAudioSystemControlType::SwitchState;
 
-  // Serialize the trigger data. This method is implemented by the audio middleware.
+  // Serialize the trigger data
   if (SerializeSwitchStateControl(&file, pControlData).Succeeded())
   {
     file.Close();
@@ -238,7 +238,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateEnvironmentControl(const char* s
   // Set the control type
   file << ezAudioSystemControlType::Environment;
 
-  // Serialize the trigger data. This method is implemented by the audio middleware.
+  // Serialize the trigger data
   if (SerializeEnvironmentControl(&file, pControlData).Succeeded())
   {
     file.Close();
@@ -285,7 +285,7 @@ void ezAmplitudeAudioControlsManager::LoadSoundBanks(const char* sRootFolder, co
 
 ezResult ezAmplitudeAudioControlsManager::LoadControlsInFolder(const char* sFolderPath, AmplitudeControlType type)
 {
-  ezStringBuilder searchPath(sFolderPath);
+  ezStringBuilder const searchPath(sFolderPath);
 
   ezFileSystemIterator fsIt;
   for (fsIt.StartSearch(searchPath, ezFileSystemIteratorFlags::ReportFilesRecursive); fsIt.IsValid(); fsIt.Next())
@@ -395,6 +395,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
 
       case eAMCT_AMPLITUDE_SWITCH_STATE:
         break;
+
       case eAMCT_AMPLITUDE_BUS:
         break;
     }
