@@ -6,7 +6,7 @@
 
 #include <AudioSystemPlugin/Core/AudioMiddleware.h>
 
-#include <SharedPluginAudioSystem/Middleware/AudioMiddlewareControlsManager.h>
+#include <AmplitudeAudioPlugin/Core/AudioMiddlewareControlsManager.h>
 
 #include <GuiFoundation/Action/ActionManager.h>
 

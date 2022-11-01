@@ -1,7 +1,7 @@
 #pragma once
 
+#include <AmplitudeAudioPlugin/Resources/AudioControlCollectionResource.h>
 #include <AudioSystemPlugin/Core/AudioSystemData.h>
-#include <AudioSystemPlugin/Resources/AudioControlCollectionResource.h>
 
 #include <EditorFramework/Assets/SimpleAssetDocument.h>
 

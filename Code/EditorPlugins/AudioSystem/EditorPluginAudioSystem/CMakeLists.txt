@@ -10,13 +10,13 @@ ez_create_target(LIBRARY ${PROJECT_NAME})
 ez_link_target_qt(TARGET ${PROJECT_NAME} COMPONENTS Core Gui Widgets)
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-    EditorFramework
-    GameEngine
-    SharedPluginAudioSystem
+  PRIVATE
+  EditorFramework
+  GameEngine
+  AmplitudeAudioPlugin
 )
 
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/AudioSystem.ezPluginBundle" $<TARGET_FILE_DIR:${PROJECT_NAME}>
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/AudioSystem.ezPluginBundle" $<TARGET_FILE_DIR:${PROJECT_NAME}>
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 )

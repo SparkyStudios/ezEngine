@@ -1,0 +1,29 @@
+#include <AudioSystemPlugin/AudioSystemPluginPCH.h>
+
+#include <AudioSystemPlugin/AudioSystemPluginDLL.h>
+
+#include <Foundation/Configuration/Plugin.h>
+#include <Foundation/Strings/TranslationLookup.h>
+
+EZ_STATICLINK_LIBRARY(AudioSystemPlugin)
+{
+  if (bReturn)
+    return;
+
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_AudioSystemStartup);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_AudioSystem);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_AudioSystemAllocator);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_AudioSystemData);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_AudioSystemMessages);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_ATL_AudioTranslationLayer);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_Components_AudioBoxEnvironmentComponent);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_Components_AudioAnimationComponent);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_Components_AudioListenerComponent);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_Components_AudioProxyComponent);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_Components_AudioRtpcComponent);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_Components_AudioSphereEnvironmentComponent);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_Components_AudioSwitchStateComponent);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_Components_AudioSystemComponent);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_Components_AudioTriggerComponent);
+  EZ_STATICLINK_REFERENCE(AudioSystemPlugin_Implementation_Core_AudioWorldModule);
+}
