@@ -4,10 +4,6 @@
 //#include <EditorPluginAudioSystem/Dialogs/AudioSystemProjectSettingsDlg.moc.h>
 #include <EditorPluginAudioSystem/Preferences/AudioSystemPreferences.h>
 
-#include <AudioSystemPlugin/Core/AudioMiddleware.h>
-
-#include <AmplitudeAudioPlugin/Core/AudioMiddlewareControlsManager.h>
-
 #include <GuiFoundation/Action/ActionManager.h>
 
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioSystemAction, 1, ezRTTINoAllocator)
@@ -160,8 +156,8 @@ void ezAudioSystemAction::Execute(const ezVariant& value)
 
   if (m_Type == ActionType::ReloadControls)
   {
-    auto* pControlsManager = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddlewareControlsManager>();
-    ezLog::Info("Reload Audio Controls {}", pControlsManager->ReloadControls().Succeeded() ? "successful" : "failed");
+    // auto* pControlsManager = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddlewareControlsManager>();
+    // ezLog::Info("Reload Audio Controls {}", pControlsManager->ReloadControls().Succeeded() ? "successful" : "failed");
   }
 }
 

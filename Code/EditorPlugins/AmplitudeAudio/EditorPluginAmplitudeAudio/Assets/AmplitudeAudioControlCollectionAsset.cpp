@@ -1,6 +1,6 @@
-#include <EditorPluginAudioSystem/EditorPluginAudioSystemPCH.h>
+#include <EditorPluginAmplitudeAudio/EditorPluginAmplitudeAudioPCH.h>
 
-#include <EditorPluginAudioSystem/Assets/AudioControlCollectionAsset.h>
+#include <EditorPluginAmplitudeAudio/Assets/AmplitudeAudioControlCollectionAsset.h>
 
 #include <EditorFramework/Assets/AssetCurator.h>
 
@@ -8,7 +8,7 @@
 #include <Foundation/IO/OSFile.h>
 
 // clang-format off
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAssetEntry, 1, ezRTTIDefaultAllocator<ezAudioControlCollectionAssetEntry>)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAssetEntry, 1, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionAssetEntry>)
 {
   EZ_BEGIN_PROPERTIES
   {
@@ -20,19 +20,19 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAssetEntry, 1, ezRTTIDef
 }
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAssetTriggerEntry, 1, ezRTTIDefaultAllocator<ezAudioControlCollectionAssetTriggerEntry>)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAssetTriggerEntry, 1, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionAssetTriggerEntry>)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAssetRtpcEntry, 1, ezRTTIDefaultAllocator<ezAudioControlCollectionAssetRtpcEntry>)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAssetRtpcEntry, 1, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionAssetRtpcEntry>)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAssetSwitchEntry, 1, ezRTTIDefaultAllocator<ezAudioControlCollectionAssetSwitchEntry>)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAssetSwitchEntry, 1, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionAssetSwitchEntry>)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAssetEnvironmentEntry, 1, ezRTTIDefaultAllocator<ezAudioControlCollectionAssetEnvironmentEntry>)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAssetEnvironmentEntry, 1, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionAssetEnvironmentEntry>)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAsset, 2, ezRTTIDefaultAllocator<ezAudioControlCollectionAsset>)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAsset, 2, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionAsset>)
 {
   EZ_BEGIN_PROPERTIES
   {
@@ -45,42 +45,42 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAsset, 2, ezRTTIDefaultA
 }
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioControlCollectionAssetDocument, 1, ezRTTINoAllocator)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAssetDocument, 1, ezRTTINoAllocator)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 // clang-format on
 
-ezAudioControlCollectionAssetTriggerEntry::ezAudioControlCollectionAssetTriggerEntry()
-  : ezAudioControlCollectionAssetEntry()
+ezAmplitudeAudioControlCollectionAssetTriggerEntry::ezAmplitudeAudioControlCollectionAssetTriggerEntry()
+  : ezAmplitudeAudioControlCollectionAssetEntry()
 {
   m_Type = ezAudioSystemControlType::Trigger;
 }
 
-ezAudioControlCollectionAssetRtpcEntry::ezAudioControlCollectionAssetRtpcEntry()
-  : ezAudioControlCollectionAssetEntry()
+ezAmplitudeAudioControlCollectionAssetRtpcEntry::ezAmplitudeAudioControlCollectionAssetRtpcEntry()
+  : ezAmplitudeAudioControlCollectionAssetEntry()
 {
   m_Type = ezAudioSystemControlType::Rtpc;
 }
 
-ezAudioControlCollectionAssetSwitchEntry::ezAudioControlCollectionAssetSwitchEntry()
+ezAmplitudeAudioControlCollectionAssetSwitchEntry::ezAmplitudeAudioControlCollectionAssetSwitchEntry()
 {
   m_Type = ezAudioSystemControlType::SwitchState;
 }
 
-ezAudioControlCollectionAssetEnvironmentEntry::ezAudioControlCollectionAssetEnvironmentEntry()
+ezAmplitudeAudioControlCollectionAssetEnvironmentEntry::ezAmplitudeAudioControlCollectionAssetEnvironmentEntry()
 {
   m_Type = ezAudioSystemControlType::Environment;
 }
 
-ezAudioControlCollectionAssetDocument::ezAudioControlCollectionAssetDocument(const char* szDocumentPath)
-  : ezSimpleAssetDocument<ezAudioControlCollectionAsset>(szDocumentPath, ezAssetDocEngineConnection::None)
+ezAmplitudeAudioControlCollectionAssetDocument::ezAmplitudeAudioControlCollectionAssetDocument(const char* szDocumentPath)
+  : ezSimpleAssetDocument<ezAmplitudeAudioControlCollectionAsset>(szDocumentPath, ezAssetDocEngineConnection::None)
 {
 }
 
-void ezAudioControlCollectionAssetDocument::UpdateAssetDocumentInfo(ezAssetDocumentInfo* pInfo) const
+void ezAmplitudeAudioControlCollectionAssetDocument::UpdateAssetDocumentInfo(ezAssetDocumentInfo* pInfo) const
 {
   SUPER::UpdateAssetDocumentInfo(pInfo);
 
-  const ezAudioControlCollectionAsset* pProp = GetProperties();
+  const ezAmplitudeAudioControlCollectionAsset* pProp = GetProperties();
 
   for (const auto& e : pProp->m_TriggerEntries)
   {
@@ -107,11 +107,11 @@ void ezAudioControlCollectionAssetDocument::UpdateAssetDocumentInfo(ezAssetDocum
   }
 }
 
-ezStatus ezAudioControlCollectionAssetDocument::InternalTransformAsset(ezStreamWriter& stream, const char* szOutputTag, const ezPlatformProfile* pAssetProfile, const ezAssetFileHeader& AssetHeader, ezBitflags<ezTransformFlags> transformFlags)
+ezStatus ezAmplitudeAudioControlCollectionAssetDocument::InternalTransformAsset(ezStreamWriter& stream, const char* szOutputTag, const ezPlatformProfile* pAssetProfile, const ezAssetFileHeader& AssetHeader, ezBitflags<ezTransformFlags> transformFlags)
 {
-  ezAudioControlCollectionAsset* pProp = GetProperties();
+  ezAmplitudeAudioControlCollectionAsset* pProp = GetProperties();
 
-  ezAudioControlCollectionResourceDescriptor descriptor;
+  ezAmplitudeAudioControlCollectionResourceDescriptor descriptor;
 
   for (auto& e : pProp->m_TriggerEntries)
   {
@@ -141,7 +141,7 @@ ezStatus ezAudioControlCollectionAssetDocument::InternalTransformAsset(ezStreamW
   return {EZ_SUCCESS};
 }
 
-ezResult ezAudioControlCollectionAssetDocument::TransformAssetEntry(const ezAudioControlCollectionAssetEntry& entry, ezAudioControlCollectionResourceDescriptor& descriptor) const
+ezResult ezAmplitudeAudioControlCollectionAssetDocument::TransformAssetEntry(const ezAmplitudeAudioControlCollectionAssetEntry& entry, ezAmplitudeAudioControlCollectionResourceDescriptor& descriptor) const
 {
   if (entry.m_sControlFile.IsEmpty() || entry.m_Type == ezAudioSystemControlType::Invalid)
     return EZ_FAILURE;
@@ -155,7 +155,7 @@ ezResult ezAudioControlCollectionAssetDocument::TransformAssetEntry(const ezAudi
     }
   }
 
-  ezAudioControlCollectionEntry e;
+  ezAmplitudeAudioControlCollectionEntry e;
   e.m_sName = entry.m_sName;
   e.m_Type = entry.m_Type;
   e.m_sControlFile = entry.m_sControlFile;
@@ -163,3 +163,5 @@ ezResult ezAudioControlCollectionAssetDocument::TransformAssetEntry(const ezAudi
   descriptor.m_Entries.PushBack(e);
   return EZ_SUCCESS;
 }
+
+EZ_STATICLINK_FILE(EditorPluginAmplitudeAudio, EditorPluginAmplitudeAudio_Assets_AmplitudeAudioControlCollectionAsset);

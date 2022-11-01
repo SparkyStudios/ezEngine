@@ -1,0 +1,15 @@
+// for a description of the options see:
+// Code/EditorPlugins/Assets/EditorPluginAssets/Assets.ezPluginBundle
+
+PluginInfo
+{
+	string %DisplayName{"Amplitude Audio"}
+	string %Description{"A fully-featured audio system powered by Amplitude Audio SDK."}
+	string %EditorPlugins{"ezEditorPluginAmplitudeAudio"}
+	string %EditorEnginePlugins{}
+	string %RuntimePlugins{"ezAmplitudeAudioPlugin"}
+	string %PackageDependencies{}
+	string %RequiredPlugins{"AudioSystem"}
+	string %ExclusiveFeatures{"Audio"}
+	string %EnabledInTemplates{}
+}

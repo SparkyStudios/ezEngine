@@ -1,13 +1,13 @@
-#include <EditorPluginAudioSystem/EditorPluginAudioSystemPCH.h>
+#include <EditorPluginAmplitudeAudio/EditorPluginAmplitudeAudioPCH.h>
 
-#include <EditorPluginAudioSystem/Assets/AudioControlCollectionAssetWindow.moc.h>
+#include <EditorPluginAmplitudeAudio/Assets/AmplitudeAudioControlCollectionAssetWindow.moc.h>
 
 #include <GuiFoundation/ActionViews/MenuBarActionMapView.moc.h>
 #include <GuiFoundation/ActionViews/ToolBarActionMapView.moc.h>
 #include <GuiFoundation/DockPanels/DocumentPanel.moc.h>
 #include <GuiFoundation/PropertyGrid/PropertyGridWidget.moc.h>
 
-ezQtAudioControlCollectionAssetDocumentWindow::ezQtAudioControlCollectionAssetDocumentWindow(ezDocument* pDocument)
+ezQtAmplitudeAudioControlCollectionAssetDocumentWindow::ezQtAmplitudeAudioControlCollectionAssetDocumentWindow(ezDocument* pDocument)
   : ezQtDocumentWindow(pDocument)
 {
   // Menu Bar
@@ -49,4 +49,7 @@ ezQtAudioControlCollectionAssetDocumentWindow::ezQtAudioControlCollectionAssetDo
   FinishWindowCreation();
 }
 
-ezQtAudioControlCollectionAssetDocumentWindow::~ezQtAudioControlCollectionAssetDocumentWindow() {}
+ezQtAmplitudeAudioControlCollectionAssetDocumentWindow::~ezQtAmplitudeAudioControlCollectionAssetDocumentWindow() {}
+
+
+EZ_STATICLINK_FILE(EditorPluginAmplitudeAudio, EditorPluginAmplitudeAudio_Assets_AmplitudeAudioControlCollectionAssetWindow);

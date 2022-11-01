@@ -3,13 +3,13 @@
 #include <EditorFramework/Assets/AssetDocumentManager.h>
 #include <Foundation/Types/Status.h>
 
-class ezAudioControlCollectionAssetDocumentManager : public ezAssetDocumentManager
+class ezAmplitudeAudioControlCollectionAssetDocumentManager : public ezAssetDocumentManager
 {
-  EZ_ADD_DYNAMIC_REFLECTION(ezAudioControlCollectionAssetDocumentManager, ezAssetDocumentManager);
+  EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioControlCollectionAssetDocumentManager, ezAssetDocumentManager);
 
 public:
-  ezAudioControlCollectionAssetDocumentManager();
-  ~ezAudioControlCollectionAssetDocumentManager();
+  ezAmplitudeAudioControlCollectionAssetDocumentManager();
+  ~ezAmplitudeAudioControlCollectionAssetDocumentManager() override;
 
 private:
   void OnDocumentManagerEvent(const ezDocumentManager::Event& e);
