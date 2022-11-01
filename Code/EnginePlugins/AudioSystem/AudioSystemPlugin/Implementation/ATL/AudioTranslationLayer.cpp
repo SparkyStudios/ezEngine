@@ -16,10 +16,7 @@
 ezCVarBool cvar_AudioSystemDebug("Audio.Debugging.Enable", false, ezCVarFlags::None, "Defines if Audio System debug information are displayed.");
 #endif
 
-ezAudioTranslationLayer::ezAudioTranslationLayer()
-{
-}
-
+ezAudioTranslationLayer::ezAudioTranslationLayer() = default;
 ezAudioTranslationLayer::~ezAudioTranslationLayer() = default;
 
 ezResult ezAudioTranslationLayer::Startup()
@@ -86,8 +83,6 @@ void ezAudioTranslationLayer::Shutdown()
   m_mTriggers.Clear();
   m_mRtpcs.Clear();
   m_mSwitchStates.Clear();
-
-  ezLog::Info("ATL unloaded");
 }
 
 void ezAudioTranslationLayer::Update()
@@ -368,7 +363,29 @@ void ezAudioTranslationLayer::ProcessRequest(ezVariant&& request)
     needCallback = audioRequest.m_Callback.IsValid();
   }
 
-  // TODO: Unload Trigger
+  else if (request.IsA<ezAudioSystemRequestUnloadTrigger>())
+  {
+    auto& audioRequest = request.GetWritable<ezAudioSystemRequestUnloadTrigger>();
+
+    if (!m_mEntities.Contains(audioRequest.m_uiEntityId))
+    {
+      ezLog::Error("Failed to unload the trigger {0}. It references an unregistered entity {1}.", audioRequest.m_uiObjectId, audioRequest.m_uiEntityId);
+      return;
+    }
+
+    if (!m_mTriggers.Contains(audioRequest.m_uiObjectId))
+    {
+      ezLog::Error("Failed to stop trigger {0}. Make sure it was registered before.", audioRequest.m_uiObjectId);
+      return;
+    }
+
+    const auto& entity = m_mEntities[audioRequest.m_uiEntityId];
+    const auto& trigger = m_mTriggers[audioRequest.m_uiObjectId];
+
+    audioRequest.m_eStatus = m_pAudioMiddleware->UnloadTrigger(entity->m_pEntityData, trigger->m_pTriggerData);
+
+    needCallback = audioRequest.m_Callback.IsValid();
+  }
 
   else if (request.IsA<ezAudioSystemRequestSetRtpcValue>())
   {
