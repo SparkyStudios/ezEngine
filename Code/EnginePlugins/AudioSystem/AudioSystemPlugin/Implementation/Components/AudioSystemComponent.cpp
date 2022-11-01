@@ -109,6 +109,11 @@ float ezAudioSystemEnvironmentComponent::GetMaxDistance() const
   return m_fMaxDistance;
 }
 
+ezAudioSystemDataID ezAudioSystemEnvironmentComponent::GetEnvironmentId() const
+{
+  return ezAudioSystem::GetSingleton()->GetEnvironmentId(m_sEnvironmentName);
+}
+
 void ezAudioSystemEnvironmentComponent::SetMaxDistance(float fFadeDistance)
 {
   m_fMaxDistance = fFadeDistance;

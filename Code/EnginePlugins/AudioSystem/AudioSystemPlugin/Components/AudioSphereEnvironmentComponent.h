@@ -5,11 +5,11 @@
 #include <AudioSystemPlugin/Components/AudioSystemComponent.h>
 
 /// \brief Component manager for audio system environment components.
-typedef ezAudioSystemComponentManager<class ezAudioSphereEnvironmentComponent> ezAudioSystemEnvironmentComponentManager;
+typedef ezAudioSystemComponentManager<class ezAudioSphereEnvironmentComponent> ezAudioSphereEnvironmentComponentManager;
 
 class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSphereEnvironmentComponent : public ezAudioSystemEnvironmentComponent
 {
-  EZ_DECLARE_COMPONENT_TYPE(ezAudioSphereEnvironmentComponent, ezAudioSystemEnvironmentComponent, ezAudioSystemEnvironmentComponentManager);
+  EZ_DECLARE_COMPONENT_TYPE(ezAudioSphereEnvironmentComponent, ezAudioSystemEnvironmentComponent, ezAudioSphereEnvironmentComponentManager);
 
   // ezComponent
 
@@ -27,8 +27,6 @@ protected:
   // ezAudioSystemEnvironmentComponent
 
 public:
-  [[nodiscard]] ezAudioSystemDataID GetEnvironmentId() const override;
-
   [[nodiscard]] float GetEnvironmentAmount(ezAudioProxyComponent* pProxyComponent) const override;
 
   // ezAudioSphereEnvironmentComponent

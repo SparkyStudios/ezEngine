@@ -2,7 +2,6 @@
 
 #include <AudioSystemPlugin/Components/AudioProxyComponent.h>
 #include <AudioSystemPlugin/Components/AudioSphereEnvironmentComponent.h>
-#include <AudioSystemPlugin/Core/AudioSystem.h>
 
 #include <Core/WorldSerializer/WorldReader.h>
 #include <Core/WorldSerializer/WorldWriter.h>
@@ -82,20 +81,15 @@ void ezAudioSphereEnvironmentComponent::SetRadius(float fRadius)
   m_Sphere.m_fRadius = fRadius;
 }
 
-ezAudioSystemDataID ezAudioSphereEnvironmentComponent::GetEnvironmentId() const
-{
-  return ezAudioSystem::GetSingleton()->GetEnvironmentId(m_sEnvironmentName);
-}
-
 float ezAudioSphereEnvironmentComponent::GetEnvironmentAmount(ezAudioProxyComponent* pProxyComponent) const
 {
   const ezVec3& proxyPosition = pProxyComponent->GetOwner()->GetGlobalPosition();
   const float fDistanceToOrigin = (proxyPosition - m_Sphere.m_vCenter).GetLength();
 
-  if (fDistanceToOrigin <= m_fMaxDistance)
+  if (fDistanceToOrigin <= m_Sphere.m_fRadius)
     return 1.0f;
 
-  if (!m_Sphere.Contains(proxyPosition))
+  if (fDistanceToOrigin >= m_fMaxDistance)
     return 0.0f;
 
   return ezMath::Lerp(1.0f, 0.0f, (fDistanceToOrigin - m_fMaxDistance) / (m_Sphere.m_fRadius - m_fMaxDistance));

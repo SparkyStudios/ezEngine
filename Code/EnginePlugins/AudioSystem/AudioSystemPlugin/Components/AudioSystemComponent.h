@@ -73,9 +73,13 @@ public:
   void OnActivated() override;
   void OnDeactivated() override;
 
-  [[nodiscard]] virtual ezAudioSystemDataID GetEnvironmentId() const = 0;
-
+  /// \brief Gets the environment amount for the specified audio proxy component.
+  /// \param pProxyComponent The proxy component for which compute the environment amount.
+  /// \return The environment amount.
   [[nodiscard]] virtual float GetEnvironmentAmount(ezAudioProxyComponent* pProxyComponent) const = 0;
+
+  /// \brief Gets the ID of the environment in the Audio System.
+  [[nodiscard]] ezAudioSystemDataID GetEnvironmentId() const;
 
   /// \brief Gets the distance from the sphere's origin
   /// at which the environment amount will slightly start to decrease.
@@ -115,8 +119,7 @@ void ezAudioSystemComponentManager<T>::Update(const ezWorldModule::UpdateContext
 {
   for (auto it = this->m_ComponentStorage.GetIterator(context.m_uiFirstComponentIndex, context.m_uiComponentCount); it.IsValid(); ++it)
   {
-    T* pComponent = it;
-    if (pComponent->IsActiveAndInitialized())
+    if (T* pComponent = it; pComponent->IsActiveAndInitialized())
     {
       pComponent->Update();
     }
@@ -132,7 +135,7 @@ void ezAudioSystemComponentManager<T>::UpdateFunctionName(ezStringBuilder& out_s
 
   if (szEnd != nullptr && sName.StartsWith("ezAudioSystemComponentManager<class "))
   {
-    ezStringView sChoppedName(sName.GetStartPointer() + ezStringUtils::GetStringElementCount("ezAudioSystemComponentManager<class "), szEnd);
+    const ezStringView sChoppedName(sName.GetStartPointer() + ezStringUtils::GetStringElementCount("ezAudioSystemComponentManager<class "), szEnd);
 
     EZ_ASSERT_DEV(!sChoppedName.IsEmpty(), "Chopped name is empty: '{0}'", sName);
 
