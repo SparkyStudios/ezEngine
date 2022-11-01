@@ -181,6 +181,9 @@ void ezAudioSystem::Shutdown()
 {
   EZ_ASSERT_ALWAYS(gMainThreadId == ezThreadUtils::GetCurrentThreadID(), "AudioSystem::Shutdown not called from main thread.");
 
+  if (!m_bInitialized)
+    return;
+
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
   // Unregister the default (editor) listener
   ezAudioSystemRequestUnregisterListener request;
@@ -200,12 +203,18 @@ void ezAudioSystem::Shutdown()
 
 void ezAudioSystem::SendRequest(ezVariant&& request)
 {
+  if (!m_bInitialized)
+    return;
+
   EZ_LOCK(m_PendingRequestsMutex);
   m_PendingRequestsQueue.PushBack(std::move(request));
 }
 
 void ezAudioSystem::SendRequests(ezAudioSystemRequestsQueue& requests)
 {
+  if (!m_bInitialized)
+    return;
+
   EZ_LOCK(m_PendingRequestsMutex);
   for (auto& request : requests)
   {
@@ -215,6 +224,9 @@ void ezAudioSystem::SendRequests(ezAudioSystemRequestsQueue& requests)
 
 void ezAudioSystem::SendRequestSync(ezVariant&& request)
 {
+  if (!m_bInitialized)
+    return;
+
   {
     EZ_LOCK(m_BlockingRequestsMutex);
     m_BlockingRequestsQueue.PushBack(std::move(request));
@@ -226,6 +238,9 @@ void ezAudioSystem::SendRequestSync(ezVariant&& request)
 
 void ezAudioSystem::QueueRequestCallback(ezVariant&& request)
 {
+  if (!m_bInitialized)
+    return;
+
   EZ_LOCK(m_PendingRequestCallbacksMutex);
   m_PendingRequestCallbacksQueue.PushBack(std::move(request));
 }
@@ -247,6 +262,9 @@ void ezAudioSystem::RegisterTrigger(const char* szTriggerName, const char* szCon
 
 void ezAudioSystem::RegisterTrigger(const char* szTriggerName, ezStreamReader* pStreamReader)
 {
+  if (!m_bInitialized)
+    return;
+
   auto* pAudioMiddleware = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddleware>();
   if (pAudioMiddleware == nullptr)
   {
@@ -291,6 +309,9 @@ void ezAudioSystem::RegisterRtpc(const char* szTriggerName, const char* szContro
 
 void ezAudioSystem::RegisterRtpc(const char* szRtpcName, ezStreamReader* pStreamReader)
 {
+  if (!m_bInitialized)
+    return;
+
   auto* pAudioMiddleware = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddleware>();
   if (pAudioMiddleware == nullptr)
   {
@@ -453,9 +474,14 @@ void ezAudioSystem::StopAudioThread()
 
 void ezAudioSystem::GameApplicationEventHandler(const ezGameApplicationExecutionEvent& e)
 {
+  ezAudioSystem* pAudioSystem = GetSingleton();
+
+  if (pAudioSystem == nullptr || !pAudioSystem->m_bInitialized)
+    return;
+
   if (e.m_Type == ezGameApplicationExecutionEvent::Type::AfterWorldUpdates)
   {
-    ezAudioSystem::GetSingleton()->UpdateSound();
+    pAudioSystem->UpdateSound();
   }
 }
 
