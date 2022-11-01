@@ -94,10 +94,7 @@ const ezString& ezAudioTriggerComponent::GetStopTrigger() const
 
 void ezAudioTriggerComponent::Play(bool bSync)
 {
-  if (m_sPlayTrigger.IsEmpty())
-    return;
-
-  if (IsPlaying() || IsStarting())
+  if (!m_bCanPlay || m_sPlayTrigger.IsEmpty() || IsPlaying() || IsStarting())
     return;
 
   if (!m_bPlayTriggerLoaded)
@@ -131,54 +128,7 @@ void ezAudioTriggerComponent::Play(bool bSync)
 
 void ezAudioTriggerComponent::Stop(bool bSync)
 {
-  m_eState = ezAudioSystemTriggerState::Stopping;
-
-  if (m_sStopTrigger.IsEmpty())
-  {
-    ezAudioSystemRequestStopEvent request;
-
-    request.m_uiEntityId = GetEntityId();
-    request.m_uiTriggerId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sPlayTrigger);
-    request.m_uiObjectId = m_uiPlayEventId;
-
-    request.m_Callback = [this](const ezAudioSystemRequestStopEvent& e)
-    {
-      if (e.m_eStatus.Succeeded())
-        m_eState = ezAudioSystemTriggerState::Stopped;
-      else
-        m_eState = ezAudioSystemTriggerState::Invalid;
-    };
-
-    if (bSync)
-    {
-      ezAudioSystem::GetSingleton()->SendRequestSync(request);
-    }
-    else
-    {
-      ezAudioSystem::GetSingleton()->SendRequest(request);
-    }
-  }
-  else
-  {
-    if (!m_bStopTriggerLoaded)
-      LoadStopTrigger(true); // Need to be sync if data was not loaded before
-
-    ezAudioSystemRequestActivateTrigger request;
-
-    request.m_uiEntityId = GetEntityId();
-    request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sStopTrigger);
-    request.m_uiEventId = m_uiStopEventId;
-
-    request.m_Callback = [this](const ezAudioSystemRequestActivateTrigger& e)
-    {
-      if (e.m_eStatus.Succeeded())
-        m_eState = ezAudioSystemTriggerState::Stopped;
-      else
-        m_eState = ezAudioSystemTriggerState::Invalid;
-    };
-
-    ezAudioSystem::GetSingleton()->SendRequest(request);
-  }
+  StopInternal(bSync, false);
 }
 
 const ezEnum<ezAudioSystemTriggerState>& ezAudioTriggerComponent::GetState() const
@@ -236,7 +186,7 @@ void ezAudioTriggerComponent::OnActivated()
 {
   SUPER::OnActivated();
 
-  if (m_bPlayOnActivate && !m_bHasPlayedOnActivate)
+  if (m_bCanPlay && m_bPlayOnActivate && !m_bHasPlayedOnActivate)
   {
     Play();
     m_bHasPlayedOnActivate = true;
@@ -246,12 +196,20 @@ void ezAudioTriggerComponent::OnActivated()
 void ezAudioTriggerComponent::OnSimulationStarted()
 {
   SUPER::OnSimulationStarted();
+
+  m_bCanPlay = true;
+
+  if (m_bCanPlay && m_bPlayOnActivate && !m_bHasPlayedOnActivate)
+  {
+    Play();
+    m_bHasPlayedOnActivate = true;
+  }
 }
 
 void ezAudioTriggerComponent::OnDeactivated()
 {
   if (IsPlaying())
-    Stop();
+    StopInternal(false, true);
 
   m_bHasPlayedOnActivate = false;
   SUPER::OnDeactivated();
@@ -260,10 +218,10 @@ void ezAudioTriggerComponent::OnDeactivated()
 void ezAudioTriggerComponent::Deinitialize()
 {
   if (m_bStopTriggerLoaded)
-    UnloadStopTrigger();
+    UnloadStopTrigger(false, true);
 
   if (m_bPlayTriggerLoaded)
-    UnloadPlayTrigger();
+    UnloadPlayTrigger(false, true);
 
   SUPER::Deinitialize();
 }
@@ -341,7 +299,7 @@ void ezAudioTriggerComponent::LoadStopTrigger(bool bSync)
   }
 }
 
-void ezAudioTriggerComponent::UnloadPlayTrigger()
+void ezAudioTriggerComponent::UnloadPlayTrigger(bool bSync, bool bDeinit)
 {
   if (!m_bPlayTriggerLoaded)
     return;
@@ -353,22 +311,32 @@ void ezAudioTriggerComponent::UnloadPlayTrigger()
   request.m_uiEntityId = GetEntityId();
   request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sPlayTrigger);
 
-  request.m_Callback = [this](const ezAudioSystemRequestUnloadTrigger& m)
+  if (!bDeinit)
   {
-    if (m.m_eStatus.Failed())
+    request.m_Callback = [this](const ezAudioSystemRequestUnloadTrigger& m)
     {
+      if (m.m_eStatus.Failed())
+      {
+        m_eState = ezAudioSystemTriggerState::Invalid;
+        return;
+      }
+
+      m_bPlayTriggerLoaded = false;
       m_eState = ezAudioSystemTriggerState::Invalid;
-      return;
-    }
+    };
+  }
 
-    m_bPlayTriggerLoaded = false;
-    m_eState = ezAudioSystemTriggerState::Invalid;
-  };
-
-  ezAudioSystem::GetSingleton()->SendRequest(request);
+  if (bSync)
+  {
+    ezAudioSystem::GetSingleton()->SendRequestSync(request);
+  }
+  else
+  {
+    ezAudioSystem::GetSingleton()->SendRequest(request);
+  }
 }
 
-void ezAudioTriggerComponent::UnloadStopTrigger()
+void ezAudioTriggerComponent::UnloadStopTrigger(bool bSync, bool bDeinit)
 {
   if (!m_bStopTriggerLoaded)
     return;
@@ -378,15 +346,92 @@ void ezAudioTriggerComponent::UnloadStopTrigger()
   request.m_uiEntityId = GetEntityId();
   request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sStopTrigger);
 
-  request.m_Callback = [this](const ezAudioSystemRequestUnloadTrigger& m)
+  if (!bDeinit)
   {
-    if (m.m_eStatus.Failed())
-      return;
+    request.m_Callback = [this](const ezAudioSystemRequestUnloadTrigger& m)
+    {
+      if (m.m_eStatus.Failed())
+        return;
 
-    m_bStopTriggerLoaded = false;
-  };
+      m_bStopTriggerLoaded = false;
+    };
+  }
 
-  ezAudioSystem::GetSingleton()->SendRequest(request);
+  if (bSync)
+  {
+    ezAudioSystem::GetSingleton()->SendRequestSync(request);
+  }
+  else
+  {
+    ezAudioSystem::GetSingleton()->SendRequest(request);
+  }
+}
+
+void ezAudioTriggerComponent::StopInternal(bool bSync, bool bDeinit)
+{
+  m_eState = ezAudioSystemTriggerState::Stopping;
+
+  if (m_sStopTrigger.IsEmpty())
+  {
+    ezAudioSystemRequestStopEvent request;
+
+    request.m_uiEntityId = GetEntityId();
+    request.m_uiTriggerId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sPlayTrigger);
+    request.m_uiObjectId = m_uiPlayEventId;
+
+    // In case of deinitialization, we don't need to run the callback
+    if (!bDeinit)
+    {
+      request.m_Callback = [this](const ezAudioSystemRequestStopEvent& e)
+      {
+        if (e.m_eStatus.Succeeded())
+          m_eState = ezAudioSystemTriggerState::Stopped;
+        else
+          m_eState = ezAudioSystemTriggerState::Invalid;
+      };
+    }
+
+    if (bSync)
+    {
+      ezAudioSystem::GetSingleton()->SendRequestSync(request);
+    }
+    else
+    {
+      ezAudioSystem::GetSingleton()->SendRequest(request);
+    }
+  }
+  else
+  {
+    if (!m_bStopTriggerLoaded)
+      LoadStopTrigger(true); // Need to be sync if data was not loaded before
+
+    ezAudioSystemRequestActivateTrigger request;
+
+    request.m_uiEntityId = GetEntityId();
+    request.m_uiObjectId = ezAudioSystem::GetSingleton()->GetTriggerId(m_sStopTrigger);
+    request.m_uiEventId = m_uiStopEventId;
+
+    // In case of deinitialization, we don't need to run the callback
+    if (!bDeinit)
+    {
+      request.m_Callback = [this](const ezAudioSystemRequestActivateTrigger& e)
+      {
+        if (e.m_eStatus.Succeeded())
+          m_eState = ezAudioSystemTriggerState::Stopped;
+        else
+          m_eState = ezAudioSystemTriggerState::Invalid;
+      };
+    }
+
+    if (bSync)
+    {
+      ezAudioSystem::GetSingleton()->SendRequestSync(request);
+    }
+    else
+    {
+      ezAudioSystem::GetSingleton()->SendRequest(request);
+    }
+  }
 }
 
 void ezAudioTriggerComponent::SerializeComponent(ezWorldWriter& stream) const

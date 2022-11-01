@@ -112,8 +112,10 @@ protected:
 private:
   void LoadPlayTrigger(bool bSync);
   void LoadStopTrigger(bool bSync);
-  void UnloadPlayTrigger();
-  void UnloadStopTrigger();
+  void UnloadPlayTrigger(bool bSync, bool bDeinit = false);
+  void UnloadStopTrigger(bool bSync, bool bDeinit = false);
+
+  void StopInternal(bool bSync = false, bool bDeinit = false);
 
   ezEnum<ezAudioSystemTriggerState> m_eState;
 
@@ -128,8 +130,10 @@ private:
   bool m_bLoadOnInit;
   bool m_bPlayOnActivate;
 
-  bool m_bPlayTriggerLoaded = false;
-  bool m_bStopTriggerLoaded = false;
+  bool m_bPlayTriggerLoaded{false};
+  bool m_bStopTriggerLoaded{false};
 
-  bool m_bHasPlayedOnActivate = false;
+  bool m_bHasPlayedOnActivate{false};
+
+  bool m_bCanPlay{false};
 };
