@@ -15,7 +15,7 @@
 
 typedef ezDeque<ezVariant> ezAudioSystemRequestsQueue;
 
-class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystem : public ezSoundInterface
+class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystem final : public ezSoundInterface
 {
   EZ_DECLARE_SINGLETON_OF_INTERFACE(ezAudioSystem, ezSoundInterface);
 
