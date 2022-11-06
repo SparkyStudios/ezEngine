@@ -141,6 +141,7 @@ bool ezAmplitudeConfiguration::operator==(const ezAmplitudeConfiguration& rhs) c
 {
   if (m_sInitSoundBank != rhs.m_sInitSoundBank)
     return false;
+
   if (m_sEngineConfigFileName != rhs.m_sEngineConfigFileName)
     return false;
 
@@ -271,6 +272,7 @@ ezResult ezAmplitude::Startup()
 
   m_bInitialized = true;
 
+  // Create the editor listener
   const auto& l = m_pEngine->AddListener(1);
   m_pEngine->SetDefaultListener(&l);
   l.SetLocation(AM_Vec3(0, 0, 0));
@@ -853,9 +855,14 @@ const char* ezAmplitude::GetMiddlewareName() const
   return s_szAmplitudeMiddlewareName;
 }
 
-const char* ezAmplitude::GetMiddlewareFolderName() const
+float ezAmplitude::GetMasterGain() const
 {
-  return s_szAmplitudeMiddlewareName;
+  return m_pEngine->GetMasterGain();
+}
+
+bool ezAmplitude::GetMute() const
+{
+  return m_pEngine->GetMute();
 }
 
 void ezAmplitude::OnMasterGainChange(float fGain)

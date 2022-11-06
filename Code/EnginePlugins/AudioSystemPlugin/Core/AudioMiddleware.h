@@ -257,12 +257,13 @@ public:
   /// \return The name of the audio middleware.
   EZ_NODISCARD virtual const char* GetMiddlewareName() const = 0;
 
-  /// \brief Gets the name of the directory in which store middleware-specific ATL controls.
-  /// It's recommended that the folder name is unique per implementation. It's in that folder
-  /// that every ATL controls created and configured for this middleware in the Editor will be stored.
-  /// The folder will be located in Sounds/ATL/_folder_name_
-  /// \return The middleware folder name.
-  EZ_NODISCARD virtual const char* GetMiddlewareFolderName() const = 0;
+  /// \brief Gets the audio middleware's master gain.
+  /// \return The master gain.
+  EZ_NODISCARD virtual float GetMasterGain() const = 0;
+
+  /// \brief Gets the audio middleware's muted state.
+  /// \return The muted state.
+  EZ_NODISCARD virtual bool GetMute() const = 0;
 
   /// \brief Called each time the master gain value change.
   /// \param fGain The master gain value.

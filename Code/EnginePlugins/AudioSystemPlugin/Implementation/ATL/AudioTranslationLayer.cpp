@@ -16,6 +16,7 @@
 ezCVarBool cvar_AudioSystemDebug("Audio.Debugging.Enable", false, ezCVarFlags::None, "Defines if Audio System debug information are displayed.");
 #endif
 
+ezCVarInt cvar_AudioSystemMemoryEntitiesPoolSize("Audio.Memory.EntitiesPoolSize", 1024, ezCVarFlags::Save, "Specify the pre-allocated number of entities in the pool.");
 ezCVarFloat cvar_AudioSystemGain("Audio.MasterGain", 1.0f, ezCVarFlags::Save, "The main volume of the audio system.");
 ezCVarBool cvar_AudioSystemMute("Audio.Mute", false, ezCVarFlags::Default, "Whether sound output is muted.");
 
@@ -52,6 +53,7 @@ ezResult ezAudioTranslationLayer::Startup()
         if (m_pAudioMiddleware->LoadConfiguration(*pChild).Failed())
           ezLog::Error("Failed to load configuration for audio middleware: {0}.", pChild->GetName());
 
+        ezLog::Success("Audio middleware configuration for {} successfully loaded.", pChild->GetName());
         break;
       }
 
@@ -62,18 +64,18 @@ ezResult ezAudioTranslationLayer::Startup()
   // Start the audio middleware
   const ezResult result = m_pAudioMiddleware->Startup();
 
-  if (result.Succeeded())
+  if (result.Failed())
   {
-    // Register CVar update events
-    cvar_AudioSystemGain.m_CVarEvents.AddEventHandler(ezMakeDelegate(&ezAudioTranslationLayer::OnMasterGainChange, this));
-    cvar_AudioSystemMute.m_CVarEvents.AddEventHandler(ezMakeDelegate(&ezAudioTranslationLayer::OnMuteChange, this));
-
-    ezLog::Success("ATL loaded successfully. Using {0} as the audio middleware.", m_pAudioMiddleware->GetMiddlewareName());
-    return EZ_SUCCESS;
+    ezLog::Error("Unable to load the ATL. An error occurred while loading the audio middleware.");
+    return EZ_FAILURE;
   }
 
-  ezLog::Error("Unable to load the ATL. An error occurred while loading the audio middleware.");
-  return EZ_FAILURE;
+  // Register CVar update events
+  cvar_AudioSystemGain.m_CVarEvents.AddEventHandler(ezMakeDelegate(&ezAudioTranslationLayer::OnMasterGainChange, this));
+  cvar_AudioSystemMute.m_CVarEvents.AddEventHandler(ezMakeDelegate(&ezAudioTranslationLayer::OnMuteChange, this));
+
+  ezLog::Success("ATL loaded successfully. Using {0} as the audio middleware.", m_pAudioMiddleware->GetMiddlewareName());
+  return EZ_SUCCESS;
 }
 
 void ezAudioTranslationLayer::Shutdown()

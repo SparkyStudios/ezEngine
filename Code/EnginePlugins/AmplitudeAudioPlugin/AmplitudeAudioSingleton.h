@@ -17,7 +17,7 @@ class ezOpenDdlWriter;
 class ezOpenDdlReaderElement;
 typedef ezDynamicArray<ezUInt8> ezDataBuffer;
 
-/// \brief The Amplitude configuration to be used on a specific platform
+/// \brief The Amplitude configuration to be used on a specific platform.
 struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeConfiguration
 {
   ezString m_sInitSoundBank;
@@ -30,7 +30,8 @@ struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeConfiguration
   bool operator!=(const ezAmplitudeConfiguration& rhs) const { return !operator==(rhs); }
 };
 
-/// \brief All available Amplitude platform configurations
+/// \brief Loads and stores all available platform-specific configurations
+/// for the Amplitude Audio middleware.
 struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAssetProfiles
 {
   ezResult Save(ezOpenDdlWriter& writer) const;
@@ -93,8 +94,9 @@ public:
   ezResult DestroySwitchStateData(ezAudioSystemSwitchStateData* pSwitchStateData) override;
   ezResult DestroyEnvironmentData(ezAudioSystemEnvironmentData* pEnvironmentData) override;
   ezResult SetLanguage(const char* szLanguage) override;
-  [[nodiscard]] const char* GetMiddlewareName() const override;
-  [[nodiscard]] const char* GetMiddlewareFolderName() const override;
+  EZ_NODISCARD const char* GetMiddlewareName() const override;
+  EZ_NODISCARD float GetMasterGain() const override;
+  EZ_NODISCARD bool GetMute() const override;
   void OnMasterGainChange(float fGain) override;
   void OnMuteChange(bool bMute) override;
   void OnLoseFocus() override;
@@ -108,7 +110,7 @@ public:
   ezAmplitude();
   ~ezAmplitude() override;
 
-  [[nodiscard]] SparkyStudios::Audio::Amplitude::Engine* GetEngine() const { return m_pEngine; }
+  EZ_NODISCARD SparkyStudios::Audio::Amplitude::Engine* GetEngine() const { return m_pEngine; }
 
   /// \brief Parses the entry in the controls collection that represent a bank.
   /// \param pBankEntry The stream storing the bank entry.
