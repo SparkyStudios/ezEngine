@@ -35,7 +35,7 @@ public:
   ezAmplitudeAudioControlsManager();
   ~ezAmplitudeAudioControlsManager() = default;
 
-  /// \brief Create controls assets needed for the amplitude audio.
+  /// \brief Create controls assets needed for Amplitude Audio.
   /// \return EZ_SUCCESS on success, otherwise EZ_FAILURE.
   virtual ezResult ReloadControls();
 
@@ -50,8 +50,8 @@ private:
   virtual ezResult CreateSwitchStateControl(const char* szControlName, const ezAudioSystemSwitchStateData* pControlData);
   virtual ezResult CreateEnvironmentControl(const char* szControlName, const ezAudioSystemEnvironmentData* pControlData);
 
-  void LoadSoundBanks(const char* sRootFolder, const char* sSubPath);
+  void LoadSoundBanks(const char* szRootFolder, const char* szSubPath);
   //  void LoadBuses(const char* sRootFolder);
-  ezResult LoadControlsInFolder(const char* sFolderPath, AmplitudeControlType type);
+  ezResult LoadControlsInFolder(const char* szFolderPath, AmplitudeControlType type);
   ezResult LoadControl(const ezVariantDictionary& json, AmplitudeControlType type);
 };

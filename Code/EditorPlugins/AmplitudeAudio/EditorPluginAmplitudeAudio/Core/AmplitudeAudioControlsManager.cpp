@@ -71,10 +71,7 @@ ezResult ezAmplitudeAudioControlsManager::ReloadControls()
       return EZ_FAILURE;
   }
 
-  //  LoadControlsInFolder(AZ::IO::FixedMaxPath{projectFullPath / kSwitchesFolder}.Native(), eAMCT_AMPLITUDE_SWITCH);
-  //  LoadControlsInFolder(AZ::IO::FixedMaxPath{projectFullPath / kEffectsFolder}.Native(), eAMCT_AMPLITUDE_EFFECT);
   LoadSoundBanks(projectPath, kSoundBanksFolder);
-  //  LoadBuses(projectFullPath.Native());
 
   return EZ_SUCCESS;
 }
@@ -87,7 +84,6 @@ ezResult ezAmplitudeAudioControlsManager::SerializeTriggerControl(ezStreamWriter
   if (const auto* const pAmplitudeAudioTriggerData = ezDynamicCast<const ezAmplitudeAudioTriggerData*>(pControlData); pAmplitudeAudioTriggerData != nullptr)
   {
     *pStream << pAmplitudeAudioTriggerData->m_uiAmId;
-
     return EZ_SUCCESS;
   }
 
@@ -102,7 +98,6 @@ ezResult ezAmplitudeAudioControlsManager::SerializeRtpcControl(ezStreamWriter* p
   if (const auto* const pAmplitudeAudioRtpcData = ezDynamicCast<const ezAmplitudeAudioRtpcData*>(pControlData); pAmplitudeAudioRtpcData != nullptr)
   {
     *pStream << pAmplitudeAudioRtpcData->m_uiAmId;
-
     return EZ_SUCCESS;
   }
 
@@ -118,7 +113,6 @@ ezResult ezAmplitudeAudioControlsManager::SerializeSwitchStateControl(ezStreamWr
   {
     *pStream << pAmplitudeAudioSwitchStateData->m_uiSwitchId;
     *pStream << pAmplitudeAudioSwitchStateData->m_uiSwitchStateId;
-
     return EZ_SUCCESS;
   }
 
@@ -134,7 +128,6 @@ ezResult ezAmplitudeAudioControlsManager::SerializeEnvironmentControl(ezStreamWr
   {
     *pStream << pAmplitudeAudioEnvironmentData->m_uiAmId;
     *pStream << pAmplitudeAudioEnvironmentData->m_uiEffectId;
-
     return EZ_SUCCESS;
   }
 
@@ -157,14 +150,10 @@ ezResult ezAmplitudeAudioControlsManager::CreateTriggerControl(const char* szCon
   // Set the control type
   file << ezAudioSystemControlType::Trigger;
 
-  // Serialize the trigger data
+  // Serialize the control data
   if (SerializeTriggerControl(&file, pControlData).Succeeded())
-  {
-    file.Close();
     return EZ_SUCCESS;
-  }
 
-  file.Close();
   return EZ_FAILURE;
 }
 
@@ -184,14 +173,10 @@ ezResult ezAmplitudeAudioControlsManager::CreateRtpcControl(const char* szContro
   // Set the control type
   file << ezAudioSystemControlType::Rtpc;
 
-  // Serialize the trigger data
+  // Serialize the control data
   if (SerializeRtpcControl(&file, pControlData).Succeeded())
-  {
-    file.Close();
     return EZ_SUCCESS;
-  }
 
-  file.Close();
   return EZ_FAILURE;
 }
 
@@ -211,14 +196,10 @@ ezResult ezAmplitudeAudioControlsManager::CreateSwitchStateControl(const char* s
   // Set the control type
   file << ezAudioSystemControlType::SwitchState;
 
-  // Serialize the trigger data
+  // Serialize the control data
   if (SerializeSwitchStateControl(&file, pControlData).Succeeded())
-  {
-    file.Close();
     return EZ_SUCCESS;
-  }
 
-  file.Close();
   return EZ_FAILURE;
 }
 
@@ -238,14 +219,10 @@ ezResult ezAmplitudeAudioControlsManager::CreateEnvironmentControl(const char* s
   // Set the control type
   file << ezAudioSystemControlType::Environment;
 
-  // Serialize the trigger data
+  // Serialize the control data
   if (SerializeEnvironmentControl(&file, pControlData).Succeeded())
-  {
-    file.Close();
     return EZ_SUCCESS;
-  }
 
-  file.Close();
   return EZ_FAILURE;
 }
 
@@ -311,7 +288,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControlsInFolder(const char* sFold
     }
     else
     {
-      ezLog::Error("Could not parse sound bank file '{0}'.", filePath);
+      ezLog::Error("Could not parse control file '{0}'.", filePath);
       return EZ_FAILURE;
     }
   }
@@ -397,6 +374,9 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
         break;
 
       case eAMCT_AMPLITUDE_BUS:
+        break;
+
+      case eAMCT_AMPLITUDE_EFFECT:
         break;
     }
   }
