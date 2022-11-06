@@ -1,7 +1,8 @@
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginPCH.h>
 
-#include <AmplitudeAudioPlugin/Resources/AudioControlCollectionResource.h>
 #include <AmplitudeAudioPlugin/AmplitudeAudioSingleton.h>
+#include <AmplitudeAudioPlugin/Resources/AudioControlCollectionResource.h>
+
 
 #include <AudioSystemPlugin/Core/AudioSystem.h>
 #include <AudioSystemPlugin/Core/AudioSystemAllocator.h>
@@ -121,12 +122,15 @@ void ezAmplitudeAudioControlCollectionResource::Register()
       case ezAudioSystemControlType::Trigger:
         RegisterTrigger(entry.m_sName, &reader);
         break;
+
       case ezAudioSystemControlType::Rtpc:
         RegisterRtpc(entry.m_sName, &reader);
         break;
+
       case ezAudioSystemControlType::SwitchState:
         RegisterSwitchState(entry.m_sName, &reader);
         break;
+
       case ezAudioSystemControlType::Environment:
         RegisterEnvironment(entry.m_sName, &reader);
         break;
@@ -136,6 +140,40 @@ void ezAmplitudeAudioControlCollectionResource::Register()
 
 void ezAmplitudeAudioControlCollectionResource::Unregister()
 {
+  if (!m_bRegistered)
+    return;
+
+  for (const auto& entry : m_Collection.m_Entries)
+  {
+    if (entry.m_sName.IsEmpty() || entry.m_pControlBufferStorage == nullptr)
+      continue;
+
+    switch (entry.m_Type)
+    {
+      case ezAudioSystemControlType::Invalid:
+        break;
+
+      case ezAudioSystemControlType::Trigger:
+        UnregisterTrigger(entry.m_sName);
+        break;
+
+      case ezAudioSystemControlType::Rtpc:
+        UnregisterRtpc(entry.m_sName);
+        break;
+
+      case ezAudioSystemControlType::SwitchState:
+        UnregisterSwitchState(entry.m_sName);
+        break;
+
+      case ezAudioSystemControlType::Environment:
+        UnregisterEnvironment(entry.m_sName);
+        break;
+
+      case ezAudioSystemControlType::SoundBank:
+      case ezAudioSystemControlType::Switch:
+        break;
+    }
+  }
 }
 
 const ezAmplitudeAudioControlCollectionResourceDescriptor& ezAmplitudeAudioControlCollectionResource::GetDescriptor() const
@@ -191,6 +229,16 @@ void ezAmplitudeAudioControlCollectionResource::RegisterTrigger(const char* szTr
   pAudioSystem->RegisterTrigger(uiTriggerId, pTriggerData);
 }
 
+void ezAmplitudeAudioControlCollectionResource::UnregisterTrigger(const char* szTriggerName)
+{
+  auto* pAudioSystem = ezAudioSystem::GetSingleton();
+  if (!pAudioSystem->IsInitialized())
+    return;
+
+  const ezUInt32 uiTriggerId = ezHashHelper<const char*>::Hash(szTriggerName);
+  pAudioSystem->UnregisterTrigger(uiTriggerId);
+}
+
 void ezAmplitudeAudioControlCollectionResource::RegisterRtpc(const char* szRtpcName, const char* szControlFile)
 {
   if (!ezAudioSystem::GetSingleton()->IsInitialized())
@@ -237,6 +285,16 @@ void ezAmplitudeAudioControlCollectionResource::RegisterRtpc(const char* szRtpcN
 
   const ezUInt32 uiRtpcId = ezHashHelper<const char*>::Hash(szRtpcName);
   pAudioSystem->RegisterRtpc(uiRtpcId, pSystemRtpcData);
+}
+
+void ezAmplitudeAudioControlCollectionResource::UnregisterRtpc(const char* szRtpcName)
+{
+  auto* pAudioSystem = ezAudioSystem::GetSingleton();
+  if (!pAudioSystem->IsInitialized())
+    return;
+
+  const ezUInt32 uiRtpcId = ezHashHelper<const char*>::Hash(szRtpcName);
+  pAudioSystem->UnregisterRtpc(uiRtpcId);
 }
 
 void ezAmplitudeAudioControlCollectionResource::RegisterSwitchState(const char* szSwitchStateName, const char* szControlFile)
@@ -287,6 +345,16 @@ void ezAmplitudeAudioControlCollectionResource::RegisterSwitchState(const char* 
   pAudioSystem->RegisterSwitchState(uiSwitchStateId, pSwitchStateData);
 }
 
+void ezAmplitudeAudioControlCollectionResource::UnregisterSwitchState(const char* szSwitchStateName)
+{
+  auto* pAudioSystem = ezAudioSystem::GetSingleton();
+  if (!pAudioSystem->IsInitialized())
+    return;
+
+  const ezUInt32 uiSwitchStateId = ezHashHelper<const char*>::Hash(szSwitchStateName);
+  pAudioSystem->UnregisterSwitchState(uiSwitchStateId);
+}
+
 void ezAmplitudeAudioControlCollectionResource::RegisterEnvironment(const char* szEnvironmentName, const char* szControlFile)
 {
   if (!ezAudioSystem::GetSingleton()->IsInitialized())
@@ -333,6 +401,16 @@ void ezAmplitudeAudioControlCollectionResource::RegisterEnvironment(const char* 
 
   const ezUInt32 uiEnvironmentId = ezHashHelper<const char*>::Hash(szEnvironmentName);
   pAudioSystem->RegisterEnvironment(uiEnvironmentId, pEnvironmentData);
+}
+
+void ezAmplitudeAudioControlCollectionResource::UnregisterEnvironment(const char* szEnvironmentName)
+{
+  auto* pAudioSystem = ezAudioSystem::GetSingleton();
+  if (!pAudioSystem->IsInitialized())
+    return;
+
+  const ezUInt32 uiEnvironmentId = ezHashHelper<const char*>::Hash(szEnvironmentName);
+  pAudioSystem->UnregisterEnvironment(uiEnvironmentId);
 }
 
 ezResourceLoadDesc ezAmplitudeAudioControlCollectionResource::UnloadData(Unload WhatToUnload)

@@ -11,7 +11,7 @@ using ezAudioControlCollectionResourceHandle = ezTypedResourceHandle<class ezAmp
 /// \brief Represents one audio control, used by a single audio middleware.
 struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioControlCollectionEntry
 {
-  ezString m_sName;                                                ///< Optional, can be used to lookup the resource at runtime with a nice name. E.g. "SkyTexture" instead of some GUID.
+  ezString m_sName;                                               ///< Optional, can be used to lookup the resource at runtime with a nice name. E.g. "SkyTexture" instead of some GUID.
   ezString m_sControlFile;                                        ///< The path to the audio system control.
   ezDefaultMemoryStreamStorage* m_pControlBufferStorage{nullptr}; ///< Buffer storage that contains the control data. Only have a value for loaded resources.
   ezEnum<ezAudioSystemControlType> m_Type;                        ///< The type of the control.
@@ -58,12 +58,19 @@ public:
 private:
   void RegisterTrigger(const char* szTriggerName, const char* szControlFile);
   void RegisterTrigger(const char* szTriggerName, ezStreamReader* pStreamReader);
+  void UnregisterTrigger(const char* szTriggerName);
+
   void RegisterRtpc(const char* szRtpcName, const char* szControlFile);
   void RegisterRtpc(const char* szRtpcName, ezStreamReader* pStreamReader);
+  void UnregisterRtpc(const char* szRtpcName);
+
   void RegisterSwitchState(const char* szSwitchStateName, const char* szControlFile);
   void RegisterSwitchState(const char* szSwitchStateName, ezStreamReader* pStreamReader);
+  void UnregisterSwitchState(const char* szSwitchStateName);
+
   void RegisterEnvironment(const char* szEnvironmentName, const char* szControlFile);
   void RegisterEnvironment(const char* szEnvironmentName, ezStreamReader* pStreamReader);
+  void UnregisterEnvironment(const char* szEnvironmentName);
 
   virtual ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;
   virtual ezResourceLoadDesc UpdateContent(ezStreamReader* pStream) override;
