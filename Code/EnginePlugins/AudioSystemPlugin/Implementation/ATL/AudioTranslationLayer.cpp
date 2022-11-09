@@ -306,17 +306,22 @@ bool ezAudioTranslationLayer::ProcessRequest(ezVariant&& request, bool bSync)
       return needCallback;
     }
 
-    ezAudioSystemEventData* pEventData = m_pAudioMiddleware->CreateEventData(audioRequest.m_uiEventId);
-
-    if (pEventData == nullptr)
-    {
-      ezLog::Error("Failed to load trigger {0}. Unable to allocate memory for the linked event with ID {1}.", audioRequest.m_uiObjectId, audioRequest.m_uiEventId);
-      return needCallback;
-    }
-
     const auto& entity = m_mEntities[audioRequest.m_uiEntityId];
     const auto& trigger = m_mTriggers[audioRequest.m_uiObjectId];
-    trigger->AttachEvent(audioRequest.m_uiEventId, pEventData);
+
+    ezAudioSystemEventData* pEventData = nullptr;
+    if (trigger->GetEvent(audioRequest.m_uiEventId, pEventData).Failed())
+    {
+      pEventData = m_pAudioMiddleware->CreateEventData(audioRequest.m_uiEventId);
+
+      if (pEventData == nullptr)
+      {
+        ezLog::Error("Failed to load trigger {0}. Unable to allocate memory for the linked event with ID {1}.", audioRequest.m_uiObjectId, audioRequest.m_uiEventId);
+        return needCallback;
+      }
+
+      trigger->AttachEvent(audioRequest.m_uiEventId, pEventData);
+    }
 
     audioRequest.m_eStatus = m_pAudioMiddleware->LoadTrigger(entity->m_pEntityData, trigger->m_pTriggerData, pEventData);
   }

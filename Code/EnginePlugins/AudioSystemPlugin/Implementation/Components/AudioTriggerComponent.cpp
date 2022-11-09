@@ -1,5 +1,3 @@
-#include "Core/Physics/SurfaceResource.h"
-
 #include <AudioSystemPlugin/AudioSystemPluginPCH.h>
 
 #include <AudioSystemPlugin/Components/AudioProxyComponent.h>

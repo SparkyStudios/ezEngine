@@ -77,7 +77,7 @@ private:
 /// \brief Audio System Component that triggers an audio event.
 ///
 /// This component takes as properties a mandatory play trigger an an optional stop trigger.
-/// The user should specify the name of the triggers as defined in the loaded audio controls collection asset.
+/// The user should specify the name of the triggers as defined by the available audio controls loaded in the audio system.
 /// If the stop trigger is left empty, the component will send a StopEvent request to the audio system, that means
 /// the event triggered by the play trigger should be stoppable that way.
 ///

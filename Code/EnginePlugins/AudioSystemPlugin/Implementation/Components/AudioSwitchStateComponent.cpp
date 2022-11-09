@@ -2,6 +2,7 @@
 
 #include <AudioSystemPlugin/Components/AudioSwitchStateComponent.h>
 #include <AudioSystemPlugin/Core/AudioSystem.h>
+#include <AudioSystemPlugin/Core/AudioSystemRequests.h>
 
 #include <Core/WorldSerializer/WorldReader.h>
 #include <Core/WorldSerializer/WorldWriter.h>
