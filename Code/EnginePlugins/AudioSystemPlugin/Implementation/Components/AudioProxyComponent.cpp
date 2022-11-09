@@ -28,7 +28,7 @@ void ezAudioProxyComponent::Initialize()
 
 void ezAudioProxyComponent::Deinitialize()
 {
-  if (m_uiRefCount > 0)
+  if (IsReferenced())
     return; // Some components are still depending on this proxy.
 
   ezAudioSystemRequestUnregisterEntity request;

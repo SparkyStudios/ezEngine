@@ -2,6 +2,7 @@
 
 #include <AudioSystemPlugin/Components/AudioProxyComponent.h>
 #include <AudioSystemPlugin/Components/AudioSystemComponent.h>
+#include <AudioSystemPlugin/Core/AudioWorldModule.h>
 
 // clang-format off
 EZ_BEGIN_ABSTRACT_COMPONENT_TYPE(ezAudioSystemComponent, 1)
@@ -54,7 +55,7 @@ void ezAudioSystemProxyDependentComponent::Initialize()
 
     if (m_pProxyComponent != nullptr)
     {
-      m_pProxyComponent->m_uiRefCount++;
+      m_pProxyComponent->AddRef();
     }
   }
 }
@@ -63,9 +64,9 @@ void ezAudioSystemProxyDependentComponent::Deinitialize()
 {
   if (m_pProxyComponent != nullptr)
   {
-    m_pProxyComponent->m_uiRefCount--;
+    m_pProxyComponent->ReleaseRef();
 
-    if (m_pProxyComponent->m_uiRefCount == 0)
+    if (!m_pProxyComponent->IsReferenced())
     {
       GetOwner()->GetWorld()->GetOrCreateComponentManager<ezAudioProxyComponentManager>()->DeleteComponent(m_pProxyComponent);
     }
