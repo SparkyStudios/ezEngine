@@ -283,6 +283,18 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestSetObstructionOcclusion : pu
   float m_fOcclusion{0.0f};
 };
 
+/// \brief Audio request to load a sound bank.
+struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestLoadBank : public ezAudioSystemRequest
+{
+  EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE_SIMPLE(ezAudioSystemRequestLoadBank);
+};
+
+/// \brief Audio request to unload a sound bank.
+struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestUnloadBank : public ezAudioSystemRequest
+{
+  EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE_SIMPLE(ezAudioSystemRequestUnloadBank);
+};
+
 /// \brief Audio request to shutdown the audio system. Used internally only. Sending this request
 /// at runtime will lead to unspecified behaviors.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestShutdown : public ezAudioSystemRequest
@@ -307,6 +319,8 @@ EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestSetRtpcValue, ezHashHelper<ez
 EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestSetSwitchState);
 EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestSetEnvironmentAmount, ezHashHelper<ezInt32>::Hash(ezMath::FloatToInt(value.m_fAmount * 1000.0f)));
 EZ_DECLARE_AUDIOSYSTEM_REQUEST(ezAudioSystemRequestSetObstructionOcclusion, ezHashHelper<ezInt32>::Hash(ezMath::FloatToInt(value.m_fObstruction * 1000.0f)) * ezHashHelper<ezInt32>::Hash(ezMath::FloatToInt(value.m_fOcclusion * 1000.0f)));
+EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestLoadBank);
+EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestUnloadBank);
 EZ_DECLARE_AUDIOSYSTEM_REQUEST_SIMPLE(ezAudioSystemRequestShutdown);
 
 /// \brief A functor used by ezVariant to call an audio request callback.
@@ -386,6 +400,14 @@ struct CallRequestCallbackFunc
     else if (m_Value.IsA<ezAudioSystemRequestSetObstructionOcclusion>())
     {
       Call<ezAudioSystemRequestSetObstructionOcclusion>();
+    }
+    else if (m_Value.IsA<ezAudioSystemRequestLoadBank>())
+    {
+      Call<ezAudioSystemRequestLoadBank>();
+    }
+    else if (m_Value.IsA<ezAudioSystemRequestUnloadBank>())
+    {
+      Call<ezAudioSystemRequestUnloadBank>();
     }
     else if (m_Value.IsA<ezAudioSystemRequestShutdown>())
     {

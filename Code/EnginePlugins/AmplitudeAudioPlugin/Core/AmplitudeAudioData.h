@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Foundation/IO/Stream.h"
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginDLL.h>
 
 #include <AudioSystemPlugin/Core/AudioSystemData.h>
@@ -153,11 +154,13 @@ class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioSoundBankData : public ezAudio
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioSoundBankData, ezAudioSystemBankData);
 
 public:
-  explicit ezAmplitudeAudioSoundBankData(const SparkyStudios::Audio::Amplitude::AmBankID uiBankId)
+  explicit ezAmplitudeAudioSoundBankData(const SparkyStudios::Audio::Amplitude::AmBankID uiBankId, const ezString& sFileName)
     : ezAudioSystemBankData()
     , m_uiAmId(uiBankId)
+    , m_sFileName(sFileName)
   {
   }
 
   const SparkyStudios::Audio::Amplitude::AmEventID m_uiAmId;
+  const ezString m_sFileName;
 };

@@ -1,3 +1,5 @@
+#include "AudioSystemPlugin/Core/AudioSystemData.h"
+#include "Foundation/Types/Types.h"
 #include <EditorPluginAmplitudeAudio/EditorPluginAmplitudeAudioPCH.h>
 
 #include <EditorPluginAmplitudeAudio/Core/AmplitudeAudioControlsManager.h>
@@ -43,7 +45,7 @@ ezResult ezAmplitudeAudioControlsManager::ReloadControls()
     ezStringBuilder basePath(projectPath);
     basePath.AppendPath(kEventsFolder);
 
-    if (LoadControlsInFolder(basePath, eAMCT_AMPLITUDE_EVENT).Failed())
+    if (LoadControlsInFolder(basePath, ezAmplitudeAudioControlType::Trigger).Failed())
       return EZ_FAILURE;
   }
 
@@ -51,7 +53,7 @@ ezResult ezAmplitudeAudioControlsManager::ReloadControls()
     ezStringBuilder basePath(projectPath);
     basePath.AppendPath(kRtpcFolder);
 
-    if (LoadControlsInFolder(basePath, eAMCT_AMPLITUDE_RTPC).Failed())
+    if (LoadControlsInFolder(basePath, ezAmplitudeAudioControlType::Rtpc).Failed())
       return EZ_FAILURE;
   }
 
@@ -59,7 +61,7 @@ ezResult ezAmplitudeAudioControlsManager::ReloadControls()
     ezStringBuilder basePath(projectPath);
     basePath.AppendPath(kSwitchesFolder);
 
-    if (LoadControlsInFolder(basePath, eAMCT_AMPLITUDE_SWITCH).Failed())
+    if (LoadControlsInFolder(basePath, ezAmplitudeAudioControlType::Switch).Failed())
       return EZ_FAILURE;
   }
 
@@ -67,13 +69,11 @@ ezResult ezAmplitudeAudioControlsManager::ReloadControls()
     ezStringBuilder basePath(projectPath);
     basePath.AppendPath(kEnvironmentsFolder);
 
-    if (LoadControlsInFolder(basePath, eAMCT_AMPLITUDE_ENVIRONMENT).Failed())
+    if (LoadControlsInFolder(basePath, ezAmplitudeAudioControlType::Environment).Failed())
       return EZ_FAILURE;
   }
 
-  LoadSoundBanks(projectPath, kSoundBanksFolder);
-
-  return EZ_SUCCESS;
+  return LoadSoundBanks(projectPath, kSoundBanksFolder);
 }
 
 ezResult ezAmplitudeAudioControlsManager::SerializeTriggerControl(ezStreamWriter* pStream, const ezAudioSystemTriggerData* pControlData)
@@ -128,6 +128,21 @@ ezResult ezAmplitudeAudioControlsManager::SerializeEnvironmentControl(ezStreamWr
   {
     *pStream << pAmplitudeAudioEnvironmentData->m_uiAmId;
     *pStream << pAmplitudeAudioEnvironmentData->m_uiEffectId;
+    return EZ_SUCCESS;
+  }
+
+  return EZ_FAILURE;
+}
+
+ezResult ezAmplitudeAudioControlsManager::SerializeSoundBankControl(ezStreamWriter* pStream, const ezAudioSystemBankData* pControlData)
+{
+  if (pStream == nullptr || pControlData == nullptr)
+    return EZ_FAILURE;
+
+  if (const auto* const pAmplitudeAudioSoundBankData = ezDynamicCast<const ezAmplitudeAudioSoundBankData*>(pControlData); pAmplitudeAudioSoundBankData != nullptr)
+  {
+    *pStream << pAmplitudeAudioSoundBankData->m_uiAmId;
+    *pStream << pAmplitudeAudioSoundBankData->m_sFileName;
     return EZ_SUCCESS;
   }
 
@@ -226,7 +241,30 @@ ezResult ezAmplitudeAudioControlsManager::CreateEnvironmentControl(const char* s
   return EZ_FAILURE;
 }
 
-void ezAmplitudeAudioControlsManager::LoadSoundBanks(const char* sRootFolder, const char* sSubPath)
+ezResult ezAmplitudeAudioControlsManager::CreateSoundBankControl(const char* szControlName, const ezAudioSystemBankData* pControlData)
+{
+  ezStringBuilder sbOutputFile;
+  sbOutputFile.Format(":atl/SoundBanks/{0}.ezAudioSystemControl", szControlName);
+
+  ezStringBuilder sbAssetPath;
+  if (ezFileSystem::ResolvePath(sbOutputFile, &sbAssetPath, nullptr).Failed())
+    return EZ_FAILURE;
+
+  ezFileWriter file;
+  if (file.Open(sbAssetPath, 256).Failed())
+    return EZ_FAILURE;
+
+  // Set the control type
+  file << ezAmplitudeAudioControlType::SoundBank;
+
+  // Serialize the control data
+  if (SerializeSoundBankControl(&file, pControlData).Succeeded())
+    return EZ_SUCCESS;
+
+  return EZ_FAILURE;
+}
+
+ezResult ezAmplitudeAudioControlsManager::LoadSoundBanks(const char* sRootFolder, const char* sSubPath)
 {
   ezStringBuilder searchPath(sRootFolder);
   searchPath.AppendPath(sSubPath);
@@ -250,17 +288,32 @@ void ezAmplitudeAudioControlsManager::LoadSoundBanks(const char* sRootFolder, co
 
     if (json.Parse(reader).Succeeded())
     {
-      //      LoadControl(json, eAMCT_AMPLITUDE_SOUND_BANK);
-      //      ezLog::Info("Successfully parsed sound bank file '{0}'.", filePath);
+      const auto& bank = json.GetTopLevelObject();
+      const ezVariant* name = bank.GetValue("name");
+      const ezVariant* id = bank.GetValue("id");
+
+      if (!name->CanConvertTo<ezString>() || !id->CanConvertTo<ezUInt64>())
+        return EZ_FAILURE;
+
+      const ezString controlName(name->Get<ezString>());
+
+      ezAmplitudeAudioSoundBankData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioSoundBankData, id->Get<ezUInt64>(), fsIt.GetStats().m_sName);
+      const ezResult result = CreateSoundBankControl(controlName, control);
+      EZ_AUDIOSYSTEM_DELETE(control);
+      if (result.Failed())
+        return EZ_FAILURE;
     }
     else
     {
       ezLog::Error("Could not parse sound bank file '{0}'.", filePath);
+      return EZ_FAILURE;
     }
   }
+
+  return EZ_SUCCESS;
 }
 
-ezResult ezAmplitudeAudioControlsManager::LoadControlsInFolder(const char* sFolderPath, AmplitudeControlType type)
+ezResult ezAmplitudeAudioControlsManager::LoadControlsInFolder(const char* sFolderPath, ezEnum<ezAmplitudeAudioControlType> type)
 {
   ezStringBuilder const searchPath(sFolderPath);
 
@@ -296,7 +349,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControlsInFolder(const char* sFold
   return EZ_FAILURE;
 }
 
-ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary& json, AmplitudeControlType type)
+ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary& json, ezEnum<ezAmplitudeAudioControlType> type)
 {
   if (json.Contains("name"))
   {
@@ -310,10 +363,11 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
 
     switch (type)
     {
-      case eAMCT_INVALID:
+      case ezAmplitudeAudioControlType::Invalid:
+      case ezAmplitudeAudioControlType::SoundBank:
         break;
 
-      case eAMCT_AMPLITUDE_EVENT:
+      case ezAmplitudeAudioControlType::Trigger:
       {
         ezAmplitudeAudioTriggerData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioTriggerData, id->Get<ezUInt64>());
         const ezResult result = CreateTriggerControl(controlName, control);
@@ -321,7 +375,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
         return result;
       }
 
-      case eAMCT_AMPLITUDE_RTPC:
+      case ezAmplitudeAudioControlType::Rtpc:
       {
         ezAmplitudeAudioRtpcData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioRtpcData, id->Get<ezUInt64>());
         const ezResult result = CreateRtpcControl(controlName, control);
@@ -329,10 +383,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
         return result;
       }
 
-      case eAMCT_AMPLITUDE_SOUND_BANK:
-        break;
-
-      case eAMCT_AMPLITUDE_SWITCH:
+      case ezAmplitudeAudioControlType::Switch:
       {
         if (json.Contains("states"))
         {
@@ -350,19 +401,22 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
 
             ezStringBuilder stateName(controlName);
             stateName.AppendFormat("_{0}", value.GetValue("name")->Get<ezString>());
+
             ezAmplitudeAudioSwitchStateData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioSwitchStateData, id->Get<ezUInt64>(), value.GetValue("id")->Get<ezUInt64>());
             const ezResult result = CreateSwitchStateControl(stateName, control);
             EZ_AUDIOSYSTEM_DELETE(control);
+
             if (result.Failed())
               return result;
           }
+
           return EZ_SUCCESS;
         }
 
         return EZ_FAILURE;
       }
 
-      case eAMCT_AMPLITUDE_ENVIRONMENT:
+      case ezAmplitudeAudioControlType::Environment:
       {
         ezAmplitudeAudioEnvironmentData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioEnvironmentData, id->Get<ezUInt64>(), json.GetValue("effect")->Get<ezUInt64>());
         const ezResult result = CreateEnvironmentControl(controlName, control);
@@ -370,13 +424,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
         return result;
       }
 
-      case eAMCT_AMPLITUDE_SWITCH_STATE:
-        break;
-
-      case eAMCT_AMPLITUDE_BUS:
-        break;
-
-      case eAMCT_AMPLITUDE_EFFECT:
+      case ezAmplitudeAudioControlType::SwitchState:
         break;
     }
   }

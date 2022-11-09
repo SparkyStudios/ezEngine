@@ -503,12 +503,55 @@ bool ezAudioTranslationLayer::ProcessRequest(ezVariant&& request, bool bSync)
     audioRequest.m_eStatus = m_pAudioMiddleware->SetObstructionAndOcclusion(entity->m_pEntityData, audioRequest.m_fObstruction, audioRequest.m_fOcclusion);
   }
 
+  else if (request.IsA<ezAudioSystemRequestLoadBank>())
+  {
+    auto& audioRequest = request.GetWritable<ezAudioSystemRequestLoadBank>();
+
+    audioRequest.m_eStatus = {EZ_FAILURE};
+    needCallback = audioRequest.m_Callback.IsValid();
+
+    if (!m_mSoundBanks.Contains(audioRequest.m_uiObjectId))
+    {
+      ezLog::Error("Failed to load sound bank {0}. Make sure it was registered before.", audioRequest.m_uiObjectId);
+      return needCallback;
+    }
+
+    const auto& bank = m_mSoundBanks[audioRequest.m_uiObjectId];
+
+    audioRequest.m_eStatus = m_pAudioMiddleware->LoadBank(bank->m_pSoundBankData);
+  }
+
+  else if (request.IsA<ezAudioSystemRequestUnloadBank>())
+  {
+    auto& audioRequest = request.GetWritable<ezAudioSystemRequestUnloadBank>();
+
+    audioRequest.m_eStatus = {EZ_FAILURE};
+    needCallback = audioRequest.m_Callback.IsValid();
+
+    if (!m_mSoundBanks.Contains(audioRequest.m_uiObjectId))
+    {
+      ezLog::Error("Failed to unload sound bank {0}. Make sure it was registered before.", audioRequest.m_uiObjectId);
+      return needCallback;
+    }
+
+    const auto& bank = m_mSoundBanks[audioRequest.m_uiObjectId];
+
+    audioRequest.m_eStatus = m_pAudioMiddleware->UnloadBank(bank->m_pSoundBankData);
+  }
+
   else if (request.IsA<ezAudioSystemRequestShutdown>())
   {
     auto& audioRequest = request.GetWritable<ezAudioSystemRequestShutdown>();
 
     audioRequest.m_eStatus = {EZ_FAILURE};
     needCallback = audioRequest.m_Callback.IsValid();
+
+    // Destroy sound banks
+    for (auto&& bank : m_mSoundBanks)
+    {
+      m_pAudioMiddleware->DestroyBank(bank.Value()->m_pSoundBankData).IgnoreResult();
+      EZ_AUDIOSYSTEM_DELETE(bank.Value());
+    }
 
     // Destroy environments
     for (auto&& environment : m_mEnvironments)

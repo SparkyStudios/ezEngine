@@ -16,6 +16,7 @@
 #include <GameEngine/GameApplication/GameApplication.h>
 
 #include <SparkyStudios/Audio/Amplitude/Amplitude.h>
+#include <SparkyStudios/Audio/Amplitude/Core/Common/Constants.h>
 
 using namespace SparkyStudios::Audio;
 
@@ -685,11 +686,36 @@ ezResult ezAmplitude::SetListenerTransform(ezAudioSystemListenerData* pListenerD
 
 ezResult ezAmplitude::LoadBank(ezAudioSystemBankData* pBankData)
 {
+  if (!m_bInitialized)
+    return EZ_FAILURE;
+
+  const auto* const pAmplitudeBank = ezDynamicCast<ezAmplitudeAudioSoundBankData*>(pBankData);
+  if (pAmplitudeBank == nullptr)
+    return EZ_FAILURE;
+
+  if (!m_pEngine->LoadSoundBank(AM_STRING_TO_OS_STRING(pAmplitudeBank->m_sFileName.GetData())))
+  {
+    ezLog::Error("[Amplitude] Could not load sound bank '{0}'.", pAmplitudeBank->m_sFileName);
+    return EZ_FAILURE;
+  }
+
   return EZ_SUCCESS;
 }
 
 ezResult ezAmplitude::UnloadBank(ezAudioSystemBankData* pBankData)
 {
+  if (!m_bInitialized)
+    return EZ_FAILURE;
+
+  const auto* const pAmplitudeBank = ezDynamicCast<ezAmplitudeAudioSoundBankData*>(pBankData);
+  if (pAmplitudeBank == nullptr)
+    return EZ_FAILURE;
+
+  if (pAmplitudeBank->m_uiAmId == Amplitude::kAmInvalidObjectId)
+    return EZ_FAILURE;
+
+  m_pEngine->UnloadSoundBank(pAmplitudeBank->m_uiAmId);
+
   return EZ_SUCCESS;
 }
 
@@ -751,11 +777,24 @@ ezResult ezAmplitude::DestroyEventData(ezAudioSystemEventData* pEventData)
 
 ezAudioSystemBankData* ezAmplitude::DeserializeBankEntry(ezStreamReader* pBankEntry)
 {
-  return nullptr;
+  if (pBankEntry == nullptr)
+    return nullptr;
+
+  Amplitude::AmBankID uiAmId;
+  *pBankEntry >> uiAmId;
+
+  ezString sFileName;
+  *pBankEntry >> sFileName;
+
+  return EZ_NEW(ezAudioMiddlewareAllocatorWrapper::GetAllocator(), ezAmplitudeAudioSoundBankData, uiAmId, sFileName);
 }
 
 ezResult ezAmplitude::DestroyBank(ezAudioSystemBankData* pBankData)
 {
+  if (pBankData == nullptr || !pBankData->IsInstanceOf<ezAmplitudeAudioSoundBankData>())
+    return EZ_FAILURE;
+
+  EZ_DELETE(ezAudioMiddlewareAllocatorWrapper::GetAllocator(), pBankData);
   return EZ_SUCCESS;
 }
 
