@@ -2,7 +2,7 @@
 
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginDLL.h>
 
-#include <AudioSystemPlugin/Core/AudioSystemData.h>
+#include <AmplitudeAudioPlugin/Core/AmplitudeAudioData.h>
 
 #include <Core/ResourceManager/Resource.h>
 
@@ -14,7 +14,7 @@ struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioControlCollectionEntry
   ezString m_sName;                                               ///< Optional, can be used to lookup the resource at runtime with a nice name. E.g. "SkyTexture" instead of some GUID.
   ezString m_sControlFile;                                        ///< The path to the audio system control.
   ezDefaultMemoryStreamStorage* m_pControlBufferStorage{nullptr}; ///< Buffer storage that contains the control data. Only have a value for loaded resources.
-  ezEnum<ezAudioSystemControlType> m_Type;                        ///< The type of the control.
+  ezEnum<ezAmplitudeAudioControlType> m_Type;                     ///< The type of the control.
 };
 
 /// \brief Describes a full ezAmplitudeAudioControlCollectionResource, ie. lists all the controls that the collection contains.
@@ -71,6 +71,10 @@ private:
   void RegisterEnvironment(const char* szEnvironmentName, const char* szControlFile);
   void RegisterEnvironment(const char* szEnvironmentName, ezStreamReader* pStreamReader);
   void UnregisterEnvironment(const char* szEnvironmentName);
+
+  void RegisterSoundBank(const char* szBankName, const char* szControlFile);
+  void RegisterSoundBank(const char* szBankName, ezStreamReader* pStreamReader);
+  void UnregisterSoundBank(const char* szBankName);
 
   virtual ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;
   virtual ezResourceLoadDesc UpdateContent(ezStreamReader* pStream) override;

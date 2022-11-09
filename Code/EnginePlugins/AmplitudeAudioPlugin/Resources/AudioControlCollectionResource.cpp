@@ -3,7 +3,6 @@
 #include <AmplitudeAudioPlugin/AmplitudeAudioSingleton.h>
 #include <AmplitudeAudioPlugin/Resources/AudioControlCollectionResource.h>
 
-
 #include <AudioSystemPlugin/Core/AudioSystem.h>
 #include <AudioSystemPlugin/Core/AudioSystemAllocator.h>
 
@@ -119,20 +118,29 @@ void ezAmplitudeAudioControlCollectionResource::Register()
 
     switch (entry.m_Type)
     {
-      case ezAudioSystemControlType::Trigger:
+      case ezAmplitudeAudioControlType::Switch:
+      case ezAmplitudeAudioControlType::Invalid:
+        ezLog::Error("Unable to register an audio control. Encountered an invalid control type");
+        break;
+
+      case ezAmplitudeAudioControlType::Trigger:
         RegisterTrigger(entry.m_sName, &reader);
         break;
 
-      case ezAudioSystemControlType::Rtpc:
+      case ezAmplitudeAudioControlType::Rtpc:
         RegisterRtpc(entry.m_sName, &reader);
         break;
 
-      case ezAudioSystemControlType::SwitchState:
+      case ezAmplitudeAudioControlType::SwitchState:
         RegisterSwitchState(entry.m_sName, &reader);
         break;
 
-      case ezAudioSystemControlType::Environment:
+      case ezAmplitudeAudioControlType::Environment:
         RegisterEnvironment(entry.m_sName, &reader);
+        break;
+
+      case ezAmplitudeAudioControlType::SoundBank:
+        RegisterSoundBank(entry.m_sName, &reader);
         break;
     }
   }
@@ -150,27 +158,29 @@ void ezAmplitudeAudioControlCollectionResource::Unregister()
 
     switch (entry.m_Type)
     {
-      case ezAudioSystemControlType::Invalid:
+      case ezAmplitudeAudioControlType::Invalid:
+      case ezAmplitudeAudioControlType::Switch:
+        ezLog::Error("Unable to unregister an audio control. Encountered an invalid control type.");
         break;
 
-      case ezAudioSystemControlType::Trigger:
+      case ezAmplitudeAudioControlType::Trigger:
         UnregisterTrigger(entry.m_sName);
         break;
 
-      case ezAudioSystemControlType::Rtpc:
+      case ezAmplitudeAudioControlType::Rtpc:
         UnregisterRtpc(entry.m_sName);
         break;
 
-      case ezAudioSystemControlType::SwitchState:
+      case ezAmplitudeAudioControlType::SwitchState:
         UnregisterSwitchState(entry.m_sName);
         break;
 
-      case ezAudioSystemControlType::Environment:
+      case ezAmplitudeAudioControlType::Environment:
         UnregisterEnvironment(entry.m_sName);
         break;
 
-      case ezAudioSystemControlType::SoundBank:
-      case ezAudioSystemControlType::Switch:
+      case ezAmplitudeAudioControlType::SoundBank:
+        UnregisterSoundBank(entry.m_sName);
         break;
     }
   }
@@ -209,10 +219,10 @@ void ezAmplitudeAudioControlCollectionResource::RegisterTrigger(const char* szTr
     return;
   }
 
-  ezEnum<ezAudioSystemControlType> type;
+  ezEnum<ezAmplitudeAudioControlType> type;
   *pStreamReader >> type;
 
-  if (type != ezAudioSystemControlType::Trigger)
+  if (type != ezAmplitudeAudioControlType::Trigger)
   {
     ezLog::Error("Unable to register a trigger in the audio system: The control have an invalid file.");
     return;
@@ -267,10 +277,10 @@ void ezAmplitudeAudioControlCollectionResource::RegisterRtpc(const char* szRtpcN
     return;
   }
 
-  ezEnum<ezAudioSystemControlType> type;
+  ezEnum<ezAmplitudeAudioControlType> type;
   *pStreamReader >> type;
 
-  if (type != ezAudioSystemControlType::Rtpc)
+  if (type != ezAmplitudeAudioControlType::Rtpc)
   {
     ezLog::Error("Unable to register a rtpc in the audio system: The control have an invalid file.");
     return;
@@ -325,10 +335,10 @@ void ezAmplitudeAudioControlCollectionResource::RegisterSwitchState(const char* 
     return;
   }
 
-  ezEnum<ezAudioSystemControlType> type;
+  ezEnum<ezAmplitudeAudioControlType> type;
   *pStreamReader >> type;
 
-  if (type != ezAudioSystemControlType::SwitchState)
+  if (type != ezAmplitudeAudioControlType::SwitchState)
   {
     ezLog::Error("Unable to register a switch state in the audio system: The control have an invalid file.");
     return;
@@ -383,10 +393,10 @@ void ezAmplitudeAudioControlCollectionResource::RegisterEnvironment(const char* 
     return;
   }
 
-  ezEnum<ezAudioSystemControlType> type;
+  ezEnum<ezAmplitudeAudioControlType> type;
   *pStreamReader >> type;
 
-  if (type != ezAudioSystemControlType::Environment)
+  if (type != ezAmplitudeAudioControlType::Environment)
   {
     ezLog::Error("Unable to register an environment in the audio system: The control have an invalid file.");
     return;
@@ -411,6 +421,64 @@ void ezAmplitudeAudioControlCollectionResource::UnregisterEnvironment(const char
 
   const ezUInt32 uiEnvironmentId = ezHashHelper<const char*>::Hash(szEnvironmentName);
   pAudioSystem->UnregisterEnvironment(uiEnvironmentId);
+}
+
+void ezAmplitudeAudioControlCollectionResource::RegisterSoundBank(const char* szBankName, const char* szControlFile)
+{
+  if (!ezAudioSystem::GetSingleton()->IsInitialized())
+    return;
+
+  ezFileReader file;
+  if (!file.Open(szBankName, 256).Succeeded())
+  {
+    ezLog::Error("Unable to register a sound bank in the audio system: Could not open control file '{0}'", szControlFile);
+    return;
+  }
+
+  RegisterSoundBank(szBankName, &file);
+}
+
+void ezAmplitudeAudioControlCollectionResource::RegisterSoundBank(const char* szBankName, ezStreamReader* pStreamReader)
+{
+  auto* pAudioSystem = ezAudioSystem::GetSingleton();
+  if (!pAudioSystem->IsInitialized())
+    return;
+
+  auto* pAudioMiddleware = ezAmplitude::GetSingleton();
+  if (pAudioMiddleware == nullptr)
+  {
+    ezLog::Error("Unable to register a sound bank in the audio system: No audio middleware currently running.");
+    return;
+  }
+
+  ezEnum<ezAmplitudeAudioControlType> type;
+  *pStreamReader >> type;
+
+  if (type != ezAmplitudeAudioControlType::SoundBank)
+  {
+    ezLog::Error("Unable to register a sound bank in the audio system: The control have an invalid file.");
+    return;
+  }
+
+  ezAudioSystemBankData* pSoundBankData = pAudioMiddleware->DeserializeBankEntry(pStreamReader);
+  if (pSoundBankData == nullptr)
+  {
+    ezLog::Error("Unable to register a sound bank in the audio system: Could not deserialize control.");
+    return;
+  }
+
+  const ezUInt32 uiSoundBankId = ezHashHelper<const char*>::Hash(szBankName);
+  pAudioSystem->RegisterSoundBank(uiSoundBankId, pSoundBankData);
+}
+
+void ezAmplitudeAudioControlCollectionResource::UnregisterSoundBank(const char* szBankName)
+{
+  auto* pAudioSystem = ezAudioSystem::GetSingleton();
+  if (!pAudioSystem->IsInitialized())
+    return;
+
+  const ezUInt32 uiSoundBankId = ezHashHelper<const char*>::Hash(szBankName);
+  pAudioSystem->UnregisterSoundBank(uiSoundBankId);
 }
 
 ezResourceLoadDesc ezAmplitudeAudioControlCollectionResource::UnloadData(Unload WhatToUnload)

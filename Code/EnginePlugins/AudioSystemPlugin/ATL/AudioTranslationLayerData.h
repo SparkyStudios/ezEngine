@@ -16,6 +16,7 @@ using ezATLEventLookup = ezATLMapLookup<class ezATLEvent>;
 using ezATLRtpcLookup = ezATLMapLookup<class ezATLRtpc>;
 using ezATLSwitchStateLookup = ezATLMapLookup<class ezATLSwitchState>;
 using ezATLEnvironmentLookup = ezATLMapLookup<class ezATLEnvironment>;
+using ezATLSoundBankLookup = ezATLMapLookup<class ezATLSoundBank>;
 
 class ezATLControl
 {
@@ -150,4 +151,19 @@ public:
   ~ezATLEnvironment() override = default;
 
   ezAudioSystemEnvironmentData* const m_pEnvironmentData;
+};
+
+class ezATLSoundBank final
+  : public ezATLControl
+{
+public:
+  explicit ezATLSoundBank(const ezAudioSystemDataID uiId, ezAudioSystemBankData* const pSoundBankData = nullptr)
+    : ezATLControl(uiId)
+    , m_pSoundBankData(pSoundBankData)
+  {
+  }
+
+  ~ezATLSoundBank() override = default;
+
+  ezAudioSystemBankData* const m_pSoundBankData;
 };

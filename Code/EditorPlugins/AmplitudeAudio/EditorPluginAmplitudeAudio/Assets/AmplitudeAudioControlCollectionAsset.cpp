@@ -13,7 +13,7 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAssetEntry, 1, 
   EZ_BEGIN_PROPERTIES
   {
     EZ_MEMBER_PROPERTY("Name", m_sName),
-    EZ_ENUM_MEMBER_PROPERTY("Type", ezAudioSystemControlType, m_Type)->AddAttributes(new ezDefaultValueAttribute(ezAudioSystemControlType::Invalid), new ezHiddenAttribute()),
+    EZ_ENUM_MEMBER_PROPERTY("Type", ezAmplitudeAudioControlType, m_Type)->AddAttributes(new ezDefaultValueAttribute(ezAmplitudeAudioControlType::Invalid), new ezHiddenAttribute()),
     EZ_MEMBER_PROPERTY("Control", m_sControlFile)->AddAttributes(new ezFileBrowserAttribute("Select Audio System Control", "*.ezAudioSystemControl")),
   }
   EZ_END_PROPERTIES;
@@ -52,23 +52,23 @@ EZ_END_DYNAMIC_REFLECTED_TYPE;
 ezAmplitudeAudioControlCollectionAssetTriggerEntry::ezAmplitudeAudioControlCollectionAssetTriggerEntry()
   : ezAmplitudeAudioControlCollectionAssetEntry()
 {
-  m_Type = ezAudioSystemControlType::Trigger;
+  m_Type = ezAmplitudeAudioControlType::Trigger;
 }
 
 ezAmplitudeAudioControlCollectionAssetRtpcEntry::ezAmplitudeAudioControlCollectionAssetRtpcEntry()
   : ezAmplitudeAudioControlCollectionAssetEntry()
 {
-  m_Type = ezAudioSystemControlType::Rtpc;
+  m_Type = ezAmplitudeAudioControlType::Rtpc;
 }
 
 ezAmplitudeAudioControlCollectionAssetSwitchEntry::ezAmplitudeAudioControlCollectionAssetSwitchEntry()
 {
-  m_Type = ezAudioSystemControlType::SwitchState;
+  m_Type = ezAmplitudeAudioControlType::SwitchState;
 }
 
 ezAmplitudeAudioControlCollectionAssetEnvironmentEntry::ezAmplitudeAudioControlCollectionAssetEnvironmentEntry()
 {
-  m_Type = ezAudioSystemControlType::Environment;
+  m_Type = ezAmplitudeAudioControlType::Environment;
 }
 
 ezAmplitudeAudioControlCollectionAssetDocument::ezAmplitudeAudioControlCollectionAssetDocument(const char* szDocumentPath)
@@ -115,25 +115,25 @@ ezStatus ezAmplitudeAudioControlCollectionAssetDocument::InternalTransformAsset(
 
   for (auto& e : pProp->m_TriggerEntries)
   {
-    e.m_Type = ezAudioSystemControlType::Trigger;
+    e.m_Type = ezAmplitudeAudioControlType::Trigger;
     TransformAssetEntry(e, descriptor).IgnoreResult();
   }
 
   for (auto& e : pProp->m_RtpcEntries)
   {
-    e.m_Type = ezAudioSystemControlType::Rtpc;
+    e.m_Type = ezAmplitudeAudioControlType::Rtpc;
     TransformAssetEntry(e, descriptor).IgnoreResult();
   }
 
   for (auto& e : pProp->m_SwitchEntries)
   {
-    e.m_Type = ezAudioSystemControlType::SwitchState;
+    e.m_Type = ezAmplitudeAudioControlType::SwitchState;
     TransformAssetEntry(e, descriptor).IgnoreResult();
   }
 
   for (auto& e : pProp->m_EnvironmentEntries)
   {
-    e.m_Type = ezAudioSystemControlType::Environment;
+    e.m_Type = ezAmplitudeAudioControlType::Environment;
     TransformAssetEntry(e, descriptor).IgnoreResult();
   }
 
@@ -143,7 +143,7 @@ ezStatus ezAmplitudeAudioControlCollectionAssetDocument::InternalTransformAsset(
 
 ezResult ezAmplitudeAudioControlCollectionAssetDocument::TransformAssetEntry(const ezAmplitudeAudioControlCollectionAssetEntry& entry, ezAmplitudeAudioControlCollectionResourceDescriptor& descriptor) const
 {
-  if (entry.m_sControlFile.IsEmpty() || entry.m_Type == ezAudioSystemControlType::Invalid)
+  if (entry.m_sControlFile.IsEmpty() || entry.m_Type == ezAmplitudeAudioControlType::Invalid)
     return EZ_FAILURE;
 
   {
@@ -163,5 +163,9 @@ ezResult ezAmplitudeAudioControlCollectionAssetDocument::TransformAssetEntry(con
   descriptor.m_Entries.PushBack(e);
   return EZ_SUCCESS;
 }
+
+#if defined(AM_WINDOWS_VERSION)
+#  include <Foundation/Basics/Platform/Win/IncludeWindows.h>
+#endif
 
 EZ_STATICLINK_FILE(EditorPluginAmplitudeAudio, EditorPluginAmplitudeAudio_Assets_AmplitudeAudioControlCollectionAsset);

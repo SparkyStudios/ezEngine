@@ -105,6 +105,7 @@ public:
   void RegisterRtpc(ezAudioSystemDataID uiId, ezAudioSystemRtpcData* pRtpcData);
   void RegisterSwitchState(ezAudioSystemDataID uiId, ezAudioSystemSwitchStateData* pSwitchStateData);
   void RegisterEnvironment(ezAudioSystemDataID uiId, ezAudioSystemEnvironmentData* pEnvironmentData);
+  void RegisterSoundBank(ezAudioSystemDataID uiId, ezAudioSystemBankData* pSoundBankData);
 
   void UnregisterEntity(ezAudioSystemDataID uiId);
   void UnregisterListener(ezAudioSystemDataID uiId);
@@ -112,6 +113,7 @@ public:
   void UnregisterRtpc(ezAudioSystemDataID uiId);
   void UnregisterSwitchState(ezAudioSystemDataID uiId);
   void UnregisterEnvironment(ezAudioSystemDataID uiId);
+  void UnregisterSoundBank(ezAudioSystemDataID uiId);
 
 private:
   EZ_MAKE_SUBSYSTEM_STARTUP_FRIEND(AudioSystem, AudioSystemPlugin);

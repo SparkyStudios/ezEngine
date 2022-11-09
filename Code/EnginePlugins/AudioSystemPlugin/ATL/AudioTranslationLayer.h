@@ -72,7 +72,7 @@ private:
   ezATLRtpcLookup m_mRtpcs;
   ezATLSwitchStateLookup m_mSwitchStates;
   ezATLEnvironmentLookup m_mEnvironments;
-  // ezATLBanksLookup m_mBanks;
+  ezATLSoundBankLookup m_mSoundBanks;
 
   ezTime m_LastUpdateTime;
   ezTime m_LastFrameTime;

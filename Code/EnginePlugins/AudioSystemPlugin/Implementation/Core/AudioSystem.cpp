@@ -90,7 +90,7 @@ void ezAudioSystem::SetMasterChannelVolume(float volume)
 
 float ezAudioSystem::GetMasterChannelVolume() const
 {
-  return 0.0f; // TODO
+  return m_AudioTranslationLayer.m_pAudioMiddleware->GetMasterGain();
 }
 
 void ezAudioSystem::SetMasterChannelMute(bool mute)
@@ -100,7 +100,7 @@ void ezAudioSystem::SetMasterChannelMute(bool mute)
 
 bool ezAudioSystem::GetMasterChannelMute() const
 {
-  return false; // TODO
+  return m_AudioTranslationLayer.m_pAudioMiddleware->GetMute();
 }
 
 void ezAudioSystem::SetMasterChannelPaused(bool paused)
@@ -352,6 +352,17 @@ void ezAudioSystem::RegisterEnvironment(ezAudioSystemDataID uiId, ezAudioSystemE
   m_AudioTranslationLayer.m_mEnvironments[uiId] = EZ_AUDIOSYSTEM_NEW(ezATLEnvironment, uiId, pEnvironmentData);
 }
 
+void ezAudioSystem::RegisterSoundBank(ezAudioSystemDataID uiId, ezAudioSystemBankData* pSoundBankData)
+{
+  if (m_AudioTranslationLayer.m_mSoundBanks.Contains(uiId))
+  {
+    ezLog::Warning("ATL: Sound bank with id {0} already exists. Skipping new registration.", uiId);
+    return;
+  }
+
+  m_AudioTranslationLayer.m_mSoundBanks[uiId] = EZ_AUDIOSYSTEM_NEW(ezATLSoundBank, uiId, pSoundBankData);
+}
+
 void ezAudioSystem::UnregisterEntity(const ezAudioSystemDataID uiId)
 {
   if (!m_AudioTranslationLayer.m_mEntities.Contains(uiId))
@@ -404,6 +415,15 @@ void ezAudioSystem::UnregisterEnvironment(ezAudioSystemDataID uiId)
 
   EZ_AUDIOSYSTEM_DELETE(m_AudioTranslationLayer.m_mEnvironments[uiId]);
   m_AudioTranslationLayer.m_mEnvironments.Remove(uiId);
+}
+
+void ezAudioSystem::UnregisterSoundBank(ezAudioSystemDataID uiId)
+{
+  if (!m_AudioTranslationLayer.m_mSoundBanks.Contains(uiId))
+    return;
+
+  EZ_AUDIOSYSTEM_DELETE(m_AudioTranslationLayer.m_mSoundBanks[uiId]);
+  m_AudioTranslationLayer.m_mSoundBanks.Remove(uiId);
 }
 
 void ezAudioSystem::UpdateInternal()

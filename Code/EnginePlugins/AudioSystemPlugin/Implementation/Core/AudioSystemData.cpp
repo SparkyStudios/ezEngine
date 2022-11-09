@@ -22,16 +22,6 @@ EZ_BEGIN_STATIC_REFLECTED_ENUM(ezAudioSystemSoundObstructionType, 1)
   EZ_ENUM_CONSTANT(ezAudioSystemSoundObstructionType::MultipleRay),
 EZ_END_STATIC_REFLECTED_ENUM;
 
-EZ_BEGIN_STATIC_REFLECTED_ENUM(ezAudioSystemControlType, 1)
-  EZ_ENUM_CONSTANT(ezAudioSystemControlType::Invalid),
-  EZ_ENUM_CONSTANT(ezAudioSystemControlType::Trigger),
-  EZ_ENUM_CONSTANT(ezAudioSystemControlType::Rtpc),
-  EZ_ENUM_CONSTANT(ezAudioSystemControlType::SoundBank),
-  EZ_ENUM_CONSTANT(ezAudioSystemControlType::Switch),
-  EZ_ENUM_CONSTANT(ezAudioSystemControlType::SwitchState),
-  EZ_ENUM_CONSTANT(ezAudioSystemControlType::Environment),
-EZ_END_STATIC_REFLECTED_ENUM;
-
 EZ_BEGIN_STATIC_REFLECTED_ENUM(ezAudioSystemTriggerState, 1)
   EZ_ENUM_CONSTANT(ezAudioSystemTriggerState::Invalid),
   EZ_ENUM_CONSTANT(ezAudioSystemTriggerState::Playing),
@@ -62,6 +52,12 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioSystemEnvironmentData, 1, ezRTTINoAllocat
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioSystemEventData, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioSystemSourceData, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioSystemBankData, 1, ezRTTINoAllocator)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 // clang-format on
 

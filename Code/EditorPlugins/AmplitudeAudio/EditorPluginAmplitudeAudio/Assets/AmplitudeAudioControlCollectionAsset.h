@@ -1,6 +1,7 @@
 #pragma once
 
 #include <AmplitudeAudioPlugin/Resources/AudioControlCollectionResource.h>
+
 #include <AudioSystemPlugin/Core/AudioSystemData.h>
 
 #include <EditorFramework/Assets/SimpleAssetDocument.h>
@@ -11,7 +12,7 @@ class ezAmplitudeAudioControlCollectionAssetEntry : public ezReflectedClass
 
 public:
   ezString m_sName;
-  ezEnum<ezAudioSystemControlType> m_Type;
+  ezEnum<ezAmplitudeAudioControlType> m_Type;
   ezString m_sControlFile;
 };
 

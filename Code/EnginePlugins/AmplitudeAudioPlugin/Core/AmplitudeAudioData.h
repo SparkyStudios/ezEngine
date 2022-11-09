@@ -5,6 +5,42 @@
 #include <AudioSystemPlugin/Core/AudioSystemData.h>
 
 #include <SparkyStudios/Audio/Amplitude/Amplitude.h>
+#include <SparkyStudios/Audio/Amplitude/Core/Common/Types.h>
+
+/// \brief The type of a control. This is used by control assets to determine the type of the control
+/// when the audio system is parsing them.
+struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioControlType
+{
+  using StorageType = ezUInt8;
+
+  enum Enum : StorageType
+  {
+    /// \brief The control is not known to the audio system.
+    Invalid = 0,
+
+    /// \brief The control is a source.
+    Trigger = 1,
+
+    /// \brief The control is a real-time parameter.
+    Rtpc = 2,
+
+    /// \brief The control is a sound bank.
+    SoundBank = 3,
+
+    /// \brief The control is a switch container.
+    Switch = 4,
+
+    /// \brief The control is a switch state.
+    SwitchState = 5,
+
+    /// \brief The control is an environment effect.
+    Environment = 6,
+
+    Default = Invalid,
+  };
+};
+
+EZ_DECLARE_REFLECTABLE_TYPE(EZ_AMPLITUDEAUDIOPLUGIN_DLL, ezAmplitudeAudioControlType);
 
 class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioEntityData : public ezAudioSystemEntityData
 {
@@ -109,5 +145,19 @@ public:
 
   ezAudioSystemEventState m_eState{ezAudioSystemEventState::Invalid};
   SparkyStudios::Audio::Amplitude::EventCanceler m_EventCanceler;
+  const SparkyStudios::Audio::Amplitude::AmEventID m_uiAmId;
+};
+
+class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioSoundBankData : public ezAudioSystemBankData
+{
+  EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioSoundBankData, ezAudioSystemBankData);
+
+public:
+  explicit ezAmplitudeAudioSoundBankData(const SparkyStudios::Audio::Amplitude::AmBankID uiBankId)
+    : ezAudioSystemBankData()
+    , m_uiAmId(uiBankId)
+  {
+  }
+
   const SparkyStudios::Audio::Amplitude::AmEventID m_uiAmId;
 };

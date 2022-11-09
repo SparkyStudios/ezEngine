@@ -148,7 +148,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateTriggerControl(const char* szCon
     return EZ_FAILURE;
 
   // Set the control type
-  file << ezAudioSystemControlType::Trigger;
+  file << ezAmplitudeAudioControlType::Trigger;
 
   // Serialize the control data
   if (SerializeTriggerControl(&file, pControlData).Succeeded())
@@ -171,7 +171,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateRtpcControl(const char* szContro
     return EZ_FAILURE;
 
   // Set the control type
-  file << ezAudioSystemControlType::Rtpc;
+  file << ezAmplitudeAudioControlType::Rtpc;
 
   // Serialize the control data
   if (SerializeRtpcControl(&file, pControlData).Succeeded())
@@ -194,7 +194,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateSwitchStateControl(const char* s
     return EZ_FAILURE;
 
   // Set the control type
-  file << ezAudioSystemControlType::SwitchState;
+  file << ezAmplitudeAudioControlType::SwitchState;
 
   // Serialize the control data
   if (SerializeSwitchStateControl(&file, pControlData).Succeeded())
@@ -217,7 +217,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateEnvironmentControl(const char* s
     return EZ_FAILURE;
 
   // Set the control type
-  file << ezAudioSystemControlType::Environment;
+  file << ezAmplitudeAudioControlType::Environment;
 
   // Serialize the control data
   if (SerializeEnvironmentControl(&file, pControlData).Succeeded())

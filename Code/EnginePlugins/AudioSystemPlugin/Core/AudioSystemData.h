@@ -60,41 +60,6 @@ struct ezHashHelper<ezAudioSystemTransform>
 
 EZ_DECLARE_REFLECTABLE_TYPE(EZ_AUDIOSYSTEMPLUGIN_DLL, ezAudioSystemTransform);
 
-/// \brief The type of a control. This is used by control assets to determine the type of the control
-/// when the audio system is parsing them.
-struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemControlType
-{
-  using StorageType = ezUInt8;
-
-  enum Enum : StorageType
-  {
-    /// \brief The control is not known to the audio system.
-    Invalid = 0,
-
-    /// \brief The control is a source.
-    Trigger = 1,
-
-    /// \brief The control is a real-time parameter.
-    Rtpc = 2,
-
-    /// \brief The control is a sound bank.
-    SoundBank = 3,
-
-    /// \brief The control is a switch container.
-    Switch = 4,
-
-    /// \brief The control is a switch state.
-    SwitchState = 5,
-
-    /// \brief The control is an environment effect.
-    Environment = 6,
-
-    Default = Invalid,
-  };
-};
-
-EZ_DECLARE_REFLECTABLE_TYPE(EZ_AUDIOSYSTEMPLUGIN_DLL, ezAudioSystemControlType);
-
 /// \brief The obstruction type applied to a sound. This affects the way that
 /// ray casting works for an audio source.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemSoundObstructionType
@@ -167,7 +132,7 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemTriggerState
 EZ_DECLARE_REFLECTABLE_TYPE(EZ_AUDIOSYSTEMPLUGIN_DLL, ezAudioSystemTriggerState);
 
 /// \brief The state of an audio source.
-enum class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemEventState : ezUInt8
+enum class ezAudioSystemEventState : ezUInt8
 {
   /// \brief The event have no state, this means it has not been loaded yet,
   /// nor triggered by any trigger.
@@ -246,13 +211,19 @@ class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemEventData : public ezReflectedClass
 };
 
 /// \brief Base class for an audio middleware source.
-struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemSourceData
+class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemSourceData : public ezReflectedClass
 {
-  virtual ~ezAudioSystemSourceData() = default;
+  EZ_ADD_DYNAMIC_REFLECTION(ezAudioSystemSourceData, ezReflectedClass);
+
+public:
+  ~ezAudioSystemSourceData() override = default;
 };
 
 /// \brief Base class for an audio middleware bank file.
-struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemBankData
+class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemBankData : public ezReflectedClass
 {
-  virtual ~ezAudioSystemBankData() = default;
+  EZ_ADD_DYNAMIC_REFLECTION(ezAudioSystemBankData, ezReflectedClass);
+
+public:
+  ~ezAudioSystemBankData() override = default;
 };
