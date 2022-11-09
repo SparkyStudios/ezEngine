@@ -32,6 +32,9 @@ EZ_END_DYNAMIC_REFLECTED_TYPE;
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAssetEnvironmentEntry, 1, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionAssetEnvironmentEntry>)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAssetSoundBankEntry, 1, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionAssetSoundBankEntry>)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAsset, 2, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionAsset>)
 {
   EZ_BEGIN_PROPERTIES
@@ -40,6 +43,7 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAsset, 2, ezRTT
     EZ_ARRAY_MEMBER_PROPERTY("RTPCs", m_RtpcEntries),
     EZ_ARRAY_MEMBER_PROPERTY("SwitchStates", m_SwitchEntries),
     EZ_ARRAY_MEMBER_PROPERTY("Environments", m_EnvironmentEntries),
+    EZ_ARRAY_MEMBER_PROPERTY("SoundBanks", m_EnvironmentEntries),
   }
   EZ_END_PROPERTIES;
 }
@@ -69,6 +73,11 @@ ezAmplitudeAudioControlCollectionAssetSwitchEntry::ezAmplitudeAudioControlCollec
 ezAmplitudeAudioControlCollectionAssetEnvironmentEntry::ezAmplitudeAudioControlCollectionAssetEnvironmentEntry()
 {
   m_Type = ezAmplitudeAudioControlType::Environment;
+}
+
+ezAmplitudeAudioControlCollectionAssetSoundBankEntry::ezAmplitudeAudioControlCollectionAssetSoundBankEntry()
+{
+  m_Type = ezAmplitudeAudioControlType::SoundBank;
 }
 
 ezAmplitudeAudioControlCollectionAssetDocument::ezAmplitudeAudioControlCollectionAssetDocument(const char* szDocumentPath)

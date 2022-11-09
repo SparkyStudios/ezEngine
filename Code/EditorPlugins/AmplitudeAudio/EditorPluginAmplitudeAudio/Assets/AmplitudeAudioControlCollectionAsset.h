@@ -48,6 +48,14 @@ public:
   ezAmplitudeAudioControlCollectionAssetEnvironmentEntry();
 };
 
+class ezAmplitudeAudioControlCollectionAssetSoundBankEntry : public ezAmplitudeAudioControlCollectionAssetEntry
+{
+  EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioControlCollectionAssetSoundBankEntry, ezAmplitudeAudioControlCollectionAssetEntry);
+
+public:
+  ezAmplitudeAudioControlCollectionAssetSoundBankEntry();
+};
+
 class ezAmplitudeAudioControlCollectionAsset : public ezReflectedClass
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioControlCollectionAsset, ezReflectedClass);
@@ -57,6 +65,7 @@ public:
   ezDynamicArray<ezAmplitudeAudioControlCollectionAssetRtpcEntry> m_RtpcEntries;
   ezDynamicArray<ezAmplitudeAudioControlCollectionAssetSwitchEntry> m_SwitchEntries;
   ezDynamicArray<ezAmplitudeAudioControlCollectionAssetEnvironmentEntry> m_EnvironmentEntries;
+  ezDynamicArray<ezAmplitudeAudioControlCollectionAssetSoundBankEntry> m_SoundBankEntries;
 };
 
 class ezAmplitudeAudioControlCollectionAssetDocument : public ezSimpleAssetDocument<ezAmplitudeAudioControlCollectionAsset>
