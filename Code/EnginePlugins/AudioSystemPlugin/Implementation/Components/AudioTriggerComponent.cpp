@@ -6,6 +6,7 @@
 #include <AudioSystemPlugin/Core/AudioSystemRequests.h>
 
 #include <Core/Interfaces/PhysicsWorldModule.h>
+#include <Core/Physics/SurfaceResource.h>
 #include <Core/ResourceManager/Resource.h>
 #include <Core/WorldSerializer/WorldReader.h>
 #include <Core/WorldSerializer/WorldWriter.h>
