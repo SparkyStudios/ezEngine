@@ -1,0 +1,11 @@
+Audio Control Collection;Audio Control Collection;Audio Control Collection
+ezAudioControlsComponent;Audio Controls Collection
+Triggers;Triggers
+RTPCs;RTPCs
+SwitchStates;Switch States
+Environments;Environments
+SoundBanks;Sound Banks
+ezAmplitudeAudioControlCollectionAssetEnvironmentEntry;Environment
+ezAmplitudeAudioControlCollectionAssetRtpcEntry;Rtpc
+ezAmplitudeAudioControlCollectionAssetSwitchEntry;Switch
+ezAmplitudeAudioControlCollectionAssetTriggerEntry;Trigger
