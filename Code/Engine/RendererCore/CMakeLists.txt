@@ -12,6 +12,7 @@ target_link_libraries(${PROJECT_NAME}
   Core
   RendererFoundation
   Texture
+  meshoptimizer
 )
 
 if (EZ_3RDPARTY_OZZ_SUPPORT)

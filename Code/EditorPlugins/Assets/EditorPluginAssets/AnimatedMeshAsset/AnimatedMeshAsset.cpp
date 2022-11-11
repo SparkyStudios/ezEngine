@@ -74,6 +74,7 @@ ezStatus ezAnimatedMeshAssetDocument::CreateMeshFromFile(ezAnimatedMeshAssetProp
   opt.m_pMeshOutput = &desc;
   opt.m_MeshNormalsPrecision = pProp->m_NormalPrecision;
   opt.m_MeshTexCoordsPrecision = pProp->m_TexCoordPrecision;
+  opt.m_bOptimize = false;
   //opt.m_RootTransform = CalculateTransformationMatrix(pProp);
 
   if (pImporter->Import(opt).Failed())

@@ -62,6 +62,7 @@ public:
   bool m_bRecalculateNormals = false;
   bool m_bRecalculateTrangents = true;
   bool m_bImportMaterials = true;
+  bool m_bOptimize = true;
 
   ezEnum<ezMeshNormalPrecision> m_NormalPrecision;
   ezEnum<ezMeshTexCoordPrecision> m_TexCoordPrecision;

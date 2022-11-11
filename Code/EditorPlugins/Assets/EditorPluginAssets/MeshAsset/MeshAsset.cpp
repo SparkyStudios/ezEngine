@@ -215,6 +215,7 @@ ezTransformStatus ezMeshAssetDocument::CreateMeshFromFile(ezMeshAssetProperties*
   opt.m_MeshNormalsPrecision = pProp->m_NormalPrecision;
   opt.m_MeshTexCoordsPrecision = pProp->m_TexCoordPrecision;
   opt.m_RootTransform = CalculateTransformationMatrix(pProp);
+  opt.m_bOptimize = pProp->m_bOptimize;
 
   if (pImporter->Import(opt).Failed())
     return ezStatus("Model importer was unable to read this asset.");
