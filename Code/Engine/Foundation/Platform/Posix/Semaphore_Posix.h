@@ -91,12 +91,16 @@ void ezSemaphore::ReturnToken()
   EZ_VERIFY(sem_post(m_hSemaphore.m_pNamedOrUnnamed) == 0, "Returning a semaphore token failed, most likely due to a AcquireToken() / ReturnToken() mismatch.");
 }
 
-ezResult ezSemaphore::TryAcquireToken()
+ezResult ezSemaphore::TryAcquireToken(ezTime timeout)
 {
   // documentation is unclear whether one needs to check errno, or not
   // assuming that this will return 0 only when trywait got a token
 
-  if (sem_trywait(m_hSemaphore.m_pNamedOrUnnamed) == 0)
+  struct timespec ts;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  ts.tv_sec += timeout.AsFloatInSeconds();
+
+  if (sem_timedwait(m_hSemaphore.m_pNamedOrUnnamed, &ts) == 0)
     return EZ_SUCCESS;
 
   return EZ_FAILURE;

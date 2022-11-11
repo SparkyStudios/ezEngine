@@ -1,0 +1,12 @@
+<RCC>
+  <qresource prefix="TypeIcons">
+    <file>ezAudioAnimationComponent.png</file>
+    <file>ezAudioBoxEnvironmentComponent.png</file>
+    <file>ezAudioListenerComponent.png</file>
+    <file>ezAudioProxyComponent.png</file>
+    <file>ezAudioRtpcComponent.png</file>
+    <file>ezAudioSphereEnvironmentComponent.png</file>
+    <file>ezAudioSwitchStateComponent.png</file>
+    <file>ezAudioTriggerComponent.png</file>
+  </qresource>
+</RCC>
