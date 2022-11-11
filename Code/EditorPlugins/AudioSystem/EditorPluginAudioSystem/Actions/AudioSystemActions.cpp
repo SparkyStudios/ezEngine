@@ -13,23 +13,12 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioSystemSliderAction, 1, ezRTTINoAllocator)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
 ezActionDescriptorHandle ezAudioSystemActions::s_hCategoryAudioSystem;
-ezActionDescriptorHandle ezAudioSystemActions::s_hProjectSettings;
 ezActionDescriptorHandle ezAudioSystemActions::s_hMuteSound;
-ezActionDescriptorHandle ezAudioSystemActions::s_hReloadControls;
 ezActionDescriptorHandle ezAudioSystemActions::s_hMasterVolume;
 
 void ezAudioSystemActions::RegisterActions()
 {
   s_hCategoryAudioSystem = EZ_REGISTER_CATEGORY("AudioSystem");
-
-  s_hProjectSettings = EZ_REGISTER_ACTION_1(
-    "AudioSystem.Settings.Project",
-    ezActionScope::Document,
-    "AudioSystem",
-    "",
-    ezAudioSystemAction,
-    ezAudioSystemAction::ActionType::ProjectSettings
-  );
 
   s_hMuteSound = EZ_REGISTER_ACTION_1(
     "AudioSystem.Mute",
@@ -48,23 +37,12 @@ void ezAudioSystemActions::RegisterActions()
     ezAudioSystemSliderAction,
     ezAudioSystemSliderAction::ActionType::MasterVolume
   );
-
-  s_hReloadControls = EZ_REGISTER_ACTION_1(
-    "AudioSystem.ReloadControls",
-    ezActionScope::Document,
-    "AudioSystem",
-    "",
-    ezAudioSystemAction,
-    ezAudioSystemAction::ActionType::ReloadControls
-  );
 }
 
 void ezAudioSystemActions::UnregisterActions()
 {
   ezActionManager::UnregisterAction(s_hCategoryAudioSystem);
-  ezActionManager::UnregisterAction(s_hProjectSettings);
   ezActionManager::UnregisterAction(s_hMuteSound);
-  ezActionManager::UnregisterAction(s_hReloadControls);
   ezActionManager::UnregisterAction(s_hMasterVolume);
 }
 
@@ -74,11 +52,9 @@ void ezAudioSystemActions::MapMenuActions(const char* szMapping)
   EZ_ASSERT_DEV(pMap != nullptr, "Mapping the actions failed!");
 
   pMap->MapAction(s_hCategoryAudioSystem, "Menu.Editor/ProjectCategory/Menu.ProjectSettings", 9.0f);
-  pMap->MapAction(s_hProjectSettings, "Menu.Editor/ProjectCategory/Menu.ProjectSettings/AudioSystem", 0.0f);
 
   pMap->MapAction(s_hCategoryAudioSystem, "Menu.Scene", 5.0f);
   pMap->MapAction(s_hMuteSound, "Menu.Scene/AudioSystem", 0.0f);
-  pMap->MapAction(s_hReloadControls, "Menu.Scene/AudioSystem", 1.0f);
   pMap->MapAction(s_hMasterVolume, "Menu.Scene/AudioSystem", 2.0f);
 }
 
@@ -98,10 +74,6 @@ ezAudioSystemAction::ezAudioSystemAction(const ezActionContext& context, const c
 
   switch (m_Type)
   {
-    case ActionType::ProjectSettings:
-      SetIconPath(":/AssetIcons/Sound_Event.png");
-      break;
-
     case ActionType::MuteSound:
     {
       SetCheckable(true);
@@ -115,12 +87,6 @@ ezAudioSystemAction::ezAudioSystemAction(const ezActionContext& context, const c
         SetIconPath(":/Icons/SoundOn16.png");
 
       SetChecked(pPreferences->GetMute());
-    }
-    break;
-
-    case ActionType::ReloadControls:
-    {
-      SetCheckable(false);
     }
     break;
   }
@@ -137,12 +103,6 @@ ezAudioSystemAction::~ezAudioSystemAction()
 
 void ezAudioSystemAction::Execute(const ezVariant& value)
 {
-  if (m_Type == ActionType::ProjectSettings)
-  {
-//    ezQtAudioSystemProjectSettingsDlg dlg(nullptr);
-//    dlg.exec();
-  }
-
   if (m_Type == ActionType::MuteSound)
   {
     auto* pPreferences = ezPreferences::QueryPreferences<ezAudioSystemProjectPreferences>();
@@ -152,12 +112,6 @@ void ezAudioSystemAction::Execute(const ezVariant& value)
     {
       GetContext().m_pDocument->ShowDocumentStatus(ezFmt("Sound is {}", pPreferences->GetMute() ? "muted" : "on"));
     }
-  }
-
-  if (m_Type == ActionType::ReloadControls)
-  {
-    // auto* pControlsManager = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddlewareControlsManager>();
-    // ezLog::Info("Reload Audio Controls {}", pControlsManager->ReloadControls().Succeeded() ? "successful" : "failed");
   }
 }
 

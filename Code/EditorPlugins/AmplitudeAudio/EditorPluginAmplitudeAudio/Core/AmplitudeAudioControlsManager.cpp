@@ -39,7 +39,8 @@ ezResult ezAmplitudeAudioControlsManager::ReloadControls()
     return EZ_FAILURE;
   }
 
-  ezFileSystem::AddDataDirectory(">project/Sounds/ATL/Amplitude", "ATL", "atl", ezFileSystem::AllowWrites).IgnoreResult();
+  if (ezFileSystem::FindDataDirectoryWithRoot("atl") == nullptr)
+    ezFileSystem::AddDataDirectory(">project/Sounds/ATL/Amplitude", "ATL", "atl", ezFileSystem::AllowWrites).IgnoreResult();
 
   {
     ezStringBuilder basePath(projectPath);
@@ -297,7 +298,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadSoundBanks(const char* sRootFolder
 
       const ezString controlName(name->Get<ezString>());
 
-      ezAmplitudeAudioSoundBankData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioSoundBankData, id->Get<ezUInt64>(), fsIt.GetStats().m_sName);
+      ezAmplitudeAudioSoundBankData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioSoundBankData, id->ConvertTo<ezUInt64>(), fsIt.GetStats().m_sName);
       const ezResult result = CreateSoundBankControl(controlName, control);
       EZ_AUDIOSYSTEM_DELETE(control);
       if (result.Failed())
@@ -369,7 +370,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
 
       case ezAmplitudeAudioControlType::Trigger:
       {
-        ezAmplitudeAudioTriggerData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioTriggerData, id->Get<ezUInt64>());
+        ezAmplitudeAudioTriggerData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioTriggerData, id->ConvertTo<ezUInt64>());
         const ezResult result = CreateTriggerControl(controlName, control);
         EZ_AUDIOSYSTEM_DELETE(control);
         return result;
@@ -377,7 +378,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
 
       case ezAmplitudeAudioControlType::Rtpc:
       {
-        ezAmplitudeAudioRtpcData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioRtpcData, id->Get<ezUInt64>());
+        ezAmplitudeAudioRtpcData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioRtpcData, id->ConvertTo<ezUInt64>());
         const ezResult result = CreateRtpcControl(controlName, control);
         EZ_AUDIOSYSTEM_DELETE(control);
         return result;
@@ -402,7 +403,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
             ezStringBuilder stateName(controlName);
             stateName.AppendFormat("_{0}", value.GetValue("name")->Get<ezString>());
 
-            ezAmplitudeAudioSwitchStateData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioSwitchStateData, id->Get<ezUInt64>(), value.GetValue("id")->Get<ezUInt64>());
+            ezAmplitudeAudioSwitchStateData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioSwitchStateData, id->ConvertTo<ezUInt64>(), value.GetValue("id")->ConvertTo<ezUInt64>());
             const ezResult result = CreateSwitchStateControl(stateName, control);
             EZ_AUDIOSYSTEM_DELETE(control);
 
@@ -418,7 +419,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
 
       case ezAmplitudeAudioControlType::Environment:
       {
-        ezAmplitudeAudioEnvironmentData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioEnvironmentData, id->Get<ezUInt64>(), json.GetValue("effect")->Get<ezUInt64>());
+        ezAmplitudeAudioEnvironmentData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioEnvironmentData, id->ConvertTo<ezUInt64>(), json.GetValue("effect")->ConvertTo<ezUInt64>());
         const ezResult result = CreateEnvironmentControl(controlName, control);
         EZ_AUDIOSYSTEM_DELETE(control);
         return result;

@@ -19,9 +19,7 @@ public:
   static void MapToolbarActions(const char* szMapping);
 
   static ezActionDescriptorHandle s_hCategoryAudioSystem;
-  static ezActionDescriptorHandle s_hProjectSettings;
   static ezActionDescriptorHandle s_hMuteSound;
-  static ezActionDescriptorHandle s_hReloadControls;
   static ezActionDescriptorHandle s_hMasterVolume;
 };
 
@@ -33,13 +31,11 @@ class EZ_EDITORPLUGINAUDIOSYSTEM_DLL ezAudioSystemAction : public ezButtonAction
 public:
   enum class ActionType
   {
-    ProjectSettings,
     MuteSound,
-    ReloadControls
   };
 
   ezAudioSystemAction(const ezActionContext& context, const char* szName, ActionType type);
-  ~ezAudioSystemAction();
+  ~ezAudioSystemAction() override;
 
   virtual void Execute(const ezVariant& value) override;
 
@@ -60,7 +56,7 @@ public:
   };
 
   ezAudioSystemSliderAction(const ezActionContext& context, const char* szName, ActionType type);
-  ~ezAudioSystemSliderAction();
+  ~ezAudioSystemSliderAction() override;
 
   virtual void Execute(const ezVariant& value) override;
 
