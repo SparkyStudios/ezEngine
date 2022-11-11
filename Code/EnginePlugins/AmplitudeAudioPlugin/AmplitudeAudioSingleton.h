@@ -43,7 +43,7 @@ struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAssetProfiles
 /// \brief The Amplitude Audio Middleware.
 ///
 /// This class implements the ezAudioMiddleware interface of the Audio System
-/// and allows the audio system to execute audio requests.
+/// and allows the audio system to execute audio requests through Amplitude Audio.
 class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitude final : public ezAudioMiddleware
 {
 private:
@@ -149,11 +149,9 @@ private:
 
   struct Data
   {
-    ezMap<ezString, float> m_VcaVolumes;
     ezAmplitudeAssetProfiles m_Configs;
     ezString m_sPlatform;
-    SparkyStudios::Audio::Amplitude::AmObjectID m_uiInitSoundBank;
-    ezHybridArray<ezDataBuffer*, 4> m_SbDeletionQueue;
+    SparkyStudios::Audio::Amplitude::AmObjectID m_uiInitSoundBank{SparkyStudios::Audio::Amplitude::kAmInvalidObjectId};
   };
 
   ezUniquePtr<Data> m_pData;
