@@ -13,14 +13,15 @@ ezAmplitudeAudioControlCollectionAssetDocumentManager::ezAmplitudeAudioControlCo
 
   m_DocTypeDesc.m_sDocumentTypeName = "Audio Control Collection";
   m_DocTypeDesc.m_sFileExtension = "ezAudioControlCollectionAsset";
-  // m_DocTypeDesc.m_sIcon = ":/AssetIcons/Collection.png";
+  m_DocTypeDesc.m_sIcon = ":/AssetIcons/Audio_Control_Collection.png";
   m_DocTypeDesc.m_pDocumentType = ezGetStaticRTTI<ezAmplitudeAudioControlCollectionAssetDocument>();
   m_DocTypeDesc.m_pManager = this;
+  m_DocTypeDesc.m_CompatibleTypes.PushBack("CompatibleAsset_AmplitudeAudio_Audio_Control_Collection");
 
   m_DocTypeDesc.m_sResourceFileExtension = "ezAudioSystemControls";
   m_DocTypeDesc.m_AssetDocumentFlags = ezAssetDocumentFlags::AutoTransformOnSave;
 
-  // ezQtImageCache::GetSingleton()->RegisterTypeImage("Audio Control Collection", QPixmap(":/AssetIcons/Collection.png"));
+  ezQtImageCache::GetSingleton()->RegisterTypeImage("Audio Control Collection", QPixmap(":/AssetIcons/Audio_Control_Collection.png"));
 }
 
 ezAmplitudeAudioControlCollectionAssetDocumentManager::~ezAmplitudeAudioControlCollectionAssetDocumentManager()

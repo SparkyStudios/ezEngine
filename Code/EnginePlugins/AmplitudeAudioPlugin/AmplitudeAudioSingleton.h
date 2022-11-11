@@ -52,7 +52,6 @@ private:
   // ezAudioMiddleware
 
 public:
-  ezResult SaveConfiguration(ezOpenDdlWriter& writer) override;
   ezResult LoadConfiguration(const ezOpenDdlReaderElement& reader) override;
   ezResult Startup() override;
   void Update(ezTime delta) override;

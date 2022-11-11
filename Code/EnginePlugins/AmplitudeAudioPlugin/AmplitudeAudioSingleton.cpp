@@ -2,6 +2,7 @@
 
 #include <AmplitudeAudioPlugin/AmplitudeAudioSingleton.h>
 #include <AmplitudeAudioPlugin/Core/AmplitudeAudioData.h>
+#include <AmplitudeAudioPlugin/Core/Common.h>
 
 #include <AudioSystemPlugin/Core/AudioSystemAllocator.h>
 
@@ -114,11 +115,6 @@ namespace Utils
 
 EZ_IMPLEMENT_SINGLETON(ezAmplitude);
 
-static constexpr char s_szAmplitudeMiddlewareName[] = "Amplitude";
-
-static constexpr char s_szAmplitudeConfigKeyInitBank[] = "InitBank";
-static constexpr char s_szAmplitudeConfigKeyEngineConfigFileName[] = "EngineConfigFileName";
-
 void ezAmplitudeConfiguration::Save(ezOpenDdlWriter& ddl) const
 {
   ezOpenDdlUtils::StoreString(ddl, m_sInitSoundBank, s_szAmplitudeConfigKeyInitBank);
@@ -159,14 +155,14 @@ ezResult ezAmplitudeAssetProfiles::Save(ezOpenDdlWriter& writer) const
     if (!it.Key().IsEmpty())
     {
       writer.BeginObject("Platform", it.Key());
-
-      it.Value().Save(writer);
-
+      {
+        it.Value().Save(writer);
+      }
       writer.EndObject();
     }
   }
 
-  return EZ_FAILURE;
+  return EZ_SUCCESS;
 }
 
 ezResult ezAmplitudeAssetProfiles::Load(const ezOpenDdlReaderElement& reader)
@@ -203,11 +199,6 @@ ezAmplitude::ezAmplitude()
 ezAmplitude::~ezAmplitude()
 {
   // Shutdown().IgnoreResult();
-}
-
-ezResult ezAmplitude::SaveConfiguration(ezOpenDdlWriter& writer)
-{
-  return m_pData->m_Configs.Save(writer);
 }
 
 ezResult ezAmplitude::LoadConfiguration(const ezOpenDdlReaderElement& reader)
@@ -272,11 +263,6 @@ ezResult ezAmplitude::Startup()
   }
 
   m_bInitialized = true;
-
-  // Create the editor listener
-  const auto& l = m_pEngine->AddListener(1);
-  m_pEngine->SetDefaultListener(&l);
-  l.SetLocation(AM_Vec3(0, 0, 0));
 
   ezLog::Success("Amplitude Audio initialized.");
   return EZ_SUCCESS;

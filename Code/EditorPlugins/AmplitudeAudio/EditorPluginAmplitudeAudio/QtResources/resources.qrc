@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="AssetIcons">
+    <file>Audio_Control_Collection.png</file>
+  </qresource>
+  <qresource prefix="TypeIcons">
+    <file>ezAudioControlsComponent.png</file>
+  </qresource>
+  <qresource prefix="Icons"/>
+</RCC>

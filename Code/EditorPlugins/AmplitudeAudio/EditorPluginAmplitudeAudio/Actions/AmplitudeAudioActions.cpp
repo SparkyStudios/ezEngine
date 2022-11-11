@@ -2,6 +2,7 @@
 
 #include <EditorPluginAmplitudeAudio/Actions/AmplitudeAudioActions.h>
 #include <EditorPluginAmplitudeAudio/Core/AmplitudeAudioControlsManager.h>
+#include <EditorPluginAmplitudeAudio/Dialogs/AmplitudeAudioSettingsDialog.moc.h>
 
 #include <GuiFoundation/Action/ActionManager.h>
 
@@ -69,12 +70,12 @@ ezAmplitudeAudioAction::ezAmplitudeAudioAction(const ezActionContext& context, c
   switch (m_Type)
   {
     case ActionType::ProjectSettings:
-      SetIconPath(":/AssetIcons/Sound_Event.png");
+      SetIconPath(":/AssetIcons/Audio_Control_Collection.png");
       break;
 
     case ActionType::ReloadControls:
       SetCheckable(false);
-    break;
+      break;
   }
 }
 
@@ -86,8 +87,8 @@ void ezAmplitudeAudioAction::Execute(const ezVariant& value)
 {
   if (m_Type == ActionType::ProjectSettings)
   {
-    //    ezQtAudioSystemProjectSettingsDlg dlg(nullptr);
-    //    dlg.exec();
+    ezQtAmplitudeAudioSettingsDialog dlg(nullptr);
+    dlg.exec();
   }
 
   if (m_Type == ActionType::ReloadControls)

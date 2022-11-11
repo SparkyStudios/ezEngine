@@ -32,3 +32,8 @@ static constexpr char kSoundsFolder[] = "sounds";
 static constexpr char kSwitchesFolder[] = "switches";
 static constexpr char kEffectsFolder[] = "effects";
 static constexpr char kEnvironmentsFolder[] = "environments";
+
+static constexpr char s_szAmplitudeMiddlewareName[] = "Amplitude";
+
+static constexpr char s_szAmplitudeConfigKeyInitBank[] = "InitBank";
+static constexpr char s_szAmplitudeConfigKeyEngineConfigFileName[] = "EngineConfigFileName";

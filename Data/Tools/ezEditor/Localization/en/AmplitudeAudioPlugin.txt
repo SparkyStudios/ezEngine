@@ -1,3 +1,6 @@
+AmplitudeAudio.ReloadControls;Reload Controls
+AmplitudeAudio.Settings.Project;Amplitude Audio Settings...
+
 Audio Control Collection;Audio Control Collection;Audio Control Collection
 ezAudioControlsComponent;Audio Controls Collection
 Triggers;Triggers

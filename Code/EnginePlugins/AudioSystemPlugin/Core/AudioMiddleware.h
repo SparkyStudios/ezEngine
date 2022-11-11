@@ -17,10 +17,6 @@ public:
 
   virtual ~ezAudioMiddleware() = default;
 
-  /// \brief Saves the middleware-specific configuration in the ATL config file.
-  /// \param writer The DDL file writer.
-  virtual ezResult SaveConfiguration(ezOpenDdlWriter& writer) = 0;
-
   /// \brief Loads the middleware-specif configuration from the ATL config file.
   /// \param reader The DDL file reader.
   virtual ezResult LoadConfiguration(const ezOpenDdlReaderElement& reader) = 0;
