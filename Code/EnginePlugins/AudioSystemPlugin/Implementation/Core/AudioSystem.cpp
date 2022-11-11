@@ -21,6 +21,32 @@ EZ_IMPLEMENT_SINGLETON(ezAudioSystem);
 
 void ezAudioSystem::LoadConfiguration(const char* szFile)
 {
+  ezFileReader file;
+  if (file.Open(szFile).Failed())
+    return;
+
+  ezOpenDdlReader ddl;
+  if (ddl.ParseDocument(file).Failed())
+    return;
+
+  const ezOpenDdlReaderElement* pRoot = ddl.GetRootElement();
+  const ezOpenDdlReaderElement* pChild = pRoot->GetFirstChild();
+
+  while (pChild)
+  {
+    if (pChild->IsCustomType("Middleware") && pChild->HasName() && ezStringUtils::Compare(pChild->GetName(), m_AudioTranslationLayer.m_pAudioMiddleware->GetMiddlewareName()) == 0)
+    {
+      ezLog::Debug("Loading audio middleware configuration for {}...", pChild->GetName());
+
+      if (m_AudioTranslationLayer.m_pAudioMiddleware->LoadConfiguration(*pChild).Failed())
+        ezLog::Error("Failed to load configuration for audio middleware: {0}.", pChild->GetName());
+
+      ezLog::Success("Audio middleware configuration for {} successfully loaded.", pChild->GetName());
+      break;
+    }
+
+    pChild = pChild->GetSibling();
+  }
 }
 
 void ezAudioSystem::SetOverridePlatform(const char* szPlatform)

@@ -34,41 +34,10 @@ ezResult ezAudioTranslationLayer::Startup()
   }
 
   // Load configuration
-  {
-    ezFileReader file;
-    EZ_SUCCEED_OR_RETURN(file.Open(">project/Sounds/AudioSystemConfig.ddl"));
-
-    ezOpenDdlReader ddl;
-    EZ_SUCCEED_OR_RETURN(ddl.ParseDocument(file));
-
-    const ezOpenDdlReaderElement* pRoot = ddl.GetRootElement();
-    const ezOpenDdlReaderElement* pChild = pRoot->GetFirstChild();
-
-    while (pChild)
-    {
-      if (pChild->IsCustomType("Middleware") && pChild->HasName() && ezStringUtils::Compare(pChild->GetName(), m_pAudioMiddleware->GetMiddlewareName()) == 0)
-      {
-        ezLog::Debug("Loading audio middleware configuration for {}...", pChild->GetName());
-
-        if (m_pAudioMiddleware->LoadConfiguration(*pChild).Failed())
-          ezLog::Error("Failed to load configuration for audio middleware: {0}.", pChild->GetName());
-
-        ezLog::Success("Audio middleware configuration for {} successfully loaded.", pChild->GetName());
-        break;
-      }
-
-      pChild = pChild->GetSibling();
-    }
-  }
+  ezAudioSystem::GetSingleton()->LoadConfiguration(">project/Sounds/AudioSystemConfig.ddl");
 
   // Start the audio middleware
-  const ezResult result = m_pAudioMiddleware->Startup();
-
-  if (result.Failed())
-  {
-    ezLog::Error("Unable to load the ATL. An error occurred while loading the audio middleware.");
-    return EZ_FAILURE;
-  }
+  EZ_SUCCEED_OR_RETURN_CUSTOM_LOG(m_pAudioMiddleware->Startup(), "Unable to load the ATL. An error occurred while loading the audio middleware.");
 
   // Register CVar update events
   cvar_AudioSystemGain.m_CVarEvents.AddEventHandler(ezMakeDelegate(&ezAudioTranslationLayer::OnMasterGainChange, this));
