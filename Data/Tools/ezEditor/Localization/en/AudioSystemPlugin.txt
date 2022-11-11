@@ -1,0 +1,15 @@
+AudioSystem.Mute;Mute Audio
+AudioSystem.MasterVolume;Master Volume
+AudioSystem.Settings.Project;Audio System Project Settings...
+
+ezAudioAnimationComponent;Audio Animation
+ezAudioBoxEnvironmentComponent;Audio Box Environment
+ezAudioListenerComponent;Audio Listener
+ezAudioProxyComponent;Audio Proxy
+ezAudioRtpcComponent;Audio Rtpc
+ezAudioSphereEnvironmentComponent;Audio Sphere Environment
+ezAudioSwitchStateComponent;Audio Switch
+ezAudioTriggerComponent;Audio Trigger
+ezAudioSystemSoundObstructionType::None;None
+ezAudioSystemSoundObstructionType::SingleRay;SingleRay
+ezAudioSystemSoundObstructionType::MultipleRay;MultipleRay

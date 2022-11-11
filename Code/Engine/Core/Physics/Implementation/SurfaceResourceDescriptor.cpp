@@ -26,7 +26,7 @@ EZ_BEGIN_STATIC_REFLECTED_TYPE(ezSurfaceInteraction, ezNoBase, 1, ezRTTIDefaultA
 }
 EZ_END_STATIC_REFLECTED_TYPE;
 
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezSurfaceResourceDescriptor, 2, ezRTTIDefaultAllocator<ezSurfaceResourceDescriptor>)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezSurfaceResourceDescriptor, 3, ezRTTIDefaultAllocator<ezSurfaceResourceDescriptor>)
 {
   EZ_BEGIN_PROPERTIES
   {
@@ -34,6 +34,7 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezSurfaceResourceDescriptor, 2, ezRTTIDefaultAll
     EZ_MEMBER_PROPERTY("Restitution", m_fPhysicsRestitution)->AddAttributes(new ezDefaultValueAttribute(0.25f)),
     EZ_MEMBER_PROPERTY("StaticFriction", m_fPhysicsFrictionStatic)->AddAttributes(new ezDefaultValueAttribute(0.6f)),
     EZ_MEMBER_PROPERTY("DynamicFriction", m_fPhysicsFrictionDynamic)->AddAttributes(new ezDefaultValueAttribute(0.4f)),
+    EZ_MEMBER_PROPERTY("SoundObstruction", m_fSoundObstruction)->AddAttributes(new ezDefaultValueAttribute(1.0f), new ezClampValueAttribute(0.0f, 1.0f)),
     EZ_MEMBER_PROPERTY("GroundType", m_iGroundType)->AddAttributes(new ezDefaultValueAttribute(-1), new ezDynamicEnumAttribute("AiGroundType")),
     EZ_ACCESSOR_PROPERTY("OnCollideInteraction", GetCollisionInteraction, SetCollisionInteraction)->AddAttributes(new ezDynamicStringEnumAttribute("SurfaceInteractionTypeEnum")),
     EZ_ACCESSOR_PROPERTY("SlideReaction", GetSlideReactionPrefabFile, SetSlideReactionPrefabFile)->AddAttributes(new ezAssetBrowserAttribute("CompatibleAsset_Prefab", ezDependencyFlags::Package)),
@@ -96,6 +97,11 @@ void ezSurfaceResourceDescriptor::Load(ezStreamReader& inout_stream)
   inout_stream >> m_fPhysicsFrictionStatic;
   inout_stream >> m_fPhysicsFrictionDynamic;
   inout_stream >> m_hBaseSurface;
+
+  if (uiVersion >= 8)
+  {
+    inout_stream >> m_fSoundObstruction;
+  }
 
   if (uiVersion >= 4)
   {
@@ -173,6 +179,9 @@ void ezSurfaceResourceDescriptor::Save(ezStreamWriter& inout_stream) const
   inout_stream << m_fPhysicsFrictionStatic;
   inout_stream << m_fPhysicsFrictionDynamic;
   inout_stream << m_hBaseSurface;
+
+  // version 8
+  inout_stream << m_fSoundObstruction;
 
   // version 4
   inout_stream << m_sOnCollideInteraction;
