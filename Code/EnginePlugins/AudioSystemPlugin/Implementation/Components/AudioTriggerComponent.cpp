@@ -285,43 +285,57 @@ void ezAudioTriggerComponentManager::ShootOcclusionRays(ObstructionOcclusionStat
 
 void ezAudioTriggerComponentManager::CastRay(ObstructionOcclusionState& state, ezVec3 sourcePos, ezVec3 direction, ezUInt8 collisionLayer, const ezPhysicsWorldModuleInterface* pPhysicsWorldModule, ezUInt32 rayIndex)
 {
-  const float fDistance = direction.GetLengthAndNormalize();
-
-  ezPhysicsQueryParameters query(collisionLayer);
-  query.m_bIgnoreInitialOverlap = true;
-  query.m_ShapeTypes = ezPhysicsShapeType::Static | ezPhysicsShapeType::Dynamic | ezPhysicsShapeType::Query;
-
-  ezPhysicsCastResultArray results;
-
   float averageObstruction = 0.0f;
 
-  if (pPhysicsWorldModule->RaycastAll(results, sourcePos, direction, fDistance, query))
+  if (!direction.IsZero())
   {
-    const float fMaxDistance = cvar_AudioSystemOcclusionMaxDistance.GetValue();
+    const float fDistance = direction.GetLengthAndNormalize();
 
-    for (const auto& hitResult : results.m_Results)
+    ezPhysicsQueryParameters query(collisionLayer);
+    query.m_bIgnoreInitialOverlap = true;
+    query.m_ShapeTypes = ezPhysicsShapeType::Static | ezPhysicsShapeType::Dynamic | ezPhysicsShapeType::Query;
+
+    ezPhysicsCastResultArray results;
+
+    if (pPhysicsWorldModule->RaycastAll(results, sourcePos, direction, fDistance, query))
     {
-      if (!hitResult.m_hSurface.IsValid())
-        continue;
+      const float fMaxDistance = cvar_AudioSystemOcclusionMaxDistance.GetValue();
 
-      ezResourceLock hitSurface(hitResult.m_hSurface, ezResourceAcquireMode::PointerOnly);
-      if (hitSurface.GetAcquireResult() == ezResourceAcquireResult::MissingFallback)
-        continue;
-
-      float obstructionContribution = hitSurface->GetDescriptor().m_fSoundObstruction;
-
-      if (hitResult.m_fDistance > cvar_AudioSystemFullObstructionMaxDistance)
+      for (const auto& hitResult : results.m_Results)
       {
-        const float fClampedDistance = ezMath::Clamp(hitResult.m_fDistance, 0.0f, fMaxDistance);
-        const float fDistanceScale = 1.0f - (fClampedDistance / fMaxDistance);
+        if (!hitResult.m_hSurface.IsValid())
+          continue;
 
-        obstructionContribution *= fDistanceScale;
+        ezResourceLock hitSurface(hitResult.m_hSurface, ezResourceAcquireMode::PointerOnly);
+        if (hitSurface.GetAcquireResult() == ezResourceAcquireResult::MissingFallback)
+          continue;
+
+        float obstructionContribution = hitSurface->GetDescriptor().m_fSoundObstruction;
+
+        if (hitResult.m_fDistance > cvar_AudioSystemFullObstructionMaxDistance)
+        {
+          const float fClampedDistance = ezMath::Clamp(hitResult.m_fDistance, 0.0f, fMaxDistance);
+          const float fDistanceScale = 1.0f - (fClampedDistance / fMaxDistance);
+
+          obstructionContribution *= fDistanceScale;
+        }
+
+        averageObstruction += obstructionContribution;
       }
 
-      averageObstruction += obstructionContribution;
+      averageObstruction /= static_cast<float>(results.m_Results.GetCount());
     }
 
-    averageObstruction /= static_cast<float>(results.m_Results.GetCount());
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+    if (cvar_AudioSystemDebug)
+    {
+      if (const ezView* pView = ezRenderWorld::GetViewByUsageHint(ezCameraUsageHint::MainView, ezCameraUsageHint::EditorView))
+      {
+        ezDebugRenderer::Line ray[1] = {{sourcePos, sourcePos + direction * fDistance}};
+        ezDebugRenderer::DrawLines(pView->GetHandle(), ezMakeArrayPtr(ray), averageObstruction == 0.0f ? ezColor::Red : ezColor::Green);
+      }
+    }
+#endif
   }
 
   if (state.m_ObstructionRaysValues.GetCount() <= rayIndex)
@@ -332,17 +346,6 @@ void ezAudioTriggerComponentManager::CastRay(ObstructionOcclusionState& state, e
   {
     state.m_ObstructionRaysValues[rayIndex] = averageObstruction;
   }
-
-#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-  if (cvar_AudioSystemDebug)
-  {
-    if (const ezView* pView = ezRenderWorld::GetViewByUsageHint(ezCameraUsageHint::MainView, ezCameraUsageHint::EditorView))
-    {
-      ezDebugRenderer::Line ray[1] = {{sourcePos, sourcePos + direction * fDistance}};
-      ezDebugRenderer::DrawLines(pView->GetHandle(), ezMakeArrayPtr(ray), averageObstruction == 0.0f ? ezColor::Red : ezColor::Green);
-    }
-  }
-#endif
 }
 
 void ezAudioTriggerComponentManager::ProcessOcclusion(const ezWorldModule::UpdateContext& context)
