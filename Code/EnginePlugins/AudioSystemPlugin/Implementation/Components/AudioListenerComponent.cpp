@@ -31,6 +31,11 @@ void ezAudioListenerComponent::OnActivated()
 {
   SUPER::OnActivated();
 
+  if (auto* const audioWorldModule = GetWorld()->GetOrCreateModule<ezAudioWorldModule>(); audioWorldModule->GetDefaultListener() != this && m_bIsDefault)
+  {
+    audioWorldModule->SetDefaultListener(this);
+  }
+
   ezAudioSystemRequestRegisterListener request;
 
   request.m_uiListenerId = m_uiListenerId;
@@ -48,6 +53,11 @@ void ezAudioListenerComponent::OnDeactivated()
 
   // Prefer to send this request synchronously...
   ezAudioSystem::GetSingleton()->SendRequestSync(request);
+
+  if (auto* const audioWorldModule = GetWorld()->GetOrCreateModule<ezAudioWorldModule>(); audioWorldModule->GetDefaultListener() == this)
+  {
+    audioWorldModule->SetDefaultListener(nullptr);
+  }
 
   SUPER::OnDeactivated();
 }
@@ -111,9 +121,16 @@ void ezAudioListenerComponent::SetDefault(bool bDefault)
 {
   m_bIsDefault = bDefault;
 
-  if (auto* const audioWorldModule = GetWorld()->GetOrCreateModule<ezAudioWorldModule>(); audioWorldModule->GetDefaultListener() != this)
+  auto* const audioWorldModule = GetWorld()->GetOrCreateModule<ezAudioWorldModule>(); 
+
+  if (audioWorldModule->GetDefaultListener() != this && m_bIsDefault)
   {
     audioWorldModule->SetDefaultListener(this);
+  }
+
+  if (audioWorldModule->GetDefaultListener() == this && !m_bIsDefault)
+  {
+    audioWorldModule->SetDefaultListener(nullptr);
   }
 }
 
