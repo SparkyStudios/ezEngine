@@ -8,6 +8,7 @@
 #include <RendererCore/Meshes/MeshBufferUtils.h>
 #include <RendererCore/Meshes/MeshResourceDescriptor.h>
 #include <assimp/scene.h>
+#include <meshoptimizer.h>
 #include <mikktspace/mikktspace.h>
 
 namespace ezModelImporter2
@@ -25,19 +26,147 @@ namespace ezModelImporter2
     ezUInt32 uiColor1 = ezInvalidIndex;
   };
 
-  ezResult ImporterAssimp::ProcessAiMesh(aiMesh* pMesh, const ezMat4& transform)
+  ezResult ImporterAssimp::ProcessAiMesh(aiMesh* pMesh, const ezMat4& transform, bool bOptimize)
   {
     if ((pMesh->mPrimitiveTypes & aiPrimitiveType::aiPrimitiveType_TRIANGLE) == 0) // no triangles in there ?
       return EZ_SUCCESS;
 
-    {
-      auto& mi = m_MeshInstances[pMesh->mMaterialIndex].ExpandAndGetRef();
-      mi.m_GlobalTransform = transform;
-      mi.m_pMesh = pMesh;
+    auto& mi = m_MeshInstances[pMesh->mMaterialIndex].ExpandAndGetRef();
+    mi.m_GlobalTransform = transform;
+    mi.m_pMesh = pMesh;
 
-      m_uiTotalMeshVertices += pMesh->mNumVertices;
-      m_uiTotalMeshTriangles += pMesh->mNumFaces;
+    if (bOptimize)
+    {
+      ezDynamicArray<ezUInt32> indices;
+      indices.SetCountUninitialized(pMesh->mNumFaces * 3);
+
+      for (ezUInt32 triIdx = 0; triIdx < pMesh->mNumFaces; ++triIdx)
+      {
+        indices[triIdx * 3 + 0] = pMesh->mFaces[triIdx].mIndices[0];
+        indices[triIdx * 3 + 1] = pMesh->mFaces[triIdx].mIndices[1];
+        indices[triIdx * 3 + 2] = pMesh->mFaces[triIdx].mIndices[2];
+      }
+
+      constexpr float kThreshold = 1.01f; // allow up to 1% worse ACMR to get more reordering opportunities for overdraw
+
+      meshopt_optimizeVertexCache(
+        indices.GetData(),
+        indices.GetData(),
+        indices.GetCount(),
+        pMesh->mNumVertices);
+
+      meshopt_optimizeOverdraw(
+        indices.GetData(),
+        indices.GetData(),
+        indices.GetCount(),
+        &pMesh->mVertices->x,
+        pMesh->mNumVertices,
+        sizeof(aiVector3D),
+        kThreshold);
+
+      ezDynamicArray<ezUInt32> remap;
+      remap.SetCountUninitialized(pMesh->mNumVertices);
+
+      meshopt_optimizeVertexFetchRemap(
+        remap.GetData(),
+        indices.GetData(),
+        indices.GetCount(),
+        pMesh->mNumVertices);
+
+      meshopt_remapIndexBuffer(
+        indices.GetData(),
+        indices.GetData(),
+        indices.GetCount(),
+        remap.GetData());
+
+      meshopt_remapVertexBuffer(
+        pMesh->mVertices,
+        pMesh->mVertices,
+        pMesh->mNumVertices,
+        sizeof(aiVector3D),
+        remap.GetData());
+
+      if (pMesh->HasVertexColors(0))
+      {
+        meshopt_remapVertexBuffer(
+          pMesh->mColors[0],
+          pMesh->mColors[0],
+          pMesh->mNumVertices,
+          sizeof(aiColor4D),
+          remap.GetData());
+      }
+
+      if (pMesh->HasVertexColors(1))
+      {
+        meshopt_remapVertexBuffer(
+          pMesh->mColors[1],
+          pMesh->mColors[1],
+          pMesh->mNumVertices,
+          sizeof(aiColor4D),
+          remap.GetData());
+      }
+
+      if (pMesh->HasNormals())
+      {
+        meshopt_remapVertexBuffer(
+          pMesh->mNormals,
+          pMesh->mNormals,
+          pMesh->mNumVertices,
+          sizeof(aiVector3D),
+          remap.GetData());
+      }
+
+      if (pMesh->HasTangentsAndBitangents())
+      {
+        meshopt_remapVertexBuffer(
+          pMesh->mTangents,
+          pMesh->mTangents,
+          pMesh->mNumVertices,
+          sizeof(aiVector3D),
+          remap.GetData());
+
+        meshopt_remapVertexBuffer(
+          pMesh->mBitangents,
+          pMesh->mBitangents,
+          pMesh->mNumVertices,
+          sizeof(aiVector3D),
+          remap.GetData());
+      }
+
+      if (pMesh->HasTextureCoords(0))
+      {
+        meshopt_remapVertexBuffer(
+          pMesh->mTextureCoords[0],
+          pMesh->mTextureCoords[0],
+          pMesh->mNumVertices,
+          sizeof(aiVector3D),
+          remap.GetData());
+      }
+
+      if (pMesh->HasTextureCoords(1))
+      {
+        meshopt_remapVertexBuffer(
+          pMesh->mTextureCoords[1],
+          pMesh->mTextureCoords[1],
+          pMesh->mNumVertices,
+          sizeof(aiVector3D),
+          remap.GetData());
+      }
+
+      remap.Clear();
+
+      for (ezUInt32 triIdx = 0; triIdx < pMesh->mNumFaces; ++triIdx)
+      {
+        pMesh->mFaces[triIdx].mIndices[0] = indices[triIdx * 3 + 0];
+        pMesh->mFaces[triIdx].mIndices[1] = indices[triIdx * 3 + 1];
+        pMesh->mFaces[triIdx].mIndices[2] = indices[triIdx * 3 + 2];
+      }
+
+      indices.Clear();
     }
+
+    m_uiTotalMeshVertices += pMesh->mNumVertices;
+    m_uiTotalMeshTriangles += pMesh->mNumFaces;
 
     return EZ_SUCCESS;
   }
