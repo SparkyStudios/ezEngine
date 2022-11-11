@@ -4,12 +4,12 @@
 PluginInfo
 {
 	string %DisplayName{"Amplitude Audio"}
-	string %Description{"A fully-featured audio system powered by Amplitude Audio SDK."}
+	string %Description{"A fully-featured audio system middleware powered by Amplitude Audio SDK."}
 	string %EditorPlugins{"ezEditorPluginAmplitudeAudio"}
 	string %EditorEnginePlugins{}
 	string %RuntimePlugins{"ezAmplitudeAudioPlugin"}
 	string %PackageDependencies{}
 	string %RequiredPlugins{"AudioSystem"}
-	string %ExclusiveFeatures{"Audio"}
+	string %ExclusiveFeatures{"Audio", "AudioSystemMiddleware"}
 	string %EnabledInTemplates{}
 }
