@@ -114,6 +114,12 @@ void ezAmplitudeAudioControlCollectionAssetDocument::UpdateAssetDocumentInfo(ezA
     if (!e.m_sControlFile.IsEmpty())
       pInfo->m_AssetTransformDependencies.Insert(e.m_sControlFile);
   }
+
+  for (const auto& e : pProp->m_SoundBankEntries)
+  {
+    if (!e.m_sControlFile.IsEmpty())
+      pInfo->m_AssetTransformDependencies.Insert(e.m_sControlFile);
+  }
 }
 
 ezStatus ezAmplitudeAudioControlCollectionAssetDocument::InternalTransformAsset(ezStreamWriter& stream, const char* szOutputTag, const ezPlatformProfile* pAssetProfile, const ezAssetFileHeader& AssetHeader, ezBitflags<ezTransformFlags> transformFlags)
@@ -143,6 +149,12 @@ ezStatus ezAmplitudeAudioControlCollectionAssetDocument::InternalTransformAsset(
   for (auto& e : pProp->m_EnvironmentEntries)
   {
     e.m_Type = ezAmplitudeAudioControlType::Environment;
+    TransformAssetEntry(e, descriptor).IgnoreResult();
+  }
+
+  for (auto& e : pProp->m_SoundBankEntries)
+  {
+    e.m_Type = ezAmplitudeAudioControlType::SoundBank;
     TransformAssetEntry(e, descriptor).IgnoreResult();
   }
 
