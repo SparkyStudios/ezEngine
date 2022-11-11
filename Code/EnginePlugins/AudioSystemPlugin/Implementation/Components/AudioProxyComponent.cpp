@@ -31,11 +31,7 @@ void ezAudioProxyComponent::Deinitialize()
   if (IsReferenced())
     return; // Some components are still depending on this proxy.
 
-  ezAudioSystemRequestUnregisterEntity request;
-
-  request.m_uiEntityId = m_uiEntityId;
-
-  ezAudioSystem::GetSingleton()->SendRequest(request);
+  Unregister(true);
 
   SUPER::Deinitialize();
 }
@@ -52,8 +48,22 @@ ezAudioSystemDataID ezAudioProxyComponent::GetEntityId() const
   return m_uiEntityId;
 }
 
+void ezAudioProxyComponent::Unregister(bool bForce) const
+{
+  if (!bForce && IsReferenced())
+    return; // Some components are still depending on this proxy.
+
+  ezAudioSystemRequestUnregisterEntity request;
+
+  request.m_uiEntityId = m_uiEntityId;
+
+  ezAudioSystem::GetSingleton()->SendRequest(request);
+}
+
 void ezAudioProxyComponent::Update()
 {
+  ezAudioSystemRequestsQueue rq;
+
   // Position update
   {
     const auto& rotation = GetOwner()->GetGlobalRotation();
@@ -80,10 +90,8 @@ void ezAudioProxyComponent::Update()
       m_LastTransform = m.m_Transform;
     };
 
-    ezAudioSystem::GetSingleton()->SendRequest(request);
+    rq.PushBack(request);
   }
-
-  ezAudioSystemRequestsQueue rq;
 
   // Collect environments amounts
   {
@@ -116,7 +124,7 @@ void ezAudioProxyComponent::Update()
     }
   }
 
-  // Apply environment amounts
+  // Send requests
   {
     ezAudioSystem::GetSingleton()->SendRequests(rq);
   }

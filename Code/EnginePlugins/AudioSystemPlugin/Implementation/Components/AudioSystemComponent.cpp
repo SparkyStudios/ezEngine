@@ -68,6 +68,7 @@ void ezAudioSystemProxyDependentComponent::Deinitialize()
 
     if (!m_pProxyComponent->IsReferenced())
     {
+      m_pProxyComponent->Unregister(true);
       GetOwner()->GetWorld()->GetOrCreateComponentManager<ezAudioProxyComponentManager>()->DeleteComponent(m_pProxyComponent);
     }
 
