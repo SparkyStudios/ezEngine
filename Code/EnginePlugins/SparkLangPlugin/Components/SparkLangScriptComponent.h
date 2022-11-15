@@ -15,7 +15,7 @@ struct EZ_SPARKLANGPLUGIN_DLL ezSparkLangScriptMessageProxy : public ezMessage
 {
   EZ_DECLARE_MESSAGE_TYPE(ezSparkLangScriptMessageProxy, ezMessage);
 
-  ezUInt32 m_sMessageTypeNameHash = 0;
+  ezUInt64 m_sMessageTypeNameHash = 0;
   ezMessage* m_pMessage = nullptr;
 };
 
@@ -23,7 +23,7 @@ struct ezSparkLangScriptEventMessageProxy : public ezEventMessage
 {
   EZ_DECLARE_MESSAGE_TYPE(ezSparkLangScriptEventMessageProxy, ezEventMessage);
 
-  ezUInt32 m_sMessageTypeNameHash = 0;
+  ezUInt64 m_sMessageTypeNameHash = 0;
   ezEventMessage* m_pEventMessage = nullptr;
 };
 
@@ -93,5 +93,5 @@ private:
   Sqrat::Function m_OnSimulationStarted;
   Sqrat::Function m_UpdateFunc;
 
-  ezMap<ezUInt32, Sqrat::Function> m_MessageHandlers;
+  ezMap<ezUInt64, Sqrat::Function> m_MessageHandlers;
 };

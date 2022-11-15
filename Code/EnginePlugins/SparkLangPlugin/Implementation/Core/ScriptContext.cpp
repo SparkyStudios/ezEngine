@@ -30,7 +30,7 @@ ezSparkLangScriptContext::ezSparkLangScriptContext(ezWorld* pWorld, HSQUIRRELVM 
   : m_pWorld(pWorld)
   , m_vm(vm)
   , m_bIsCustomVm(vm != nullptr)
-  , m_ezModule(ezSparkLangModule::GetSingleton())
+  , m_ezModule()
 {
   if (!m_bIsCustomVm)
   {
@@ -48,11 +48,8 @@ ezSparkLangScriptContext::ezSparkLangScriptContext(ezWorld* pWorld, HSQUIRRELVM 
     m_pModulesManager->registerDateTimeLib();
   }
 
-  if (m_ezModule == nullptr)
-    m_ezModule = new ezSparkLangModule();
-
   // Register the ez module
-  m_ezModule->Register(m_pModulesManager);
+  m_ezModule.Register(m_pModulesManager);
 
   Sqrat::RootTable rootTable(m_vm);
 

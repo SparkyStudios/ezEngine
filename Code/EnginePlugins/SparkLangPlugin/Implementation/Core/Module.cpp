@@ -4,39 +4,31 @@
 
 #include <Core/World/World.h>
 
-// clang-format off
-EZ_IMPLEMENT_SINGLETON(ezSparkLangModule);
-// clang-format on
-
-static SQRESULT RegisterInternal(HSQUIRRELVM vm)
+ezSparkLangModule::ezSparkLangModule()
 {
-  if (auto* pModule = ezSparkLangModule::GetSingleton(); pModule != nullptr)
+}
+
+bool ezSparkLangModule::Register(SqModules* modules)
+{
+  HSQOBJECT hModule;
+  sq_newtable(modules->getVM());
+  sq_getstackobj(modules->getVM(), -1, &hModule);
+
   {
-    HSQOBJECT moduleObj;
-    sq_getstackobj(vm, -1, &moduleObj);
-    Sqrat::Table module(moduleObj, vm);
+    Sqrat::Table module(hModule, modules->getVM());
 
-    if (SQ_FAILED(pModule->ezClock(module)))
-      return SQ_ERROR;
+    if (SQ_FAILED(ezClock(module)))
+      return false;
 
-    if (SQ_FAILED(pModule->ezComponent(module)))
-      return SQ_ERROR;
+    if (SQ_FAILED(ezComponent(module)))
+      return false;
 
-    if (SQ_FAILED(pModule->ezLog(module)))
-      return SQ_ERROR;
-
-    return SQ_OK;
+    if (SQ_FAILED(ezLog(module)))
+      return false;
   }
 
-  return SQ_ERROR;
-}
+  const bool bDone = modules->addNativeModule("ez", SqModules::SqObjPtr(modules->getVM(), hModule));
 
-ezSparkLangModule::ezSparkLangModule()
-  : m_SingletonRegistrar(this)
-{
-}
-
-void ezSparkLangModule::Register(SqModules* modules)
-{
-  modules->registerNativeModule("ez", RegisterInternal);
+  sq_pop(modules->getVM(), 1);
+  return bDone;
 }

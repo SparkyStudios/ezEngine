@@ -42,8 +42,8 @@ let class ezComponent {
     return ez.Component.IsValid()
   }
 
-  function GetUniqueId() {
-    return ez.Component.GetUniqueId()
+  function GetUniqueID() {
+    return ez.Component.GetUniqueID()
   }
 
   function GetOwner() {
@@ -88,8 +88,15 @@ let ezMessage = ez.Component.Message
 let ezEventMessage = ez.Component.EventMessage
 
 let class TestMessage extends ezMessage {
-  damage = ez.Component.GetUniqueID()
-  entity = "npc"
+  entity = ""
+  damage = 0
+
+  constructor() {
+    base.constructor()
+
+    damage = ez.Component.GetUniqueID()
+    entity = "npc"
+  }
 
   function _typeof() {
     return "TestMessage"
@@ -97,7 +104,13 @@ let class TestMessage extends ezMessage {
 }
 
 let class TestEvent extends ezEventMessage {
-  hit = ez.Component.GetUniqueID()
+  hit = 0
+
+  constructor() {
+    base.constructor()
+
+    hit = ez.Component.GetUniqueID()
+  }
 
   function _typeof() {
     return "TestEvent"
@@ -106,7 +119,9 @@ let class TestEvent extends ezEventMessage {
 
 local once = false
 
-let class TestComponent extends ezComponent {
+let class TestComponent extends ezComponent
+</ UpdateInterval = 1000 />
+{
   </ Expose = true />
   Count = 0
 
@@ -126,7 +141,8 @@ let class TestComponent extends ezComponent {
   }
 
   function OnActivated() {
-    ez.Log.Success($"Activated {ez.Component.GetUniqueID()}")
+    let ID = GetUniqueID()
+    ez.Log.Success("Activated")
   }
 
   function OnDeactivated() {
@@ -139,23 +155,24 @@ let class TestComponent extends ezComponent {
 
   function Update() {
     Count++
-    ez.Log.Success($"Update {Name} {Count}")
+    ez.Log.Success($"Update {Name} {Count} {IsActive()}")
 
     if (!once) {
       let msg = TestMessage()
-      ez.Log.Info($"Sending {msg} {typeof msg} {msg.entity} {msg instanceof TestMessage}")
-      ez.Component.SendMessage(msg)
+      ez.Log.Info($"Sending Message from {GetUniqueID()}")
+      SendMessage(msg)
 
       let event = TestEvent()
-      ez.Log.Info($"Sending {event} {typeof event} {event.hit} {event instanceof TestEvent}")
-      ez.Component.BroadcastEvent(event)
+      ez.Log.Info($"Sending Event from {GetUniqueID}")
+      BroadcastEvent(event)
 
-      once = true
+      // once = true
     }
   }
 
   </ MessageHandler = "TestMessage" />
   function OnTestMessage(msg) {
+    ez.Log.Info($"Got Message from {msg.damage} to {GetUniqueID()}")
     if (msg instanceof TestMessage) {
       ez.Log.Success($"Seriously got a TestMessage from C++ {msg.damage}")
     }
@@ -163,6 +180,7 @@ let class TestComponent extends ezComponent {
 
   </ MessageHandler = "TestEvent" />
   function OnTestEvent(evt) {
+    ez.Log.Info("Got a TestEvent from C++")
     if (evt instanceof TestEvent) {
       ez.Log.Success($"Successfully got the event from another script ({ez.Component.GetUniqueID()}), hit = {evt.hit}")
     }
@@ -197,6 +215,21 @@ void ezSparkLangScriptComponent::BroadcastEventMessage(ezEventMessage& msg)
   sender.m_Sender.SendEventMessage(msg, this, GetOwner()->GetParent());
 }
 
+void ezSparkLangScriptComponent::SetUpdateInterval(float fIntervalMS)
+{
+  SetUpdateInterval(ezTime::Milliseconds(fIntervalMS));
+}
+
+void ezSparkLangScriptComponent::SetUpdateInterval(ezTime interval)
+{
+  m_UpdateInterval = interval;
+}
+
+ezTime ezSparkLangScriptComponent::GetUpdateInterval() const
+{
+  return m_UpdateInterval;
+}
+
 void ezSparkLangScriptComponent::Initialize()
 {
   SUPER::Initialize();
@@ -205,6 +238,7 @@ void ezSparkLangScriptComponent::Initialize()
 
   Sqrat::RootTable root(m_pScriptContext->GetVM());
   root.SetValue<const ezComponentHandle&>(_SC("componentId"), GetHandle());
+  root.SetValue<const ezGameObjectHandle&>(_SC("gameObjectId"), GetOwner()->GetHandle());
 
   m_ComponentScope = Sqrat::Table(m_pScriptContext->GetVM());
   root.SetValue(GetUniqueID(), m_ComponentScope);
@@ -236,10 +270,18 @@ void ezSparkLangScriptComponent::Initialize()
   sq_pushobject(m_ComponentScope.GetVM(), m_ComponentInstance.GetObject());
   sq_getclass(m_ComponentScope.GetVM(), -1);
 
+  // sq_pushstring(m_ComponentScope.GetVM(), _SC("OnActivated"), 11);
+  // sq_getmemberhandle(m_ComponentScope.GetVM(), -2, &m_OnActivatedFuncHandle);
+  //
+  // sq_getbyhandle(m_ComponentScope.GetVM(), -2, &m_OnActivatedFuncHandle);
+  // const auto& func = Sqrat::Var<Sqrat::Object>(m_ComponentScope.GetVM(), -1).value;
+  // m_OnActivatedFunc = Sqrat::Function(m_ComponentScope.GetVM(), m_ComponentInstance.GetObject(), func.GetObject());
+  // sq_poptop(m_ComponentScope.GetVM());
+
   const auto& componentClass = Sqrat::Var<Sqrat::Object>(m_ComponentScope.GetVM(), -1).value;
 
   Sqrat::Object::iterator it;
-  while (componentClass.Next(it))
+  while (m_ComponentInstance.Next(it))
   {
     sq_pushobject(m_ComponentScope.GetVM(), componentClass.GetObject());
     sq_pushobject(m_ComponentScope.GetVM(), it.getKey());
@@ -265,7 +307,7 @@ void ezSparkLangScriptComponent::Initialize()
                 const SQChar* typeName = sq_objtostring(&attValue);
                 m_MessageHandlers.Insert(
                   ezHashingUtils::StringHash(typeName),
-                  Sqrat::Function(m_pScriptContext->GetVM(), m_ComponentInstance, it.getValue()));
+                  m_ComponentInstance.GetFunction(it.getName()));
               }
             }
           }
@@ -399,8 +441,8 @@ bool ezSparkLangScriptComponent::HandlesEventMessage(const ezEventMessage& msg) 
     return false;
 
   // Native events
-  if (const auto* pRtti = msg.GetDynamicRTTI(); m_MessageHandlers.Contains(pRtti->GetTypeNameHash()))
-    return true;
+  if (const auto* pRtti = msg.GetDynamicRTTI())
+    return m_MessageHandlers.Contains(pRtti->GetTypeNameHash());
 
   // Pure SparkLang events
   if (msg.IsInstanceOf<ezSparkLangScriptEventMessageProxy>())
@@ -420,9 +462,16 @@ bool ezSparkLangScriptComponent::HandleUnhandledMessage(ezMessage& msg, bool bWa
   if (GetUserFlag(ScriptFlag::Failed))
     return false;
 
-  // Native events
+  // Native messages
   if (const auto* pRtti = msg.GetDynamicRTTI(); m_MessageHandlers.Contains(pRtti->GetTypeNameHash()))
     return m_MessageHandlers[pRtti->GetTypeNameHash()].Execute(msg);
+
+  // Pure SparkLang messages
+  if (msg.IsInstanceOf<ezSparkLangScriptMessageProxy>())
+  {
+    const auto& evt = ezStaticCast<const ezSparkLangScriptMessageProxy&>(msg);
+    return m_MessageHandlers[evt.m_sMessageTypeNameHash].Execute(evt.m_pMessage);
+  }
 
   // Pure SparkLang events
   if (msg.IsInstanceOf<ezSparkLangScriptEventMessageProxy>())

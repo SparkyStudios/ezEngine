@@ -187,8 +187,7 @@ SQRESULT ezSparkLangModule::ezComponent(Sqrat::Table& module)
     .Func(_SC("GetSortingKey"), &ezEventMessage::GetSortingKey)
     .Func(_SC("GetId"), &ezEventMessage::GetId)
     .Func(_SC("GetSize"), &ezEventMessage::GetSize)
-    .Func(_SC("GetHash"), &ezEventMessage::GetHash)
-  ;
+    .Func(_SC("GetHash"), &ezEventMessage::GetHash);
 
   Component
     .Bind(_SC("ComponentMode"), ComponentMode)
