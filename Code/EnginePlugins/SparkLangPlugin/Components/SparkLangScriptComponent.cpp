@@ -3,8 +3,55 @@
 #include <SparkLangPlugin/Components/SparkLangScriptComponent.h>
 #include <SparkLangPlugin/Implementation/Core/Module_Component.h>
 
+#include <Foundation/IO/FileSystem/FileReader.h>
+#include <Foundation/IO/FileSystem/FileSystem.h>
+
+#include <sqimportparser.h>
 #include <sqrat.h>
 #include <squirrel.h>
+
+void error_cb(void* /*user_pointer*/, const char* message, int line, int column)
+{
+  ezLog::Error("messsage: {} line: {} col: {}", message, line, column);
+}
+
+ezResult ReadEntireFile(const char* szFile, ezStringBuilder& sOut)
+{
+  sOut.Clear();
+
+  ezFileReader File;
+  if (File.Open(szFile) == EZ_FAILURE)
+  {
+    ezLog::Error("Could not open for reading: '{0}'", szFile);
+    return EZ_FAILURE;
+  }
+
+  ezDynamicArray<ezUInt8> FileContent;
+
+  ezUInt8 Temp[4024];
+  ezUInt64 uiRead = File.ReadBytes(Temp, EZ_ARRAY_SIZE(Temp));
+
+  while (uiRead > 0)
+  {
+    FileContent.PushBackRange(ezArrayPtr<ezUInt8>(Temp, (ezUInt32)uiRead));
+
+    uiRead = File.ReadBytes(Temp, EZ_ARRAY_SIZE(Temp));
+  }
+
+  FileContent.PushBack(0);
+
+  if (!ezUnicodeUtils::IsValidUtf8((const char*)&FileContent[0]))
+  {
+    ezLog::Error("The file \"{0}\" contains characters that are not valid Utf8. This often happens when you type special characters in "
+                 "an editor that does not save the file in Utf8 encoding.",
+      szFile);
+    return EZ_FAILURE;
+  }
+
+  sOut = (const char*)&FileContent[0];
+
+  return EZ_SUCCESS;
+}
 
 // clang-format off
 EZ_IMPLEMENT_MESSAGE_TYPE(ezSparkLangScriptMessageProxy);
@@ -33,59 +80,7 @@ EZ_END_COMPONENT_TYPE;
 // clang-format on
 
 static constexpr char Test[] = R""""(
-let ez = require("ez")
-
-let class ezComponent {
-  constructor() {}
-
-  function IsValid() {
-    return ez.Component.IsValid()
-  }
-
-  function GetUniqueID() {
-    return ez.Component.GetUniqueID()
-  }
-
-  function GetOwner() {
-    return ez.Component.GetOwner()
-  }
-
-  function SetActiveFlag(active) {
-    ez.Component.SetActiveFlag(active)
-  }
-
-  function GetActiveFlag() {
-    return ez.Component.GetActiveFlag()
-  }
-
-  function IsActive() {
-    return ez.Component.IsActive()
-  }
-
-  function IsActiveAndInitialized() {
-    return ez.Component.IsActiveAndInitialized()
-  }
-
-  function IsActiveAndSimulating() {
-    return ez.Component.IsActiveAndSimulating()
-  }
-
-  function SendMessage(message) {
-    ez.Component.SendMessage(message)
-  }
-
-  function PostMessage(message) {
-    ez.Component.PostMessage(message)
-  }
-
-  function BroadcastEvent(message) {
-    ez.Component.BroadcastEvent(message)
-  }
-}
-
-let ezMessage = ez.Component.Message
-
-let ezEventMessage = ez.Component.EventMessage
+import "SparkLang/Component.spark"
 
 let class TestMessage extends ezMessage {
   entity = ""
@@ -243,7 +238,45 @@ void ezSparkLangScriptComponent::Initialize()
   m_ComponentScope = Sqrat::Table(m_pScriptContext->GetVM());
   root.SetValue(GetUniqueID(), m_ComponentScope);
 
-  if (m_pScriptContext->Run(Test, &m_ComponentScope).Failed())
+  ezStringBuilder scriptCode;
+  scriptCode.Append("let ez = require(\"ez\")\n\n");
+
+  sqimportparser::ImportParser importParser(error_cb, nullptr);
+  const char* txt = Test;
+  int line = 1;
+  int col = 1;
+  std::vector<sqimportparser::ModuleImport> modules;
+  std::vector<std::string> directives;
+  std::vector<std::pair<const char*, const char*>> keepRanges; // .first - inclusive, .second - not inclusive
+  if (importParser.parse(&txt, line, col, modules, &directives, &keepRanges))
+  {
+    for (auto& module : modules)
+    {
+      ezStringBuilder sb(module.moduleName.c_str());
+      if (!sb.HasExtension(".spark"))
+        continue;
+
+      if (!ezFileSystem::ExistsFile(sb))
+      {
+        ezLog::Error("Imported file \"{}\" not found.", sb);
+        continue;
+      }
+
+      ezStringBuilder file;
+      if (ReadEntireFile(sb, file).Failed())
+      {
+        ezLog::Error("Cannot import file \"{}\".", sb);
+        continue;
+      }
+
+      scriptCode.Append(file);
+    }
+  }
+
+  scriptCode.Append("\n");
+  scriptCode.Append(txt);
+
+  if (m_pScriptContext->Run(scriptCode, &m_ComponentScope).Failed())
   {
     SetUserFlag(ScriptFlag::Failed, true);
     ezLog::Error("An error occurred while compiling the script.");

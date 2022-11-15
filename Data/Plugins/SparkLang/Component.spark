@@ -1,0 +1,51 @@
+let class ezComponent {
+  constructor() {}
+
+  function IsValid() {
+    return ez.Component.IsValid()
+  }
+
+  function GetUniqueID() {
+    return ez.Component.GetUniqueID()
+  }
+
+  function GetOwner() {
+    return ez.Component.GetOwner()
+  }
+
+  function SetActiveFlag(active) {
+    ez.Component.SetActiveFlag(active)
+  }
+
+  function GetActiveFlag() {
+    return ez.Component.GetActiveFlag()
+  }
+
+  function IsActive() {
+    return ez.Component.IsActive()
+  }
+
+  function IsActiveAndInitialized() {
+    return ez.Component.IsActiveAndInitialized()
+  }
+
+  function IsActiveAndSimulating() {
+    return ez.Component.IsActiveAndSimulating()
+  }
+
+  function SendMessage(message) {
+    ez.Component.SendMessage(message)
+  }
+
+  function PostMessage(message) {
+    ez.Component.PostMessage(message)
+  }
+
+  function BroadcastEvent(message) {
+    ez.Component.BroadcastEvent(message)
+  }
+}
+
+let ezMessage = ez.Component.Message
+
+let ezEventMessage = ez.Component.EventMessage
