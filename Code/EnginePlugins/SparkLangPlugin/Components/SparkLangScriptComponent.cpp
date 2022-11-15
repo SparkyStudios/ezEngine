@@ -115,7 +115,7 @@ let class TestEvent extends ezEventMessage {
 local once = false
 
 let class TestComponent extends ezComponent
-</ UpdateInterval = 1000 />
+</ UpdateInterval = 10000 />
 {
   </ Expose = true />
   Count = 0
@@ -302,62 +302,83 @@ void ezSparkLangScriptComponent::Initialize()
 
   sq_pushobject(m_ComponentScope.GetVM(), m_ComponentInstance.GetObject());
   sq_getclass(m_ComponentScope.GetVM(), -1);
-
-  // sq_pushstring(m_ComponentScope.GetVM(), _SC("OnActivated"), 11);
-  // sq_getmemberhandle(m_ComponentScope.GetVM(), -2, &m_OnActivatedFuncHandle);
-  //
-  // sq_getbyhandle(m_ComponentScope.GetVM(), -2, &m_OnActivatedFuncHandle);
-  // const auto& func = Sqrat::Var<Sqrat::Object>(m_ComponentScope.GetVM(), -1).value;
-  // m_OnActivatedFunc = Sqrat::Function(m_ComponentScope.GetVM(), m_ComponentInstance.GetObject(), func.GetObject());
-  // sq_poptop(m_ComponentScope.GetVM());
-
-  const auto& componentClass = Sqrat::Var<Sqrat::Object>(m_ComponentScope.GetVM(), -1).value;
-
-  Sqrat::Object::iterator it;
-  while (m_ComponentInstance.Next(it))
   {
-    sq_pushobject(m_ComponentScope.GetVM(), componentClass.GetObject());
-    sq_pushobject(m_ComponentScope.GetVM(), it.getKey());
-    if (SQ_SUCCEEDED(sq_getattributes(m_ComponentScope.GetVM(), -2)))
-    {
-      const auto& attributes = Sqrat::Var<Sqrat::Table>(m_ComponentScope.GetVM(), -1).value;
-      if (!attributes.IsNull())
-      {
-        Sqrat::Object::iterator attIt;
-        while (attributes.Next(attIt))
-        {
-          ezString attName = attIt.getName();
+    const auto& componentClass = Sqrat::Var<Sqrat::Object>(m_ComponentScope.GetVM(), -1).value;
 
-          // Methods
-          if (sq_isfunction(it.getValue()) || sq_isclosure(it.getValue()) || sq_isnativeclosure(it.getValue()))
+    sq_pushobject(m_ComponentScope.GetVM(), componentClass.GetObject());
+    {
+      sq_pushnull(m_ComponentScope.GetVM());
+      if (SQ_SUCCEEDED(sq_getattributes(m_ComponentScope.GetVM(), -2)))
+      {
+        const auto& attributes = Sqrat::Var<Sqrat::Table>(m_ComponentScope.GetVM(), -1).value;
+        if (!attributes.IsNull())
+        {
+          Sqrat::Object::iterator attIt;
+          while (attributes.Next(attIt))
           {
-            if (attName.Compare("MessageHandler") == 0)
+            ezString attName = attIt.getName();
+
+            if (attName.Compare("UpdateInterval") == 0)
             {
               const HSQOBJECT& attValue = attIt.getValue();
 
-              if (sq_isstring(attValue))
+              if (sq_isnumeric(attValue))
               {
-                const SQChar* typeName = sq_objtostring(&attValue);
-                m_MessageHandlers.Insert(
-                  ezHashingUtils::StringHash(typeName),
-                  m_ComponentInstance.GetFunction(it.getName()));
+                SQFloat intervalMS = sq_objtofloat(&attValue);
+                SetUpdateInterval(intervalMS);
               }
-            }
-          }
-          // Properties
-          else
-          {
-            if (attName.Compare("Expose") == 0)
-            {
-              // Expose property
             }
           }
         }
       }
-    }
-    sq_pop(m_ComponentScope.GetVM(), 2);
-  }
+      sq_pop(m_ComponentScope.GetVM(), 1);
 
+      Sqrat::Object::iterator it;
+      while (m_ComponentInstance.Next(it))
+      {
+        sq_pushobject(m_ComponentScope.GetVM(), it.getKey());
+        if (SQ_SUCCEEDED(sq_getattributes(m_ComponentScope.GetVM(), -2)))
+        {
+          const auto& attributes = Sqrat::Var<Sqrat::Table>(m_ComponentScope.GetVM(), -1).value;
+          if (!attributes.IsNull())
+          {
+            Sqrat::Object::iterator attIt;
+            while (attributes.Next(attIt))
+            {
+              ezString attName = attIt.getName();
+
+              // Methods
+              if (sq_isfunction(it.getValue()) || sq_isclosure(it.getValue()) || sq_isnativeclosure(it.getValue()))
+              {
+                if (attName.Compare("MessageHandler") == 0)
+                {
+                  const HSQOBJECT& attValue = attIt.getValue();
+
+                  if (sq_isstring(attValue))
+                  {
+                    const SQChar* typeName = sq_objtostring(&attValue);
+                    m_MessageHandlers.Insert(
+                      ezHashingUtils::StringHash(typeName),
+                      m_ComponentInstance.GetFunction(it.getName()));
+                  }
+                }
+              }
+              // Properties
+              else
+              {
+                if (attName.Compare("Expose") == 0)
+                {
+                  // Expose property
+                }
+              }
+            }
+          }
+        }
+        sq_pop(m_ComponentScope.GetVM(), 1);
+      }
+    }
+    sq_poptop(m_ComponentScope.GetVM());
+  }
   sq_pop(m_ComponentScope.GetVM(), 2);
 
   if (!m_InitializeFunc.IsNull())
@@ -486,8 +507,15 @@ bool ezSparkLangScriptComponent::HandlesEventMessage(const ezEventMessage& msg) 
 
 void ezSparkLangScriptComponent::Update()
 {
+  const ezTime now = ezTime::Now();
+
+  if ((now - m_LastUpdateTime) < m_UpdateInterval)
+    return;
+
   if (!m_UpdateFunc.IsNull())
     m_UpdateFunc();
+
+  m_LastUpdateTime = now;
 }
 
 bool ezSparkLangScriptComponent::HandleUnhandledMessage(ezMessage& msg, bool bWasPostedMsg)

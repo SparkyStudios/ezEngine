@@ -100,4 +100,5 @@ private:
   ezMap<ezUInt64, Sqrat::Function> m_MessageHandlers;
 
   ezTime m_UpdateInterval;
+  ezTime m_LastUpdateTime;
 };
