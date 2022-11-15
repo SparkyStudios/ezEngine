@@ -154,14 +154,14 @@ let class TestComponent extends ezComponent {
     }
   }
 
-  </ Handler = "TestMessage" />
+  </ MessageHandler = "TestMessage" />
   function OnTestMessage(msg) {
     if (msg instanceof TestMessage) {
       ez.Log.Success($"Seriously got a TestMessage from C++ {msg.damage}")
     }
   }
 
-  </ Handler = "TestEvent" />
+  </ MessageHandler = "TestEvent" />
   function OnTestEvent(evt) {
     if (evt instanceof TestEvent) {
       ez.Log.Success($"Successfully got the event from another script ({ez.Component.GetUniqueID()}), hit = {evt.hit}")
@@ -218,47 +218,25 @@ void ezSparkLangScriptComponent::Initialize()
 
   SetUserFlag(ScriptFlag::Compiled, true);
 
-  // m_InitializeFunc = m_ComponentScope.GetFunction(_SC("Initialize"));
-  // m_DeinitializeFunc = m_ComponentScope.GetFunction(_SC("Deinitialize"));
-  // m_OnActivatedFunc = m_ComponentScope.GetFunction(_SC("OnActivated"));
-  // m_OnDeactivatedFunc = m_ComponentScope.GetFunction(_SC("OnDeactivated"));
-  // m_OnSimulationStarted = m_ComponentScope.GetFunction(_SC("OnSimulationStarted"));
-  // m_UpdateFunc = m_ComponentScope.GetFunction(_SC("Update"));
-  //
-  // if (auto messageHandlers = m_ComponentScope.GetSlot("MessageHandlers"); !messageHandlers.IsNull())
-  // {
-  //   Sqrat::Object::iterator it;
-  //   while (messageHandlers.Next(it))
-  //   {
-  //     // We can't register non callable values
-  //     if (!sq_isclosure(it.getValue()))
-  //       continue;
-  //
-  //     m_MessageHandlers.Insert(
-  //       ezHashingUtils::StringHash(it.getName()),
-  //       Sqrat::Function(m_pScriptContext->GetVM(), messageHandlers, it.getValue()));
-  //   }
-  // }
+  m_ComponentInstance = Sqrat::Table(m_ComponentScope.GetSlot(_SC("Component")));
 
-  auto component = Sqrat::Table(m_ComponentScope.GetSlot(_SC("Component")));
-
-  if (!sq_isinstance(component.GetObject()))
+  if (!sq_isinstance(m_ComponentInstance.GetObject()))
   {
     ezLog::Error("Invalid script component. Missing the component instance.");
     return;
   }
 
-  m_InitializeFunc = component.GetFunction(_SC("Initialize"));
-  m_DeinitializeFunc = component.GetFunction(_SC("Deinitialize"));
-  m_OnActivatedFunc = component.GetFunction(_SC("OnActivated"));
-  m_OnDeactivatedFunc = component.GetFunction(_SC("OnDeactivated"));
-  m_OnSimulationStarted = component.GetFunction(_SC("OnSimulationStarted"));
-  m_UpdateFunc = component.GetFunction(_SC("Update"));
+  m_InitializeFunc = m_ComponentInstance.GetFunction(_SC("Initialize"));
+  m_DeinitializeFunc = m_ComponentInstance.GetFunction(_SC("Deinitialize"));
+  m_OnActivatedFunc = m_ComponentInstance.GetFunction(_SC("OnActivated"));
+  m_OnDeactivatedFunc = m_ComponentInstance.GetFunction(_SC("OnDeactivated"));
+  m_OnSimulationStarted = m_ComponentInstance.GetFunction(_SC("OnSimulationStarted"));
+  m_UpdateFunc = m_ComponentInstance.GetFunction(_SC("Update"));
 
-  sq_pushobject(m_ComponentScope.GetVM(), component.GetObject());
+  sq_pushobject(m_ComponentScope.GetVM(), m_ComponentInstance.GetObject());
   sq_getclass(m_ComponentScope.GetVM(), -1);
 
-  auto componentClass = Sqrat::Var<Sqrat::Object>(m_ComponentScope.GetVM(), -1).value;
+  const auto& componentClass = Sqrat::Var<Sqrat::Object>(m_ComponentScope.GetVM(), -1).value;
 
   Sqrat::Object::iterator it;
   while (componentClass.Next(it))
@@ -278,7 +256,7 @@ void ezSparkLangScriptComponent::Initialize()
           // Methods
           if (sq_isfunction(it.getValue()) || sq_isclosure(it.getValue()) || sq_isnativeclosure(it.getValue()))
           {
-            if (attName.Compare("Handler") == 0)
+            if (attName.Compare("MessageHandler") == 0)
             {
               const HSQOBJECT& attValue = attIt.getValue();
 
@@ -287,7 +265,7 @@ void ezSparkLangScriptComponent::Initialize()
                 const SQChar* typeName = sq_objtostring(&attValue);
                 m_MessageHandlers.Insert(
                   ezHashingUtils::StringHash(typeName),
-                  Sqrat::Function(m_pScriptContext->GetVM(), componentClass, it.getValue()));
+                  Sqrat::Function(m_pScriptContext->GetVM(), m_ComponentInstance, it.getValue()));
               }
             }
           }

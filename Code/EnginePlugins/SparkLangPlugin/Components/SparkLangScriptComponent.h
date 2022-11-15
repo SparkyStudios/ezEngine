@@ -82,7 +82,9 @@ private:
   ezDynamicArray<ezSparkLangScriptProperty*> m_Properties;
 
   ezSparkLangScriptContext* m_pScriptContext{nullptr};
+
   Sqrat::Table m_ComponentScope;
+  Sqrat::Table m_ComponentInstance;
 
   Sqrat::Function m_InitializeFunc;
   Sqrat::Function m_DeinitializeFunc;
