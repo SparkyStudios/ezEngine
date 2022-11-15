@@ -1,0 +1,15 @@
+// for a description of the options see:
+// Code/EditorPlugins/Assets/EditorPluginAssets/Assets.ezPluginBundle
+
+PluginInfo
+{
+	string %DisplayName{"SparkLang"}
+	string %Description{"Adds support for scripting via SparkLang."}
+	string %EditorPlugins{}
+	string %EditorEnginePlugins{}
+	string %RuntimePlugins{"ezSparkLangPlugin"}
+	string %PackageDependencies{}
+	string %RequiredPlugins{}
+	string %ExclusiveFeatures{}
+	string %EnabledInTemplates{"General2D", "General3D"}
+}

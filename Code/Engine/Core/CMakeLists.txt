@@ -36,6 +36,15 @@ if (EZ_3RDPARTY_DUKTAPE_SUPPORT)
 
 endif()
 
+if (EZ_3RDPARTY_SPARKLANG_SUPPORT)
+
+  target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+    spark
+  )
+
+endif()
+
 if(EZ_3RDPARTY_GLFW_SUPPORT)
 
   target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
