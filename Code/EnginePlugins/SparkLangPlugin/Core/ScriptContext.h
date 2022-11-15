@@ -69,5 +69,5 @@ private:
 
   SqModules* m_pModulesManager;
 
-  ezSparkLangModule* m_ezModule;
+  ezSparkLangModule m_ezModule;
 };

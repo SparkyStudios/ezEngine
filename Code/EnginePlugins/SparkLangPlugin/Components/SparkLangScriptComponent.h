@@ -58,6 +58,10 @@ public:
 
   void BroadcastEventMessage(ezEventMessage& msg);
 
+  void SetUpdateInterval(float fIntervalMS);
+  void SetUpdateInterval(ezTime interval);
+  EZ_NODISCARD ezTime GetUpdateInterval() const;
+
   enum ScriptFlag
   {
     Loaded = 0,
@@ -94,4 +98,6 @@ private:
   Sqrat::Function m_UpdateFunc;
 
   ezMap<ezUInt64, Sqrat::Function> m_MessageHandlers;
+
+  ezTime m_UpdateInterval;
 };

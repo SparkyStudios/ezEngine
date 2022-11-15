@@ -12,6 +12,11 @@ static constexpr char s_szScriptContextRegistrySlotName[] = "_spark_script_conte
 
 ezCVarInt cvar_SparkLangVMInitialStackSize = ezCVarInt("SparkLang.InitialStackSize", 1024, ezCVarFlags::Save, "The initial size of the VM stack.");
 
+static void DebugHook(HSQUIRRELVM vm, SQInteger type, const SQChar* name, SQInteger line, const SQChar* funcName)
+{
+  ezLog::Info("type: {} name: {} line: {} func: {}", type, name, line, funcName);
+}
+
 ezSparkLangScriptContext* ezSparkLangScriptContext::FromVM(HSQUIRRELVM vm)
 {
   const Sqrat::RegistryTable registry(vm);
@@ -37,6 +42,7 @@ ezSparkLangScriptContext::ezSparkLangScriptContext(ezWorld* pWorld, HSQUIRRELVM 
     m_vm = sq_open(cvar_SparkLangVMInitialStackSize); // creates a VM with initial stack size 1024
 
     sq_setprintfunc(m_vm, &ezSparkLangInternal::ezspark_print<false>, &ezSparkLangInternal::ezspark_print<true>);
+    sq_setnativedebughook(m_vm, DebugHook);
   }
 
   m_pModulesManager = EZ_DEFAULT_NEW(SqModules, m_vm);

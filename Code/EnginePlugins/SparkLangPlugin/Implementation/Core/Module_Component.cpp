@@ -1,3 +1,5 @@
+#include "Foundation/Math/Vec3.h"
+
 #include <SparkLangPlugin/SparkLangPluginPCH.h>
 
 #include <SparkLangPlugin/Components/SparkLangScriptComponent.h>
@@ -165,6 +167,20 @@ SQInteger ezspComponentBroadcastEvent(HSQUIRRELVM vm)
   return 0;
 }
 
+// ez.Component.SetUpdateInterval(float): void
+SQInteger ezspComponentSetUpdateInterval(HSQUIRRELVM vm)
+{
+  if (auto* pComponent = ezDynamicCast<ezSparkLangScriptComponent*>(GetComponentFromVM(vm)); pComponent != nullptr)
+  {
+    SQFloat fIntervalMs;
+    sq_getfloat(vm, -1, &fIntervalMs);
+
+    pComponent->SetUpdateInterval(fIntervalMs);
+  }
+
+  return 0;
+}
+
 SQRESULT ezSparkLangModule::ezComponent(Sqrat::Table& module)
 {
   Sqrat::Table Component(module.GetVM());
@@ -203,8 +219,8 @@ SQRESULT ezSparkLangModule::ezComponent(Sqrat::Table& module)
     .SquirrelFunc(_SC("IsActiveAndSimulating"), ezspComponentGetActiveFlag<4>, 1, _SC("."))
     .SquirrelFunc(_SC("SendMessage"), ezspComponentSendMessage<1>, 2, _SC(".x"))
     .SquirrelFunc(_SC("PostMessage"), ezspComponentSendMessage<2>, 3, _SC(".xf"))
-    .SquirrelFunc(_SC("BroadcastEvent"), ezspComponentBroadcastEvent, 2, _SC("."))
-  ;
+    .SquirrelFunc(_SC("BroadcastEvent"), ezspComponentBroadcastEvent, 2, _SC(".x"))
+    .SquirrelFunc(_SC("SetUpdateInterval"), ezspComponentSetUpdateInterval, 2, _SC(".f"));
 
   module
     .Bind(_SC("Component"), Component);

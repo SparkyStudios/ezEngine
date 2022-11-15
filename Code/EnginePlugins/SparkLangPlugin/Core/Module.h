@@ -9,14 +9,13 @@
 
 class EZ_SPARKLANGPLUGIN_DLL ezSparkLangModule
 {
-  EZ_DECLARE_SINGLETON(ezSparkLangModule);
-
 public:
   ezSparkLangModule();
 
-  void Register(SqModules* modules);
+  bool Register(SqModules* modules);
 
   SQRESULT ezLog(Sqrat::Table& module);
   SQRESULT ezClock(Sqrat::Table& module);
   SQRESULT ezComponent(Sqrat::Table& module);
+  SQRESULT ezMath(Sqrat::Table& module);
 };
