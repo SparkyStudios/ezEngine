@@ -4,6 +4,8 @@
 #include <SparkLangPlugin/Core/ScriptContext.h>
 
 #include <Foundation/Configuration/CVar.h>
+#include <Foundation/IO/FileSystem/FileReader.h>
+#include <Foundation/IO/FileSystem/FileWriter.h>
 
 #include <sqrat.h>
 #include <squirrel.h>
@@ -97,12 +99,30 @@ ezResult ezSparkLangScriptContext::Run(ezStringView svScript, Sqrat::Object* con
   const ezStringBuilder sScript(svScript);
   Sqrat::string err{};
 
-  if (scriptObj.CompileString(sScript.GetData(), err, "script.spark"))
+  ezFileReader file;
+  if (file.Open(":project/script.ezSparkLangScript").Succeeded())
   {
-    if (scriptObj.Run(err, context))
-    {
-      return EZ_SUCCESS;
-    }
+    scriptObj.Deserialize(
+      err, [](SQUserPointer up, SQUserPointer data, SQInteger size) -> SQInteger
+      { auto* file = static_cast<ezFileReader*>(up);
+        return file->ReadBytes(data, size); },
+      &file);
+  }
+  else if (scriptObj.CompileString(sScript.GetData(), err, "script.spark"))
+  {
+    ezFileWriter file;
+    EZ_SUCCEED_OR_RETURN(file.Open(":project/script.ezSparkLangScript"));
+
+    scriptObj.Serialize(
+      err, [](SQUserPointer up, SQUserPointer data, SQInteger size) -> SQInteger
+      { auto* file = static_cast<ezFileWriter*>(up);
+        return  file->WriteBytes(data, size).Succeeded() ? size : 0; },
+      &file);
+  }
+
+  if (scriptObj.Run(err, context))
+  {
+    return EZ_SUCCESS;
   }
 
   ezLog::Error(err.c_str());

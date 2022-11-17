@@ -124,7 +124,46 @@ public:
         }
         return false;
     }
-};
+
+    bool Serialize(string& errMsg, SQWRITEFUNC w, SQUserPointer up = nullptr) {
+        if (sq_isnull(obj))
+            return false;
+
+        SQRESULT result;
+        SQInteger top = sq_gettop(vm);
+        sq_pushobject(vm, obj);
+
+        result = sq_writeclosure(vm, w, up);
+        sq_settop(vm, top);
+
+        if (SQ_FAILED(result)) {
+            errMsg = LastErrorString(vm);
+            return false;
+        }
+
+        return true;
+    }
+
+    bool Deserialize(string& errMsg, SQREADFUNC r, SQUserPointer up = nullptr) {
+        if(!sq_isnull(obj)) {
+            sq_release(vm, &obj);
+            sq_resetobject(&obj);
+        }
+
+        SQRESULT result = sq_readclosure(vm, r, up);
+
+        if (SQ_FAILED(result)) {
+            errMsg = LastErrorString(vm);
+            return false;
+        }
+
+        sq_getstackobj(vm, -1, &obj);
+        sq_addref(vm, &obj);
+        sq_poptop(vm);
+
+        return true;
+    }
+  };
 
 }
 
