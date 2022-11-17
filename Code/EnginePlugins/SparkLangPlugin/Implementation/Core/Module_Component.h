@@ -37,6 +37,17 @@ namespace Sqrat
   };
 
   template <>
+  struct Var<ezComponentHandle&> : Var<ezComponentHandle>
+  {
+    Var(HSQUIRRELVM vm, SQInteger idx)
+      : Var<ezComponentHandle>(vm, idx)
+    {
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezComponentHandle ref"); }
+  };
+
+  template <>
   struct Var<const ezComponentHandle&> : Var<ezComponentHandle>
   {
     Var(HSQUIRRELVM vm, SQInteger idx)
@@ -73,6 +84,17 @@ namespace Sqrat
     {
       return sq_gettype(vm, idx) == OT_INTEGER;
     }
+  };
+
+  template <>
+  struct Var<ezGameObjectHandle&> : Var<ezGameObjectHandle>
+  {
+    Var(HSQUIRRELVM vm, SQInteger idx)
+      : Var<ezGameObjectHandle>(vm, idx)
+    {
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezGameObjectHandle ref"); }
   };
 
   template <>

@@ -157,11 +157,11 @@ let class TestComponent extends ezComponent
 
     if (!once) {
       let msg = TestMessage(GetHandle())
-      ez.Log.Info($"Sending Message from {GetUniqueID()}")
+      ez.Log.Info($"Sending Message {msg.GetId()} from {GetUniqueID()}")
       SendMessage(msg)
 
       let event = TestEvent(GetHandle())
-      ez.Log.Info($"Sending Event from {GetUniqueID}")
+      ez.Log.Info($"Sending Event {event.GetId()} from {GetUniqueID()}")
       BroadcastEvent(event)
 
       // once = true
@@ -170,17 +170,17 @@ let class TestComponent extends ezComponent
 
   </ MessageHandler = "TestMessage" />
   function OnTestMessage(msg) {
-    ez.Log.Info($"Got Message from {msg.damage} to {GetUniqueID()}")
-    if (msg instanceof TestMessage) {
+    ez.Log.Info($"Got Message {msg.GetId()} from {msg.damage} to {GetUniqueID()}")
+    if (typeof msg == "TestMessage") {
       ez.Log.Success($"Seriously got a TestMessage from C++ {msg.damage}")
     }
   }
 
   </ MessageHandler = "TestEvent" />
   function OnTestEvent(evt) {
-    ez.Log.Info("Got a TestEvent from C++")
-    if (evt instanceof TestEvent) {
-      ez.Log.Success($"Successfully got the event from another script ({ez.Component.GetUniqueID()}), hit = {evt.hit}")
+    ez.Log.Info($"Got a TestEvent from C++ {evt} {typeof evt}")
+    if (typeof evt == "TestEvent") {
+      ez.Log.Success($"Successfully got the event from another script ({ez.Component.GetUniqueID(evt.SenderComponent)}), to this one ({GetUniqueID()})")
     }
   }
 }
@@ -198,6 +198,13 @@ ezSparkLangScriptComponent::~ezSparkLangScriptComponent() = default;
 void ezSparkLangScriptComponent::BroadcastEventMessage(ezEventMessage& msg)
 {
   const ezRTTI* pType = msg.GetDynamicRTTI();
+
+  if (msg.IsInstanceOf<ezSparkLangScriptEventMessageProxy>())
+  {
+    const auto& evtProxy = ezStaticCast<const ezSparkLangScriptEventMessageProxy&>(msg);
+    evtProxy.m_pEventMessage->m_hSenderObject = GetOwner() != nullptr ? GetOwner()->GetHandle() : ezGameObjectHandle();
+    evtProxy.m_pEventMessage->m_hSenderComponent = GetHandle();
+  }
 
   for (auto& sender : m_EventSenders)
   {
@@ -442,11 +449,12 @@ void ezSparkLangScriptComponent::Deinitialize()
   if (!m_DeinitializeFunc.IsNull())
     m_DeinitializeFunc();
 
-  const ezSparkLangScriptContext& context = ezDynamicCast<ezSparkLangScriptComponentManager*>(GetOwningManager())->GetContext();
-
-  const Sqrat::RootTable root(context.GetVM());
-  const auto componentsTable = Sqrat::Table(root.GetSlot(s_szComponentsRootTableSlotName));
-  componentsTable.DeleteSlot(GetUniqueID());
+  {
+    const ezSparkLangScriptContext& context = ezDynamicCast<ezSparkLangScriptComponentManager*>(GetOwningManager())->GetContext();
+    const Sqrat::RootTable root(context.GetVM());
+    const auto& componentsTable = Sqrat::Table(root.GetSlot(s_szComponentsRootTableSlotName));
+    componentsTable.DeleteSlot(GetUniqueID());
+  }
 
   SUPER::Deinitialize();
 }
@@ -502,13 +510,13 @@ bool ezSparkLangScriptComponent::HandlesEventMessage(const ezEventMessage& msg) 
   if (GetUserFlag(ScriptFlag::Failed))
     return false;
 
-  // Native events
-  if (const auto* pRtti = msg.GetDynamicRTTI())
-    return m_MessageHandlers.Contains(pRtti->GetTypeNameHash());
-
   // Pure SparkLang events
   if (msg.IsInstanceOf<ezSparkLangScriptEventMessageProxy>())
     return m_MessageHandlers.Contains(ezStaticCast<const ezSparkLangScriptEventMessageProxy&>(msg).m_sMessageTypeNameHash);
+
+  // Native events
+  if (const auto* pRtti = msg.GetDynamicRTTI())
+    return m_MessageHandlers.Contains(pRtti->GetTypeNameHash());
 
   return false;
 }
@@ -531,10 +539,6 @@ bool ezSparkLangScriptComponent::HandleUnhandledMessage(ezMessage& msg, bool bWa
   if (GetUserFlag(ScriptFlag::Failed))
     return false;
 
-  // Native messages/events
-  if (const auto* pRtti = msg.GetDynamicRTTI(); m_MessageHandlers.Contains(pRtti->GetTypeNameHash()))
-    return m_MessageHandlers[pRtti->GetTypeNameHash()].Execute(msg);
-
   // Pure SparkLang messages
   if (msg.IsInstanceOf<ezSparkLangScriptMessageProxy>())
   {
@@ -549,10 +553,14 @@ bool ezSparkLangScriptComponent::HandleUnhandledMessage(ezMessage& msg, bool bWa
     return m_MessageHandlers[evt.m_sMessageTypeNameHash].Execute(evt.m_pEventMessage);
   }
 
+  // Native messages/events
+  if (const auto* pRtti = msg.GetDynamicRTTI(); m_MessageHandlers.Contains(pRtti->GetTypeNameHash()))
+    return m_MessageHandlers[pRtti->GetTypeNameHash()].Execute(msg);
+
   return false;
 }
 
-void ezSparkLangScriptComponent::OnMsgSparkLangScriptMessageProxy(ezSparkLangScriptMessageProxy& msg)
+void ezSparkLangScriptComponent::OnMsgSparkLangScriptMessageProxy(ezSparkLangScriptMessageProxy& msg) const
 {
   if (GetUserFlag(ScriptFlag::Failed))
     return;

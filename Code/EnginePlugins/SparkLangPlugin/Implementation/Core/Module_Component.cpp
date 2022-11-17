@@ -195,12 +195,10 @@ SQRESULT ezSparkLangModule::ezComponent(Sqrat::Table& module)
     .Func(_SC("GetHash"), &ezMessage::GetHash);
 
   Sqrat::DerivedClass<ezEventMessage, ezMessage> EventMessageClass(module.GetVM(), _SC("ezEventMessage"));
-  MessageClass
+  EventMessageClass
     .Ctor()
-    .Func(_SC("GetSortingKey"), &ezEventMessage::GetSortingKey)
-    .Func(_SC("GetId"), &ezEventMessage::GetId)
-    .Func(_SC("GetSize"), &ezEventMessage::GetSize)
-    .Func(_SC("GetHash"), &ezEventMessage::GetHash);
+    .ConstVar(_SC("SenderObject"), &ezEventMessage::m_hSenderObject)
+    .ConstVar(_SC("SenderComponent"), &ezEventMessage::m_hSenderComponent);
 
   Component
     .Bind(_SC("ComponentMode"), ComponentMode)

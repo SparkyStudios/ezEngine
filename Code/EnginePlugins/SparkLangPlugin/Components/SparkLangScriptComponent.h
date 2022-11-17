@@ -91,7 +91,7 @@ protected:
   void Update();
   bool HandleUnhandledMessage(ezMessage& msg, bool bWasPostedMsg);
 
-  void OnMsgSparkLangScriptMessageProxy(ezSparkLangScriptMessageProxy& msg);
+  void OnMsgSparkLangScriptMessageProxy(ezSparkLangScriptMessageProxy& msg) const;
 
 private:
   struct EventSender
