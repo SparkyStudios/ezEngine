@@ -10,6 +10,8 @@
 #include <sqrat.h>
 #include <squirrel.h>
 
+static constexpr char s_szComponentsRootTableSlotName[] = "_spark_script_components";
+
 void error_cb(void* /*user_pointer*/, const char* message, int line, int column)
 {
   ezLog::Error("messsage: {} line: {} col: {}", message, line, column);
@@ -33,14 +35,14 @@ ezResult ReadEntireFile(const char* szFile, ezStringBuilder& sOut)
 
   while (uiRead > 0)
   {
-    FileContent.PushBackRange(ezArrayPtr<ezUInt8>(Temp, (ezUInt32)uiRead));
+    FileContent.PushBackRange(ezArrayPtr<ezUInt8>(Temp, static_cast<ezUInt32>(uiRead)));
 
     uiRead = File.ReadBytes(Temp, EZ_ARRAY_SIZE(Temp));
   }
 
   FileContent.PushBack(0);
 
-  if (!ezUnicodeUtils::IsValidUtf8((const char*)&FileContent[0]))
+  if (!ezUnicodeUtils::IsValidUtf8(reinterpret_cast<const char*>(&FileContent[0])))
   {
     ezLog::Error("The file \"{0}\" contains characters that are not valid Utf8. This often happens when you type special characters in "
                  "an editor that does not save the file in Utf8 encoding.",
@@ -48,7 +50,7 @@ ezResult ReadEntireFile(const char* szFile, ezStringBuilder& sOut)
     return EZ_FAILURE;
   }
 
-  sOut = (const char*)&FileContent[0];
+  sOut = reinterpret_cast<const char*>(&FileContent[0]);
 
   return EZ_SUCCESS;
 }
@@ -86,10 +88,10 @@ let class TestMessage extends ezMessage {
   entity = ""
   damage = 0
 
-  constructor() {
+  constructor(handle) {
     base.constructor()
 
-    damage = ez.Component.GetUniqueID()
+    damage = ez.Component.GetUniqueID(handle)
     entity = "npc"
   }
 
@@ -101,10 +103,10 @@ let class TestMessage extends ezMessage {
 let class TestEvent extends ezEventMessage {
   hit = 0
 
-  constructor() {
+  constructor(handle) {
     base.constructor()
 
-    hit = ez.Component.GetUniqueID()
+    hit = ez.Component.GetUniqueID(handle)
   }
 
   function _typeof() {
@@ -137,7 +139,7 @@ let class TestComponent extends ezComponent
 
   function OnActivated() {
     let ID = GetUniqueID()
-    ez.Log.Success("Activated")
+    ez.Log.Success($"Activated {ID}")
   }
 
   function OnDeactivated() {
@@ -145,7 +147,8 @@ let class TestComponent extends ezComponent
   }
 
   function OnSimulationStarted() {
-    ez.Log.Success("SimulationStarted")
+    let ID = GetUniqueID()
+    ez.Log.Success($"SimStarted {ID}")
   }
 
   function Update() {
@@ -153,11 +156,11 @@ let class TestComponent extends ezComponent
     ez.Log.Success($"Update {Name} {Count} {IsActive()}")
 
     if (!once) {
-      let msg = TestMessage()
+      let msg = TestMessage(GetHandle())
       ez.Log.Info($"Sending Message from {GetUniqueID()}")
       SendMessage(msg)
 
-      let event = TestEvent()
+      let event = TestEvent(GetHandle())
       ez.Log.Info($"Sending Event from {GetUniqueID}")
       BroadcastEvent(event)
 
@@ -229,14 +232,18 @@ void ezSparkLangScriptComponent::Initialize()
 {
   SUPER::Initialize();
 
-  m_pScriptContext = EZ_DEFAULT_NEW(ezSparkLangScriptContext, GetWorld());
+  const ezSparkLangScriptContext& context = ezDynamicCast<ezSparkLangScriptComponentManager*>(GetOwningManager())->GetContext();
 
-  Sqrat::RootTable root(m_pScriptContext->GetVM());
-  root.SetValue<const ezComponentHandle&>(_SC("componentId"), GetHandle());
-  root.SetValue<const ezGameObjectHandle&>(_SC("gameObjectId"), GetOwner()->GetHandle());
+  m_ComponentScope = Sqrat::Table(context.GetVM());
 
-  m_ComponentScope = Sqrat::Table(m_pScriptContext->GetVM());
-  root.SetValue(GetUniqueID(), m_ComponentScope);
+  m_ComponentScope.SetValue<const ezComponentHandle&>(_SC("_spark_script_componentId"), GetHandle());
+  m_ComponentScope.SetValue<const ezGameObjectHandle&>(_SC("_spark_script_gameObjectId"), GetOwner()->GetHandle());
+
+  {
+    Sqrat::RootTable root(context.GetVM());
+    auto componentsTable = Sqrat::Table(root.GetSlot(s_szComponentsRootTableSlotName));
+    componentsTable.SetValue(GetUniqueID(), m_ComponentScope);
+  }
 
   ezStringBuilder scriptCode;
   scriptCode.Append("let ez = require(\"ez\")\n\n");
@@ -273,10 +280,10 @@ void ezSparkLangScriptComponent::Initialize()
     }
   }
 
-  scriptCode.Append("\n");
+  scriptCode.Append("\n\n");
   scriptCode.Append(txt);
 
-  if (m_pScriptContext->Run(scriptCode, &m_ComponentScope).Failed())
+  if (context.Run(scriptCode, &m_ComponentScope).Failed())
   {
     SetUserFlag(ScriptFlag::Failed, true);
     ezLog::Error("An error occurred while compiling the script.");
@@ -316,22 +323,22 @@ void ezSparkLangScriptComponent::Initialize()
           Sqrat::Object::iterator attIt;
           while (attributes.Next(attIt))
           {
-            ezString attName = attIt.getName();
+            ezString sAttName = attIt.getName();
 
-            if (attName.Compare("UpdateInterval") == 0)
+            if (sAttName.Compare("UpdateInterval"_ezsv) == 0)
             {
               const HSQOBJECT& attValue = attIt.getValue();
 
               if (sq_isnumeric(attValue))
               {
-                SQFloat intervalMS = sq_objtofloat(&attValue);
-                SetUpdateInterval(intervalMS);
+                SQFloat fIntervalMs = sq_objtofloat(&attValue);
+                SetUpdateInterval(fIntervalMs);
               }
             }
           }
         }
       }
-      sq_pop(m_ComponentScope.GetVM(), 1);
+      sq_poptop(m_ComponentScope.GetVM());
 
       Sqrat::Object::iterator it;
       while (m_ComponentInstance.Next(it))
@@ -345,20 +352,20 @@ void ezSparkLangScriptComponent::Initialize()
             Sqrat::Object::iterator attIt;
             while (attributes.Next(attIt))
             {
-              ezString attName = attIt.getName();
+              ezString sAttName = attIt.getName();
 
               // Methods
               if (sq_isfunction(it.getValue()) || sq_isclosure(it.getValue()) || sq_isnativeclosure(it.getValue()))
               {
-                if (attName.Compare("MessageHandler") == 0)
+                if (sAttName.Compare("MessageHandler"_ezsv) == 0)
                 {
                   const HSQOBJECT& attValue = attIt.getValue();
 
                   if (sq_isstring(attValue))
                   {
-                    const SQChar* typeName = sq_objtostring(&attValue);
+                    const SQChar* szTypeName = sq_objtostring(&attValue);
                     m_MessageHandlers.Insert(
-                      ezHashingUtils::StringHash(typeName),
+                      ezHashingUtils::StringHash(szTypeName),
                       m_ComponentInstance.GetFunction(it.getName()));
                   }
                 }
@@ -366,7 +373,7 @@ void ezSparkLangScriptComponent::Initialize()
               // Properties
               else
               {
-                if (attName.Compare("Expose") == 0)
+                if (sAttName.Compare("Expose"_ezsv) == 0)
                 {
                   // Expose property
                 }
@@ -374,7 +381,7 @@ void ezSparkLangScriptComponent::Initialize()
             }
           }
         }
-        sq_pop(m_ComponentScope.GetVM(), 1);
+        sq_poptop(m_ComponentScope.GetVM());
       }
     }
     sq_poptop(m_ComponentScope.GetVM());
@@ -435,10 +442,11 @@ void ezSparkLangScriptComponent::Deinitialize()
   if (!m_DeinitializeFunc.IsNull())
     m_DeinitializeFunc();
 
-  Sqrat::RootTable root(m_pScriptContext->GetVM());
-  root.DeleteSlot(GetUniqueID());
+  const ezSparkLangScriptContext& context = ezDynamicCast<ezSparkLangScriptComponentManager*>(GetOwningManager())->GetContext();
 
-  EZ_DEFAULT_DELETE(m_pScriptContext);
+  const Sqrat::RootTable root(context.GetVM());
+  const auto componentsTable = Sqrat::Table(root.GetSlot(s_szComponentsRootTableSlotName));
+  componentsTable.DeleteSlot(GetUniqueID());
 
   SUPER::Deinitialize();
 }
@@ -523,7 +531,7 @@ bool ezSparkLangScriptComponent::HandleUnhandledMessage(ezMessage& msg, bool bWa
   if (GetUserFlag(ScriptFlag::Failed))
     return false;
 
-  // Native messages
+  // Native messages/events
   if (const auto* pRtti = msg.GetDynamicRTTI(); m_MessageHandlers.Contains(pRtti->GetTypeNameHash()))
     return m_MessageHandlers[pRtti->GetTypeNameHash()].Execute(msg);
 

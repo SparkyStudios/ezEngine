@@ -46,10 +46,12 @@ class EZ_SPARKLANGPLUGIN_DLL ezSparkLangScriptContext
 public:
   static ezSparkLangScriptContext* FromVM(HSQUIRRELVM vm);
 
-  ezSparkLangScriptContext(ezWorld* pWorld, HSQUIRRELVM vm = nullptr);
+  ezSparkLangScriptContext();
   ~ezSparkLangScriptContext();
 
-  ezResult Run(ezStringView svScript, Sqrat::Object* context = nullptr);
+  ezResult Initialize(ezWorld* pWorld, HSQUIRRELVM vm = nullptr);
+  ezResult Run(ezStringView svScript, Sqrat::Object* context = nullptr) const;
+  void CollectGarbage() const;
 
   EZ_ALWAYS_INLINE ezWorld* GetWorld() const
   {
@@ -67,7 +69,6 @@ private:
   HSQUIRRELVM m_vm;
   bool m_bIsCustomVm;
 
-  SqModules* m_pModulesManager;
-
+  SqModules m_ModulesManager;
   ezSparkLangModule m_ezModule;
 };

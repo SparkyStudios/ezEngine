@@ -9,6 +9,7 @@
 #include <squirrel.h>
 
 static constexpr char s_szScriptContextRegistrySlotName[] = "_spark_script_context";
+static constexpr char s_szComponentsRootTableSlotName[] = "_spark_script_components";
 
 ezCVarInt cvar_SparkLangVMInitialStackSize = ezCVarInt("SparkLang.InitialStackSize", 1024, ezCVarFlags::Save, "The initial size of the VM stack.");
 
@@ -31,12 +32,28 @@ ezSparkLangScriptContext* ezSparkLangScriptContext::FromVM(HSQUIRRELVM vm)
   return static_cast<ezSparkLangScriptContext*>(pUserPointer);
 }
 
-ezSparkLangScriptContext::ezSparkLangScriptContext(ezWorld* pWorld, HSQUIRRELVM vm)
-  : m_pWorld(pWorld)
-  , m_vm(vm)
-  , m_bIsCustomVm(vm != nullptr)
-  , m_ezModule()
+ezSparkLangScriptContext::ezSparkLangScriptContext()
+  : m_pWorld(nullptr)
+  , m_vm(nullptr)
+  , m_bIsCustomVm(false)
+  , m_ModulesManager(nullptr)
 {
+}
+
+ezSparkLangScriptContext::~ezSparkLangScriptContext()
+{
+  if (m_bIsCustomVm && m_vm != nullptr)
+  {
+    sq_close(m_vm);
+  }
+}
+
+ezResult ezSparkLangScriptContext::Initialize(ezWorld* pWorld, HSQUIRRELVM vm)
+{
+  m_pWorld = pWorld;
+  m_vm = vm;
+  m_bIsCustomVm = vm != nullptr;
+
   if (!m_bIsCustomVm)
   {
     m_vm = sq_open(cvar_SparkLangVMInitialStackSize); // creates a VM with initial stack size 1024
@@ -45,17 +62,17 @@ ezSparkLangScriptContext::ezSparkLangScriptContext(ezWorld* pWorld, HSQUIRRELVM 
     sq_setnativedebughook(m_vm, DebugHook);
   }
 
-  m_pModulesManager = EZ_DEFAULT_NEW(SqModules, m_vm);
+  m_ModulesManager = SqModules(m_vm);
 
   if (!m_bIsCustomVm)
   {
-    m_pModulesManager->setupMainModule();
-    m_pModulesManager->registerBaseLibs();
-    m_pModulesManager->registerDateTimeLib();
+    m_ModulesManager.setupMainModule();
+    m_ModulesManager.registerBaseLibs();
+    m_ModulesManager.registerDateTimeLib();
   }
 
   // Register the ez module
-  m_ezModule.Register(m_pModulesManager);
+  m_ezModule.Register(m_ModulesManager);
 
   Sqrat::RootTable rootTable(m_vm);
 
@@ -63,25 +80,17 @@ ezSparkLangScriptContext::ezSparkLangScriptContext(ezWorld* pWorld, HSQUIRRELVM 
   sq_pushstring(m_vm, s_szScriptContextRegistrySlotName, sizeof(s_szScriptContextRegistrySlotName) - 1);
   sq_pushuserpointer(m_vm, this);
   sq_newslot(m_vm, -3, SQFalse);
-  sq_pop(m_vm, 1); // pop the registry table
+  sq_poptop(m_vm); // pop the registry table
 
   if (!m_bIsCustomVm)
   {
-    // rootTable.SquirrelFunc(_SC("_get"), &RootTable__get);
+    rootTable.SetValue(s_szComponentsRootTableSlotName, Sqrat::Table(m_vm));
   }
+
+  return EZ_SUCCESS;
 }
 
-ezSparkLangScriptContext::~ezSparkLangScriptContext()
-{
-  EZ_DEFAULT_DELETE(m_pModulesManager);
-
-  if (m_bIsCustomVm)
-  {
-    sq_close(m_vm);
-  }
-}
-
-ezResult ezSparkLangScriptContext::Run(ezStringView svScript, Sqrat::Object* context)
+ezResult ezSparkLangScriptContext::Run(ezStringView svScript, Sqrat::Object* context) const
 {
   Sqrat::Script scriptObj(m_vm);
 
@@ -98,4 +107,12 @@ ezResult ezSparkLangScriptContext::Run(ezStringView svScript, Sqrat::Object* con
 
   ezLog::Error(err.c_str());
   return EZ_FAILURE;
+}
+
+void ezSparkLangScriptContext::CollectGarbage() const
+{
+  if (m_vm == nullptr)
+    return;
+
+  sq_collectgarbage(m_vm);
 }

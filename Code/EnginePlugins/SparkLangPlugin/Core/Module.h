@@ -12,7 +12,7 @@ class EZ_SPARKLANGPLUGIN_DLL ezSparkLangModule
 public:
   ezSparkLangModule();
 
-  bool Register(SqModules* modules);
+  bool Register(SqModules& modules);
 
   SQRESULT ezLog(Sqrat::Table& module);
   SQRESULT ezClock(Sqrat::Table& module);

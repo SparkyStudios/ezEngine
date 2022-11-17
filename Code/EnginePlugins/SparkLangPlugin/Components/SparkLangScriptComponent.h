@@ -9,8 +9,6 @@
 #include <Core/World/EventMessageHandlerComponent.h>
 #include <Core/World/World.h>
 
-typedef ezComponentManagerSimple<class ezSparkLangScriptComponent, ezComponentUpdateType::WhenSimulating, ezBlockStorageType::FreeList> ezSparkLangScriptComponentManager;
-
 struct EZ_SPARKLANGPLUGIN_DLL ezSparkLangScriptMessageProxy : public ezMessage
 {
   EZ_DECLARE_MESSAGE_TYPE(ezSparkLangScriptMessageProxy, ezMessage);
@@ -25,6 +23,26 @@ struct ezSparkLangScriptEventMessageProxy : public ezEventMessage
 
   ezUInt64 m_sMessageTypeNameHash = 0;
   ezEventMessage* m_pEventMessage = nullptr;
+};
+
+class EZ_SPARKLANGPLUGIN_DLL ezSparkLangScriptComponentManager : public ezComponentManager<class ezSparkLangScriptComponent, ezBlockStorageType::FreeList>
+{
+  using SUPER = ezComponentManager<ezSparkLangScriptComponent, ezBlockStorageType::FreeList>;
+
+public:
+  ezSparkLangScriptComponentManager(ezWorld* pWorld);
+  ~ezSparkLangScriptComponentManager() override;
+
+  void Initialize() override;
+  void Deinitialize() override;
+  void OnSimulationStarted() override;
+
+  ezSparkLangScriptContext& GetContext() const { return m_ScriptContext; }
+
+private:
+  void Update(const ezWorldModule::UpdateContext& context);
+
+  mutable ezSparkLangScriptContext m_ScriptContext;
 };
 
 class EZ_SPARKLANGPLUGIN_DLL ezSparkLangScriptComponent : public ezEventMessageHandlerComponent
@@ -84,8 +102,6 @@ private:
 
   ezHybridArray<EventSender, 2> m_EventSenders;
   ezDynamicArray<ezSparkLangScriptProperty*> m_Properties;
-
-  ezSparkLangScriptContext* m_pScriptContext{nullptr};
 
   Sqrat::Table m_ComponentScope;
   Sqrat::Table m_ComponentInstance;

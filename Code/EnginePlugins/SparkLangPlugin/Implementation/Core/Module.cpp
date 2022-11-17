@@ -8,14 +8,14 @@ ezSparkLangModule::ezSparkLangModule()
 {
 }
 
-bool ezSparkLangModule::Register(SqModules* modules)
+bool ezSparkLangModule::Register(SqModules& modules)
 {
   HSQOBJECT hModule;
-  sq_newtable(modules->getVM());
-  sq_getstackobj(modules->getVM(), -1, &hModule);
+  sq_newtable(modules.getVM());
+  sq_getstackobj(modules.getVM(), -1, &hModule);
 
   {
-    Sqrat::Table module(hModule, modules->getVM());
+    Sqrat::Table module(hModule, modules.getVM());
 
     if (SQ_FAILED(ezClock(module)))
       return false;
@@ -30,8 +30,8 @@ bool ezSparkLangModule::Register(SqModules* modules)
       return false;
   }
 
-  const bool bDone = modules->addNativeModule("ez", SqModules::SqObjPtr(modules->getVM(), hModule));
+  const bool bDone = modules.addNativeModule("ez", SqModules::SqObjPtr(modules.getVM(), hModule));
 
-  sq_pop(modules->getVM(), 1);
+  sq_poptop(modules.getVM());
   return bDone;
 }

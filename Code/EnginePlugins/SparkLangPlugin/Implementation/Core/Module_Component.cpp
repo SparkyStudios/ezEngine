@@ -1,12 +1,10 @@
-#include "Foundation/Math/Vec3.h"
-
 #include <SparkLangPlugin/SparkLangPluginPCH.h>
 
 #include <SparkLangPlugin/Components/SparkLangScriptComponent.h>
 #include <SparkLangPlugin/Core/ScriptContext.h>
 #include <SparkLangPlugin/Implementation/Core/Module_Component.h>
 
-ezComponent* GetComponentFromVM(HSQUIRRELVM vm)
+ezComponent* GetComponentFromVM(HSQUIRRELVM vm, SQInteger index)
 {
   const auto* pContext = ezSparkLangScriptContext::FromVM(vm);
 
@@ -16,29 +14,28 @@ ezComponent* GetComponentFromVM(HSQUIRRELVM vm)
     return nullptr;
   }
 
-  const Sqrat::RootTable root(vm);
-  const auto& hComponent = root.GetSlotValue<ezComponentHandle>(_SC("componentId"), ezComponentHandle());
+  const auto& hComponent = Sqrat::Var<ezComponentHandle>(vm, index);
 
-  if (hComponent.IsInvalidated())
+  if (hComponent.value.IsInvalidated())
     return nullptr;
 
   ezComponent* pComponent = nullptr;
-  const bool bIsValid = pContext->GetWorld()->TryGetComponent(hComponent, pComponent);
+  const bool bIsValid = pContext->GetWorld()->TryGetComponent(hComponent.value, pComponent);
 
   return bIsValid ? pComponent : nullptr;
 }
 
-// ez.Component.IsValid(): bool
+// ez.Component.IsValid(integer): bool
 SQInteger ezspComponentIsValid(HSQUIRRELVM vm)
 {
-  sq_pushbool(vm, GetComponentFromVM(vm) != nullptr);
+  sq_pushbool(vm, GetComponentFromVM(vm, -1) != nullptr);
   return 1;
 }
 
-// ez.Component.GetUniqueID(): integer
+// ez.Component.GetUniqueID(integer): integer
 SQInteger ezspComponentGetUniqueID(HSQUIRRELVM vm)
 {
-  if (const ezComponent* pComponent = GetComponentFromVM(vm); pComponent != nullptr)
+  if (const ezComponent* pComponent = GetComponentFromVM(vm, -1); pComponent != nullptr)
   {
     sq_pushinteger(vm, pComponent->GetUniqueID());
     return 1;
@@ -48,10 +45,10 @@ SQInteger ezspComponentGetUniqueID(HSQUIRRELVM vm)
   return 1;
 }
 
-// ez.Component.GetOwner(): userpointer
+// ez.Component.GetOwner(integer): userpointer
 SQInteger ezspComponentGetOwner(HSQUIRRELVM vm)
 {
-  if (ezComponent* pComponent = GetComponentFromVM(vm); pComponent != nullptr)
+  if (ezComponent* pComponent = GetComponentFromVM(vm, -1); pComponent != nullptr)
   {
     sq_pushuserpointer(vm, pComponent->GetOwner());
     return 1;
@@ -61,10 +58,10 @@ SQInteger ezspComponentGetOwner(HSQUIRRELVM vm)
   return 1;
 }
 
-// ez.Component.SetActiveFlag(bool): void
+// ez.Component.SetActiveFlag(integer, bool): void
 SQInteger ezspComponentSetActiveFlag(HSQUIRRELVM vm)
 {
-  if (ezComponent* pComponent = GetComponentFromVM(vm); pComponent != nullptr)
+  if (ezComponent* pComponent = GetComponentFromVM(vm, -2); pComponent != nullptr)
   {
     SQBool flag = false;
     if (SQ_SUCCEEDED(sq_getbool(vm, -1, &flag)))
@@ -74,14 +71,14 @@ SQInteger ezspComponentSetActiveFlag(HSQUIRRELVM vm)
   return 0;
 }
 
-// ez.Component.GetActiveFlag(): bool
-// ez.Component.IsActive(): bool
-// ez.Component.IsActiveAndInitialized(): bool
-// ez.Component.IsActiveAndSimulating(): bool
+// ez.Component.GetActiveFlag(integer): bool
+// ez.Component.IsActive(integer): bool
+// ez.Component.IsActiveAndInitialized(integer): bool
+// ez.Component.IsActiveAndSimulating(integer): bool
 template <int type>
 SQInteger ezspComponentGetActiveFlag(HSQUIRRELVM vm)
 {
-  if (const ezComponent* pComponent = GetComponentFromVM(vm); pComponent != nullptr)
+  if (const ezComponent* pComponent = GetComponentFromVM(vm, -1); pComponent != nullptr)
   {
     switch (type)
     {
@@ -103,18 +100,18 @@ SQInteger ezspComponentGetActiveFlag(HSQUIRRELVM vm)
   return 1;
 }
 
-// ez.Component.SendMessage(ezMessage): void
-// ez.Component.PostMessage(ezMessage, integer): void
+// ez.Component.SendMessage(integer, ezMessage): void
+// ez.Component.PostMessage(integer, ezMessage, integer): void
 template <int type>
 SQInteger ezspComponentSendMessage(HSQUIRRELVM vm)
 {
-  if (ezComponent* pComponent = GetComponentFromVM(vm); pComponent != nullptr)
+  if (ezComponent* pComponent = GetComponentFromVM(vm, -type - 1); pComponent != nullptr)
   {
     sq_typeof(vm, -type);
 
     const SQChar* msgType;
     sq_getstring(vm, -type, &msgType);
-    sq_pop(vm, 1);
+    sq_poptop(vm);
 
     auto const message = Sqrat::Var<ezMessage*>(vm, -type);
 
@@ -144,16 +141,16 @@ SQInteger ezspComponentSendMessage(HSQUIRRELVM vm)
   return 0;
 }
 
-// ez.Component.BroadcastEvent(ezEventMessage): void
+// ez.Component.BroadcastEvent(integer, ezEventMessage): void
 SQInteger ezspComponentBroadcastEvent(HSQUIRRELVM vm)
 {
-  if (auto* pComponent = ezDynamicCast<ezSparkLangScriptComponent*>(GetComponentFromVM(vm)); pComponent != nullptr)
+  if (auto* pComponent = ezDynamicCast<ezSparkLangScriptComponent*>(GetComponentFromVM(vm, -2)); pComponent != nullptr)
   {
     sq_typeof(vm, -1);
 
     const SQChar* msgType;
     sq_getstring(vm, -1, &msgType);
-    sq_pop(vm, 1);
+    sq_poptop(vm);
 
     auto const message = Sqrat::Var<ezEventMessage*>(vm, -1);
 
@@ -167,10 +164,10 @@ SQInteger ezspComponentBroadcastEvent(HSQUIRRELVM vm)
   return 0;
 }
 
-// ez.Component.SetUpdateInterval(float): void
+// ez.Component.SetUpdateInterval(integer, float): void
 SQInteger ezspComponentSetUpdateInterval(HSQUIRRELVM vm)
 {
-  if (auto* pComponent = ezDynamicCast<ezSparkLangScriptComponent*>(GetComponentFromVM(vm)); pComponent != nullptr)
+  if (auto* pComponent = ezDynamicCast<ezSparkLangScriptComponent*>(GetComponentFromVM(vm, -2)); pComponent != nullptr)
   {
     SQFloat fIntervalMs;
     sq_getfloat(vm, -1, &fIntervalMs);
@@ -209,18 +206,18 @@ SQRESULT ezSparkLangModule::ezComponent(Sqrat::Table& module)
     .Bind(_SC("ComponentMode"), ComponentMode)
     .Bind(_SC("Message"), MessageClass)
     .Bind(_SC("EventMessage"), EventMessageClass)
-    .SquirrelFunc(_SC("IsValid"), ezspComponentIsValid, 1, _SC("."))
-    .SquirrelFunc(_SC("GetUniqueID"), ezspComponentGetUniqueID, 1, _SC("."))
-    .SquirrelFunc(_SC("GetOwner"), ezspComponentGetOwner, 1, _SC("."))
-    .SquirrelFunc(_SC("SetActiveFlag"), ezspComponentSetActiveFlag, 2, _SC(".b"))
-    .SquirrelFunc(_SC("GetActiveFlag"), ezspComponentGetActiveFlag<1>, 1, _SC("."))
-    .SquirrelFunc(_SC("IsActive"), ezspComponentGetActiveFlag<2>, 1, _SC("."))
-    .SquirrelFunc(_SC("IsActiveAndInitialized"), ezspComponentGetActiveFlag<3>, 1, _SC("."))
-    .SquirrelFunc(_SC("IsActiveAndSimulating"), ezspComponentGetActiveFlag<4>, 1, _SC("."))
-    .SquirrelFunc(_SC("SendMessage"), ezspComponentSendMessage<1>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("PostMessage"), ezspComponentSendMessage<2>, 3, _SC(".xf"))
-    .SquirrelFunc(_SC("BroadcastEvent"), ezspComponentBroadcastEvent, 2, _SC(".x"))
-    .SquirrelFunc(_SC("SetUpdateInterval"), ezspComponentSetUpdateInterval, 2, _SC(".f"));
+    .SquirrelFunc(_SC("IsValid"), ezspComponentIsValid, 2, _SC(".i"))
+    .SquirrelFunc(_SC("GetUniqueID"), ezspComponentGetUniqueID, 2, _SC(".i"))
+    .SquirrelFunc(_SC("GetOwner"), ezspComponentGetOwner, 2, _SC(".i"))
+    .SquirrelFunc(_SC("SetActiveFlag"), ezspComponentSetActiveFlag, 3, _SC(".ib"))
+    .SquirrelFunc(_SC("GetActiveFlag"), ezspComponentGetActiveFlag<1>, 2, _SC(".i"))
+    .SquirrelFunc(_SC("IsActive"), ezspComponentGetActiveFlag<2>, 2, _SC(".i"))
+    .SquirrelFunc(_SC("IsActiveAndInitialized"), ezspComponentGetActiveFlag<3>, 2, _SC(".i"))
+    .SquirrelFunc(_SC("IsActiveAndSimulating"), ezspComponentGetActiveFlag<4>, 2, _SC(".i"))
+    .SquirrelFunc(_SC("SendMessage"), ezspComponentSendMessage<1>, 3, _SC(".ix"))
+    .SquirrelFunc(_SC("PostMessage"), ezspComponentSendMessage<2>, 4, _SC(".ixf"))
+    .SquirrelFunc(_SC("BroadcastEvent"), ezspComponentBroadcastEvent, 3, _SC(".ix"))
+    .SquirrelFunc(_SC("SetUpdateInterval"), ezspComponentSetUpdateInterval, 3, _SC(".if"));
 
   module
     .Bind(_SC("Component"), Component);

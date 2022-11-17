@@ -2,49 +2,56 @@ let class ezComponent {
   constructor() {}
 
   function IsValid() {
-    return ez.Component.IsValid()
+    return ez.Component.IsValid(GetHandle())
   }
 
   function GetUniqueID() {
-    return ez.Component.GetUniqueID()
+    return ez.Component.GetUniqueID(GetHandle())
   }
 
   function GetOwner() {
-    return ez.Component.GetOwner()
+    return ez.Component.GetOwner(GetHandle())
   }
 
   function SetActiveFlag(active) {
-    ez.Component.SetActiveFlag(active)
+    ez.Component.SetActiveFlag(GetHandle(), active)
   }
 
   function GetActiveFlag() {
-    return ez.Component.GetActiveFlag()
+    return ez.Component.GetActiveFlag(GetHandle())
   }
 
   function IsActive() {
-    return ez.Component.IsActive()
+    return ez.Component.IsActive(GetHandle())
   }
 
   function IsActiveAndInitialized() {
-    return ez.Component.IsActiveAndInitialized()
+    return ez.Component.IsActiveAndInitialized(GetHandle())
   }
 
   function IsActiveAndSimulating() {
-    return ez.Component.IsActiveAndSimulating()
+    return ez.Component.IsActiveAndSimulating(GetHandle())
   }
 
   function SendMessage(message) {
-    ez.Component.SendMessage(message)
+    ez.Component.SendMessage(GetHandle(), message)
   }
 
-  function PostMessage(message) {
-    ez.Component.PostMessage(message)
+  function PostMessage(message, delay = 0) {
+    ez.Component.PostMessage(GetHandle(), message, delay.tofloat())
   }
 
   function BroadcastEvent(message) {
-    ez.Component.BroadcastEvent(message)
+    ez.Component.BroadcastEvent(GetHandle(), message)
+  }
+
+  function GetHandle() {
+    return componentId
   }
 }
+
+ezComponent.rawset("componentId", this._spark_script_componentId)
+ezComponent.rawset("gameObjectId", this._spark_script_gameObjectId)
 
 let ezMessage = ez.Component.Message
 
