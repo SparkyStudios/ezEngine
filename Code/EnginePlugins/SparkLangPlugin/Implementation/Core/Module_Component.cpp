@@ -102,37 +102,46 @@ SQInteger ezspComponentGetActiveFlag(HSQUIRRELVM vm)
 
 // ez.Component.SendMessage(integer, ezMessage): void
 // ez.Component.PostMessage(integer, ezMessage, integer): void
-template <int type>
+template <int overload>
 SQInteger ezspComponentSendMessage(HSQUIRRELVM vm)
 {
-  if (ezComponent* pComponent = GetComponentFromVM(vm, -type - 1); pComponent != nullptr)
+  if (ezComponent* pComponent = GetComponentFromVM(vm, -overload - 1); pComponent != nullptr)
   {
-    sq_typeof(vm, -type);
+    sq_typeof(vm, -overload);
 
     const SQChar* msgType;
-    sq_getstring(vm, -type, &msgType);
+    sq_getstring(vm, -1, &msgType);
     sq_poptop(vm);
 
-    auto const message = Sqrat::Var<ezMessage*>(vm, -type);
+    auto const message = Sqrat::Var<ezMessage*>(vm, -overload);
 
-    ezSparkLangScriptMessageProxy* pMsg = ezGetStaticRTTI<ezSparkLangScriptMessageProxy>()->GetAllocator()->Allocate<ezSparkLangScriptMessageProxy>();
-    pMsg->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
-    pMsg->m_pMessage = message.value;
+    ezMessage* pMsg = message.value;
 
-    switch (type)
+    if (message.value->GetDynamicRTTI()->GetTypeNameHash() != ezHashingUtils::StringHash(msgType))
+    {
+      pMsg = ezGetStaticRTTI<ezSparkLangScriptMessageProxy>()->GetAllocator()->Allocate<ezSparkLangScriptMessageProxy>();
+      static_cast<ezSparkLangScriptMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
+      static_cast<ezSparkLangScriptMessageProxy*>(pMsg)->m_pMessage = message.value;
+    }
+
+    switch (overload)
     {
       case 1:
       {
         pComponent->SendMessage(*pMsg);
         break;
       }
-
       case 2:
       {
         SQFloat fMilliseconds = 0;
         sq_getfloat(vm, -1, &fMilliseconds);
 
         pComponent->PostMessage(*pMsg, ezTime::Milliseconds(fMilliseconds));
+        break;
+      }
+      default:
+      {
+        EZ_ASSERT_NOT_IMPLEMENTED;
         break;
       }
     }
@@ -154,9 +163,14 @@ SQInteger ezspComponentBroadcastEvent(HSQUIRRELVM vm)
 
     auto const message = Sqrat::Var<ezEventMessage*>(vm, -1);
 
-    ezSparkLangScriptEventMessageProxy* pMsg = ezGetStaticRTTI<ezSparkLangScriptEventMessageProxy>()->GetAllocator()->Allocate<ezSparkLangScriptEventMessageProxy>();
-    pMsg->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
-    pMsg->m_pEventMessage = message.value;
+    ezEventMessage* pMsg = message.value;
+
+    if (message.value->GetDynamicRTTI()->GetTypeNameHash() != ezHashingUtils::StringHash(msgType))
+    {
+      pMsg = ezGetStaticRTTI<ezSparkLangScriptEventMessageProxy>()->GetAllocator()->Allocate<ezSparkLangScriptEventMessageProxy>();
+      static_cast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
+      static_cast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_pEventMessage = message.value;
+    }
 
     pComponent->BroadcastEventMessage(*pMsg);
   }
