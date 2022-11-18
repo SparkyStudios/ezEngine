@@ -602,10 +602,10 @@ SQInteger ezspGameObjectSendMessage(HSQUIRRELVM vm)
 
     ezMessage* pMsg = message.value;
 
-    if (message.value->GetDynamicRTTI()->GetTypeNameHash() != ezHashingUtils::StringHash(msgType))
+    if (const ezUInt64 uiHash = ezHashingUtils::StringHash(msgType); message.value->GetDynamicRTTI()->GetTypeNameHash() != uiHash)
     {
       pMsg = ezGetStaticRTTI<ezSparkLangScriptMessageProxy>()->GetAllocator()->Allocate<ezSparkLangScriptMessageProxy>();
-      ezDynamicCast<ezSparkLangScriptMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
+      ezDynamicCast<ezSparkLangScriptMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHashTo32(uiHash);
       ezDynamicCast<ezSparkLangScriptMessageProxy*>(pMsg)->m_pMessage = message.value;
     }
 
@@ -661,10 +661,10 @@ SQInteger ezspGameObjectSendEventMessage(HSQUIRRELVM vm)
 
     ezEventMessage* pMsg = message.value;
 
-    if (message.value->GetDynamicRTTI()->GetTypeNameHash() != ezHashingUtils::StringHash(msgType))
+    if (const ezUInt64 uiHash = ezHashingUtils::StringHash(msgType); message.value->GetDynamicRTTI()->GetTypeNameHash() != uiHash)
     {
       pMsg = ezGetStaticRTTI<ezSparkLangScriptEventMessageProxy>()->GetAllocator()->Allocate<ezSparkLangScriptEventMessageProxy>();
-      ezDynamicCast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
+      ezDynamicCast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHashTo32(uiHash);
       ezDynamicCast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_pEventMessage = message.value;
     }
 
