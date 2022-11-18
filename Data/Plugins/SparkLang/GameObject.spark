@@ -1,0 +1,11 @@
+let class ezGameObject {
+  gameObjectId
+
+  constructor(id = 0) {
+    gameObjectId = id
+  }
+
+  function GetHandle() {
+    return gameObjectId
+  }
+}

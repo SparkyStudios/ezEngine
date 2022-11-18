@@ -23,6 +23,9 @@ bool ezSparkLangModule::Register(SqModules& modules)
     if (SQ_FAILED(ezComponent(module)))
       return false;
 
+    if (SQ_FAILED(ezGameObject(module)))
+      return false;
+
     if (SQ_FAILED(ezLog(module)))
       return false;
 

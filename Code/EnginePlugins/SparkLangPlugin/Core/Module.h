@@ -17,5 +17,6 @@ public:
   SQRESULT ezLog(Sqrat::Table& module);
   SQRESULT ezClock(Sqrat::Table& module);
   SQRESULT ezComponent(Sqrat::Table& module);
+  SQRESULT ezGameObject(Sqrat::Table& module);
   SQRESULT ezMath(Sqrat::Table& module);
 };

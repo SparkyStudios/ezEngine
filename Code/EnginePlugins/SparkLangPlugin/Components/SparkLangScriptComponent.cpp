@@ -185,6 +185,16 @@ let class TestComponent extends ezComponent
   }
 }
 
+let r = ez.GameObject.GetChildren(this._spark_script_gameObjectId)
+
+foreach (h in r)
+{
+  if (h == null)
+    continue
+
+  ez.Log.Info($"{ez.GameObject.GetName(h)}")
+}
+
 this.Component <- TestComponent()
 )"""";
 

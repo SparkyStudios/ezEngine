@@ -48,6 +48,10 @@ let class ezComponent {
   function GetHandle() {
     return componentId
   }
+
+  function GetOwner() {
+    return ezGameObject(gameObjectId)
+  }
 }
 
 ezComponent.rawset("componentId", this._spark_script_componentId)

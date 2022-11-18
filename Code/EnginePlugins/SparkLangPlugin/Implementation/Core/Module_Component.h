@@ -168,3 +168,5 @@ namespace Sqrat
 } // namespace Sqrat
 
 ezComponent* GetComponentFromVM(HSQUIRRELVM vm, SQInteger index);
+
+ezGameObject* GetGameObjectFromVM(HSQUIRRELVM vm, SQInteger index);
