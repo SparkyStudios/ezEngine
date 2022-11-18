@@ -1,7 +1,5 @@
 #pragma once
 
-#include <SparkLangPlugin/Core/Module.h>
-
 #include <Core/World/Component.h>
 
 #include <sqrat.h>
@@ -152,4 +150,21 @@ namespace Sqrat
       return 1;
     }
   };
+
+  template <>
+  struct InstanceToString<ezQuat>
+  {
+    static SQInteger Format(HSQUIRRELVM vm)
+    {
+      const auto& vec3 = Var<ezQuat>(vm, 1);
+
+      ezStringBuilder sb;
+      sb.Format("{}", vec3.value);
+
+      sq_pushstring(vm, sb.GetData(), -1);
+      return 1;
+    }
+  };
 } // namespace Sqrat
+
+ezComponent* GetComponentFromVM(HSQUIRRELVM vm, SQInteger index);

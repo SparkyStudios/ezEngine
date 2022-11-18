@@ -41,7 +41,7 @@ namespace SparkOperator
 // ez.Math.Vec4 % ez.Math.Vec4
 // ez.Math.Vec4 <=> ez.Math.Vec4
 template <class Vec, SparkOperator::Enum op>
-SQInteger ezspMathVec3BinaryOperator(HSQUIRRELVM vm)
+SQInteger ezspMathVecBinaryOperator(HSQUIRRELVM vm)
 {
   const auto& self = Sqrat::Var<const Vec&>(vm, -2);
   const auto& other = Sqrat::Var<const Vec&>(vm, -1);
@@ -85,8 +85,9 @@ SQInteger ezspMathVec3BinaryOperator(HSQUIRRELVM vm)
 // -ez.Math.Vec2
 // -ez.Math.Vec3
 // -ez.Math.Vec4
+// -ez.Math.Quat
 template <class Vec, SparkOperator::Enum op>
-SQInteger ezspMathVec3UnaryOperator(HSQUIRRELVM vm)
+SQInteger ezspMathVecUnaryOperator(HSQUIRRELVM vm)
 {
   const auto& self = Sqrat::Var<const Vec&>(vm, -1);
 
@@ -109,6 +110,7 @@ SQRESULT ezSparkLangModule::ezMath(Sqrat::Table& module)
   Sqrat::Class<ezVec2> Vec2Class(module.GetVM(), _SC("ezVec2"));
   Sqrat::Class<ezVec3> Vec3Class(module.GetVM(), _SC("ezVec3"));
   Sqrat::Class<ezVec4> Vec4Class(module.GetVM(), _SC("ezVec4"));
+  Sqrat::Class<ezQuat> QuatClass(module.GetVM(), _SC("ezQuat"));
 
   Vec2Class
     .Ctor()
@@ -132,13 +134,13 @@ SQRESULT ezSparkLangModule::ezMath(Sqrat::Table& module)
     .Func(_SC("GetAsVec4"), &ezVec2::GetAsVec4)
     .Func(_SC("GetAsVec3"), &ezVec2::GetAsVec3)
     .Func(_SC("Dot"), &ezVec2::Dot)
-    .SquirrelFunc(_SC("_add"), ezspMathVec3BinaryOperator<ezVec2, SparkOperator::Add>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_sub"), ezspMathVec3BinaryOperator<ezVec2, SparkOperator::Sub>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_mul"), ezspMathVec3BinaryOperator<ezVec2, SparkOperator::Mul>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_div"), ezspMathVec3BinaryOperator<ezVec2, SparkOperator::Div>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_cmp"), ezspMathVec3BinaryOperator<ezVec2, SparkOperator::Cmp>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_mod"), ezspMathVec3BinaryOperator<ezVec2, SparkOperator::Mod>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_unm"), ezspMathVec3UnaryOperator<ezVec2, SparkOperator::Unm>, 1, _SC("."));
+    .SquirrelFunc(_SC("_add"), ezspMathVecBinaryOperator<ezVec2, SparkOperator::Add>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_sub"), ezspMathVecBinaryOperator<ezVec2, SparkOperator::Sub>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_mul"), ezspMathVecBinaryOperator<ezVec2, SparkOperator::Mul>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_div"), ezspMathVecBinaryOperator<ezVec2, SparkOperator::Div>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_cmp"), ezspMathVecBinaryOperator<ezVec2, SparkOperator::Cmp>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_mod"), ezspMathVecBinaryOperator<ezVec2, SparkOperator::Mod>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_unm"), ezspMathVecUnaryOperator<ezVec2, SparkOperator::Unm>, 1, _SC("."));
 
   Vec3Class
     .Ctor()
@@ -167,13 +169,13 @@ SQRESULT ezSparkLangModule::ezMath(Sqrat::Table& module)
     .Func(_SC("GetAsVec3"), &ezVec3::GetAsVec4)
     .Func(_SC("Dot"), &ezVec3::Dot)
     .Func(_SC("CrossRH"), &ezVec3::CrossRH)
-    .SquirrelFunc(_SC("_add"), ezspMathVec3BinaryOperator<ezVec3, SparkOperator::Add>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_sub"), ezspMathVec3BinaryOperator<ezVec3, SparkOperator::Sub>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_mul"), ezspMathVec3BinaryOperator<ezVec3, SparkOperator::Mul>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_div"), ezspMathVec3BinaryOperator<ezVec3, SparkOperator::Div>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_cmp"), ezspMathVec3BinaryOperator<ezVec3, SparkOperator::Cmp>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_mod"), ezspMathVec3BinaryOperator<ezVec3, SparkOperator::Mod>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_unm"), ezspMathVec3UnaryOperator<ezVec3, SparkOperator::Unm>, 1, _SC("."));
+    .SquirrelFunc(_SC("_add"), ezspMathVecBinaryOperator<ezVec3, SparkOperator::Add>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_sub"), ezspMathVecBinaryOperator<ezVec3, SparkOperator::Sub>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_mul"), ezspMathVecBinaryOperator<ezVec3, SparkOperator::Mul>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_div"), ezspMathVecBinaryOperator<ezVec3, SparkOperator::Div>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_cmp"), ezspMathVecBinaryOperator<ezVec3, SparkOperator::Cmp>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_mod"), ezspMathVecBinaryOperator<ezVec3, SparkOperator::Mod>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_unm"), ezspMathVecUnaryOperator<ezVec3, SparkOperator::Unm>, 1, _SC("."));
 
   Vec4Class
     .Ctor()
@@ -201,17 +203,34 @@ SQRESULT ezSparkLangModule::ezMath(Sqrat::Table& module)
     .Func(_SC("GetAsVec2"), &ezVec4::GetAsVec2)
     .Func(_SC("GetAsVec3"), &ezVec4::GetAsVec3)
     .Func(_SC("Dot"), &ezVec4::Dot)
-    .SquirrelFunc(_SC("_add"), ezspMathVec3BinaryOperator<ezVec4, SparkOperator::Add>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_sub"), ezspMathVec3BinaryOperator<ezVec4, SparkOperator::Sub>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_mul"), ezspMathVec3BinaryOperator<ezVec4, SparkOperator::Mul>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_div"), ezspMathVec3BinaryOperator<ezVec4, SparkOperator::Div>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_cmp"), ezspMathVec3BinaryOperator<ezVec4, SparkOperator::Cmp>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_mod"), ezspMathVec3BinaryOperator<ezVec4, SparkOperator::Mod>, 2, _SC(".x"))
-    .SquirrelFunc(_SC("_unm"), ezspMathVec3UnaryOperator<ezVec3, SparkOperator::Unm>, 1, _SC("."));
+    .SquirrelFunc(_SC("_add"), ezspMathVecBinaryOperator<ezVec4, SparkOperator::Add>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_sub"), ezspMathVecBinaryOperator<ezVec4, SparkOperator::Sub>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_mul"), ezspMathVecBinaryOperator<ezVec4, SparkOperator::Mul>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_div"), ezspMathVecBinaryOperator<ezVec4, SparkOperator::Div>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_cmp"), ezspMathVecBinaryOperator<ezVec4, SparkOperator::Cmp>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_mod"), ezspMathVecBinaryOperator<ezVec4, SparkOperator::Mod>, 2, _SC(".x"))
+    .SquirrelFunc(_SC("_unm"), ezspMathVecUnaryOperator<ezVec3, SparkOperator::Unm>, 1, _SC("."));
+
+  QuatClass
+    .Ctor()
+    .Ctor<float, float, float, float>()
+    .StaticFunc(_SC("IdentityQuaternion"), &ezQuat::IdentityQuaternion)
+    .Func(_SC("SetIdentity"), &ezQuat::SetIdentity)
+    .Func(_SC("SetElements"), &ezQuat::SetElements)
+    .Func(_SC("SetShortestRotation"), &ezQuat::SetShortestRotation)
+    .Func(_SC("SetSlerp"), &ezQuat::SetSlerp)
+    .Func(_SC("Normalize"), &ezQuat::Normalize)
+    .Prop(_SC("IsNaN"), &ezQuat::IsNaN)
+    .Prop(_SC("IsValid"), &ezQuat::IsValid)
+    .Func(_SC("IsEqualRotation"), &ezQuat::IsEqualRotation)
+    .Func(_SC("Dot"), &ezQuat::Dot)
+    .SquirrelFunc(_SC("_unm"), ezspMathVecUnaryOperator<ezQuat, SparkOperator::Unm>, 1, _SC("."));
 
   Math
     .Bind(_SC("Vec2"), Vec2Class)
-    .Bind(_SC("Vec3"), Vec3Class);
+    .Bind(_SC("Vec3"), Vec3Class)
+    .Bind(_SC("Vec4"), Vec4Class)
+    .Bind(_SC("Quat"), QuatClass);
 
   module.Bind(_SC("Math"), Math);
 

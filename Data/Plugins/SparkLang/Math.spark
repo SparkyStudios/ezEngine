@@ -1,0 +1,4 @@
+let ezVec2 = ez.Math.Vec2
+let ezVec3 = ez.Math.Vec3
+let ezVec4 = ez.Math.Vec4
+let ezQuat = ez.Math.Quat
