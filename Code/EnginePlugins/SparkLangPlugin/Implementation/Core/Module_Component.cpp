@@ -41,16 +41,17 @@ SQInteger ezspComponentGetUniqueID(HSQUIRRELVM vm)
     return 1;
   }
 
-  sq_pushinteger(vm, 0);
+  sq_pushnull(vm);
   return 1;
 }
 
-// ez.Component.GetOwner(integer): userpointer
+// ez.Component.GetOwner(integer): integer
 SQInteger ezspComponentGetOwner(HSQUIRRELVM vm)
 {
   if (ezComponent* pComponent = GetComponentFromVM(vm, -1); pComponent != nullptr)
   {
-    sq_pushuserpointer(vm, pComponent->GetOwner());
+    const ezGameObject* pGameObject = pComponent->GetOwner();
+    Sqrat::PushVar(vm, pGameObject->GetHandle());
     return 1;
   }
 
@@ -75,25 +76,39 @@ SQInteger ezspComponentSetActiveFlag(HSQUIRRELVM vm)
 // ez.Component.IsActive(integer): bool
 // ez.Component.IsActiveAndInitialized(integer): bool
 // ez.Component.IsActiveAndSimulating(integer): bool
-template <int type>
+template <int overload>
 SQInteger ezspComponentGetActiveFlag(HSQUIRRELVM vm)
 {
   if (const ezComponent* pComponent = GetComponentFromVM(vm, -1); pComponent != nullptr)
   {
-    switch (type)
+    switch (overload)
     {
       case 1:
+      {
         sq_pushbool(vm, pComponent->GetActiveFlag());
         break;
+      }
       case 2:
+      {
         sq_pushbool(vm, pComponent->IsActive());
         break;
+      }
       case 3:
+      {
         sq_pushbool(vm, pComponent->IsActiveAndInitialized());
         break;
+      }
       case 4:
+      {
         sq_pushbool(vm, pComponent->IsActiveAndSimulating());
         break;
+      }
+      default:
+      {
+        EZ_ASSERT_NOT_IMPLEMENTED;
+        sq_pushnull(vm);
+        break;
+      }
     }
   }
 
@@ -120,8 +135,8 @@ SQInteger ezspComponentSendMessage(HSQUIRRELVM vm)
     if (message.value->GetDynamicRTTI()->GetTypeNameHash() != ezHashingUtils::StringHash(msgType))
     {
       pMsg = ezGetStaticRTTI<ezSparkLangScriptMessageProxy>()->GetAllocator()->Allocate<ezSparkLangScriptMessageProxy>();
-      static_cast<ezSparkLangScriptMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
-      static_cast<ezSparkLangScriptMessageProxy*>(pMsg)->m_pMessage = message.value;
+      ezDynamicCast<ezSparkLangScriptMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
+      ezDynamicCast<ezSparkLangScriptMessageProxy*>(pMsg)->m_pMessage = message.value;
     }
 
     switch (overload)
@@ -168,8 +183,8 @@ SQInteger ezspComponentBroadcastEvent(HSQUIRRELVM vm)
     if (message.value->GetDynamicRTTI()->GetTypeNameHash() != ezHashingUtils::StringHash(msgType))
     {
       pMsg = ezGetStaticRTTI<ezSparkLangScriptEventMessageProxy>()->GetAllocator()->Allocate<ezSparkLangScriptEventMessageProxy>();
-      static_cast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
-      static_cast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_pEventMessage = message.value;
+      ezDynamicCast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
+      ezDynamicCast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_pEventMessage = message.value;
     }
 
     pComponent->BroadcastEventMessage(*pMsg);

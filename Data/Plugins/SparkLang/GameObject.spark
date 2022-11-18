@@ -1,8 +1,278 @@
-let class ezGameObject {
-  gameObjectId
+::ezGameObject <- class {
+  gameObjectId = null
 
-  constructor(id = 0) {
+  constructor(id) {
     gameObjectId = id
+  }
+
+  function IsValid() {
+    return ez.GameObject.IsValid(GetHandle())
+  }
+
+  function SetLocalPosition(position) {
+    ez.GameObject.SetLocalPosition(GetHandle(), position)
+  }
+
+  function SetGlobalPosition(position) {
+    ez.GameObject.SetGlobalPosition(GetHandle(), position)
+  }
+
+  function SetLocalScaling(scaling) {
+    ez.GameObject.SetLocalScaling(GetHandle(), scaling)
+  }
+
+  function SetGlobalScaling(scaling) {
+    ez.GameObject.SetGlobalScaling(GetHandle(), scaling)
+  }
+
+  function SetVelocity(velocity) {
+    ez.GameObject.SetVelocity(GetHandle(), velocity)
+  }
+
+  function GetLocalPosition() {
+    return ez.GameObject.GetLocalPosition(GetHandle())
+  }
+
+  function GetGlobalPosition() {
+    return ez.GameObject.GetGlobalPosition(GetHandle())
+  }
+
+  function GetLocalScaling() {
+    return ez.GameObject.GetLocalScaling(GetHandle())
+  }
+
+  function GetGlobalScaling() {
+    return ez.GameObject.GetGlobalScaling(GetHandle())
+  }
+
+  function GetVelocity() {
+    return ez.GameObject.GetVelocity(GetHandle())
+  }
+
+  function GetGlobalDirUp() {
+    return ez.GameObject.GetGlobalDirUp(GetHandle())
+  }
+
+  function GetGlobalDirRight() {
+    return ez.GameObject.GetGlobalDirRight(GetHandle())
+  }
+
+  function GetGlobalDirForwards() {
+    return ez.GameObject.GetGlobalDirForwards(GetHandle())
+  }
+
+  function SetLocalUniformScaling(scaling) {
+    ez.GameObject.SetLocalUniformScaling(GetHandle(), scaling)
+  }
+
+  function GetLocalUniformScaling() {
+    return ez.GameObject.GetLocalUniformScaling(GetHandle())
+  }
+
+  function GetChildCount() {
+    return ez.GameObject.GetChildCount(GetHandle())
+  }
+
+  function SetLocalRotation(rotation) {
+    ez.GameObject.SetLocalRotation(GetHandle(), rotation)
+  }
+
+  function SetGlobalRotation(rotation) {
+    ez.GameObject.SetGlobalRotation(GetHandle(), rotation)
+  }
+
+  function GetLocalRotation() {
+    return ez.GameObject.GetLocalRotation(GetHandle())
+  }
+
+  function GetGlobalRotation() {
+    return ez.GameObject.GetGlobalRotation(GetHandle())
+  }
+
+  function SetActiveFlag(active) {
+    ez.GameObject.SetActiveFlag(GetHandle(), active)
+  }
+
+  function GetActiveFlag() {
+    return ez.GameObject.GetActiveFlag(GetHandle())
+  }
+
+  function IsActive() {
+    return ez.GameObject.IsActive(GetHandle())
+  }
+
+  function IsDynamic() {
+    return ez.GameObject.IsDynamic(GetHandle())
+  }
+
+  function IsStatic() {
+    return ez.GameObject.IsStatic(GetHandle())
+  }
+
+  function FindChildByName(name, recursive) {
+    let child = ez.GameObject.FindChildByName(GetHandle(), name, recursive)
+    if (!child)
+      return null
+
+    return ezGameObject(child)
+  }
+
+  function FindChildByPath(name) {
+    let child = ez.GameObject.FindChildByPath(GetHandle(), name)
+    if (!child)
+      return null
+
+    return ezGameObject(child)
+  }
+
+  function TryGetComponentOfBaseType(name) {
+    let handle = ez.GameObject.TryGetComponentOfBaseType(GetHandle(), name)
+    if (!handle)
+      return null
+
+    return ezComponent(handle)
+  }
+
+  function TryGetComponentsOfBaseType(name) {
+    let handles = ez.GameObject.TryGetComponentsOfBaseType(GetHandle(), name)
+
+    local components = []
+    foreach(handle in handles)
+      components.append(ezComponent(handle))
+
+    return components
+  }
+
+  function SearchForChildByNameSequence(searchPath, expectedComponentTypeName = null) {
+    let handle = ez.GameObject.SearchForChildByNameSequence(GetHandle(), searchPath, expectedComponentTypeName);
+
+    if (!handle)
+      return null
+
+    return ezGameObject(handle)
+  }
+
+  function SearchForChildrenByNameSequence(searchPath, expectedComponentTypeName = null) {
+    let handles = ez.GameObject.SearchForChildrenByNameSequence(GetHandle(), searchPath, expectedComponentTypeName)
+
+    local children = []
+    foreach(handle in handles)
+      children.append(ezGameObject(handle))
+
+    return children
+  }
+
+  function SendMessage(message, recursive = false) {
+    ez.GameObject.SendMessage(GetHandle(), message, recursive)
+  }
+
+  function PostMessage(message, recursive = false, delay = 0) {
+    ez.GameObject.PostMessage(GetHandle(), message, recursive, delay.tofloat())
+  }
+
+  function SetName(name) {
+    ez.GameObject.SetName(GetHandle(), name)
+  }
+
+  function SetGlobalKey(name) {
+    ez.GameObject.SetGlobalKey(GetHandle(), name)
+  }
+
+  function GetName() {
+    return ez.GameObject.GetName(GetHandle())
+  }
+
+  function GetGlobalKey() {
+    return ez.GameObject.GetGlobalKey(GetHandle())
+  }
+
+  function SetTeamID(teamId) {
+    return ez.GameObject.SetTeamID(GetHandle(), teamId)
+  }
+
+  function GetTeamID() {
+    ez.GameObject.GetTeamID(GetHandle())
+  }
+
+  function SetTags(...) {
+    let args = [ez.GameObject]
+
+    foreach(i, tag in vargv)
+      if (typeof tag == "string")
+        args.append(tag)
+
+    ez.GameObject.SetTags.acall(args)
+  }
+
+  function AddTags(...) {
+    let args = [ez.GameObject]
+
+    foreach(i, tag in vargv)
+      if (typeof tag == "string")
+        args.append(tag)
+
+    ez.GameObject.AddTags.acall(args)
+  }
+
+  function RemoveTags(...) {
+    let args = [ez.GameObject]
+
+    foreach(i, tag in vargv)
+      if (typeof tag == "string")
+        args.append(tag)
+
+    ez.GameObject.RemoveTags.acall(args)
+  }
+
+  function HasAnyTags(...) {
+    let args = [ez.GameObject]
+
+    foreach(i, tag in vargv)
+      if (typeof tag == "string")
+        args.append(tag)
+
+    return ez.GameObject.HasAnyTags.acall(args)
+  }
+
+  function HasAllTags(...) {
+    let args = [ez.GameObject]
+
+    foreach(i, tag in vargv)
+      if (typeof tag == "string")
+        args.append(tag)
+
+    return ez.GameObject.HasAllTags.acall(args)
+  }
+
+  function GetParent() {
+    let parent = ez.GameObject.GetParent(GetHandle())
+
+    if (!parent)
+      return null
+
+    return ezGameObject(parent)
+  }
+
+  function SetParent(gameObject, preserveTransform = true) {
+    return ez.GameObject.SetParent(gameObject, preserveTransform)
+  }
+
+  function AddChild(gameObject, preserveTransform = true) {
+    return ez.GameObject.AddChild(gameObject, preserveTransform)
+  }
+
+  function DetachChild(gameObject, preserveTransform = true) {
+    return ez.GameObject.DetachChild(gameObject, preserveTransform)
+  }
+
+  function GetChildren() {
+    let handles = ez.GameObject.GetChildren(GetHandle())
+
+    let children = []
+    foreach (handle in handles)
+      children.append(ezGameObject(handle))
+
+    return children
   }
 
   function GetHandle() {

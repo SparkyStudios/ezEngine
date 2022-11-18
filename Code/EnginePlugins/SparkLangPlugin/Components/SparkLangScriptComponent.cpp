@@ -82,6 +82,7 @@ EZ_END_COMPONENT_TYPE;
 // clang-format on
 
 static constexpr char Test[] = R""""(
+import "SparkLang/GameObject.spark"
 import "SparkLang/Component.spark"
 
 let class TestMessage extends ezMessage {

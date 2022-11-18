@@ -1,5 +1,9 @@
-let class ezComponent {
-  constructor() {}
+::ezComponent <- class {
+  componentId = null
+
+  constructor(id) {
+    componentId = id
+  }
 
   function IsValid() {
     return ez.Component.IsValid(GetHandle())
@@ -10,7 +14,11 @@ let class ezComponent {
   }
 
   function GetOwner() {
-    return ez.Component.GetOwner(GetHandle())
+    let owner = ez.Component.GetOwner(GetHandle())
+    if (!owner)
+      return null
+
+    return ezGameObject(owner)
   }
 
   function SetActiveFlag(active) {
@@ -48,14 +56,7 @@ let class ezComponent {
   function GetHandle() {
     return componentId
   }
-
-  function GetOwner() {
-    return ezGameObject(gameObjectId)
-  }
 }
-
-ezComponent.rawset("componentId", this._spark_script_componentId)
-ezComponent.rawset("gameObjectId", this._spark_script_gameObjectId)
 
 let ezMessage = ez.Component.Message
 

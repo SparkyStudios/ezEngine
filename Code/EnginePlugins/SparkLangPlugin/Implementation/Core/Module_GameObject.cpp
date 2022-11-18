@@ -531,7 +531,7 @@ SQInteger ezspGameObjectSearchForChildByNameSequence(HSQUIRRELVM vm)
   sq_getstring(vm, -2, &szSearchPath);
 
   const SQChar* szComponentType;
-  SQInteger iSize;
+  SQInteger iSize = 0;
   sq_getstringandsize(vm, -1, &szComponentType, &iSize);
 
   const ezRTTI* pRtti = nullptr;
@@ -566,7 +566,7 @@ SQInteger ezspGameObjectSearchForChildrenByNameSequence(HSQUIRRELVM vm)
   sq_getstring(vm, -2, &szSearchPath);
 
   const SQChar* szComponentType;
-  SQInteger iSize;
+  SQInteger iSize = 0;
   sq_getstringandsize(vm, -1, &szComponentType, &iSize);
 
   const ezRTTI* pRtti = nullptr;
@@ -605,8 +605,8 @@ SQInteger ezspGameObjectSendMessage(HSQUIRRELVM vm)
     if (message.value->GetDynamicRTTI()->GetTypeNameHash() != ezHashingUtils::StringHash(msgType))
     {
       pMsg = ezGetStaticRTTI<ezSparkLangScriptMessageProxy>()->GetAllocator()->Allocate<ezSparkLangScriptMessageProxy>();
-      static_cast<ezSparkLangScriptMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
-      static_cast<ezSparkLangScriptMessageProxy*>(pMsg)->m_pMessage = message.value;
+      ezDynamicCast<ezSparkLangScriptMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
+      ezDynamicCast<ezSparkLangScriptMessageProxy*>(pMsg)->m_pMessage = message.value;
     }
 
     SQBool bRecursive;
@@ -664,8 +664,8 @@ SQInteger ezspGameObjectSendEventMessage(HSQUIRRELVM vm)
     if (message.value->GetDynamicRTTI()->GetTypeNameHash() != ezHashingUtils::StringHash(msgType))
     {
       pMsg = ezGetStaticRTTI<ezSparkLangScriptEventMessageProxy>()->GetAllocator()->Allocate<ezSparkLangScriptEventMessageProxy>();
-      static_cast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
-      static_cast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_pEventMessage = message.value;
+      ezDynamicCast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_sMessageTypeNameHash = ezHashingUtils::StringHash(msgType);
+      ezDynamicCast<ezSparkLangScriptEventMessageProxy*>(pMsg)->m_pEventMessage = message.value;
     }
 
     const ezComponent* pComponent;
@@ -825,6 +825,11 @@ SQInteger ezspGameObjectChangeTags(HSQUIRRELVM vm)
         case 3:
         {
           pGameObject->RemoveTag(ezTagRegistry::GetGlobalRegistry().RegisterTag(szParam));
+          break;
+        }
+        default:
+        {
+          EZ_ASSERT_NOT_IMPLEMENTED;
           break;
         }
       }
@@ -1008,9 +1013,9 @@ SQRESULT ezSparkLangModule::ezGameObject(Sqrat::Table& module)
     .SquirrelFunc(_SC("SetActiveFlag"), ezspGameObjectSetBoolProp<GameObjectProp::ActiveFlag>, 3, _SC(".ib"))
 
     .SquirrelFunc(_SC("GetActiveFlag"), ezspGameObjectGetBoolProp<GameObjectProp::ActiveFlag>, 2, _SC(".i"))
-    .SquirrelFunc(_SC("IsActive"), ezspGameObjectGetQuatProp<GameObjectProp::Active>, 2, _SC(".i"))
-    .SquirrelFunc(_SC("IsDynamic"), ezspGameObjectGetQuatProp<GameObjectProp::Dynamic>, 2, _SC(".i"))
-    .SquirrelFunc(_SC("IsStatic"), ezspGameObjectGetQuatProp<GameObjectProp::Static>, 2, _SC(".i"))
+    .SquirrelFunc(_SC("IsActive"), ezspGameObjectGetBoolProp<GameObjectProp::Active>, 2, _SC(".i"))
+    .SquirrelFunc(_SC("IsDynamic"), ezspGameObjectGetBoolProp<GameObjectProp::Dynamic>, 2, _SC(".i"))
+    .SquirrelFunc(_SC("IsStatic"), ezspGameObjectGetBoolProp<GameObjectProp::Static>, 2, _SC(".i"))
 
     .SquirrelFunc(_SC("FindChildByName"), ezspGameObjectFindChildByName, 4, _SC(".isb"))
     .SquirrelFunc(_SC("FindChildByPath"), ezspGameObjectFindChildByPath, 3, _SC(".is"))
@@ -1018,8 +1023,8 @@ SQRESULT ezSparkLangModule::ezGameObject(Sqrat::Table& module)
     .SquirrelFunc(_SC("TryGetComponentOfBaseType"), ezspGameObjectTryGetComponentOfBaseType, 3, _SC(".is"))
     .SquirrelFunc(_SC("TryGetComponentsOfBaseType"), ezspGameObjectTryGetComponentsOfBaseType, 3, _SC(".is"))
 
-    .SquirrelFunc(_SC("SearchForChildByNameSequence"), ezspGameObjectSearchForChildByNameSequence, 4, _SC(".iss"))
-    .SquirrelFunc(_SC("SearchForChildrenByNameSequence"), ezspGameObjectSearchForChildrenByNameSequence, 4, _SC(".iss"))
+    .SquirrelFunc(_SC("SearchForChildByNameSequence"), ezspGameObjectSearchForChildByNameSequence, 4, _SC(".iss|n"))
+    .SquirrelFunc(_SC("SearchForChildrenByNameSequence"), ezspGameObjectSearchForChildrenByNameSequence, 4, _SC(".iss|n"))
 
     .SquirrelFunc(_SC("SendMessage"), ezspGameObjectSendMessage<1>, 4, _SC(".ixb"))
     .SquirrelFunc(_SC("PostMessage"), ezspGameObjectSendMessage<2>, 5, _SC(".ixbf"))
