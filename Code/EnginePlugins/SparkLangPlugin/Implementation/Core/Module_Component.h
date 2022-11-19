@@ -107,6 +107,21 @@ namespace Sqrat
   };
 
   template <>
+  struct InstanceToString<ezTime>
+  {
+    static SQInteger Format(HSQUIRRELVM vm)
+    {
+      const auto& vec3 = Var<ezTime>(vm, 1);
+
+      ezStringBuilder sb;
+      sb.Format("{}", vec3.value);
+
+      sq_pushstring(vm, sb.GetData(), -1);
+      return 1;
+    }
+  };
+
+  template <>
   struct InstanceToString<ezVec2>
   {
     static SQInteger Format(HSQUIRRELVM vm)
