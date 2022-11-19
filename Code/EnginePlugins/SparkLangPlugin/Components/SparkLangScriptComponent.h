@@ -112,6 +112,7 @@ private:
   Sqrat::Function m_OnDeactivatedFunc;
   Sqrat::Function m_OnSimulationStarted;
   Sqrat::Function m_UpdateFunc;
+  Sqrat::Function m_HandlesEventMessage;
 
   ezHashTable<ezUInt32, Sqrat::Function> m_MessageHandlers;
 

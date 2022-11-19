@@ -165,6 +165,51 @@ SQInteger ezspComponentSendMessage(HSQUIRRELVM vm)
   return 0;
 }
 
+// ez.Component.SetDebugOutput(integer, bool): void
+// ez.Component.SetGlobalEventHandlerMode(integer, bool): void
+// ez.Component.SetPassThroughUnhandledEvents(integer, bool): void
+template <int overload>
+SQInteger ezspComponentSetEventMessageHandlerComponentProp(HSQUIRRELVM vm)
+{
+  if (auto* pComponent = ezDynamicCast<ezEventMessageHandlerComponent*>(GetComponentFromVM(vm, -2)); pComponent != nullptr)
+  {
+    const Sqrat::Var<bool> var(vm, -1);
+
+    if constexpr (overload == 1)
+      pComponent->SetDebugOutput(var.value);
+    else if constexpr (overload == 2)
+      pComponent->SetGlobalEventHandlerMode(var.value);
+    else
+      pComponent->SetPassThroughUnhandledEvents(var.value);
+  }
+
+  return 0;
+}
+
+// ez.Component.GetDebugOutput(integer): bool
+// ez.Component.GetGlobalEventHandlerMode(integer): bool
+// ez.Component.GetPassThroughUnhandledEvents(integer): bool
+template <int overload>
+SQInteger ezspComponentGetEventMessageHandlerComponentProp(HSQUIRRELVM vm)
+{
+  const auto* pComponent = ezDynamicCast<ezEventMessageHandlerComponent*>(GetComponentFromVM(vm, -1));
+
+  if (pComponent == nullptr)
+  {
+    sq_pushnull(vm);
+    return 1;
+  }
+
+  if constexpr (overload == 1)
+    Sqrat::PushVar(vm, pComponent->GetDebugOutput());
+  else if constexpr (overload == 2)
+    Sqrat::PushVar(vm, pComponent->GetGlobalEventHandlerMode());
+  else
+    Sqrat::PushVar(vm, pComponent->GetPassThroughUnhandledEvents());
+
+  return 1;
+}
+
 // ez.Component.BroadcastEvent(integer, ezEventMessage): void
 SQInteger ezspComponentBroadcastEvent(HSQUIRRELVM vm)
 {
@@ -243,6 +288,12 @@ SQRESULT ezSparkLangModule::ezComponent(Sqrat::Table& module)
     .SquirrelFunc(_SC("IsActiveAndSimulating"), ezspComponentGetActiveFlag<4>, 2, _SC(".i"))
     .SquirrelFunc(_SC("SendMessage"), ezspComponentSendMessage<1>, 3, _SC(".ix"))
     .SquirrelFunc(_SC("PostMessage"), ezspComponentSendMessage<2>, 4, _SC(".ixf"))
+    .SquirrelFunc(_SC("SetDebugOutput"), ezspComponentSetEventMessageHandlerComponentProp<1>, 3, _SC(".ib"))
+    .SquirrelFunc(_SC("SetGlobalEventHandlerMode"), ezspComponentSetEventMessageHandlerComponentProp<2>, 3, _SC(".ib"))
+    .SquirrelFunc(_SC("SetPassThroughUnhandledEvents"), ezspComponentSetEventMessageHandlerComponentProp<3>, 3, _SC(".ib"))
+    .SquirrelFunc(_SC("GetDebugOutput"), ezspComponentGetEventMessageHandlerComponentProp<1>, 2, _SC(".i"))
+    .SquirrelFunc(_SC("GetGlobalEventHandlerMode"), ezspComponentGetEventMessageHandlerComponentProp<2>, 2, _SC(".i"))
+    .SquirrelFunc(_SC("GetPassThroughUnhandledEvents"), ezspComponentGetEventMessageHandlerComponentProp<3>, 2, _SC(".i"))
     .SquirrelFunc(_SC("BroadcastEvent"), ezspComponentBroadcastEvent, 3, _SC(".ix"))
     .SquirrelFunc(_SC("SetUpdateInterval"), ezspComponentSetUpdateInterval, 3, _SC(".if"));
 

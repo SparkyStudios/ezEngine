@@ -324,6 +324,7 @@ void ezSparkLangScriptComponent::Initialize()
   m_OnDeactivatedFunc = m_ComponentInstance.GetFunction(_SC("OnDeactivated"));
   m_OnSimulationStarted = m_ComponentInstance.GetFunction(_SC("OnSimulationStarted"));
   m_UpdateFunc = m_ComponentInstance.GetFunction(_SC("Update"));
+  m_HandlesEventMessage = m_ComponentInstance.GetFunction(_SC("HandlesEventMessage"));
 
   sq_pushobject(m_ComponentScope.GetVM(), m_ComponentInstance.GetObject());
   sq_getclass(m_ComponentScope.GetVM(), -1);
@@ -341,9 +342,7 @@ void ezSparkLangScriptComponent::Initialize()
           Sqrat::Object::iterator attIt;
           while (attributes.Next(attIt))
           {
-            ezString sAttName = attIt.getName();
-
-            if (sAttName.Compare("UpdateInterval"_ezsv) == 0)
+            if (ezStringUtils::Compare(attIt.getName(), "UpdateInterval") == 0)
             {
               const HSQOBJECT& attValue = attIt.getValue();
 
@@ -370,12 +369,10 @@ void ezSparkLangScriptComponent::Initialize()
             Sqrat::Object::iterator attIt;
             while (attributes.Next(attIt))
             {
-              ezString sAttName = attIt.getName();
-
               // Methods
               if (sq_isfunction(it.getValue()) || sq_isclosure(it.getValue()) || sq_isnativeclosure(it.getValue()))
               {
-                if (sAttName.Compare("MessageHandler"_ezsv) == 0)
+                if (ezStringUtils::Compare(attIt.getName(), "MessageHandler") == 0)
                 {
                   const HSQOBJECT& attValue = attIt.getValue();
 
@@ -383,7 +380,7 @@ void ezSparkLangScriptComponent::Initialize()
                   {
                     const SQChar* szTypeName = sq_objtostring(&attValue);
                     m_MessageHandlers.Insert(
-                      ezHashingUtils::StringHash(szTypeName),
+                      ezHashingUtils::StringHashTo32(ezHashingUtils::StringHash(szTypeName)),
                       m_ComponentInstance.GetFunction(it.getName()));
                   }
                 }
@@ -391,7 +388,7 @@ void ezSparkLangScriptComponent::Initialize()
               // Properties
               else
               {
-                if (sAttName.Compare("Expose"_ezsv) == 0)
+                if (ezStringUtils::Compare(attIt.getName(), "Expose") == 0)
                 {
                   // Expose property
                 }
@@ -527,7 +524,15 @@ bool ezSparkLangScriptComponent::HandlesEventMessage(const ezEventMessage& msg) 
 
   // Native events
   if (const auto* pRtti = msg.GetDynamicRTTI())
-    return m_MessageHandlers.Contains(pRtti->GetTypeNameHash());
+    return m_MessageHandlers.Contains(ezHashingUtils::StringHashTo32(pRtti->GetTypeNameHash()));
+
+  // Custom checker
+  if (!m_HandlesEventMessage.IsNull())
+  {
+    bool value = false;
+    m_HandlesEventMessage.Evaluate(msg, value);
+    return value;
+  }
 
   return false;
 }
@@ -565,8 +570,9 @@ bool ezSparkLangScriptComponent::HandleUnhandledMessage(ezMessage& msg, bool bWa
   }
 
   // Native messages/events
-  if (const auto* pRtti = msg.GetDynamicRTTI(); m_MessageHandlers.Contains(pRtti->GetTypeNameHash()))
-    return m_MessageHandlers[pRtti->GetTypeNameHash()].Execute(msg);
+  const auto* pRtti = msg.GetDynamicRTTI();
+  if (const ezUInt32 uiHash = ezHashingUtils::StringHashTo32(pRtti->GetTypeNameHash()); m_MessageHandlers.Contains(uiHash))
+    return m_MessageHandlers[uiHash].Execute(msg);
 
   return false;
 }

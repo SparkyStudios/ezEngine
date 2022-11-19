@@ -58,6 +58,36 @@
   }
 }
 
+::ezEventMessageHandlerComponent <- class extends ezComponent {
+  function SetDebugOutput(debugOutput) {
+    ez.Component.SetDebugOutput(GetHandle(), debugOutput)
+  }
+
+  function GetDebugOutput() {
+    return ez.Component.GetDebugOutput(GetHandle())
+  }
+
+  function SetGlobalEventHandlerMode(enable) {
+    ez.Component.SetGlobalEventHandlerMode(GetHandle(), enable)
+  }
+
+  function GetGlobalEventHandlerMode() {
+    return ez.Component.GetGlobalEventHandlerMode(GetHandle())
+  }
+
+  function SetPassThroughUnhandledEvents(enable) {
+    ez.Component.SetPassThroughUnhandledEvents(GetHandle(), enable)
+  }
+
+  function GetPassThroughUnhandledEvents() {
+    return ez.Component.GetPassThroughUnhandledEvents(GetHandle())
+  }
+
+  function HandlesEventMessage(msg) {
+    return false
+  }
+}
+
 let ezMessage = ez.Component.Message
 
 let ezEventMessage = ez.Component.EventMessage
