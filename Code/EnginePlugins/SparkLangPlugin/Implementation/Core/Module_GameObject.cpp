@@ -452,7 +452,7 @@ SQInteger ezspGameObjectFindChildByPath(HSQUIRRELVM vm)
   return 1;
 }
 
-// ez.GameObject.TryGetComponentOfBaseType(integer, string): integer
+// ez.GameObject.TryGetComponentOfBaseType(integer, integer): integer
 SQInteger ezspGameObjectTryGetComponentOfBaseType(HSQUIRRELVM vm)
 {
   const ezGameObject* pGameObject = GetGameObjectFromVM(vm, -2);
@@ -463,10 +463,9 @@ SQInteger ezspGameObjectTryGetComponentOfBaseType(HSQUIRRELVM vm)
     return 1;
   }
 
-  const SQChar* szTypeName;
-  sq_getstring(vm, -1, &szTypeName);
+  const Sqrat::Var<ezUInt32> hash(vm, -1);
+  const ezRTTI* pRtti = ezRTTI::FindTypeByNameHash32(hash.value);
 
-  const ezRTTI* pRtti = ezRTTI::FindTypeByName(szTypeName);
   if (pRtti == nullptr)
   {
     sq_pushnull(vm);
@@ -484,7 +483,7 @@ SQInteger ezspGameObjectTryGetComponentOfBaseType(HSQUIRRELVM vm)
   return 1;
 }
 
-// ez.GameObject.TryGetComponentsOfBaseType(integer, string): integer[]
+// ez.GameObject.TryGetComponentsOfBaseType(integer, integer): integer[]
 SQInteger ezspGameObjectTryGetComponentsOfBaseType(HSQUIRRELVM vm)
 {
   const ezGameObject* pGameObject = GetGameObjectFromVM(vm, -2);
@@ -495,10 +494,9 @@ SQInteger ezspGameObjectTryGetComponentsOfBaseType(HSQUIRRELVM vm)
     return 1;
   }
 
-  const SQChar* szTypeName;
-  sq_getstring(vm, -1, &szTypeName);
+  const Sqrat::Var<ezUInt32> hash(vm, -1);
+  const ezRTTI* pRtti = ezRTTI::FindTypeByNameHash32(hash.value);
 
-  const ezRTTI* pRtti = ezRTTI::FindTypeByName(szTypeName);
   if (pRtti == nullptr)
   {
     sq_pushnull(vm);
@@ -925,8 +923,8 @@ SQInteger ezspGameObjectSetGameObjectProp(HSQUIRRELVM vm)
 {
   if (ezGameObject* pGameObject = GetGameObjectFromVM(vm, -3); pGameObject != nullptr)
   {
-    Sqrat::Var<ezGameObjectHandle> hGameObject(vm, -2);
-    Sqrat::Var<bool> bPreserve(vm, -1);
+    const Sqrat::Var<ezGameObjectHandle> hGameObject(vm, -2);
+    const Sqrat::Var<bool> bPreserve(vm, -1);
 
     const ezGameObject::TransformPreservation preservation = bPreserve.value ? ezGameObject::TransformPreservation::PreserveGlobal : ezGameObject::TransformPreservation::PreserveLocal;
 
@@ -1020,8 +1018,8 @@ SQRESULT ezSparkLangModule::ezGameObject(Sqrat::Table& module)
     .SquirrelFunc(_SC("FindChildByName"), ezspGameObjectFindChildByName, 4, _SC(".isb"))
     .SquirrelFunc(_SC("FindChildByPath"), ezspGameObjectFindChildByPath, 3, _SC(".is"))
 
-    .SquirrelFunc(_SC("TryGetComponentOfBaseType"), ezspGameObjectTryGetComponentOfBaseType, 3, _SC(".is"))
-    .SquirrelFunc(_SC("TryGetComponentsOfBaseType"), ezspGameObjectTryGetComponentsOfBaseType, 3, _SC(".is"))
+    .SquirrelFunc(_SC("TryGetComponentOfBaseType"), ezspGameObjectTryGetComponentOfBaseType, 3, _SC(".ii"))
+    .SquirrelFunc(_SC("TryGetComponentsOfBaseType"), ezspGameObjectTryGetComponentsOfBaseType, 3, _SC(".ii"))
 
     .SquirrelFunc(_SC("SearchForChildByNameSequence"), ezspGameObjectSearchForChildByNameSequence, 4, _SC(".iss|n"))
     .SquirrelFunc(_SC("SearchForChildrenByNameSequence"), ezspGameObjectSearchForChildrenByNameSequence, 4, _SC(".iss|n"))

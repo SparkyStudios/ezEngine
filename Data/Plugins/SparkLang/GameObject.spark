@@ -6,7 +6,8 @@
   }
 
   function IsValid() {
-    return ez.GameObject.IsValid(GetHandle())
+    let handle = GetHandle()
+    return handle != null && ez.GameObject.IsValid(handle)
   }
 
   function SetLocalPosition(position) {
@@ -110,46 +111,35 @@
   }
 
   function FindChildByName(name, recursive) {
-    let child = ez.GameObject.FindChildByName(GetHandle(), name, recursive)
-    if (!child)
-      return null
-
-    return ezGameObject(child)
+    return ezGameObject(ez.GameObject.FindChildByName(GetHandle(), name, recursive))
   }
 
   function FindChildByPath(name) {
-    let child = ez.GameObject.FindChildByPath(GetHandle(), name)
-    if (!child)
-      return null
-
-    return ezGameObject(child)
+    return ezGameObject(ez.GameObject.FindChildByPath(GetHandle(), name))
   }
 
-  function TryGetComponentOfBaseType(name) {
-    let handle = ez.GameObject.TryGetComponentOfBaseType(GetHandle(), name)
-    if (!handle)
-      return null
+  function TryGetComponentOfBaseType(componentClass) {
+    if (typeof componentClass != "class")
+      throw "Invalid argument for CreateComponent. componentClass should be a class"
 
-    return ezComponent(handle)
+    return componentClass(ez.GameObject.TryGetComponentOfBaseType(GetHandle(), componentClass.GetTypeNameHash()))
   }
 
-  function TryGetComponentsOfBaseType(name) {
-    let handles = ez.GameObject.TryGetComponentsOfBaseType(GetHandle(), name)
+  function TryGetComponentsOfBaseType(componentClass) {
+    if (typeof componentClass != "class")
+      throw "Invalid argument for CreateComponent. componentClass should be a class"
+
+    let handles = ez.GameObject.TryGetComponentsOfBaseType(GetHandle(), componentClass.GetTypeNameHash())
 
     local components = []
     foreach(handle in handles)
-      components.append(ezComponent(handle))
+      components.append(componentClass(handle))
 
     return components
   }
 
   function SearchForChildByNameSequence(searchPath, expectedComponentTypeName = null) {
-    let handle = ez.GameObject.SearchForChildByNameSequence(GetHandle(), searchPath, expectedComponentTypeName);
-
-    if (!handle)
-      return null
-
-    return ezGameObject(handle)
+    return ezGameObject(ez.GameObject.SearchForChildByNameSequence(GetHandle(), searchPath, expectedComponentTypeName))
   }
 
   function SearchForChildrenByNameSequence(searchPath, expectedComponentTypeName = null) {
@@ -245,24 +235,19 @@
   }
 
   function GetParent() {
-    let parent = ez.GameObject.GetParent(GetHandle())
-
-    if (!parent)
-      return null
-
-    return ezGameObject(parent)
+    return ezGameObject(ez.GameObject.GetParent(GetHandle()))
   }
 
   function SetParent(gameObject, preserveTransform = true) {
-    return ez.GameObject.SetParent(gameObject, preserveTransform)
+    return ez.GameObject.SetParent(GetHandle(), gameObject.GetHandle(), preserveTransform)
   }
 
   function AddChild(gameObject, preserveTransform = true) {
-    return ez.GameObject.AddChild(gameObject, preserveTransform)
+    return ez.GameObject.AddChild(GetHandle(), gameObject.GetHandle(), preserveTransform)
   }
 
   function DetachChild(gameObject, preserveTransform = true) {
-    return ez.GameObject.DetachChild(gameObject, preserveTransform)
+    return ez.GameObject.DetachChild(GetHandle(), gameObject.GetHandle(), preserveTransform)
   }
 
   function GetChildren() {
@@ -279,3 +264,5 @@
     return gameObjectId
   }
 }
+
+::ezGameObjectDesc <- ez.GameObject.GameObjectDesc

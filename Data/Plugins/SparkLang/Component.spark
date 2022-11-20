@@ -6,7 +6,8 @@
   }
 
   function IsValid() {
-    return ez.Component.IsValid(GetHandle())
+    let handle = GetHandle()
+    return handle != null && ez.Component.IsValid(handle)
   }
 
   function GetUniqueID() {
@@ -14,11 +15,7 @@
   }
 
   function GetOwner() {
-    let owner = ez.Component.GetOwner(GetHandle())
-    if (!owner)
-      return null
-
-    return ezGameObject(owner)
+    return ezGameObject(ez.Component.GetOwner(GetHandle()))
   }
 
   function SetActiveFlag(active) {
@@ -47,10 +44,6 @@
 
   function PostMessage(message, delay = 0) {
     ez.Component.PostMessage(GetHandle(), message, delay.tofloat())
-  }
-
-  function BroadcastEvent(message) {
-    ez.Component.BroadcastEvent(GetHandle(), message)
   }
 
   function GetHandle() {
@@ -85,6 +78,18 @@
 
   function HandlesEventMessage(msg) {
     return false
+  }
+}
+
+::ezSparkLangScriptComponent <- class extends ezEventMessageHandlerComponent {
+  function Update() {}
+
+  function BroadcastEvent(message) {
+    ez.Component.BroadcastEvent(GetHandle(), message)
+  }
+
+  function SetUpdateInterval(interval) {
+    ez.Component.SetUpdateInterval(GetHandle(), interval)
   }
 }
 

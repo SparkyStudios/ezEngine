@@ -81,34 +81,26 @@ SQInteger ezspComponentGetActiveFlag(HSQUIRRELVM vm)
 {
   if (const ezComponent* pComponent = GetComponentFromVM(vm, -1); pComponent != nullptr)
   {
-    switch (overload)
+    if constexpr (overload == 1)
     {
-      case 1:
-      {
-        sq_pushbool(vm, pComponent->GetActiveFlag());
-        break;
-      }
-      case 2:
-      {
-        sq_pushbool(vm, pComponent->IsActive());
-        break;
-      }
-      case 3:
-      {
-        sq_pushbool(vm, pComponent->IsActiveAndInitialized());
-        break;
-      }
-      case 4:
-      {
-        sq_pushbool(vm, pComponent->IsActiveAndSimulating());
-        break;
-      }
-      default:
-      {
-        EZ_ASSERT_NOT_IMPLEMENTED;
-        sq_pushnull(vm);
-        break;
-      }
+      sq_pushbool(vm, pComponent->GetActiveFlag());
+    }
+    else if constexpr (overload == 2)
+    {
+      sq_pushbool(vm, pComponent->IsActive());
+    }
+    else if constexpr (overload == 3)
+    {
+      sq_pushbool(vm, pComponent->IsActiveAndInitialized());
+    }
+    else if constexpr (overload == 4)
+    {
+      sq_pushbool(vm, pComponent->IsActiveAndSimulating());
+    }
+    else
+    {
+      EZ_ASSERT_NOT_IMPLEMENTED;
+      sq_pushnull(vm);
     }
   }
 
@@ -120,15 +112,15 @@ SQInteger ezspComponentGetActiveFlag(HSQUIRRELVM vm)
 template <int overload>
 SQInteger ezspComponentSendMessage(HSQUIRRELVM vm)
 {
-  if (ezComponent* pComponent = GetComponentFromVM(vm, -overload - 1); pComponent != nullptr)
+  if (ezComponent* pComponent = GetComponentFromVM(vm, 2); pComponent != nullptr)
   {
-    sq_typeof(vm, -overload);
+    sq_typeof(vm, 3);
 
     const SQChar* msgType;
     sq_getstring(vm, -1, &msgType);
     sq_poptop(vm);
 
-    auto const message = Sqrat::Var<ezMessage*>(vm, -overload);
+    auto const message = Sqrat::Var<ezMessage*>(vm, 3);
 
     ezMessage* pMsg = message.value;
 
@@ -139,26 +131,20 @@ SQInteger ezspComponentSendMessage(HSQUIRRELVM vm)
       ezDynamicCast<ezSparkLangScriptMessageProxy*>(pMsg)->m_pMessage = message.value;
     }
 
-    switch (overload)
+    if constexpr (overload == 1)
     {
-      case 1:
-      {
-        pComponent->SendMessage(*pMsg);
-        break;
-      }
-      case 2:
-      {
-        SQFloat fMilliseconds = 0;
-        sq_getfloat(vm, -1, &fMilliseconds);
+      pComponent->SendMessage(*pMsg);
+    }
+    else if constexpr (overload == 2)
+    {
+      SQFloat fMilliseconds = 0;
+      sq_getfloat(vm, -1, &fMilliseconds);
 
-        pComponent->PostMessage(*pMsg, ezTime::Milliseconds(fMilliseconds));
-        break;
-      }
-      default:
-      {
-        EZ_ASSERT_NOT_IMPLEMENTED;
-        break;
-      }
+      pComponent->PostMessage(*pMsg, ezTime::Milliseconds(fMilliseconds));
+    }
+    else
+    {
+      EZ_ASSERT_NOT_IMPLEMENTED;
     }
   }
 
