@@ -1,0 +1,86 @@
+/**
+ * ezWorld class implements functions allowing you to manipulate the scene graph.
+ */
+::ezWorld <- class {
+  /**
+   * Creates a new ezGameObject in the scene graph.
+   * @param ezGameObjectDesc desc The description of the game object to create.
+   */
+  function CreateObject(desc) {
+    return ezGameObject(ez.World.CreateObject(desc))
+  }
+
+  /**
+   * Queues the given game object for deletion at the end of the frame.
+   * @param ezGameObject object The game object to delete.
+   * @param bool deleteEmptyParents true to delete the parent of the game object if it is empty.
+   */
+  function DeleteObjectDelayed(object, deleteEmptyParents) {
+    ez.World.DeleteObjectDelayed(object.GetHandle(), deleteEmptyParents);
+  }
+
+  /**
+   * Deletes the given game object now.
+   * @param ezGameObject object The game object to delete.
+   * @param bool deleteEmptyParents true to delete the parent of the game object if it is empty.
+   */
+  function DeleteObjectNow(object, deleteEmptyParents) {
+    ez.World.DeleteObjectNow(object.GetHandle(), deleteEmptyParents);
+  }
+
+  /**
+   * Creates a new component of the given type into the given game object.
+   * @param ezGameObject object The game object to attach the component to.
+   * @param class componentClass The component class type to instanciate.
+   */
+  function CreateComponent(object, componentClass) {
+    if (typeof componentClass != "class")
+      throw "Invalid argument for CreateComponent. componentClass should be a class"
+
+    return componentClass(ez.World.CreateComponent(object.GetHandle(), componentClass.GetTypeNameHash()))
+  }
+
+  /**
+   * Deletes the given component and detach it from all the game objects he is attached to.
+   * @param ezComponent component The component to delete.
+   */
+  function DeleteComponent(component) {
+    ez.World.DeleteComponent(component.GetHandle());
+  }
+
+  /**
+   * Searches the world for a game object with the given 'global key'.
+   * Global keys must be unique within a world, thus this lookup is fast. However, working with global keys
+   * can be messy and ensuring a global key is never used twice can be difficult, therefore it is advised to
+   * use this concept with care.
+   */
+  function TryGetObjectWithGlobalKey(globalKey) {
+    return ezGameObject(ez.World.TryGetObjectWithGlobalKey(globalKey))
+  }
+
+  /**
+   * Searches for objects with a specific category that overlap with the given sphere.
+   * @param string category The category to search for.
+   * @param ezVec3 center The center of the sphere in world-space.
+   * @param float radius The radius of the sphere.
+   * @param closure callback A closure that is used to report every overlaping game object.
+   *                         The function take as parameter the current found game object and return a boolean.
+   *                         As long as the callback returns true, further results will be delivered. To cancel the search, return false.
+   */
+  function FindObjectsInSphere(category, center, radius, callback) {
+    ez.World.FindObjectsInSphere(category, center, radius.tofloat(), @(handle) callback(ezGameObject(handle)))
+  }
+
+  /**
+   * Searches for objects with a specific category that overlap with the given box.
+   * @param string category The category to search for.
+   * @param ezVec3 min The min point of the box in world-space.
+   * @param ezVec3 max The max point of the box in world-space.
+   * @param closure callback A closure that is used to report every overlaping game object.
+   *                         The function take as parameter the current found game object and return a boolean.
+   *                         As long as the callback returns true, further results will be delivered. To cancel the search, return false.
+   */
+  function FindObjectsInBox(category, min, max, callback) {
+    ez.World.FindObjectsInBox(category, min, max, @(handle) callback(ezGameObject(handle)))
+  }
+}

@@ -260,6 +260,10 @@
     return children
   }
 
+  function GetWorld() {
+    return ezWorld()
+  }
+
   function GetHandle() {
     return gameObjectId
   }

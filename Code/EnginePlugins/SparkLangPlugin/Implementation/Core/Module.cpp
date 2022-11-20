@@ -31,6 +31,9 @@ bool ezSparkLangModule::Register(SqModules& modules)
 
     if (SQ_FAILED(ezMath(module)))
       return false;
+
+    if (SQ_FAILED(ezWorld(module)))
+      return false;
   }
 
   const bool bDone = modules.addNativeModule("ez", SqModules::SqObjPtr(modules.getVM(), hModule));
