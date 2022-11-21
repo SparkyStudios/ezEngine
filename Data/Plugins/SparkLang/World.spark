@@ -83,4 +83,18 @@
   function FindObjectsInBox(category, min, max, callback) {
     ez.World.FindObjectsInBox(category, min, max, @(handle) callback(ezGameObject(handle)))
   }
+
+  /**
+   * Gets a reference to the random number generator associated with this world.
+   */
+  function GetRandomNumberGenerator() {
+    return ez.World.GetRandomNumberGenerator()
+  }
+
+  /**
+   * Gets a reference to the global clock associated with this world.
+   */
+  function GetClock() {
+    return ez.World.GetClock()
+  }
 }

@@ -1,1 +1,2 @@
-::ezTime <- ez.Clock.Time
+::ezClock <- ez.Clock
+::ezTime <- ez.Time

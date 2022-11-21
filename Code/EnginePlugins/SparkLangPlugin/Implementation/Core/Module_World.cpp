@@ -177,6 +177,28 @@ SQInteger ezspWorldFindObjectsInBox(HSQUIRRELVM vm)
   return 0;
 }
 
+// ez.World.GetRandomNumberGenerator(): ezRandom
+SQInteger ezspWorldGetRandomNumberGenerator(HSQUIRRELVM vm)
+{
+  ezWorld* pWorld = GetWorldFromVM(vm);
+  if (pWorld == nullptr)
+    return 0;
+
+  Sqrat::PushVar<ezRandom&>(vm, pWorld->GetRandomNumberGenerator());
+  return 1;
+}
+
+// ez.World.GetClock(): ezClock
+SQInteger ezspWorldGetClock(HSQUIRRELVM vm)
+{
+  ezWorld* pWorld = GetWorldFromVM(vm);
+  if (pWorld == nullptr)
+    return 0;
+
+  Sqrat::PushVar<ezClock&>(vm, pWorld->GetClock());
+  return 1;
+}
+
 SQRESULT ezSparkLangModule::ezWorld(Sqrat::Table& module)
 {
   Sqrat::Table World(module.GetVM());
@@ -188,7 +210,9 @@ SQRESULT ezSparkLangModule::ezWorld(Sqrat::Table& module)
     .SquirrelFunc(_SC("DeleteComponent"), ezspWorldDeleteComponent, 2, _SC(".i"))
     .SquirrelFunc(_SC("TryGetObjectWithGlobalKey"), ezspWorldTryGetObjectWithGlobalKey, 2, _SC(".s"))
     .SquirrelFunc(_SC("FindObjectsInSphere"), ezspWorldFindObjectsInSphere, 5, _SC(".sxfc"))
-    .SquirrelFunc(_SC("FindObjectsInBox"), ezspWorldFindObjectsInBox, 5, _SC(".sxxc"));
+    .SquirrelFunc(_SC("FindObjectsInBox"), ezspWorldFindObjectsInBox, 5, _SC(".sxxc"))
+    .SquirrelFunc(_SC("GetRandomNumberGenerator"), ezspWorldGetRandomNumberGenerator, 1, _SC("."))
+    .SquirrelFunc(_SC("GetClock"), ezspWorldGetClock, 1, _SC("."));
 
   module.Bind(_SC("World"), World);
 
