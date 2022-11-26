@@ -2,3 +2,4 @@
 ::ezVec3 <- ez.Math.Vec3
 ::ezVec4 <- ez.Math.Vec4
 ::ezQuat <- ez.Math.Quat
+::ezColor <- ez.Math.Color

@@ -270,3 +270,7 @@
 }
 
 ::ezGameObjectDesc <- ez.GameObject.GameObjectDesc
+
+::ezTag <- ez.GameObject.Tag
+
+::ezTagSet <- ez.GameObject.ezTagSet

@@ -19,5 +19,6 @@ public:
   SQRESULT ezComponent(Sqrat::Table& module);
   SQRESULT ezGameObject(Sqrat::Table& module);
   SQRESULT ezMath(Sqrat::Table& module);
+  SQRESULT ezRandom(Sqrat::Table& module);
   SQRESULT ezWorld(Sqrat::Table& module);
 };

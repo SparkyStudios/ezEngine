@@ -977,9 +977,46 @@ SQInteger ezspGameObjectGetChildren(HSQUIRRELVM vm)
 
 SQRESULT ezSparkLangModule::ezGameObject(Sqrat::Table& module)
 {
-  Sqrat::Table GameObject(module.GetVM());
+  Sqrat::Class<ezTag> TagClass(module.GetVM(), _SC("ezTag"));
+  TagClass
+    .Ctor()
+    .Prop(_SC("TagString"), &ezTag::GetTagString)
+    .Prop(_SC("IsValid"), &ezTag::IsValid);
 
+  Sqrat::Class<ezTagSet> TagSetClass(module.GetVM(), _SC("ezTagSet"));
+  TagSetClass
+    .Ctor()
+    .Func(_SC("Set"), &ezTagSet::Set)
+    .Func(_SC("Remove"), &ezTagSet::Remove)
+    .Func(_SC("IsSet"), &ezTagSet::IsSet)
+    .Func(_SC("IsAnySet"), &ezTagSet::IsAnySet)
+    .Prop(_SC("NumTagsSet"), &ezTagSet::GetNumTagsSet)
+    .Prop(_SC("IsEmpty"), &ezTagSet::IsEmpty)
+    .Prop(_SC("Clear"), &ezTagSet::Clear)
+    .Func(_SC("SetByName"), &ezTagSet::SetByName)
+    .Func(_SC("RemoveByName"), &ezTagSet::RemoveByName)
+    .Func(_SC("IsSetByName"), &ezTagSet::IsSetByName);
+
+  Sqrat::Class<ezGameObjectDesc> GameObjectDescClass(module.GetVM(), _SC("ezGameObjectDesc"));
+  GameObjectDescClass
+    .Var(_SC("ActiveFlag"), &ezGameObjectDesc::m_bActiveFlag)
+    .Var(_SC("Dynamic"), &ezGameObjectDesc::m_bDynamic)
+    .Var(_SC("TeamID"), &ezGameObjectDesc::m_uiTeamID)
+    .Var(_SC("Name"), &ezGameObjectDesc::m_sName)
+    .Var(_SC("Parent"), &ezGameObjectDesc::m_hParent)
+    .Var(_SC("LocalPosition"), &ezGameObjectDesc::m_LocalPosition)
+    .Var(_SC("LocalRotation"), &ezGameObjectDesc::m_LocalRotation)
+    .Var(_SC("LocalScaling"), &ezGameObjectDesc::m_LocalScaling)
+    .Var(_SC("LocalUniformScaling"), &ezGameObjectDesc::m_LocalUniformScaling)
+    .Var(_SC("Tags"), &ezGameObjectDesc::m_Tags)
+    .Var(_SC("StableRandomSeed"), &ezGameObjectDesc::m_uiStableRandomSeed);
+
+  Sqrat::Table GameObject(module.GetVM());
   GameObject
+    .Bind(_SC("Tag"), TagClass)
+    .Bind(_SC("TagSet"), TagSetClass)
+    .Bind(_SC("GameObjectDesc"), GameObjectDescClass)
+
     .SquirrelFunc(_SC("IsValid"), ezspGameObjectIsValid, 2, _SC(".i"))
 
     .SquirrelFunc(_SC("SetLocalPosition"), ezspGameObjectSetVec3Prop<GameObjectProp::LocalPosition>, 3, _SC(".ix"))

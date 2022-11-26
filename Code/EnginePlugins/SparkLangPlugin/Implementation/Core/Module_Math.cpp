@@ -111,6 +111,7 @@ SQRESULT ezSparkLangModule::ezMath(Sqrat::Table& module)
   Sqrat::Class<ezVec3> Vec3Class(module.GetVM(), _SC("ezVec3"));
   Sqrat::Class<ezVec4> Vec4Class(module.GetVM(), _SC("ezVec4"));
   Sqrat::Class<ezQuat> QuatClass(module.GetVM(), _SC("ezQuat"));
+  Sqrat::Class<ezColor> ColorClass(module.GetVM(), _SC("ezColor"));
 
   Vec2Class
     .Ctor()
@@ -226,11 +227,62 @@ SQRESULT ezSparkLangModule::ezMath(Sqrat::Table& module)
     .Func(_SC("Dot"), &ezQuat::Dot)
     .SquirrelFunc(_SC("_unm"), ezspMathVecUnaryOperator<ezQuat, SparkOperator::Unm>, 1, _SC("."));
 
+  ColorClass
+    .Ctor()
+    .Ctor<float, float, float, float>()
+    .SetStaticValue(_SC("AliceBlue"), ezColor::AliceBlue)
+    .SetStaticValue(_SC("AntiqueWhite"), ezColor::AntiqueWhite)
+    .SetStaticValue(_SC("Aqua"), ezColor::Aqua)
+    .SetStaticValue(_SC("Aquamarine"), ezColor::Aquamarine)
+    .SetStaticValue(_SC("Azure"), ezColor::Azure)
+    .SetStaticValue(_SC("Beige"), ezColor::Beige)
+    .SetStaticValue(_SC("Bisque"), ezColor::Bisque)
+    .SetStaticValue(_SC("Black"), ezColor::Black)
+    .SetStaticValue(_SC("BlanchedAlmond"), ezColor::BlanchedAlmond)
+    .SetStaticValue(_SC("Blue"), ezColor::Blue)
+    .SetStaticValue(_SC("BlueViolet"), ezColor::BlueViolet)
+    .SetStaticValue(_SC("Brown"), ezColor::Brown)
+    .SetStaticValue(_SC("BurlyWood"), ezColor::BurlyWood)
+    .SetStaticValue(_SC("CadetBlue"), ezColor::CadetBlue)
+    .SetStaticValue(_SC("Chartreuse"), ezColor::Chartreuse)
+    .SetStaticValue(_SC("Chocolate"), ezColor::Chocolate)
+    .SetStaticValue(_SC("Coral"), ezColor::Coral)
+    .SetStaticValue(_SC("CornflowerBlue"), ezColor::CornflowerBlue)
+    .SetStaticValue(_SC("Cornsilk"), ezColor::Cornsilk)
+    .SetStaticValue(_SC("Crimson"), ezColor::Crimson)
+    .SetStaticValue(_SC("Cyan"), ezColor::Cyan)
+    .SetStaticValue(_SC("DarkBlue"), ezColor::DarkBlue)
+    .SetStaticValue(_SC("DarkCyan"), ezColor::DarkCyan)
+    .SetStaticValue(_SC("DarkGoldenRod"), ezColor::DarkGoldenRod)
+    .Func(_SC("SetRGB"), &ezColor::SetRGB)
+    .Func(_SC("SetRGBA"), &ezColor::SetRGBA)
+    .Func(_SC("SetZero"), &ezColor::SetZero)
+    .Func(_SC("SetHSV"), &ezColor::SetHSV)
+    .Func(_SC("GetAsVec4"), &ezColor::GetAsVec4)
+    .Prop(_SC("IsNormalized"), &ezColor::IsNormalized)
+    .Prop(_SC("AverageRGB"), &ezColor::CalcAverageRGB)
+    .Prop(_SC("Saturation"), &ezColor::GetSaturation)
+    .Prop(_SC("Luminance"), &ezColor::GetLuminance)
+    .Prop(_SC("InvertedColor"), &ezColor::GetInvertedColor)
+    .Prop(_SC("ComplementaryColor"), &ezColor::GetComplementaryColor)
+    .Prop(_SC("HdrMultiplier"), &ezColor::ComputeHdrMultiplier)
+    .Prop(_SC("HdrExposureValue"), &ezColor::ComputeHdrExposureValue)
+    .Func(_SC("ApplyHdrExposureValue"), &ezColor::ApplyHdrExposureValue)
+    .Func(_SC("NormalizeToLdrRange"), &ezColor::NormalizeToLdrRange)
+    .Prop(_SC("IsNaN"), &ezColor::IsNaN)
+    .Prop(_SC("IsValid"), &ezColor::IsValid)
+    .Func(_SC("IsIdenticalRGB"), &ezColor::IsIdenticalRGB)
+    .Func(_SC("IsIdenticalRGBA"), &ezColor::IsIdenticalRGBA)
+    .Func(_SC("IsEqualRGB"), &ezColor::IsEqualRGB)
+    .Func(_SC("IsEqualRGBA"), &ezColor::IsEqualRGBA)
+    .Func(_SC("WithAlpha"), &ezColor::WithAlpha);
+
   Math
     .Bind(_SC("Vec2"), Vec2Class)
     .Bind(_SC("Vec3"), Vec3Class)
     .Bind(_SC("Vec4"), Vec4Class)
-    .Bind(_SC("Quat"), QuatClass);
+    .Bind(_SC("Quat"), QuatClass)
+    .Bind(_SC("Color"), ColorClass);
 
   module.Bind(_SC("Math"), Math);
 

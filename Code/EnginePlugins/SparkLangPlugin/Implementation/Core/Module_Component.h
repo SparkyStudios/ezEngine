@@ -10,6 +10,10 @@ ezComponent* GetComponentFromVM(HSQUIRRELVM vm, SQInteger index);
 
 ezGameObject* GetGameObjectFromVM(HSQUIRRELVM vm, SQInteger index);
 
+ezVariant GetVariantFromVM(HSQUIRRELVM vm, SQInteger index, const ezRTTI* pRtti);
+
+void PushVariantToVM(HSQUIRRELVM vm, const ezVariant& value);
+
 namespace Sqrat
 {
   template <>
@@ -208,6 +212,159 @@ namespace Sqrat
     {
       return Var<ezGameObjectHandle>::check_type(vm, idx);
     }
+  };
+
+  template <>
+  struct Var<ezHashedString>
+  {
+    ezHashedString value; ///< The actual value of get operations
+
+    /// Attempts to get the value off the stack at idx as the given type
+    Var(HSQUIRRELVM vm, SQInteger idx)
+    {
+      const SQChar* string;
+      sq_getstring(vm, idx, &string);
+
+      value.Assign(string);
+    }
+
+    /// Called by Sqrat::PushVarR to put a class object on the stack
+    static void push(HSQUIRRELVM vm, const ezHashedString& value)
+    {
+      sq_pushstring(vm, value.GetData(), -1);
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezHashedString"); }
+
+    static bool check_type(HSQUIRRELVM vm, SQInteger idx)
+    {
+      return sq_gettype(vm, idx) == OT_STRING;
+    }
+  };
+
+  template <>
+  struct Var<ezHashedString&> : Var<ezHashedString>
+  {
+    Var(HSQUIRRELVM vm, SQInteger idx)
+      : Var<ezHashedString>(vm, idx)
+    {
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezHashedString ref"); }
+  };
+
+  template <>
+  struct Var<const ezHashedString&> : Var<ezHashedString>
+  {
+    Var(HSQUIRRELVM vm, SQInteger idx)
+      : Var<ezHashedString>(vm, idx)
+    {
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezHashedString const ref"); }
+  };
+
+  template <>
+  struct Var<ezTempHashedString>
+  {
+    ezTempHashedString value; ///< The actual value of get operations
+
+    /// Attempts to get the value off the stack at idx as the given type
+    Var(HSQUIRRELVM vm, SQInteger idx)
+    {
+      HSQOBJECT obj;
+      sq_getstackobj(vm, idx, &obj);
+
+      if (sq_isstring(obj))
+        value = ezTempHashedString(sq_objtostring(&obj));
+      else if (sq_isinteger(obj))
+        value = ezTempHashedString(static_cast<ezUInt64>(sq_objtointeger(&obj)));
+    }
+
+    /// Called by Sqrat::PushVarR to put a class object on the stack
+    static void push(HSQUIRRELVM vm, const ezTempHashedString& value)
+    {
+      sq_pushinteger(vm, static_cast<SQInteger>(value.GetHash()));
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezTempHashedString"); }
+
+    static bool check_type(HSQUIRRELVM vm, SQInteger idx)
+    {
+      return sq_gettype(vm, idx) == OT_STRING;
+    }
+  };
+
+  template <>
+  struct Var<ezTempHashedString&> : Var<ezTempHashedString>
+  {
+    Var(HSQUIRRELVM vm, SQInteger idx)
+      : Var<ezTempHashedString>(vm, idx)
+    {
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezTempHashedString ref"); }
+  };
+
+  template <>
+  struct Var<const ezTempHashedString&> : Var<ezTempHashedString>
+  {
+    Var(HSQUIRRELVM vm, SQInteger idx)
+      : Var<ezTempHashedString>(vm, idx)
+    {
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezTempHashedString const ref"); }
+  };
+
+  template <>
+  struct Var<ezString>
+  {
+    ezString value; ///< The actual value of get operations
+
+    /// Attempts to get the value off the stack at idx as the given type
+    Var(HSQUIRRELVM vm, SQInteger idx)
+    {
+      const SQChar* string;
+      sq_getstring(vm, idx, &string);
+
+      value = string;
+    }
+
+    /// Called by Sqrat::PushVarR to put a class object on the stack
+    static void push(HSQUIRRELVM vm, const ezString& value)
+    {
+      sq_pushstring(vm, value.GetData(), -1);
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezString"); }
+
+    static bool check_type(HSQUIRRELVM vm, SQInteger idx)
+    {
+      return sq_gettype(vm, idx) == OT_STRING;
+    }
+  };
+
+  template <>
+  struct Var<ezString&> : Var<ezString>
+  {
+    Var(HSQUIRRELVM vm, SQInteger idx)
+      : Var<ezString>(vm, idx)
+    {
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezString ref"); }
+  };
+
+  template <>
+  struct Var<const ezString&> : Var<ezString>
+  {
+    Var(HSQUIRRELVM vm, SQInteger idx)
+      : Var<ezString>(vm, idx)
+    {
+    }
+
+    static const SQChar* getVarTypeName() { return _SC("ezString const ref"); }
   };
 
   template <>
