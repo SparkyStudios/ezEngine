@@ -122,7 +122,7 @@ void ezAmplitudeAudioControlCollectionAssetDocument::UpdateAssetDocumentInfo(ezA
   }
 }
 
-ezStatus ezAmplitudeAudioControlCollectionAssetDocument::InternalTransformAsset(ezStreamWriter& stream, const char* szOutputTag, const ezPlatformProfile* pAssetProfile, const ezAssetFileHeader& AssetHeader, ezBitflags<ezTransformFlags> transformFlags)
+ezTransformStatus ezAmplitudeAudioControlCollectionAssetDocument::InternalTransformAsset(ezStreamWriter& stream, const char* szOutputTag, const ezPlatformProfile* pAssetProfile, const ezAssetFileHeader& AssetHeader, ezBitflags<ezTransformFlags> transformFlags)
 {
   ezAmplitudeAudioControlCollectionAsset* pProp = GetProperties();
 

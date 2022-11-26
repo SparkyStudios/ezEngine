@@ -76,9 +76,9 @@ private:
   void RegisterSoundBank(const char* szBankName, ezStreamReader* pStreamReader);
   void UnregisterSoundBank(const char* szBankName);
 
-  virtual ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;
-  virtual ezResourceLoadDesc UpdateContent(ezStreamReader* pStream) override;
-  virtual void UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage) override;
+  ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;
+  ezResourceLoadDesc UpdateContent(ezStreamReader* pStream) override;
+  void UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage) override;
 
   bool m_bRegistered = false;
   ezAmplitudeAudioControlCollectionResourceDescriptor m_Collection;

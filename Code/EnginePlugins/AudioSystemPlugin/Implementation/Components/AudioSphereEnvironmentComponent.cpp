@@ -83,6 +83,9 @@ void ezAudioSphereEnvironmentComponent::SetRadius(float fRadius)
 
 float ezAudioSphereEnvironmentComponent::GetEnvironmentAmount(ezAudioProxyComponent* pProxyComponent) const
 {
+  if (m_bOverrideValue)
+    return m_fOverrideValue;
+
   const ezVec3& proxyPosition = pProxyComponent->GetOwner()->GetGlobalPosition();
   const float fDistanceToOrigin = (proxyPosition - m_Sphere.m_vCenter).GetLength();
 
