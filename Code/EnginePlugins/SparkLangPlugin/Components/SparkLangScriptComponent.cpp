@@ -55,6 +55,48 @@ ezResult ReadEntireFile(const char* szFile, ezStringBuilder& sOut)
   return EZ_SUCCESS;
 }
 
+void ProcessImport(const char** szCode, ezStringBuilder& scriptCode, ezSet<ezString>& importedModules)
+{
+  sqimportparser::ImportParser importParser(error_cb, nullptr);
+  int line = 1;
+  int col = 1;
+  std::vector<sqimportparser::ModuleImport> modules;
+  std::vector<std::string> directives;
+  std::vector<std::pair<const char*, const char*>> keepRanges; // .first - inclusive, .second - not inclusive
+  if (importParser.parse(szCode, line, col, modules, &directives, &keepRanges))
+  {
+    for (const auto& module : modules)
+    {
+      ezStringBuilder sb(module.moduleName.c_str());
+      if (!sb.HasExtension(".spark"))
+        continue;
+
+      if (importedModules.Contains(module.moduleName.c_str()))
+        continue;
+
+      if (!ezFileSystem::ExistsFile(sb))
+      {
+        ezLog::Error("Imported file \"{}\" not found.", sb);
+        continue;
+      }
+
+      ezStringBuilder file;
+      if (ReadEntireFile(sb, file).Failed())
+      {
+        ezLog::Error("Cannot import file \"{}\".", sb);
+        continue;
+      }
+
+      const char* szContent = file.GetData();
+      ProcessImport(&szContent, scriptCode, importedModules);
+      importedModules.Insert(module.moduleName.c_str());
+
+      scriptCode.Append(szContent);
+      scriptCode.Append("\n\n");
+    }
+  }
+}
+
 // clang-format off
 EZ_IMPLEMENT_MESSAGE_TYPE(ezSparkLangScriptMessageProxy);
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezSparkLangScriptMessageProxy, 1, ezRTTIDefaultAllocator<ezSparkLangScriptMessageProxy>)
@@ -82,121 +124,19 @@ EZ_END_COMPONENT_TYPE;
 // clang-format on
 
 static constexpr char Test[] = R""""(
-import "SparkLang/GameObject.spark"
+import "SparkLang/Clock.spark"
 import "SparkLang/Component.spark"
+import "SparkLang/GameObject.spark"
+import "SparkLang/Math.spark"
+import "SparkLang/World.spark"
 
-let class TestMessage extends ezMessage {
-  entity = ""
-  damage = 0
+import "SparkLang/AmplitudeAudio/AudioSystemComponent.spark"
+import "SparkLang/AmplitudeAudio/AudioSystemProxyDependentComponent.spark"
+import "SparkLang/AmplitudeAudio/AudioTriggerComponent.spark"
 
-  constructor(handle) {
-    base.constructor()
+import "Scripts/Common/Messages.spark"
 
-    damage = ez.Component.GetUniqueID(handle)
-    entity = "npc"
-  }
-
-  function _typeof() {
-    return "TestMessage"
-  }
-}
-
-let class TestEvent extends ezEventMessage {
-  hit = 0
-
-  constructor(handle) {
-    base.constructor()
-
-    hit = ez.Component.GetUniqueID(handle)
-  }
-
-  function _typeof() {
-    return "TestEvent"
-  }
-}
-
-local once = false
-
-let class TestComponent extends ezComponent
-</ UpdateInterval = 10000 />
-{
-  </ Expose = true />
-  Count = 0
-
-  </ Expose = true />
-  Name = "ezComponent Test"
-
-  constructor() {
-    base.constructor()
-  }
-
-  function Initialize() {
-    ez.Log.Success("Initlaized")
-  }
-
-  function Deinitialize() {
-    ez.Log.Success("Deinitlaized")
-  }
-
-  function OnActivated() {
-    let ID = GetUniqueID()
-    ez.Log.Success($"Activated {ID}")
-  }
-
-  function OnDeactivated() {
-    ez.Log.Success("Deactivated")
-  }
-
-  function OnSimulationStarted() {
-    let ID = GetUniqueID()
-    ez.Log.Success($"SimStarted {ID}")
-  }
-
-  function Update() {
-    Count++
-    ez.Log.Success($"Update {Name} {Count} {IsActive()}")
-
-    if (!once) {
-      let msg = TestMessage(GetHandle())
-      ez.Log.Info($"Sending Message {msg.GetId()} from {GetUniqueID()}")
-      SendMessage(msg)
-
-      let event = TestEvent(GetHandle())
-      ez.Log.Info($"Sending Event {event.GetId()} from {GetUniqueID()}")
-      BroadcastEvent(event)
-
-      // once = true
-    }
-  }
-
-  </ MessageHandler = "TestMessage" />
-  function OnTestMessage(msg) {
-    ez.Log.Info($"Got Message {msg.GetId()} from {msg.damage} to {GetUniqueID()}")
-    if (typeof msg == "TestMessage") {
-      ez.Log.Success($"Seriously got a TestMessage from C++ {msg.damage}")
-    }
-  }
-
-  </ MessageHandler = "TestEvent" />
-  function OnTestEvent(evt) {
-    ez.Log.Info($"Got a TestEvent from C++ {evt} {typeof evt}")
-    if (typeof evt == "TestEvent") {
-      ez.Log.Success($"Successfully got the event from another script ({ez.Component.GetUniqueID(evt.SenderComponent)}), to this one ({GetUniqueID()})")
-    }
-  }
-}
-
-let r = ez.GameObject.GetChildren(this._spark_script_gameObjectId)
-
-foreach (h in r)
-{
-  if (h == null)
-    continue
-
-  ez.Log.Info($"{ez.GameObject.GetName(h)}")
-}
-
-this.Component <- TestComponent()
+import "Scripts/TestComponent.spark"
 )"""";
 
 ezSparkLangScriptComponent::ezSparkLangScriptComponent()
@@ -263,43 +203,12 @@ void ezSparkLangScriptComponent::Initialize()
     componentsTable.SetValue(GetUniqueID(), m_ComponentScope);
   }
 
+  ezSet<ezString> importedModules;
   ezStringBuilder scriptCode;
-  scriptCode.Append("let ez = require(\"ez\")\n\n");
-
-  sqimportparser::ImportParser importParser(error_cb, nullptr);
-  const char* txt = Test;
-  int line = 1;
-  int col = 1;
-  std::vector<sqimportparser::ModuleImport> modules;
-  std::vector<std::string> directives;
-  std::vector<std::pair<const char*, const char*>> keepRanges; // .first - inclusive, .second - not inclusive
-  if (importParser.parse(&txt, line, col, modules, &directives, &keepRanges))
-  {
-    for (auto& module : modules)
-    {
-      ezStringBuilder sb(module.moduleName.c_str());
-      if (!sb.HasExtension(".spark"))
-        continue;
-
-      if (!ezFileSystem::ExistsFile(sb))
-      {
-        ezLog::Error("Imported file \"{}\" not found.", sb);
-        continue;
-      }
-
-      ezStringBuilder file;
-      if (ReadEntireFile(sb, file).Failed())
-      {
-        ezLog::Error("Cannot import file \"{}\".", sb);
-        continue;
-      }
-
-      scriptCode.Append(file);
-    }
-  }
-
-  scriptCode.Append("\n\n");
-  scriptCode.Append(txt);
+  scriptCode.Set("let ez = require(\"ez\")\n\n");
+  const char* szCode = Test;
+  ProcessImport(&szCode, scriptCode, importedModules);
+  scriptCode.Append(szCode);
 
   if (context.Run(scriptCode, &m_ComponentScope).Failed())
   {
