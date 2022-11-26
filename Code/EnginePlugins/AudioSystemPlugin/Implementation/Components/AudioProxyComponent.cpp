@@ -111,7 +111,7 @@ void ezAudioProxyComponent::Update()
 
       m_mEnvironmentAmounts[id].m_fNextAmount = pComponent->GetEnvironmentAmount(this);
 
-      if (ezMath::Abs(m_mEnvironmentAmounts[id].m_fNextAmount - m_mEnvironmentAmounts[id].m_fPreviousAmount) < ezMath::DefaultEpsilon<float>())
+      if (ezMath::IsZero(m_mEnvironmentAmounts[id].m_fNextAmount - m_mEnvironmentAmounts[id].m_fPreviousAmount, ezMath::DefaultEpsilon<float>()))
         continue;
 
       ezAudioSystemRequestSetEnvironmentAmount request;
