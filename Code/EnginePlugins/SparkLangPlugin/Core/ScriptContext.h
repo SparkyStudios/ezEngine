@@ -44,7 +44,23 @@ namespace ezSparkLangInternal
 class EZ_SPARKLANGPLUGIN_DLL ezSparkLangScriptContext
 {
 public:
+  struct PropertyBinding
+  {
+    ezAbstractMemberProperty* m_pProperty = nullptr;
+  };
+
+  struct FunctionBinding
+  {
+    ezAbstractFunctionProperty* m_pFunction = nullptr;
+  };
+
   static ezSparkLangScriptContext* FromVM(HSQUIRRELVM vm);
+
+  static const PropertyBinding* FindPropertyBinding(ezUInt32 uiHash);
+  static const FunctionBinding* FindFunctionBinding(ezUInt32 uiHash);
+
+  static void GenerateComponentScripts();
+  static void GenerateMessageScripts();
 
   ezSparkLangScriptContext();
   ~ezSparkLangScriptContext();
@@ -64,6 +80,14 @@ public:
   }
 
 private:
+  friend class ezSparkLangScriptComponentManager;
+
+  static void SetupComponentFunctionBindings();
+  static void SetupComponentPropertyBindings();
+
+  static ezHashTable<ezUInt32, PropertyBinding> s_BoundProperties;
+  static ezHashTable<ezUInt32, FunctionBinding> s_BoundFunctions;
+
   ezWorld* m_pWorld;
 
   HSQUIRRELVM m_vm;

@@ -4,6 +4,8 @@
 #include <SparkLangPlugin/Core/ScriptContext.h>
 #include <SparkLangPlugin/Implementation/Core/Module_Component.h>
 
+#include <Foundation/Reflection/ReflectionUtils.h>
+
 ezComponent* GetComponentFromVM(HSQUIRRELVM vm, SQInteger index)
 {
   const auto* pContext = ezSparkLangScriptContext::FromVM(vm);
@@ -238,6 +240,102 @@ SQInteger ezspComponentSetUpdateInterval(HSQUIRRELVM vm)
   return 0;
 }
 
+// ez.Component.SetProp(integer, integer, any): void
+SQInteger ezspComponentSetProp(HSQUIRRELVM vm)
+{
+  if (ezComponent* pComponent = GetComponentFromVM(vm, -3); pComponent != nullptr)
+  {
+    SQInteger uiPropHash;
+    sq_getinteger(vm, -2, &uiPropHash);
+
+    const ezSparkLangScriptContext::PropertyBinding* pBinding = ezSparkLangScriptContext::FindPropertyBinding(uiPropHash);
+
+    if (pBinding == nullptr)
+    {
+      sq_throwerror(vm, _SC("Bound property not found"));
+      return 0;
+    }
+
+    const ezVariant& value = GetVariantFromVM(vm, -1, pBinding->m_pProperty->GetSpecificType());
+
+    ezReflectionUtils::SetMemberPropertyValue(pBinding->m_pProperty, pComponent, value);
+  }
+
+  return 0;
+}
+
+// ez.Component.GetProp(integer, integer): any
+SQInteger ezspComponentGetProp(HSQUIRRELVM vm)
+{
+  const ezComponent* pComponent = GetComponentFromVM(vm, -2);
+
+  if (pComponent == nullptr)
+  {
+    sq_pushnull(vm);
+    return 1;
+  }
+
+  SQInteger uiPropHash;
+  sq_getinteger(vm, -1, &uiPropHash);
+
+  const ezSparkLangScriptContext::PropertyBinding* pBinding = ezSparkLangScriptContext::FindPropertyBinding(uiPropHash);
+
+  if (pBinding == nullptr)
+  {
+    sq_throwerror(vm, _SC("Bound property not found"));
+    return 0;
+  }
+
+  const ezVariant& value = ezReflectionUtils::GetMemberPropertyValue(pBinding->m_pProperty, pComponent);
+
+  PushVariantToVM(vm, value);
+  return 1;
+}
+
+// ez.Component.CallFunc(integer, integer, any...): any
+SQInteger ezspComponentCallFunc(HSQUIRRELVM vm)
+{
+  ezComponent* pComponent = GetComponentFromVM(vm, 2);
+
+  if (pComponent == nullptr)
+    return 0;
+
+  SQInteger uiPropHash;
+  sq_getinteger(vm, 3, &uiPropHash);
+
+  const ezSparkLangScriptContext::FunctionBinding* pBinding = ezSparkLangScriptContext::FindFunctionBinding(uiPropHash);
+
+  if (pBinding == nullptr)
+  {
+    sq_throwerror(vm, _SC("Bound method not found."));
+    return 0;
+  }
+
+  const ezUInt32 uiNumArgs = pBinding->m_pFunction->GetArgumentCount();
+  if (uiNumArgs > sq_gettop(vm) - 3)
+  {
+    sq_throwerror(vm, _SC("Method called with an invalid number of arguments."));
+    return 0;
+  }
+
+  ezVariant ret0;
+  ezStaticArray<ezVariant, 16> args;
+  args.SetCount(uiNumArgs);
+
+  for (ezUInt32 arg = 0; arg < uiNumArgs; ++arg)
+    args[arg] = GetVariantFromVM(vm, 4 + arg, pBinding->m_pFunction->GetArgumentType(arg));
+
+  pBinding->m_pFunction->Execute(pComponent, args, ret0);
+
+  if (pBinding->m_pFunction->GetReturnType() != nullptr)
+  {
+    PushVariantToVM(vm, ret0);
+    return 1;
+  }
+
+  return 0;
+}
+
 SQRESULT ezSparkLangModule::ezComponent(Sqrat::Table& module)
 {
   Sqrat::Table Component(module.GetVM());
@@ -281,7 +379,10 @@ SQRESULT ezSparkLangModule::ezComponent(Sqrat::Table& module)
     .SquirrelFunc(_SC("GetGlobalEventHandlerMode"), ezspComponentGetEventMessageHandlerComponentProp<2>, 2, _SC(".i"))
     .SquirrelFunc(_SC("GetPassThroughUnhandledEvents"), ezspComponentGetEventMessageHandlerComponentProp<3>, 2, _SC(".i"))
     .SquirrelFunc(_SC("BroadcastEvent"), ezspComponentBroadcastEvent, 3, _SC(".ix"))
-    .SquirrelFunc(_SC("SetUpdateInterval"), ezspComponentSetUpdateInterval, 3, _SC(".if"));
+    .SquirrelFunc(_SC("SetUpdateInterval"), ezspComponentSetUpdateInterval, 3, _SC(".if"))
+    .SquirrelFunc(_SC("SetProp"), ezspComponentSetProp, 4, _SC(".ii."))
+    .SquirrelFunc(_SC("GetProp"), ezspComponentGetProp, 3, _SC(".ii"))
+    .SquirrelFunc(_SC("CallFunc"), ezspComponentCallFunc, -3, _SC(".ii"));
 
   module
     .Bind(_SC("Component"), Component);

@@ -273,4 +273,4 @@
 
 ::ezTag <- ez.GameObject.Tag
 
-::ezTagSet <- ez.GameObject.ezTagSet
+::ezTagSet <- ez.GameObject.TagSet

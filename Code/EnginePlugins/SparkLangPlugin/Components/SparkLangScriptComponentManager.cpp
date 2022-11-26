@@ -14,6 +14,12 @@ void ezSparkLangScriptComponentManager::Initialize()
 {
   SUPER::Initialize();
 
+  ezSparkLangScriptContext::SetupComponentFunctionBindings();
+  ezSparkLangScriptContext::SetupComponentPropertyBindings();
+
+  ezSparkLangScriptContext::GenerateComponentScripts();
+  ezSparkLangScriptContext::GenerateMessageScripts();
+
   auto desc = EZ_CREATE_MODULE_UPDATE_FUNCTION_DESC(ezSparkLangScriptComponentManager::Update, this);
   desc.m_bOnlyUpdateWhenSimulating = true;
   desc.m_Phase = UpdateFunctionDesc::Phase::PreAsync;
