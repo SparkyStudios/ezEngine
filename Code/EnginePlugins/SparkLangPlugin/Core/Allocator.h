@@ -14,6 +14,14 @@ public:
   ezSparkLangAllocator();
 };
 
+struct ezSparkLangAllocatorWrapper
+{
+  EZ_ALWAYS_INLINE static ezAllocatorBase* GetAllocator()
+  {
+    return ezSparkLangAllocator::GetSingleton();
+  }
+};
+
 /// \brief EZ allocation context.
 struct SQAllocContextT
 {
