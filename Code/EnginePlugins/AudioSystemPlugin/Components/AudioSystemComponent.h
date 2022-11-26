@@ -3,6 +3,7 @@
 #include <AudioSystemPlugin/AudioSystemPluginDLL.h>
 
 #include <AudioSystemPlugin/Core/AudioSystemData.h>
+#include <AudioSystemPlugin/Core/AudioSystemMessages.h>
 
 #include <Core/World/Component.h>
 #include <Core/World/World.h>
@@ -49,6 +50,7 @@ class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemProxyDependentComponent : public ezA
 
 public:
   void Initialize() override;
+  void OnSimulationStarted() override;
   void Deinitialize() override;
 
   // ezAudiSystemProxyDependentComponent
@@ -89,10 +91,19 @@ public:
   /// the environment amount will slightly start to decrease.
   virtual void SetMaxDistance(float fFadeDistance);
 
+  /// \brief Overrides the computed environment value with the given one.
+  /// \param fValue The override value. Use a negative value to cancel any previous override.
+  void OverrideEnvironmentAmount(float fValue);
+
+  void OnSetAmount(ezMsgAudioSystemSetEnvironmentAmount& msg);
+
 protected:
   float m_fMaxDistance;
   ezString m_sEnvironmentName;
   ezColor m_ShapeColor;
+
+  bool m_bOverrideValue;
+  float m_fOverrideValue;
 };
 
 template <typename T>
