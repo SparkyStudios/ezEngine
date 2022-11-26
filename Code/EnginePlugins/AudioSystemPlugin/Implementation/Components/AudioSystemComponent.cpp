@@ -33,6 +33,12 @@ EZ_BEGIN_ABSTRACT_COMPONENT_TYPE(ezAudioSystemEnvironmentComponent, 1)
     EZ_MEMBER_PROPERTY("Color", m_ShapeColor),
   }
   EZ_END_PROPERTIES;
+
+  EZ_BEGIN_MESSAGEHANDLERS
+  {
+    EZ_MESSAGE_HANDLER(ezMsgAudioSystemSetEnvironmentAmount, OnSetAmount),
+  }
+  EZ_END_MESSAGEHANDLERS;
 }
 EZ_END_ABSTRACT_COMPONENT_TYPE;
 // clang-format on
@@ -57,6 +63,21 @@ void ezAudioSystemProxyDependentComponent::Initialize()
     {
       m_pProxyComponent->AddRef();
     }
+  }
+
+  if (m_pProxyComponent != nullptr)
+  {
+    m_pProxyComponent->EnsureInitialized();
+  }
+}
+
+void ezAudioSystemProxyDependentComponent::OnSimulationStarted()
+{
+  SUPER::OnSimulationStarted();
+
+  if (m_pProxyComponent != nullptr)
+  {
+    m_pProxyComponent->EnsureSimulationStarted();
   }
 }
 
@@ -121,5 +142,29 @@ void ezAudioSystemEnvironmentComponent::SetMaxDistance(float fFadeDistance)
   m_fMaxDistance = fFadeDistance;
 }
 
+void ezAudioSystemEnvironmentComponent::OverrideEnvironmentAmount(float fValue)
+{
+  m_bOverrideValue = fValue >= 0;
+  m_fOverrideValue = m_bOverrideValue ? fValue : m_fOverrideValue;
+}
+
+void ezAudioSystemEnvironmentComponent::OnSetAmount(ezMsgAudioSystemSetEnvironmentAmount& msg)
+{
+  OverrideEnvironmentAmount(msg.m_fAmount);
+
+  if (!m_bOverrideValue)
+    return;
+
+  ezAudioSystemRequestSetEnvironmentAmount request;
+
+  request.m_uiEntityId = GetEntityId();
+  request.m_uiObjectId = GetEnvironmentId();
+  request.m_fAmount = m_fOverrideValue;
+
+  if (msg.m_bSync)
+    ezAudioSystem::GetSingleton()->SendRequestSync(request);
+  else
+    ezAudioSystem::GetSingleton()->SendRequest(request);
+}
 
 EZ_STATICLINK_FILE(AudioSystemPlugin, AudioSystemPlugin_Implementation_Components_AudioSystemComponent);

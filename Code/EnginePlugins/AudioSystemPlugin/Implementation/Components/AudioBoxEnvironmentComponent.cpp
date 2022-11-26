@@ -69,6 +69,9 @@ void ezAudioBoxEnvironmentComponent::DeserializeComponent(ezWorldReader& stream)
 
 float ezAudioBoxEnvironmentComponent::GetEnvironmentAmount(ezAudioProxyComponent* pProxyComponent) const
 {
+  if (m_bOverrideValue)
+    return m_fOverrideValue;
+
   const ezVec3& proxyPosition = pProxyComponent->GetOwner()->GetGlobalPosition();
   const ezVec3& boxCenter = m_Box.GetCenter();
 

@@ -42,4 +42,5 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezMsgAudioSystemSetEnvironmentAmount : public ez
   EZ_DECLARE_MESSAGE_TYPE(ezMsgAudioSystemSetEnvironmentAmount, ezMessage);
 
   float m_fAmount{0.0f};
+  bool m_bSync{false};
 };
