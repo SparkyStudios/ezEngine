@@ -49,6 +49,7 @@ CONSTANT_BUFFER(ezGlobalConstants, 0)
   FLOAT1(WorldTime);
 
   FLOAT1(Exposure);
+  FLOAT1(Aperture);
 
   INT1(RenderPass);
   UINT1(NumMsaaSamples);

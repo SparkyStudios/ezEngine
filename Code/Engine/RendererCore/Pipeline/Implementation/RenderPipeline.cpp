@@ -1111,6 +1111,8 @@ void ezRenderPipeline::Render(ezRenderContext* pRenderContext)
   gc.WorldTime = (float)ezMath::Mod(data.GetWorldTime().GetSeconds(), 20790.0);
 
   gc.Exposure = pCamera->GetExposure();
+  gc.Aperture = pCamera->GetAperture();
+
   gc.RenderPass = ezViewRenderMode::GetRenderPassForShader(pViewData->m_ViewRenderMode);
 
   ezRenderViewContext renderViewContext;

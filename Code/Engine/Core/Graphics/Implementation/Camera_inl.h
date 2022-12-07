@@ -78,6 +78,16 @@ EZ_ALWAYS_INLINE void ezCamera::SetExposure(float fExposure)
   m_fExposure = fExposure;
 }
 
+EZ_ALWAYS_INLINE float ezCamera::GetAperture() const
+{
+    return m_fAperture;
+}
+
+EZ_ALWAYS_INLINE void ezCamera::SetAperture(float fAperture)
+{
+    m_fAperture = fAperture;
+}
+
 EZ_ALWAYS_INLINE const ezMat4& ezCamera::GetViewMatrix(ezCameraEye eye) const
 {
   return m_mViewMatrix[static_cast<int>(eye)];

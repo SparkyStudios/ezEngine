@@ -181,6 +181,10 @@ public:
 
   void SetExposure(float fExposure);
 
+  float GetAperture() const;
+
+  void SetAperture(float fAperture);
+
   /// \brief Returns a counter that is increased every time the camera settings are modified.
   ///
   /// The camera settings are used to compute the projection matrix. This counter can be used to determine whether the projection matrix
@@ -217,6 +221,7 @@ private:
   float m_fFovOrDim = 90.0f;
 
   float m_fExposure = 1.0f;
+  float m_fAperture = 1.0f;
 
   ezVec3 m_vCameraPosition[2];
   ezMat4 m_mViewMatrix[2];

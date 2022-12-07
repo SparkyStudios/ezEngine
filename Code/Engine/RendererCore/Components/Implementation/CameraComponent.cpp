@@ -562,6 +562,7 @@ void ezCameraComponent::ApplySettingsToView(ezView* pView) const
   ezCamera* pCamera = pView->GetCamera();
   pCamera->SetCameraMode(m_Mode, fFovOrDim, m_fNearPlane, ezMath::Max(m_fNearPlane + 0.00001f, m_fFarPlane));
   pCamera->SetExposure(GetExposure());
+  pCamera->SetAperture(GetAperture());
 
   pView->m_IncludeTags = m_IncludeTags;
   pView->m_ExcludeTags = m_ExcludeTags;
