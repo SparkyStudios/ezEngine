@@ -30,6 +30,9 @@
 #define EDITOR_RENDER_PASS_STATIC_VS_DYNAMIC 19
 #define EDITOR_RENDER_PASS_BONE_WEIGHTS 20
 
+#define THREAD_GROUP_COUNT_X 8
+#define THREAD_GROUP_COUNT_Y 8
+
 CONSTANT_BUFFER(ezGlobalConstants, 0)
 {
   // Use functions from CameraConstantsAccess.h to access these and derived camera properties.
@@ -50,6 +53,9 @@ CONSTANT_BUFFER(ezGlobalConstants, 0)
 
   FLOAT1(Exposure);
   FLOAT1(Aperture);
+
+  // Renderer settings
+  FLOAT1(Gamma);
 
   INT1(RenderPass);
   UINT1(NumMsaaSamples);

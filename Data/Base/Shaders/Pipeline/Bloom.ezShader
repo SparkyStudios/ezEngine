@@ -4,151 +4,160 @@ ALL
 [PERMUTATIONS]
 
 BLOOM_PASS_MODE
-CAMERA_MODE
-VERTEX_SHADER_RENDER_TARGET_ARRAY_INDEX
 
-[RENDERSTATE]
+[COMPUTESHADER]
 
-DepthTest = false
-DepthWrite = false
-CullMode = CullMode_None
+#include <Shaders/Common/Utils.h>
 
-[VERTEXSHADER]
-
-#include <Shaders/Pipeline/FullscreenTriangleVertexShader.h>
-
-[GEOMETRYSHADER]
-
-#include <Shaders/Pipeline/FullscreenTriangleStereoGeometryShader.h>
-
-[PIXELSHADER]
-
-#include <Shaders/Pipeline/FullscreenTriangleInterpolator.h>
-#include <Shaders/Common/Common.h>
-#include <Shaders/Common/GlobalConstants.h>
 #include "BloomConstants.h"
 
-#if BLOOM_PASS_MODE == BLOOM_PASS_MODE_UPSCALE
-  Texture2DArray NextColorTexture;
-#endif
+Texture2D ColorTexture;
 
-Texture2DArray ColorTexture;
+RWTexture2D<float4> Output;
 
-#if BLOOM_PASS_MODE == BLOOM_PASS_MODE_UPSCALE
-  #define NUM_SAMPLES 9
-#elif BLOOM_PASS_MODE == BLOOM_PASS_MODE_INITIAL_DOWNSCALE_FAST || BLOOM_PASS_MODE == BLOOM_PASS_MODE_DOWNSCALE_FAST
-  #define NUM_SAMPLES 9
-#else
-  #define NUM_SAMPLES 13
-#endif
+#if BLOOM_PASS_MODE == BLOOM_PASS_MODE_LUMINANCE
 
-#define MAX_COLOR_VALUE 64.0f
-
-float4 main(PS_IN Input) : SV_Target
+[numthreads(THREAD_GROUP_COUNT_X, THREAD_GROUP_COUNT_Y, 1)]
+void main(uint3 threadId : SV_DispatchThreadID)
 {
-  #if CAMERA_MODE == CAMERA_MODE_STEREO
-    s_ActiveCameraEyeIndex = Input.RenderTargetArrayIndex;
-  #endif
+  // Out of bounds check
+  if (any(int2(threadId.xy) >= ViewportSize.xy))
+    return;
 
-  #if BLOOM_PASS_MODE == BLOOM_PASS_MODE_UPSCALE
-    float3 offsetAndWeights[NUM_SAMPLES] =
-    {
-      float3( 0.0f,  0.0f, 4.0f / 16.0f),
-      float3(-1.0f,  0.0f, 2.0f / 16.0f),
-      float3( 1.0f,  0.0f, 2.0f / 16.0f),
-      float3( 0.0f, -1.0f, 2.0f / 16.0f),
-      float3( 0.0f,  1.0f, 2.0f / 16.0f),
-      float3(-1.0f,  1.0f, 1.0f / 16.0f),
-      float3( 1.0f,  1.0f, 1.0f / 16.0f),
-      float3(-1.0f, -1.0f, 1.0f / 16.0f),
-      float3( 1.0f, -1.0f, 1.0f / 16.0f)
-    };
-
-    float3 color = NextColorTexture.SampleLevel(LinearClampSampler, float3(Input.TexCoord0.xy, s_ActiveCameraEyeIndex), 0.0).rgb * TintColor.rgb;
-
-  #elif BLOOM_PASS_MODE == BLOOM_PASS_MODE_INITIAL_DOWNSCALE_FAST || BLOOM_PASS_MODE == BLOOM_PASS_MODE_DOWNSCALE_FAST
-    float3 offsetAndWeights[NUM_SAMPLES] =
-    {
-      float3( 0.0f,      0.0f,     4.0f / 16.0f),
-      float3(-0.875f,    0.0f,     2.0f / 16.0f),
-      float3( 0.875f,    0.0f,     2.0f / 16.0f),
-      float3( 0.0f,     -0.875f,   2.0f / 16.0f),
-      float3( 0.0f,      0.875f,   2.0f / 16.0f),
-      float3(-0.85256f,  0.85256f, 1.0f / 16.0f),
-      float3( 0.85256f,  0.85256f, 1.0f / 16.0f),
-      float3(-0.85256f, -0.85256f, 1.0f / 16.0f),
-      float3( 0.85256f, -0.85256f, 1.0f / 16.0f)
-    };
-
-    float3 color = 0.0f;
-
-  #else
-    float3 offsetAndWeights[NUM_SAMPLES] =
-    {
-      float3( 0.0f,  0.0f, 4.0f / 32.0f),
-      float3(-0.5f,  0.5f, 4.0f / 32.0f),
-      float3( 0.5f,  0.5f, 4.0f / 32.0f),
-      float3(-0.5f, -0.5f, 4.0f / 32.0f),
-      float3( 0.5f, -0.5f, 4.0f / 32.0f),
-      float3(-1.0f,  0.0f, 2.0f / 32.0f),
-      float3( 1.0f,  0.0f, 2.0f / 32.0f),
-      float3( 0.0f, -1.0f, 2.0f / 32.0f),
-      float3( 0.0f,  1.0f, 2.0f / 32.0f),
-      float3(-1.0f,  1.0f, 1.0f / 32.0f),
-      float3( 1.0f,  1.0f, 1.0f / 32.0f),
-      float3(-1.0f, -1.0f, 1.0f / 32.0f),
-      float3( 1.0f, -1.0f, 1.0f / 32.0f)
-    };
-
-    float3 color = 0.0f;
-  #endif
-
-  float totalWeight = 0.0f;
-
-  for (uint i = 0; i < NUM_SAMPLES; ++i)
-  {
-    float2 texCoord = offsetAndWeights[i].xy * PixelSize + Input.TexCoord0.xy;
-
-    float3 sampleColor = ColorTexture.SampleLevel(LinearClampSampler, float3(texCoord, s_ActiveCameraEyeIndex), 0.0).rgb;
-    float weight = offsetAndWeights[i].z;
-
-    #if BLOOM_PASS_MODE == BLOOM_PASS_MODE_INITIAL_DOWNSCALE || BLOOM_PASS_MODE == BLOOM_PASS_MODE_INITIAL_DOWNSCALE_FAST
-      float luminance = GetLuminance(sampleColor) * Exposure;
-      weight *= 1.0f / (1.0f + luminance);
-    #endif
-
-    color += sampleColor * weight;
-    totalWeight += weight;
-  }
-
-  color /= max(totalWeight, 0.00001f);
-
-  #if BLOOM_PASS_MODE == BLOOM_PASS_MODE_INITIAL_DOWNSCALE || BLOOM_PASS_MODE == BLOOM_PASS_MODE_INITIAL_DOWNSCALE_FAST
-    float luminance = GetLuminance(color) * Exposure;
-    float thresholdedLuminance = saturate(luminance - BloomThreshold);
-    float intensity = thresholdedLuminance * BloomIntensity;
-
-    color *= intensity;
-
-    // keep colors in reasonable range
-    float maxValue = max(max(color.r, color.g), color.b);
-    if (maxValue > MAX_COLOR_VALUE)
-    {
-      color *= MAX_COLOR_VALUE / maxValue;
-    }
-
-    // tone down the screen edges a bit
-    float2 centeredCoords = Input.TexCoord0.xy - 0.5f;
-    float distance = dot(centeredCoords, centeredCoords);
-    float vignette = saturate(-2.4f * distance + 1.4f);
-    vignette *= vignette;
-
-    color *= vignette;
-  #endif
-
-  #if BLOOM_PASS_MODE != BLOOM_PASS_MODE_UPSCALE
-    color *= TintColor.rgb;
-  #endif
-
-  return float4(color, 1.0f);
+  float3 color = ColorTexture[threadId.xy].rgb;
+  Output[threadId.xy] = float4(saturate_16(GetLuminance(color) * color * Exposure * BloomIntensity), Output[threadId.xy].a);
 }
+
+#endif
+
+#if BLOOM_PASS_MODE == BLOOM_PASS_MODE_DOWNSCALE
+
+#define A_GPU
+#define A_HLSL
+#define SPD_NO_WAVE_OPERATIONS
+#define SPD_LINEAR_SAMPLER
+
+#include <Shaders/ThirdParty/FFX/A.h>
+
+groupshared AF4 spd_intermediate[16][16];
+groupshared AU1 spd_counter;
+
+globallycoherent RWStructuredBuffer<ezAtomicCounterBuffer> AtomicCounter;
+globallycoherent RWTexture2D<float4> DownsampleOutput[12];
+
+AF4 SpdLoadSourceImage(ASU2 p, AU1 slice)
+{
+  float2 uv = (p + 0.5f) / ViewportSize.xy;
+  return ColorTexture.SampleLevel(LinearClampSampler, uv, 0);
+}
+
+// Load from mip 5
+AF4 SpdLoad(ASU2 pos, AU1 slice)
+{
+  return DownsampleOutput[5][pos];
+}
+
+void SpdStore(ASU2 pos, AF4 value, AU1 index, AU1 slice)
+{
+  DownsampleOutput[index][pos] = value;
+}
+
+AF4 SpdLoadIntermediate(AU1 x, AU1 y)
+{
+  return spd_intermediate[x][y];
+}
+
+void SpdStoreIntermediate(AU1 x, AU1 y, AF4 value)
+{
+  spd_intermediate[x][y] = value;
+}
+
+AF4 SpdReduce4(AF4 s1, AF4 s2, AF4 s3, AF4 s4)
+{
+  // luminance weighted average
+  float s1w = 1 / (GetLuminance(s1) + 1);
+  float s2w = 1 / (GetLuminance(s2) + 1);
+  float s3w = 1 / (GetLuminance(s3) + 1);
+  float s4w = 1 / (GetLuminance(s4) + 1);
+  float one_div_wsum = 1.0 / (s1w + s2w + s3w + s4w);
+  return (s1 * s1w + s2 * s2w + s3 * s3w + s4 * s4w) * one_div_wsum;
+}
+
+void SpdIncreaseAtomicCounter(AU1 slice)
+{
+  InterlockedAdd(AtomicCounter[0].Value, 1, spd_counter);
+}
+
+AU1 SpdGetAtomicCounter()
+{
+  return spd_counter;
+}
+
+void SpdResetAtomicCounter(AU1 slice)
+{
+  AtomicCounter[0].Value = 0;
+}
+
+#include <Shaders/ThirdParty/FFX/SPD.h>
+
+[numthreads(256, 1, 1)]
+void main(uint3 workGroupId : SV_GroupID, uint localThreadIndex : SV_GroupIndex)
+{
+  SpdDownsample(workGroupId.xy, localThreadIndex, MipCount, WorkGroupCount, workGroupId.z);
+}
+
+#endif
+
+#if BLOOM_PASS_MODE == BLOOM_PASS_MODE_UPSCALE_BLEND_MIP
+
+// warning: passing "tex" as a parameter will cause spirv-cross to reflect nothing for this shader.
+float3 tent_antiflicker_filter(float2 uv, float2 texel_size)
+{
+  // Tent
+  float4 d  = texel_size.xyxy * float4(-1.0f, -1.0f, 1.0f, 1.0f) * 2.0f;
+  float3 s1 = ColorTexture.SampleLevel(LinearClampSampler, uv + d.xy, 0.0f).rgb;
+  float3 s2 = ColorTexture.SampleLevel(LinearClampSampler, uv + d.zy, 0.0f).rgb;
+  float3 s3 = ColorTexture.SampleLevel(LinearClampSampler, uv + d.xw, 0.0f).rgb;
+  float3 s4 = ColorTexture.SampleLevel(LinearClampSampler, uv + d.zw, 0.0f).rgb;
+
+  // Luma weighted average
+  float s1w = 1.0f / (GetLuminance(s1) + 1.0f);
+  float s2w = 1.0f / (GetLuminance(s2) + 1.0f);
+  float s3w = 1.0f / (GetLuminance(s3) + 1.0f);
+  float s4w = 1.0f / (GetLuminance(s4) + 1.0f);
+  float one_div_wsum = 1.0f / (s1w + s2w + s3w + s4w);
+
+  return (s1 * s1w + s2 * s2w + s3 * s3w + s4 * s4w) * one_div_wsum;
+}
+
+[numthreads(THREAD_GROUP_COUNT_X, THREAD_GROUP_COUNT_Y, 1)]
+void main(uint3 threadId : SV_DispatchThreadID)
+{
+  // Out of bounds check
+  if (any(int2(threadId.xy) >= ViewportSize.xy))
+    return;
+
+  const float2 uv        = (threadId.xy + 0.5f) * PixelSize;
+  float3 upsampled_color = tent_antiflicker_filter(uv, PixelSize * 0.5f);
+  Output[threadId.xy]    = float4(saturate_16(Output[threadId.xy].rgb + upsampled_color * 0.5f), Output[threadId.xy].a);
+}
+
+#endif
+
+#if BLOOM_PASS_MODE == BLOOM_PASS_MODE_BLEND_FRAME
+
+Texture2D MipTexture;
+
+[numthreads(THREAD_GROUP_COUNT_X, THREAD_GROUP_COUNT_Y, 1)]
+void main(uint3 threadId : SV_DispatchThreadID)
+{
+  // Out of bounds check
+  if (any(int2(threadId.xy) >= ViewportSize.xy))
+    return;
+
+  float4 color_frame    = ColorTexture[threadId.xy];
+  float4 color_mip      = MipTexture[threadId.xy];
+  Output[threadId.xy]   = saturate_16(color_frame + color_mip * BloomIntensity);
+}
+
+#endif

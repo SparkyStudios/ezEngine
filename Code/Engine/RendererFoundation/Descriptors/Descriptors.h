@@ -311,6 +311,8 @@ struct ezGALResourceViewCreationDescription : public ezHashableStruct<ezGALResou
 
   ezEnum<ezGALResourceFormat> m_OverrideViewFormat = ezGALResourceFormat::Invalid;
 
+  bool m_bUnsetUAV = true;
+
   // Texture only
   ezUInt32 m_uiMostDetailedMipLevel = 0;
   ezUInt32 m_uiMipLevelsToUse = 0xFFFFFFFFu;
@@ -345,6 +347,8 @@ struct ezGALUnorderedAccessViewCreationDescription : public ezHashableStruct<ezG
   ezGALBufferHandle m_hBuffer;
 
   ezEnum<ezGALResourceFormat> m_OverrideViewFormat = ezGALResourceFormat::Invalid;
+
+  bool m_bUnsetResourceView = true;
 
   // Texture only
   ezUInt32 m_uiMipLevelToUse = 0;   ///< Which MipLevel is accessed with this UAV

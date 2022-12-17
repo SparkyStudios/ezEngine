@@ -61,9 +61,16 @@ float4 RGBA16FToFloat4(uint rg, uint ba)
   return float4(RG16FToFloat2(rg), RG16FToFloat2(ba));
 }
 
+static const float3 lumCoeff = float3(0.299f, 0.587f, 0.114f);
+
 float GetLuminance(float3 color)
 {
-  return dot(color, float3(0.2126, 0.7152, 0.0722));
+  return max(dot(color, lumCoeff), 0.0001f);
+}
+
+float GetLuminance(float4 color)
+{
+    return max(dot(color.rgb, lumCoeff), 0.0001f);
 }
 
 float3 SrgbToLinear(float3 color)
@@ -81,7 +88,7 @@ float3 CubeMapDirection(float3 inDirection)
   return float3(inDirection.x, inDirection.z, -inDirection.y);
 }
 
-float3 DecodeNormalTexture(float4 normalTex)
+float3 DecodeNormalTexture(float4 normalTex, in float intensity = 1.0f)
 {
   float2 xy = normalTex.xy * 2.0f - 1.0f;
   float z = sqrt(max(1.0f - dot(xy, xy), 0.0));

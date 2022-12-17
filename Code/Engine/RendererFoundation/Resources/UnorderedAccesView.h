@@ -9,16 +9,19 @@ class EZ_RENDERERFOUNDATION_DLL ezGALUnorderedAccessView : public ezGALObject<ez
 public:
   EZ_ALWAYS_INLINE ezGALResourceBase* GetResource() const { return m_pResource; }
 
+  EZ_ALWAYS_INLINE bool ShouldUnsetResourceView() const { return m_bUnsetResourceView; }
+
 protected:
   friend class ezGALDevice;
 
   ezGALUnorderedAccessView(ezGALResourceBase* pResource, const ezGALUnorderedAccessViewCreationDescription& description);
 
-  virtual ~ezGALUnorderedAccessView();
+  ~ezGALUnorderedAccessView() override;
 
   virtual ezResult InitPlatform(ezGALDevice* pDevice) = 0;
 
   virtual ezResult DeInitPlatform(ezGALDevice* pDevice) = 0;
 
   ezGALResourceBase* m_pResource;
+  bool m_bUnsetResourceView;
 };

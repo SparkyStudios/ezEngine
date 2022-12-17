@@ -84,7 +84,7 @@ void ezGALCommandEncoder::SetResourceView(ezGALShaderStage::Enum Stage, ezUInt32
   }
 
   const ezGALResourceView* pResourceView = m_Device.GetResourceView(hResourceView);
-  if (pResourceView != nullptr)
+  if (pResourceView != nullptr && pResourceView->ShouldUnsetUAV())
   {
     if (UnsetUnorderedAccessViews(pResourceView->GetResource()))
     {
@@ -117,7 +117,7 @@ void ezGALCommandEncoder::SetUnorderedAccessView(ezUInt32 uiSlot, ezGALUnordered
   }
 
   const ezGALUnorderedAccessView* pUnorderedAccessView = m_Device.GetUnorderedAccessView(hUnorderedAccessView);
-  if (pUnorderedAccessView != nullptr)
+  if (pUnorderedAccessView != nullptr && pUnorderedAccessView->ShouldUnsetResourceView())
   {
     if (UnsetResourceViews(pUnorderedAccessView->GetResource()))
     {
@@ -161,6 +161,16 @@ bool ezGALCommandEncoder::UnsetResourceViews(const ezGALResourceBase* pResource)
   return bResult;
 }
 
+bool ezGALCommandEncoder::UnsetResourceViews(ezGALResourceViewHandle hResourceView)
+{
+  if (const ezGALResourceView* pResourceView = m_Device.GetResourceView(hResourceView); pResourceView != nullptr)
+  {
+    return UnsetResourceViews(pResourceView->GetResource());
+  }
+
+  return false;
+}
+
 bool ezGALCommandEncoder::UnsetUnorderedAccessViews(const ezGALResourceBase* pResource)
 {
   EZ_ASSERT_DEV(pResource->GetParentResource() == pResource, "No proxies allowed");
@@ -181,6 +191,16 @@ bool ezGALCommandEncoder::UnsetUnorderedAccessViews(const ezGALResourceBase* pRe
   }
 
   return bResult;
+}
+
+bool ezGALCommandEncoder::UnsetUnorderedAccessViews(ezGALUnorderedAccessViewHandle hUnorderedAccessView)
+{
+  if (const ezGALUnorderedAccessView* pUnorderedAccessView = m_Device.GetUnorderedAccessView(hUnorderedAccessView); pUnorderedAccessView != nullptr)
+  {
+    return UnsetUnorderedAccessViews(pUnorderedAccessView->GetResource());
+  }
+
+  return false;
 }
 
 void ezGALCommandEncoder::BeginQuery(ezGALQueryHandle hQuery)

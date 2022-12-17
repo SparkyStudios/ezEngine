@@ -6,7 +6,7 @@
 #include <RendererCore/RenderContext/RenderContext.h>
 #include <RendererFoundation/Profiling/Profiling.h>
 
-#include <RendererCore/../../../Data/Base/Shaders/Pipeline/BloomConstants.h>
+#include "../../../../../../Data/Base/Shaders/Pipeline/BloomConstants.h"
 
 // clang-format off
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezBloomPass, 1, ezRTTIDefaultAllocator<ezBloomPass>)
@@ -14,13 +14,10 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezBloomPass, 1, ezRTTIDefaultAllocator<ezBloomPa
   EZ_BEGIN_PROPERTIES
   {
     EZ_MEMBER_PROPERTY("Input", m_PinInput),
-    EZ_MEMBER_PROPERTY("Output", m_PinOutput),
-    EZ_MEMBER_PROPERTY("Radius", m_fRadius)->AddAttributes(new ezDefaultValueAttribute(0.2f), new ezClampValueAttribute(0.01f, 1.0f)),
-    EZ_MEMBER_PROPERTY("Threshold", m_fThreshold)->AddAttributes(new ezDefaultValueAttribute(1.0f)),
+    EZ_MEMBER_PROPERTY("Output", m_PinBloomOutput),
+    EZ_MEMBER_PROPERTY("BlendOutput", m_PinBlendOutput),
     EZ_MEMBER_PROPERTY("Intensity", m_fIntensity)->AddAttributes(new ezDefaultValueAttribute(0.3f)),
-    EZ_MEMBER_PROPERTY("InnerTintColor", m_InnerTintColor),
-    EZ_MEMBER_PROPERTY("MidTintColor", m_MidTintColor),
-    EZ_MEMBER_PROPERTY("OuterTintColor", m_OuterTintColor),
+    EZ_MEMBER_PROPERTY("MipCount", m_uiMipCount)->AddAttributes(new ezClampValueAttribute(1, 12), new ezDefaultValueAttribute(6)),
   }
   EZ_END_PROPERTIES;
 }
@@ -29,28 +26,46 @@ EZ_END_DYNAMIC_REFLECTED_TYPE;
 
 ezBloomPass::ezBloomPass()
   : ezRenderPipelinePass("BloomPass", true)
-  , m_fRadius(0.2f)
-  , m_fThreshold(1.0f)
   , m_fIntensity(0.3f)
-  , m_InnerTintColor(ezColor::White)
-  , m_MidTintColor(ezColor::White)
-  , m_OuterTintColor(ezColor::White)
+  , m_uiMipCount(6)
 {
+  ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
+
+  // Load shader.
   {
-    // Load shader.
-    m_hShader = ezResourceManager::LoadResource<ezShaderResource>("Shaders/Pipeline/Bloom.ezShader");
-    EZ_ASSERT_DEV(m_hShader.IsValid(), "Could not load bloom shader!");
+    m_hBloomShader = ezResourceManager::LoadResource<ezShaderResource>("Shaders/Pipeline/Bloom.ezShader");
+    EZ_ASSERT_DEV(m_hBloomShader.IsValid(), "Could not load bloom shader!");
   }
 
+  // Load resources.
   {
-    m_hConstantBuffer = ezRenderContext::CreateConstantBufferStorage<ezBloomConstants>();
+    m_hBloomConstantBuffer = ezRenderContext::CreateConstantBufferStorage<ezBloomConstants>();
+
+    ezGALBufferCreationDescription desc;
+    desc.m_uiStructSize = 4;
+    desc.m_uiTotalSize = desc.m_uiStructSize;
+    desc.m_BufferType = ezGALBufferType::Generic;
+    desc.m_bAllowUAV = true;
+    desc.m_bUseAsStructuredBuffer = true;
+    desc.m_bAllowShaderResourceView = true;
+    desc.m_ResourceAccess.m_bImmutable = false;
+
+    m_DownsampleAtomicCounter = EZ_NEW_ARRAY(ezAlignedAllocatorWrapper::GetAllocator(), ezAtomicCounterBuffer, 1);
+    m_DownsampleAtomicCounter[0].Value = 0;
+
+    m_hDownsampleAtomicCounterBuffer = pDevice->CreateBuffer(desc, m_DownsampleAtomicCounter.ToByteArray());
   }
 }
 
 ezBloomPass::~ezBloomPass()
 {
-  ezRenderContext::DeleteConstantBufferStorage(m_hConstantBuffer);
-  m_hConstantBuffer.Invalidate();
+  ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
+  pDevice->DestroyBuffer(m_hDownsampleAtomicCounterBuffer);
+
+  EZ_DELETE_ARRAY(ezAlignedAllocatorWrapper::GetAllocator(), m_DownsampleAtomicCounter);
+
+  ezRenderContext::DeleteConstantBufferStorage(m_hBloomConstantBuffer);
+  m_hBloomConstantBuffer.Invalidate();
 }
 
 bool ezBloomPass::GetRenderTargetDescriptions(const ezView& view, const ezArrayPtr<ezGALTextureCreationDescription* const> inputs, ezArrayPtr<ezGALTextureCreationDescription> outputs)
@@ -64,13 +79,27 @@ bool ezBloomPass::GetRenderTargetDescriptions(const ezView& view, const ezArrayP
       return false;
     }
 
-    // Output is half-res
-    ezGALTextureCreationDescription desc = *inputs[m_PinInput.m_uiInputIndex];
-    desc.m_uiWidth = desc.m_uiWidth / 2;
-    desc.m_uiHeight = desc.m_uiHeight / 2;
-    desc.m_Format = ezGALResourceFormat::RG11B10Float;
+    // Bloom Output is half-res
+    {
+      ezGALTextureCreationDescription desc = *inputs[m_PinInput.m_uiInputIndex];
+      //      desc.m_uiWidth = desc.m_uiWidth / 2;
+      //      desc.m_uiHeight = desc.m_uiHeight / 2;
+      desc.m_uiMipLevelCount = m_uiMipCount;
+      desc.m_bAllowUAV = true;
+      desc.m_bAllowShaderResourceView = true;
+      desc.m_Format = ezGALResourceFormat::RG11B10Float;
 
-    outputs[m_PinOutput.m_uiOutputIndex] = desc;
+      outputs[m_PinBloomOutput.m_uiOutputIndex] = std::move(desc);
+    }
+
+    // Blend Output is same res
+    {
+      ezGALTextureCreationDescription desc = *inputs[m_PinInput.m_uiInputIndex];
+      desc.m_bAllowUAV = true;
+      desc.m_bAllowShaderResourceView = true;
+
+      outputs[m_PinBlendOutput.m_uiOutputIndex] = std::move(desc);
+    }
   }
   else
   {
@@ -83,175 +112,174 @@ bool ezBloomPass::GetRenderTargetDescriptions(const ezView& view, const ezArrayP
 
 void ezBloomPass::Execute(const ezRenderViewContext& renderViewContext, const ezArrayPtr<ezRenderPipelinePassConnection* const> inputs, const ezArrayPtr<ezRenderPipelinePassConnection* const> outputs)
 {
-  auto pColorInput = inputs[m_PinInput.m_uiInputIndex];
-  auto pColorOutput = outputs[m_PinOutput.m_uiOutputIndex];
-  if (pColorInput == nullptr || pColorOutput == nullptr)
+  const auto* const pColorInput = inputs[m_PinInput.m_uiInputIndex];
+  const auto* const pBloomOutput = outputs[m_PinBloomOutput.m_uiOutputIndex];
+  const auto* const pBlendOutput = outputs[m_PinBlendOutput.m_uiOutputIndex];
+
+  if (pColorInput == nullptr || pBloomOutput == nullptr)
   {
     return;
   }
 
+  ezTempHashedString sLuminancePass = "BLOOM_PASS_MODE_LUMINANCE";
+  ezTempHashedString sUpscaleBlendPass = "BLOOM_PASS_MODE_UPSCALE_BLEND_MIP";
+  ezTempHashedString sColorBlendPass = "BLOOM_PASS_MODE_BLEND_FRAME";
+
   ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
-  ezGALPass* pGALPass = pDevice->BeginPass(GetName());
-  EZ_SCOPE_EXIT(pDevice->EndPass(pGALPass));
 
-  ezUInt32 uiWidth = pColorInput->m_Desc.m_uiWidth;
-  ezUInt32 uiHeight = pColorInput->m_Desc.m_uiHeight;
-  bool bFastDownscale = ezMath::IsEven(uiWidth) && ezMath::IsEven(uiHeight);
+  ezResourceManager::ForceLoadResourceNow(m_hBloomShader);
 
-  const float fMaxRes = (float)ezMath::Max(uiWidth, uiHeight);
-  const float fRadius = ezMath::Clamp(m_fRadius, 0.01f, 1.0f);
-  const float fDownscaledSize = 4.0f / fRadius;
-  const float fNumBlurPasses = ezMath::Log2(fMaxRes / fDownscaledSize);
-  const ezUInt32 uiNumBlurPasses = (ezUInt32)ezMath::Ceil(fNumBlurPasses);
+  const bool bAllowAsyncShaderLoading = renderViewContext.m_pRenderContext->GetAllowAsyncShaderLoading();
+  renderViewContext.m_pRenderContext->SetAllowAsyncShaderLoading(false);
 
-  // Find temp targets
-  ezHybridArray<ezVec2, 8> targetSizes;
-  ezHybridArray<ezGALTextureHandle, 8> tempDownscaleTextures;
-  ezHybridArray<ezGALTextureHandle, 8> tempUpscaleTextures;
+  ezGALPass* pPass = pDevice->BeginPass(GetName());
+  EZ_SCOPE_EXIT(
+    pDevice->EndPass(pPass);
+    renderViewContext.m_pRenderContext->SetAllowAsyncShaderLoading(bAllowAsyncShaderLoading););
 
-  for (ezUInt32 i = 0; i < uiNumBlurPasses; ++i)
+  const ezUInt32 uiBloomWidth = pBloomOutput->m_Desc.m_uiWidth;
+  const ezUInt32 uiBloomHeight = pBloomOutput->m_Desc.m_uiHeight;
+
+  // Luminance pass
   {
-    uiWidth = ezMath::Max(uiWidth / 2, 1u);
-    uiHeight = ezMath::Max(uiHeight / 2, 1u);
-    targetSizes.PushBack(ezVec2((float)uiWidth, (float)uiHeight));
-    auto uiSliceCount = pColorOutput->m_Desc.m_uiArraySize;
+    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "Luminance");
 
-    tempDownscaleTextures.PushBack(ezGPUResourcePool::GetDefaultInstance()->GetRenderTarget(uiWidth, uiHeight, ezGALResourceFormat::RG11B10Float, ezGALMSAASampleCount::None, uiSliceCount));
+    renderViewContext.m_pRenderContext->BindShader(m_hBloomShader);
 
-    // biggest upscale target is the output and lowest is not needed
-    if (i > 0 && i < uiNumBlurPasses - 1)
+    ezGALUnorderedAccessViewHandle hLuminanceOutput;
     {
-      tempUpscaleTextures.PushBack(ezGPUResourcePool::GetDefaultInstance()->GetRenderTarget(uiWidth, uiHeight, ezGALResourceFormat::RG11B10Float, ezGALMSAASampleCount::None, uiSliceCount));
+      ezGALUnorderedAccessViewCreationDescription desc;
+      desc.m_hTexture = pBloomOutput->m_TextureHandle;
+      desc.m_uiMipLevelToUse = 0;
+      hLuminanceOutput = pDevice->CreateUnorderedAccessView(desc);
     }
-    else
+
+    renderViewContext.m_pRenderContext->BindUAV("Output", hLuminanceOutput);
+    renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", pDevice->GetDefaultResourceView(pColorInput->m_TextureHandle));
+    renderViewContext.m_pRenderContext->BindConstantBuffer("ezBloomConstants", m_hBloomConstantBuffer);
+
+    renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", sLuminancePass);
+
+    const ezUInt32 uiDispatchX = (uiBloomWidth + THREAD_GROUP_COUNT_X - 1) / THREAD_GROUP_COUNT_X;
+    const ezUInt32 uiDispatchY = (uiBloomHeight + THREAD_GROUP_COUNT_Y - 1) / THREAD_GROUP_COUNT_Y;
+
+    UpdateBloomConstantBuffer(ezVec2(1.0f / static_cast<float>(uiBloomWidth), 1.0f / static_cast<float>(uiBloomHeight)), uiDispatchX * uiDispatchY);
+
+    renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
+
+    // Cleanup
+    pCommandEncoder->UnsetResourceViews(pDevice->GetDefaultResourceView(pColorInput->m_TextureHandle));
+    pCommandEncoder->UnsetUnorderedAccessViews(hLuminanceOutput);
+  }
+
+  // Downsample pass
+  {
+    DownsamplePass(pPass, renderViewContext, pBloomOutput);
+  }
+
+  // Upsample and Blend pass
+  {
+    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "UpscaleBlend");
+
+    renderViewContext.m_pRenderContext->BindShader(m_hBloomShader);
+
+    for (ezUInt32 i = m_uiMipCount - 1; i > 0; --i)
     {
-      tempUpscaleTextures.PushBack(ezGALTextureHandle());
+      ezUInt32 uiMipSmall = i;
+      ezUInt32 uiMipLarge = i - 1;
+
+      ezUInt32 uiMipLargeWidth = uiBloomWidth >> uiMipLarge;
+      ezUInt32 uiMipLargeHeight = uiBloomHeight >> uiMipLarge;
+
+      ezGALResourceViewHandle hUpscaleBlendInput;
+      {
+        ezGALResourceViewCreationDescription desc;
+        desc.m_hTexture = pBloomOutput->m_TextureHandle;
+        desc.m_uiMostDetailedMipLevel = uiMipSmall;
+        desc.m_uiMipLevelsToUse = 1;
+        desc.m_bUnsetUAV = false;
+        hUpscaleBlendInput = pDevice->CreateResourceView(desc);
+      }
+
+      ezGALUnorderedAccessViewHandle hUpscaleBlendOutput;
+      {
+        ezGALUnorderedAccessViewCreationDescription desc;
+        desc.m_hTexture = pBloomOutput->m_TextureHandle;
+        desc.m_uiMipLevelToUse = uiMipLarge;
+        desc.m_bUnsetResourceView = false;
+        hUpscaleBlendOutput = pDevice->CreateUnorderedAccessView(desc);
+      }
+
+      renderViewContext.m_pRenderContext->BindUAV("Output", hUpscaleBlendOutput);
+      renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", hUpscaleBlendInput);
+      renderViewContext.m_pRenderContext->BindConstantBuffer("ezBloomConstants", m_hBloomConstantBuffer);
+
+      renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", sUpscaleBlendPass);
+
+      const auto uiDispatchX = static_cast<ezUInt32>(ezMath::Ceil(static_cast<float>(uiMipLargeWidth) / THREAD_GROUP_COUNT_X));
+      const auto uiDispatchY = static_cast<ezUInt32>(ezMath::Ceil(static_cast<float>(uiMipLargeHeight) / THREAD_GROUP_COUNT_Y));
+
+      UpdateBloomConstantBuffer(ezVec2(1.0f / static_cast<float>(uiMipLargeWidth), 1.0f / static_cast<float>(uiMipLargeHeight)), uiDispatchX * uiDispatchY);
+
+      renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
+
+      // Cleanup
+      pCommandEncoder->UnsetResourceViews(hUpscaleBlendInput);
+      pCommandEncoder->UnsetUnorderedAccessViews(hUpscaleBlendOutput);
     }
   }
 
-  renderViewContext.m_pRenderContext->BindConstantBuffer("ezBloomConstants", m_hConstantBuffer);
-  renderViewContext.m_pRenderContext->BindShader(m_hShader);
-
-  renderViewContext.m_pRenderContext->BindMeshBuffer(ezGALBufferHandle(), ezGALBufferHandle(), nullptr, ezGALPrimitiveTopology::Triangles, 1);
-
-  // Downscale passes
+  // Color Blend
+  if (pBlendOutput != nullptr)
   {
-    ezTempHashedString sInitialDownscale = "BLOOM_PASS_MODE_INITIAL_DOWNSCALE";
-    ezTempHashedString sInitialDownscaleFast = "BLOOM_PASS_MODE_INITIAL_DOWNSCALE_FAST";
-    ezTempHashedString sDownscale = "BLOOM_PASS_MODE_DOWNSCALE";
-    ezTempHashedString sDownscaleFast = "BLOOM_PASS_MODE_DOWNSCALE_FAST";
+    const ezUInt32 uiBlendWidth = pBlendOutput->m_Desc.m_uiWidth;
+    const ezUInt32 uiBlendHeight = pBlendOutput->m_Desc.m_uiHeight;
 
-    for (ezUInt32 i = 0; i < uiNumBlurPasses; ++i)
+    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "ColorBlend");
+
+    renderViewContext.m_pRenderContext->BindShader(m_hBloomShader);
+
+    ezGALResourceViewHandle hBloomInput;
     {
-      ezGALTextureHandle hInput;
-      if (i == 0)
-      {
-        hInput = pColorInput->m_TextureHandle;
-        renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", bFastDownscale ? sInitialDownscaleFast : sInitialDownscale);
-      }
-      else
-      {
-        hInput = tempDownscaleTextures[i - 1];
-        renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", bFastDownscale ? sDownscaleFast : sDownscale);
-      }
-
-      ezGALTextureHandle hOutput = tempDownscaleTextures[i];
-      ezVec2 targetSize = targetSizes[i];
-
-      ezGALRenderingSetup renderingSetup;
-      renderingSetup.m_RenderTargetSetup.SetRenderTarget(0, pDevice->GetDefaultRenderTargetView(hOutput));
-      renderViewContext.m_pRenderContext->BeginRendering(pGALPass, renderingSetup, ezRectFloat(targetSize.x, targetSize.y), "Downscale", renderViewContext.m_pCamera->IsStereoscopic());
-
-      ezColor tintColor = (i == uiNumBlurPasses - 1) ? ezColor(m_OuterTintColor) : ezColor::White;
-      UpdateConstantBuffer(ezVec2(1.0f).CompDiv(targetSize), tintColor);
-
-      renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", pDevice->GetDefaultResourceView(hInput));
-      renderViewContext.m_pRenderContext->DrawMeshBuffer().IgnoreResult();
-
-      renderViewContext.m_pRenderContext->EndRendering();
-
-      bFastDownscale = ezMath::IsEven((ezInt32)targetSize.x) && ezMath::IsEven((ezInt32)targetSize.y);
+      ezGALResourceViewCreationDescription desc;
+      desc.m_hTexture = pBloomOutput->m_TextureHandle;
+      desc.m_uiMostDetailedMipLevel = 0;
+      desc.m_uiMipLevelsToUse = 1;
+      hBloomInput = pDevice->CreateResourceView(desc);
     }
-  }
 
-  // Upscale passes
-  {
-    const float fBlurRadius = 2.0f * fNumBlurPasses / uiNumBlurPasses;
-    const float fMidPass = (uiNumBlurPasses - 1.0f) / 2.0f;
-
-    renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", "BLOOM_PASS_MODE_UPSCALE");
-
-    for (ezUInt32 i = uiNumBlurPasses - 1; i-- > 0;)
+    ezGALUnorderedAccessViewHandle hColorBlendOutput;
     {
-      ezGALTextureHandle hNextInput = tempDownscaleTextures[i];
-      ezGALTextureHandle hInput;
-      if (i == uiNumBlurPasses - 2)
-      {
-        hInput = tempDownscaleTextures[i + 1];
-      }
-      else
-      {
-        hInput = tempUpscaleTextures[i + 1];
-      }
-
-      ezGALTextureHandle hOutput;
-      if (i == 0)
-      {
-        hOutput = pColorOutput->m_TextureHandle;
-      }
-      else
-      {
-        hOutput = tempUpscaleTextures[i];
-      }
-
-      ezVec2 targetSize = targetSizes[i];
-
-      ezGALRenderingSetup renderingSetup;
-      renderingSetup.m_RenderTargetSetup.SetRenderTarget(0, pDevice->GetDefaultRenderTargetView(hOutput));
-      renderViewContext.m_pRenderContext->BeginRendering(pGALPass, renderingSetup, ezRectFloat(targetSize.x, targetSize.y), "Upscale", renderViewContext.m_pCamera->IsStereoscopic());
-
-      ezColor tintColor;
-      float fPass = (float)i;
-      if (fPass < fMidPass)
-      {
-        tintColor = ezMath::Lerp<ezColor>(m_InnerTintColor, m_MidTintColor, fPass / fMidPass);
-      }
-      else
-      {
-        tintColor = ezMath::Lerp<ezColor>(m_MidTintColor, m_OuterTintColor, (fPass - fMidPass) / fMidPass);
-      }
-
-      UpdateConstantBuffer(ezVec2(fBlurRadius).CompDiv(targetSize), tintColor);
-
-      renderViewContext.m_pRenderContext->BindTexture2D("NextColorTexture", pDevice->GetDefaultResourceView(hNextInput));
-      renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", pDevice->GetDefaultResourceView(hInput));
-      renderViewContext.m_pRenderContext->DrawMeshBuffer().IgnoreResult();
-
-      renderViewContext.m_pRenderContext->EndRendering();
+      ezGALUnorderedAccessViewCreationDescription desc;
+      desc.m_hTexture = pBlendOutput->m_TextureHandle;
+      desc.m_uiMipLevelToUse = 0;
+      hColorBlendOutput = pDevice->CreateUnorderedAccessView(desc);
     }
-  }
 
-  // Return temp targets
-  for (auto hTexture : tempDownscaleTextures)
-  {
-    if (!hTexture.IsInvalidated())
-    {
-      ezGPUResourcePool::GetDefaultInstance()->ReturnRenderTarget(hTexture);
-    }
-  }
+    renderViewContext.m_pRenderContext->BindUAV("Output", hColorBlendOutput);
+    renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", pDevice->GetDefaultResourceView(pColorInput->m_TextureHandle));
+    renderViewContext.m_pRenderContext->BindTexture2D("MipTexture", hBloomInput);
+    renderViewContext.m_pRenderContext->BindConstantBuffer("ezBloomConstants", m_hBloomConstantBuffer);
 
-  for (auto hTexture : tempUpscaleTextures)
-  {
-    if (!hTexture.IsInvalidated())
-    {
-      ezGPUResourcePool::GetDefaultInstance()->ReturnRenderTarget(hTexture);
-    }
+    renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", sColorBlendPass);
+
+    const ezUInt32 uiDispatchX = (uiBlendWidth + THREAD_GROUP_COUNT_X - 1) / THREAD_GROUP_COUNT_X;
+    const ezUInt32 uiDispatchY = (uiBlendHeight + THREAD_GROUP_COUNT_Y - 1) / THREAD_GROUP_COUNT_Y;
+
+    UpdateBloomConstantBuffer(ezVec2(1.0f / static_cast<float>(uiBlendWidth), 1.0f / static_cast<float>(uiBlendHeight)), uiDispatchX * uiDispatchY);
+
+    renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
+
+    // Cleanup
+    pCommandEncoder->UnsetResourceViews(pDevice->GetDefaultResourceView(pColorInput->m_TextureHandle));
+    pCommandEncoder->UnsetResourceViews(hBloomInput);
+    pCommandEncoder->UnsetUnorderedAccessViews(hColorBlendOutput);
   }
 }
 
 void ezBloomPass::ExecuteInactive(const ezRenderViewContext& renderViewContext, const ezArrayPtr<ezRenderPipelinePassConnection* const> inputs, const ezArrayPtr<ezRenderPipelinePassConnection* const> outputs)
 {
-  auto pColorOutput = outputs[m_PinOutput.m_uiOutputIndex];
+  auto pColorOutput = outputs[m_PinBloomOutput.m_uiOutputIndex];
   if (pColorOutput == nullptr)
   {
     return;
@@ -267,16 +295,101 @@ void ezBloomPass::ExecuteInactive(const ezRenderViewContext& renderViewContext, 
   auto pCommandEncoder = ezRenderContext::BeginPassAndRenderingScope(renderViewContext, renderingSetup, "Clear");
 }
 
-void ezBloomPass::UpdateConstantBuffer(ezVec2 pixelSize, const ezColor& tintColor)
+void ezBloomPass::UpdateBloomConstantBuffer(ezVec2 pixelSize, ezUInt32 uiWorkGroupCount)
 {
-  ezBloomConstants* constants = ezRenderContext::GetConstantBufferData<ezBloomConstants>(m_hConstantBuffer);
+  auto* constants = ezRenderContext::GetConstantBufferData<ezBloomConstants>(m_hBloomConstantBuffer);
   constants->PixelSize = pixelSize;
-  constants->BloomThreshold = m_fThreshold;
   constants->BloomIntensity = m_fIntensity;
-
-  constants->TintColor = tintColor;
+  constants->MipCount = m_uiMipCount;
+  constants->WorkGroupCount = uiWorkGroupCount;
 }
 
+void ezBloomPass::DownsamplePass(ezGALPass* pPass, const ezRenderViewContext& renderViewContext, const ezRenderPipelinePassConnection* pDownsampleTexture)
+{
+  // AMD FidelityFX Single Pass Downsampler.
+  // Provides an RDNA™-optimized solution for generating up to 12 MIP levels of a texture.
+  // GitHub:        https://github.com/GPUOpen-Effects/FidelityFX-SPD
+  // Documentation: https://github.com/GPUOpen-Effects/FidelityFX-SPD/blob/master/docs/FidelityFX_SPD.pdf
 
+  if (pDownsampleTexture == nullptr)
+    return;
+
+  const ezUInt32 uiOutputMipCount = m_uiMipCount - 1;
+  const ezUInt32 uiSmallestWidth = pDownsampleTexture->m_Desc.m_uiWidth >> uiOutputMipCount;
+  const ezUInt32 uiSmallestHeight = pDownsampleTexture->m_Desc.m_uiWidth >> uiOutputMipCount;
+
+  // Ensure that the input texture meets the requirements.
+  EZ_ASSERT_DEV(uiOutputMipCount + 1 <= 12, "AMD FidelityFX Single Pass Downsampler can't generate more than 12 mipmap levels."); // As per documentation (page 22)
+
+  ezTempHashedString sDownscalePass = "BLOOM_PASS_MODE_DOWNSCALE";
+
+  ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
+
+  {
+    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "Downsample");
+
+    renderViewContext.m_pRenderContext->BindShader(m_hBloomShader);
+
+    renderViewContext.m_pRenderContext->BindConstantBuffer("ezBloomConstants", m_hBloomConstantBuffer);
+
+    ezGALResourceViewHandle hBloomInput;
+    {
+      ezGALResourceViewCreationDescription desc;
+      desc.m_hTexture = pDownsampleTexture->m_TextureHandle;
+      desc.m_uiMostDetailedMipLevel = 0;
+      desc.m_uiMipLevelsToUse = 1;
+      desc.m_bUnsetUAV = false;
+      hBloomInput = pDevice->CreateResourceView(desc);
+    }
+
+    renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", hBloomInput);
+
+    ezGALUnorderedAccessViewHandle hAtomicCounter;
+    {
+      ezGALUnorderedAccessViewCreationDescription desc;
+      desc.m_OverrideViewFormat = ezGALResourceFormat::RUInt;
+      desc.m_hBuffer = m_hDownsampleAtomicCounterBuffer;
+      desc.m_uiNumElements = 1;
+      desc.m_uiFirstElement = 0;
+      hAtomicCounter = pDevice->CreateUnorderedAccessView(desc);
+    }
+
+    renderViewContext.m_pRenderContext->BindUAV("AtomicCounter", hAtomicCounter);
+
+    for (ezUInt32 i = 0; i < uiOutputMipCount; ++i)
+    {
+      ezStringBuilder sSlotName;
+      sSlotName.Format("DownsampleOutput[{}]", i);
+
+      ezGALUnorderedAccessViewHandle hDownsampleOutput;
+      {
+        ezGALUnorderedAccessViewCreationDescription desc;
+        desc.m_hTexture = pDownsampleTexture->m_TextureHandle;
+        desc.m_uiMipLevelToUse = i + 1;
+        desc.m_bUnsetResourceView = false;
+        hDownsampleOutput = pDevice->CreateUnorderedAccessView(desc);
+      }
+
+      renderViewContext.m_pRenderContext->BindUAV(sSlotName.GetView(), hDownsampleOutput);
+    }
+
+    const ezUInt32 uiWidth = pDownsampleTexture->m_Desc.m_uiWidth;
+    const ezUInt32 uiHeight = pDownsampleTexture->m_Desc.m_uiHeight;
+
+    // As per documentation (page 22)
+    const ezUInt32 uiDispatchX = (uiWidth + 63) >> 6;
+    const ezUInt32 uiDispatchY = (uiHeight + 63) >> 6;
+
+    renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", sDownscalePass);
+
+    UpdateBloomConstantBuffer(ezVec2(1.0f / static_cast<float>(pDownsampleTexture->m_Desc.m_uiWidth), 1.0f / static_cast<float>(pDownsampleTexture->m_Desc.m_uiWidth)), uiDispatchX * uiDispatchY);
+
+    renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
+
+    // Clean up
+    pCommandEncoder->UnsetUnorderedAccessViews(pDevice->GetTexture(pDownsampleTexture->m_TextureHandle));
+    pCommandEncoder->UnsetResourceViews(hBloomInput);
+  }
+}
 
 EZ_STATICLINK_FILE(RendererCore, RendererCore_Pipeline_Implementation_Passes_BloomPass);

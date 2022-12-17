@@ -21,8 +21,10 @@ public:
 
   // Returns whether a resource view has been unset for the given resource
   bool UnsetResourceViews(const ezGALResourceBase* pResource);
+  bool UnsetResourceViews(ezGALResourceViewHandle hResourceView);
   // Returns whether a unordered access view has been unset for the given resource
   bool UnsetUnorderedAccessViews(const ezGALResourceBase* pResource);
+  bool UnsetUnorderedAccessViews(ezGALUnorderedAccessViewHandle hUnorderedAccessView);
 
   // Query functions
 

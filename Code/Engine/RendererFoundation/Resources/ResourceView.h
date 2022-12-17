@@ -9,16 +9,19 @@ class EZ_RENDERERFOUNDATION_DLL ezGALResourceView : public ezGALObject<ezGALReso
 public:
   EZ_ALWAYS_INLINE ezGALResourceBase* GetResource() const { return m_pResource; }
 
+  EZ_ALWAYS_INLINE bool ShouldUnsetUAV() const { return m_bUnsetUAV; }
+
 protected:
   friend class ezGALDevice;
 
   ezGALResourceView(ezGALResourceBase* pResource, const ezGALResourceViewCreationDescription& description);
 
-  virtual ~ezGALResourceView();
+  ~ezGALResourceView() override;
 
   virtual ezResult InitPlatform(ezGALDevice* pDevice) = 0;
 
   virtual ezResult DeInitPlatform(ezGALDevice* pDevice) = 0;
 
   ezGALResourceBase* m_pResource;
+  bool m_bUnsetUAV;
 };
