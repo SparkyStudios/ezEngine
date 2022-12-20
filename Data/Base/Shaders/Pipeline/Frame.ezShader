@@ -1,0 +1,67 @@
+[PLATFORMS]
+ALL
+
+[PERMUTATIONS]
+
+CAMERA_MODE
+VERTEX_SHADER_RENDER_TARGET_ARRAY_INDEX
+
+[RENDERSTATE]
+
+DepthTest = false
+DepthWrite = false
+CullMode = CullMode_None
+
+[VERTEXSHADER]
+
+#include <Shaders/Pipeline/FullscreenTriangleVertexShader.h>
+
+[GEOMETRYSHADER]
+
+#include <Shaders/Pipeline/FullscreenTriangleStereoGeometryShader.h>
+
+[PIXELSHADER]
+
+#include <Shaders/Pipeline/FullscreenTriangleInterpolator.h>
+#include <Shaders/Common/Common.h>
+#include <Shaders/Common/GlobalConstants.h>
+
+#include "FrameConstants.h"
+
+Texture2D ColorTexture;
+
+float3 main(PS_IN Input) : SV_Target
+{
+  if (Ratio != 0)
+  {
+    if (Ratio >= 1.0f)
+    {
+      const float height = ViewportSize.x / Ratio;
+      const float margin = (ViewportSize.y - height) / 2.0f;
+
+      if (Input.TexCoord0.y * ViewportSize.y < margin)
+        return Color;
+
+      if (Input.TexCoord0.y * ViewportSize.y > height + margin)
+        return Color;
+
+      return ColorTexture.Sample(LinearClampSampler, Input.TexCoord0.xy).rgb;
+    }
+
+    if (Ratio < 1.0f)
+    {
+      const float width = ViewportSize.y * Ratio;
+      const float margin = (ViewportSize.x - width) / 2.0f;
+
+      if (Input.TexCoord0.x * ViewportSize.x < margin)
+        return Color;
+
+      if (Input.TexCoord0.x * ViewportSize.x > width + margin)
+        return Color;
+
+      return ColorTexture.Sample(LinearClampSampler, Input.TexCoord0.xy).rgb;
+    }
+  }
+
+  return ColorTexture.Sample(LinearClampSampler, Input.TexCoord0.xy).rgb;
+}

@@ -8,7 +8,7 @@
 
 #include <RendererFoundation/Resources/Texture.h>
 
-#include <RendererCore/../../../Data/Base/Shaders/Pipeline/FrameConstants.h>
+#include "../../../../../../Data/Base/Shaders/Pipeline/FrameConstants.h"
 
 // clang-format off
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezFramePass, 1, ezRTTIDefaultAllocator<ezFramePass>)

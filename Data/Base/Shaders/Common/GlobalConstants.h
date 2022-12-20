@@ -53,6 +53,7 @@ CONSTANT_BUFFER(ezGlobalConstants, 0)
 
   FLOAT1(Exposure);
   FLOAT1(Aperture);
+  FLOAT1(ISO);
 
   // Renderer settings
   FLOAT1(Gamma);
