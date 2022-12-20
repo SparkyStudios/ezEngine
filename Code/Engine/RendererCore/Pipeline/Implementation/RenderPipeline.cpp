@@ -1112,6 +1112,7 @@ void ezRenderPipeline::Render(ezRenderContext* pRenderContext)
 
   gc.Exposure = pCamera->GetExposure();
   gc.Aperture = pCamera->GetAperture();
+  gc.ISO = pCamera->GetISO();
 
   gc.RenderPass = ezViewRenderMode::GetRenderPassForShader(pViewData->m_ViewRenderMode);
 
