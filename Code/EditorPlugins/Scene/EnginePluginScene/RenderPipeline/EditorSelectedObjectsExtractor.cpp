@@ -184,4 +184,6 @@ void ezEditorSelectedObjectsExtractor::UpdateRenderTargetCamera(const ezCameraCo
 
   m_RenderTargetCamera.LookAt(pos, pos + dir, up);
   m_RenderTargetCamera.SetExposure(pCamComp->GetExposure());
+  m_RenderTargetCamera.SetAperture(pCamComp->GetAperture());
+  m_RenderTargetCamera.SetISO(pCamComp->GetISO());
 }
