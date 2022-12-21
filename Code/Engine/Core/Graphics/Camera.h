@@ -226,7 +226,7 @@ private:
 
   float m_fExposure = 1.0f;
   float m_fAperture = 1.0f;
-  float m_fISO = 1.0f;
+  float m_fISO = 100.0f;
 
   ezVec3 m_vCameraPosition[2];
   ezMat4 m_mViewMatrix[2];
