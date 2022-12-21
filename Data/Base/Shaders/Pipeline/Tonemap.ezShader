@@ -1,133 +1,176 @@
 [PLATFORMS]
 ALL
 
-[PERMUTATIONS]
 
-CAMERA_MODE
-VERTEX_SHADER_RENDER_TARGET_ARRAY_INDEX
-LUT_MODE
+[COMPUTESHADER]
 
-[RENDERSTATE]
+#include <Shaders/Common/Utils.h>
 
-DepthTest = false
-DepthWrite = false
-CullMode = CullMode_None
-
-[VERTEXSHADER]
-
-#include <Shaders/Pipeline/FullscreenTriangleVertexShader.h>
-
-[GEOMETRYSHADER]
-
-#include <Shaders/Pipeline/FullscreenTriangleStereoGeometryShader.h>
-
-[PIXELSHADER]
-
-#include <Shaders/Pipeline/FullscreenTriangleInterpolator.h>
-#include <Shaders/Common/Common.h>
-#include <Shaders/Common/GlobalConstants.h>
 #include "TonemapConstants.h"
 
-// From http://filmicgames.com/archives/75
-float3 FilmicTonemap(float3 x)
+//==========================================================================================
+// LINEAR
+//==========================================================================================
+float3 ToneMapping_Linear(float3 color)
+{
+  return color;
+}
+
+//==========================================================================================
+// UNCHARTED 2
+//==========================================================================================
+float3 Uncharted2(float3 x)
 {
   float A = 0.15;
-  float B = 0.35;
+  float B = 0.50;
   float C = 0.10;
   float D = 0.20;
   float E = 0.02;
   float F = 0.30;
 
-  return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+  return ((x * (A * x + C * B) + D * E) / (x * (A * x + B) + D * F)) - E / F;
 }
 
-float3 AdjustContrast(float3 x)
+//==========================================================================================
+// REINHARD
+//==========================================================================================
+float3 Reinhard(float3 hdr, float k = 1.0f) { return hdr / (GetLuminance(hdr) + k); }
+
+//==========================================================================================
+// ACES
+//==========================================================================================
+
+//  Baking Lab
+//  by MJP and David Neubelt
+//  http://mynameismjp.wordpress.com/
+//  All code licensed under the MIT license
+
+// sRGB => XYZ => D65_2_D60 => AP1 => RRT_SAT
+static const float3x3 aces_mat_input =
 {
-  float3 x2 = x*x;
-  float3 x3 = x2*x;
+  {0.59719, 0.35458, 0.04823},
+  {0.07600, 0.90834, 0.01566},
+  {0.02840, 0.13383, 0.83777}
+};
 
-  float a = ContrastParams.x;
-  float b = ContrastParams.y;
-  float c = ContrastParams.z;
+// ODT_SAT => XYZ => D60_2_D65 => sRGB
+static const float3x3 aces_mat_output =
+{
+  { 1.60475, -0.53108, -0.07367},
+  {-0.10208,  1.10813, -0.00605},
+  {-0.00327, -0.07276,  1.07602}
+};
 
-  return a*x3 + b*x2 + c*x;
+float3 RRTAndODTFit(float3 v)
+{
+  float3 a = v * (v + 0.0245786f) - 0.000090537f;
+  float3 b = v * (0.983729f * v + 0.4329510f) + 0.238081f;
+  return a / b;
 }
 
-Texture2D VignettingTexture;
-Texture2D NoiseTexture;
-
-Texture2DArray SceneColorTexture;
-Texture2DArray BloomTexture;
-
-#if LUT_MODE == LUT_MODE_ONE
-Texture3D Lut1Texture;
-#elif LUT_MODE == LUT_MODE_TWO
-Texture3D Lut1Texture;
-Texture3D Lut2Texture;
-#endif
-
-float3 ScreenSpaceDither( float2 texCoords )
+float3 ACES(float3 color)
 {
-  float t = frac( GlobalTime );
-  texCoords = (texCoords + t) * (ViewportSize.xy / 256.0);
+  color = mul(aces_mat_input, color);
 
-  // map to -0.5..1.5 bit range for an 8bit output target
-  return NoiseTexture.SampleLevel(PointSampler, texCoords, 0.0).rgb * (2.0 / 255.0) - (0.5 / 255.0);
+  // Apply RRT and ODT
+  color = RRTAndODTFit(color);
+
+  color = mul(aces_mat_output, color);
+
+  // Clamp to [0, 1]
+  color = saturate(color);
+
+  return color;
 }
 
-float4 main(PS_IN Input) : SV_Target
+//==========================================================================================
+// AMD
+//==========================================================================================
+
+// General tonemapping operator, build 'b' term.
+float ColToneB(float hdrMax, float contrast, float shoulder, float midIn, float midOut)
 {
-#if CAMERA_MODE == CAMERA_MODE_STEREO
-  s_ActiveCameraEyeIndex = Input.RenderTargetArrayIndex;
-#endif
+  return
+    -((-pow(midIn, contrast) + (midOut * (pow(hdrMax, contrast * shoulder) * pow(midIn, contrast) -
+      pow(hdrMax, contrast) * pow(midIn, contrast * shoulder) * midOut)) /
+      (pow(hdrMax, contrast * shoulder) * midOut - pow(midIn, contrast * shoulder) * midOut)) /
+      (pow(midIn, contrast * shoulder) * midOut));
+}
 
-  float4 sceneColor = SceneColorTexture.Load(int4(Input.Position.xy, s_ActiveCameraEyeIndex, 0));
-  sceneColor.rgb *= Exposure;
+// General tonemapping operator, build 'c' term.
+float ColToneC(float hdrMax, float contrast, float shoulder, float midIn, float midOut)
+{
+  return (pow(hdrMax, contrast * shoulder) * pow(midIn, contrast) - pow(hdrMax, contrast) * pow(midIn, contrast * shoulder) * midOut) /
+    (pow(hdrMax, contrast * shoulder) * midOut - pow(midIn, contrast * shoulder) * midOut);
+}
 
-  float3 bloom = BloomTexture.SampleLevel(LinearClampSampler, float3(Input.TexCoord0.xy, s_ActiveCameraEyeIndex), 0.0).rgb;
-  sceneColor.rgb += bloom;
+// General tonemapping operator, p := {contrast,shoulder,b,c}.
+float ColTone(float x, float4 p)
+{
+  float z = pow(x, p.r);
+  return z / (pow(z, p.g) * p.b + p.a);
+}
 
-  // Vignetting
-  float3 vignetting = VignettingTexture.SampleLevel(LinearClampSampler, Input.TexCoord0.xy, 0.0).rgb;
-  sceneColor.rgb *= vignetting;
+float3 AMD(float3 color)
+{
+  const float hdrMax   = 16.0; // How much HDR range before clipping. HDR modes likely need this pushed up to say 25.0.
+  const float contrast = 2.0;  // Use as a baseline to tune the amount of contrast the tonemapper has.
+  const float shoulder = 1.0;  // Likely don't need to mess with this factor, unless matching existing tonemapper is not working well..
+  const float midIn    = 0.18; // most games will have a {0.0 to 1.0} range for LDR so midIn should be 0.18.
+  const float midOut   = 0.18 / 16.0; // Use for LDR. For HDR10 10:10:10:2 use maybe 0.18/25.0 to start. For scRGB, I forget what a good starting point is, need to re-calculate.
 
-  // Tonemapping
-  float3 color = FilmicTonemap(sceneColor.rgb);
+  float b = ColToneB(hdrMax, contrast, shoulder, midIn, midOut);
+  float c = ColToneC(hdrMax, contrast, shoulder, midIn, midOut);
 
-  float3 whiteScale = 1.0 / FilmicTonemap(11.2);
-  color = saturate(color * whiteScale);
+  float peak = max(color.r, max(color.g, color.b));
+  peak = max(FLT_MIN, peak);
 
-  // Color grading with LUTs if enabled
-  #if LUT_MODE != LUT_MODE_NONE
+  float3 ratio = color / peak;
+  peak = ColTone(peak, float4(contrast, shoulder, b, c));
+  // then process ratio
 
-    color = lerp(color, Lut1Texture.Sample(LinearClampSampler, color), Lut1Strength);
+  // probably want send these pre-computed (so send over saturation/crossSaturation as a constant)
+  float crosstalk       = 4.0; // controls amount of channel crosstalk
+  float saturation      = contrast; // full tonal range saturation control
+  float crossSaturation = contrast * 16.0; // crosstalk saturation
 
-    #if LUT_MODE == LUT_MODE_TWO
+  float white = 1.0;
 
-      color = lerp(color, Lut2Texture.Sample(LinearClampSampler, color), Lut2Strength);
+  // wrap crosstalk in transform
+  float ratio_temp = saturation / crossSaturation;
+  float pow_temp   = pow(peak, crosstalk);
+  ratio            = pow(abs(ratio), float3(ratio_temp, ratio_temp, ratio_temp));
+  ratio            = lerp(ratio, float3(white, white, white), float3(pow_temp, pow_temp, pow_temp));
+  ratio            = pow(abs(ratio), float3(crossSaturation, crossSaturation, crossSaturation));
 
-    #endif
+  // then apply ratio to peak
+  color = peak * ratio;
+  return color;
+}
 
-  #endif
+float3 tonemap(float3 color)
+{
+  switch (ToneMappingMode)
+  {
+    case 0: return AMD(color);
+    case 1: return ACES(color);
+    case 2: return Reinhard(color);
+    case 3: return Uncharted2(color);
+    default: return color;
+  }
+}
 
-  // Color correction
-  float luminance = GetLuminance(color);
+Texture2D InputTexture;
+RWTexture2D<float4> Output;
 
-  float3 moodColor = lerp(0.0, MoodColor.rgb, saturate(luminance * 2.0));
-  moodColor = lerp(moodColor, 1.0, saturate(luminance - 0.5) * 2.0);
-  color = lerp(color, moodColor, saturate( luminance * MoodStrength ));
+[numthreads(THREAD_GROUP_COUNT_X, THREAD_GROUP_COUNT_Y, 1)]
+void main(uint3 threadId : SV_DispatchThreadID)
+{
+  // Out of bounds check
+  if (any(int2(threadId.xy) >= ViewportSize.xy))
+    return;
 
-  color = saturate(lerp(luminance.xxx, color, Saturation));
-  color = AdjustContrast(color);
-
-  // Cheap approx convert to sRGB before dither
-  color = sqrt(color);
-
-  // Dither
-  color += ScreenSpaceDither(Input.TexCoord0.xy);
-
-  // Convert back to linear
-  color *= color;
-
-  return float4(color, sceneColor.a);
+  // Tone map and gamma correct
+  float4 color = InputTexture[threadId.xy];
+  Output[threadId.xy] = float4(gamma(clamp(tonemap(color.rgb), 0.0, 1.0)), color.a);
 }

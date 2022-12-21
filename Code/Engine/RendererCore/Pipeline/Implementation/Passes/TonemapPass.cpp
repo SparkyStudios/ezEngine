@@ -1,33 +1,31 @@
 #include <RendererCore/RendererCorePCH.h>
 
+#include <RendererCore/GPUResourcePool/GPUResourcePool.h>
 #include <RendererCore/Pipeline/Passes/TonemapPass.h>
 #include <RendererCore/Pipeline/View.h>
 #include <RendererCore/RenderContext/RenderContext.h>
-#include <RendererCore/Textures/Texture2DResource.h>
-#include <RendererCore/Textures/Texture3DResource.h>
 
-#include <RendererFoundation/Resources/RenderTargetView.h>
+#include <RendererFoundation/Profiling/Profiling.h>
 #include <RendererFoundation/Resources/Texture.h>
 
-#include <RendererCore/../../../Data/Base/Shaders/Pipeline/TonemapConstants.h>
+#include "../../../../../../Data/Base/Shaders/Pipeline/TonemapConstants.h"
 
 // clang-format off
+EZ_BEGIN_STATIC_REFLECTED_ENUM(ezTonemapMode, 1)
+  EZ_ENUM_CONSTANT(ezTonemapMode::AMD),
+  EZ_ENUM_CONSTANT(ezTonemapMode::ACES),
+  EZ_ENUM_CONSTANT(ezTonemapMode::Uncharted2),
+  EZ_ENUM_CONSTANT(ezTonemapMode::Reinhard),
+  EZ_ENUM_CONSTANT(ezTonemapMode::None),
+EZ_END_STATIC_REFLECTED_ENUM;
+
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezTonemapPass, 1, ezRTTIDefaultAllocator<ezTonemapPass>)
 {
   EZ_BEGIN_PROPERTIES
   {
-    EZ_MEMBER_PROPERTY("Color", m_PinColorInput),
-    EZ_MEMBER_PROPERTY("Bloom", m_PinBloomInput),
+    EZ_MEMBER_PROPERTY("Input", m_PinInput),
     EZ_MEMBER_PROPERTY("Output", m_PinOutput),
-    EZ_ACCESSOR_PROPERTY("VignettingTexture", GetVignettingTextureFile, SetVignettingTextureFile)->AddAttributes(new ezAssetBrowserAttribute("CompatibleAsset_Texture_2D")),
-    EZ_MEMBER_PROPERTY("MoodColor", m_MoodColor)->AddAttributes(new ezDefaultValueAttribute(ezColor::Orange)),
-    EZ_MEMBER_PROPERTY("MoodStrength", m_fMoodStrength)->AddAttributes(new ezClampValueAttribute(0.0f, ezVariant())),
-    EZ_MEMBER_PROPERTY("Saturation", m_fSaturation)->AddAttributes(new ezClampValueAttribute(0.0f, 2.0f), new ezDefaultValueAttribute(1.0f)),
-    EZ_MEMBER_PROPERTY("Contrast", m_fContrast)->AddAttributes(new ezClampValueAttribute(0.0f, 1.0f)),
-    EZ_MEMBER_PROPERTY("LUT1Strength", m_fLut1Strength)->AddAttributes(new ezClampValueAttribute(0.0f, 1.0f)),
-    EZ_MEMBER_PROPERTY("LUT2Strength", m_fLut2Strength)->AddAttributes(new ezClampValueAttribute(0.0f, 1.0f)),
-    EZ_ACCESSOR_PROPERTY("LUT1", GetLUT1TextureFile, SetLUT1TextureFile)->AddAttributes(new ezAssetBrowserAttribute("CompatibleAsset_Texture_3D")),
-    EZ_ACCESSOR_PROPERTY("LUT2", GetLUT2TextureFile, SetLUT2TextureFile)->AddAttributes(new ezAssetBrowserAttribute("CompatibleAsset_Texture_3D")),
+    EZ_ENUM_MEMBER_PROPERTY("Mode", ezTonemapMode, m_eTonemapMode)->AddAttributes(new ezDefaultValueAttribute(ezTonemapMode::AMD)),
   }
   EZ_END_PROPERTIES;
 }
@@ -36,21 +34,18 @@ EZ_END_DYNAMIC_REFLECTED_TYPE;
 
 ezTonemapPass::ezTonemapPass()
   : ezRenderPipelinePass("TonemapPass", true)
+  , m_eTonemapMode(ezTonemapMode::AMD)
 {
-  m_hVignettingTexture = ezResourceManager::LoadResource<ezTexture2DResource>("White.color");
-  m_hNoiseTexture = ezResourceManager::LoadResource<ezTexture2DResource>("Textures/BlueNoise.dds");
+  // Loading shaders
+  {
+    m_hShader = ezResourceManager::LoadResource<ezShaderResource>("Shaders/Pipeline/Tonemap.ezShader");
+    EZ_ASSERT_DEV(m_hShader.IsValid(), "Could not load Tonemap shader.");
+  }
 
-  m_MoodColor = ezColor::Orange;
-  m_fMoodStrength = 0.0f;
-  m_fSaturation = 1.0f;
-  m_fContrast = 1.0f;
-  m_fLut1Strength = 1.0f;
-  m_fLut2Strength = 0.0f;
-
-  m_hShader = ezResourceManager::LoadResource<ezShaderResource>("Shaders/Pipeline/Tonemap.ezShader");
-  EZ_ASSERT_DEV(m_hShader.IsValid(), "Could not load tonemap shader!");
-
-  m_hConstantBuffer = ezRenderContext::CreateConstantBufferStorage<ezTonemapConstants>();
+  // Loading resources
+  {
+    m_hConstantBuffer = ezRenderContext::CreateConstantBufferStorage<ezTonemapConstants>();
+  }
 }
 
 ezTonemapPass::~ezTonemapPass()
@@ -61,165 +56,78 @@ ezTonemapPass::~ezTonemapPass()
 
 bool ezTonemapPass::GetRenderTargetDescriptions(const ezView& view, const ezArrayPtr<ezGALTextureCreationDescription* const> inputs, ezArrayPtr<ezGALTextureCreationDescription> outputs)
 {
-  ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
-  const ezGALRenderTargets& renderTargets = view.GetActiveRenderTargets();
-
-  // Color
-  auto pColorInput = inputs[m_PinColorInput.m_uiInputIndex];
-  if (pColorInput != nullptr)
+  if (inputs[m_PinInput.m_uiInputIndex])
   {
-    if (const ezGALTexture* pTexture = pDevice->GetTexture(renderTargets.m_hRTs[0]))
+    if (!inputs[m_PinInput.m_uiInputIndex]->m_bAllowShaderResourceView)
     {
-      const ezGALTextureCreationDescription& desc = pTexture->GetDescription();
-      // if (desc.m_uiWidth != pColorInput->m_uiWidth || desc.m_uiHeight != pColorInput->m_uiHeight)
-      //{
-      //  ezLog::Error("Render target sizes don't match");
-      //  return false;
-      //}
-
-      outputs[m_PinOutput.m_uiOutputIndex].SetAsRenderTarget(pColorInput->m_uiWidth, pColorInput->m_uiHeight, desc.m_Format);
-      outputs[m_PinOutput.m_uiOutputIndex].m_uiArraySize = pColorInput->m_uiArraySize;
-    }
-    else
-    {
-      ezLog::Error("View '{0}' does not have a valid color target", view.GetName());
+      ezLog::Error("'{0}' input must allow shader resource view.", GetName());
       return false;
     }
   }
   else
   {
-    ezLog::Error("No input connected to tone map pass!");
+    ezLog::Error("No input connected to '{0}'.", GetName());
     return false;
   }
+
+  ezGALTextureCreationDescription desc = *inputs[m_PinInput.m_uiInputIndex];
+  desc.m_bAllowUAV = true;
+  outputs[m_PinOutput.m_uiOutputIndex] = std::move(desc);
 
   return true;
 }
 
 void ezTonemapPass::Execute(const ezRenderViewContext& renderViewContext, const ezArrayPtr<ezRenderPipelinePassConnection* const> inputs, const ezArrayPtr<ezRenderPipelinePassConnection* const> outputs)
 {
-  auto pColorInput = inputs[m_PinColorInput.m_uiInputIndex];
-  auto pColorOutput = outputs[m_PinOutput.m_uiOutputIndex];
-  if (pColorInput == nullptr || pColorOutput == nullptr)
+  const auto* pInput = inputs[m_PinInput.m_uiInputIndex];
+  const auto* pOutput = outputs[m_PinOutput.m_uiOutputIndex];
+
+  if (pInput == nullptr || pOutput == nullptr)
   {
     return;
   }
 
   ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
+  ezResourceManager::ForceLoadResourceNow(m_hShader);
 
-  // Setup render target
-  ezGALRenderingSetup renderingSetup;
-  renderingSetup.m_RenderTargetSetup.SetRenderTarget(0, pDevice->GetDefaultRenderTargetView(pColorOutput->m_TextureHandle));
+  const bool bAllowAsyncShaderLoading = renderViewContext.m_pRenderContext->GetAllowAsyncShaderLoading();
+  renderViewContext.m_pRenderContext->SetAllowAsyncShaderLoading(false);
 
-  // Bind render target and viewport
-  auto pCommandEncoder = ezRenderContext::BeginPassAndRenderingScope(renderViewContext, renderingSetup, GetName(), renderViewContext.m_pCamera->IsStereoscopic());
-
-  // Determine how many LUTs are active
-  ezUInt32 numLUTs = 0;
-  ezTexture3DResourceHandle luts[2] = {};
-  float lutStrengths[2] = {};
-
-  if (m_hLUT1.IsValid())
+  ezGALPass* pPass = pDevice->BeginPass(GetName());
   {
-    luts[numLUTs] = m_hLUT1;
-    lutStrengths[numLUTs] = m_fLut1Strength;
-    numLUTs++;
+    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext);
+    renderViewContext.m_pRenderContext->BindShader(m_hShader);
+
+    renderViewContext.m_pRenderContext->BindTexture2D("InputTexture", pDevice->GetDefaultResourceView(pInput->m_TextureHandle));
+
+    ezGALUnorderedAccessViewHandle hOutput;
+    {
+      ezGALUnorderedAccessViewCreationDescription desc;
+      desc.m_hTexture = pOutput->m_TextureHandle;
+      desc.m_uiMipLevelToUse = 0;
+      hOutput = pDevice->CreateUnorderedAccessView(desc);
+    }
+    renderViewContext.m_pRenderContext->BindUAV("Output", hOutput);
+
+    renderViewContext.m_pRenderContext->BindConstantBuffer("ezTonemapConstants", m_hConstantBuffer);
+
+    const ezUInt32 uiWidth = pOutput->m_Desc.m_uiWidth;
+    const ezUInt32 uiHeight = pOutput->m_Desc.m_uiHeight;
+
+    const ezUInt32 uiDispatchX = (uiWidth + THREAD_GROUP_COUNT_X - 1) / THREAD_GROUP_COUNT_X;
+    const ezUInt32 uiDispatchY = (uiHeight + THREAD_GROUP_COUNT_Y - 1) / THREAD_GROUP_COUNT_Y;
+
+    UpdateConstantBuffer();
+
+    renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 6).IgnoreResult();
   }
+  pDevice->EndPass(pPass);
 
-  if (m_hLUT2.IsValid())
-  {
-    luts[numLUTs] = m_hLUT2;
-    lutStrengths[numLUTs] = m_fLut2Strength;
-    numLUTs++;
-  }
-
-  {
-    ezTonemapConstants* constants = ezRenderContext::GetConstantBufferData<ezTonemapConstants>(m_hConstantBuffer);
-    constants->AutoExposureParams.SetZero();
-    constants->MoodColor = m_MoodColor;
-    constants->MoodStrength = m_fMoodStrength;
-    constants->Saturation = m_fSaturation;
-    constants->Lut1Strength = lutStrengths[0];
-    constants->Lut2Strength = lutStrengths[1];
-
-    // Pre-calculate factors of a s-shaped polynomial-function
-    const float m = (0.5f - 0.5f * m_fContrast) / (0.5f + 0.5f * m_fContrast);
-    const float a = 2.0f * m - 2.0f;
-    const float b = -3.0f * m + 3.0f;
-
-    constants->ContrastParams = ezVec4(a, b, m, 0.0f);
-  }
-
-  ezGALResourceViewHandle hBloomTextureView;
-  auto pBloomInput = inputs[m_PinBloomInput.m_uiInputIndex];
-  if (pBloomInput != nullptr)
-  {
-    hBloomTextureView = pDevice->GetDefaultResourceView(pBloomInput->m_TextureHandle);
-  }
-
-  renderViewContext.m_pRenderContext->BindShader(m_hShader);
-  renderViewContext.m_pRenderContext->BindConstantBuffer("ezTonemapConstants", m_hConstantBuffer);
-  renderViewContext.m_pRenderContext->BindMeshBuffer(ezGALBufferHandle(), ezGALBufferHandle(), nullptr, ezGALPrimitiveTopology::Triangles, 1);
-  renderViewContext.m_pRenderContext->BindTexture2D("VignettingTexture", m_hVignettingTexture, ezResourceAcquireMode::BlockTillLoaded);
-  renderViewContext.m_pRenderContext->BindTexture2D("NoiseTexture", m_hNoiseTexture, ezResourceAcquireMode::BlockTillLoaded);
-  renderViewContext.m_pRenderContext->BindTexture2D("SceneColorTexture", pDevice->GetDefaultResourceView(pColorInput->m_TextureHandle));
-  renderViewContext.m_pRenderContext->BindTexture2D("BloomTexture", hBloomTextureView);
-  renderViewContext.m_pRenderContext->BindTexture3D("Lut1Texture", luts[0]);
-  renderViewContext.m_pRenderContext->BindTexture3D("Lut2Texture", luts[1]);
-
-  ezTempHashedString sLUTModeValues[3] = {"LUT_MODE_NONE", "LUT_MODE_ONE", "LUT_MODE_TWO"};
-  renderViewContext.m_pRenderContext->SetShaderPermutationVariable("LUT_MODE", sLUTModeValues[numLUTs]);
-
-  renderViewContext.m_pRenderContext->DrawMeshBuffer().IgnoreResult();
+  renderViewContext.m_pRenderContext->SetAllowAsyncShaderLoading(bAllowAsyncShaderLoading);
 }
 
-void ezTonemapPass::SetVignettingTextureFile(const char* szFile)
+void ezTonemapPass::UpdateConstantBuffer()
 {
-  if (!ezStringUtils::IsNullOrEmpty(szFile))
-  {
-    m_hVignettingTexture = ezResourceManager::LoadResource<ezTexture2DResource>(szFile);
-  }
+  auto* constants = ezRenderContext::GetConstantBufferData<ezTonemapConstants>(m_hConstantBuffer);
+  constants->ToneMappingMode = m_eTonemapMode.GetValue();
 }
-
-const char* ezTonemapPass::GetVignettingTextureFile() const
-{
-  if (!m_hVignettingTexture.IsValid())
-    return "";
-
-  return m_hVignettingTexture.GetResourceID();
-}
-
-
-void ezTonemapPass::SetLUT1TextureFile(const char* szFile)
-{
-  if (!ezStringUtils::IsNullOrEmpty(szFile))
-  {
-    m_hLUT1 = ezResourceManager::LoadResource<ezTexture3DResource>(szFile);
-  }
-}
-
-const char* ezTonemapPass::GetLUT1TextureFile() const
-{
-  if (!m_hLUT1.IsValid())
-    return "";
-
-  return m_hLUT1.GetResourceID();
-}
-
-void ezTonemapPass::SetLUT2TextureFile(const char* szFile)
-{
-  if (!ezStringUtils::IsNullOrEmpty(szFile))
-  {
-    m_hLUT2 = ezResourceManager::LoadResource<ezTexture3DResource>(szFile);
-  }
-}
-
-const char* ezTonemapPass::GetLUT2TextureFile() const
-{
-  if (!m_hLUT2.IsValid())
-    return "";
-
-  return m_hLUT2.GetResourceID();
-}
-
-
-EZ_STATICLINK_FILE(RendererCore, RendererCore_Pipeline_Implementation_Passes_TonemapPass);

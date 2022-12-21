@@ -36,6 +36,8 @@ ezCVarBool cvar_SpatialCullingOcclusionVisView("Spatial.Occlusion.VisView", fals
 ezCVarFloat cvar_SpatialCullingOcclusionBoundsInlation("Spatial.Occlusion.BoundsInflation", 0.5f, ezCVarFlags::Default, "How much to inflate bounds during occlusion check.");
 ezCVarFloat cvar_SpatialCullingOcclusionFarPlane("Spatial.Occlusion.FarPlane", 50.0f, ezCVarFlags::Default, "Far plane distance for finding occluders.");
 
+ezCVarFloat cvar_RendererGamma("Renderer.Gamma", 2.2f, ezCVarFlags::Save, "The value of the gamma parameter used in shaders.");
+
 ezRenderPipeline::ezRenderPipeline()
   : m_PipelineState(PipelineState::Uninitialized)
 {
@@ -1113,6 +1115,8 @@ void ezRenderPipeline::Render(ezRenderContext* pRenderContext)
   gc.Exposure = pCamera->GetExposure();
   gc.Aperture = pCamera->GetAperture();
   gc.ISO = pCamera->GetISO();
+
+  gc.Gamma = cvar_RendererGamma;
 
   gc.RenderPass = ezViewRenderMode::GetRenderPassForShader(pViewData->m_ViewRenderMode);
 
