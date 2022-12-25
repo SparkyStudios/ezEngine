@@ -11,16 +11,6 @@ RWTexture2D<float4> Output;
 
 static const float Offset = 0.5f / 255.0f;
 
-// http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
-inline float3 dither(uint2 screen_pos)
-{
-  float3 dither = dot(float2(171.0f, 231.0f), float2(screen_pos));
-  dither        = frac(dither / float3(103.0f, 71.0f, 97.0f));
-  dither        /= 255.0f;
-
-  return dither;
-}
-
 [numthreads(THREAD_GROUP_COUNT_X, THREAD_GROUP_COUNT_Y, 1)]
 void main(uint3 threadId : SV_DispatchThreadID)
 {

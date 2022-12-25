@@ -473,6 +473,16 @@ void find_best_axis_vectors(float3 In, out float3 Axis1, out float3 Axis2)
   Axis2 = cross(Axis1, In);
 }
 
+// http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
+float3 dither(uint2 screen_pos)
+{
+  float3 dither = dot(float2(171.0f, 231.0f), float2(screen_pos));
+  dither        = frac(dither / float3(103.0f, 71.0f, 97.0f));
+  dither        /= 255.0f;
+
+  return dither;
+}
+
 static const float3 hemisphere_samples[64] =
   {
     float3(0.04977, -0.04471, 0.04996),
