@@ -22,18 +22,17 @@ public:
 
 protected:
   void UpdateBloomConstantBuffer(ezVec2 pixelSize, ezUInt32 uiWorkGroupCount);
-  void DownsamplePass(ezGALPass* pPass, const ezRenderViewContext& renderViewContext, const ezRenderPipelinePassConnection* pDownsampleTexture);
+  void DownsamplePass(ezGALPass* pPass, const ezRenderViewContext& renderViewContext, const ezGALTextureHandle& hBloomTexture, ezUInt32 uiWidth, ezUInt32 uiHeight);
 
   ezRenderPipelineNodeInputPin m_PinInput;
-  ezRenderPipelineNodeOutputPin m_PinBloomOutput;
-  ezRenderPipelineNodeOutputPin m_PinBlendOutput;
+  ezRenderPipelineNodeOutputPin m_PinOutput;
 
   // Bloom shader data
-  ezShaderResourceHandle m_hBloomShader;
-  ezConstantBufferStorageHandle m_hBloomConstantBuffer;
+  ezShaderResourceHandle m_hShader;
+  ezConstantBufferStorageHandle m_hConstantBuffer;
   ezGALBufferHandle m_hDownsampleAtomicCounterBuffer;
   ezArrayPtr<ezAtomicCounterBuffer> m_DownsampleAtomicCounter;
 
   float m_fIntensity;
-  ezUInt32 m_uiMipCount{};
+  ezUInt32 m_uiMipCount;
 };

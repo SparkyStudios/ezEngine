@@ -157,7 +157,7 @@ void main(uint3 threadId : SV_DispatchThreadID)
 
   float4 color_frame    = ColorTexture[threadId.xy];
   float4 color_mip      = MipTexture[threadId.xy];
-  Output[threadId.xy]   = saturate_16(color_frame + color_mip * BloomIntensity);
+  Output[threadId.xy]   = saturate_16(color_frame * Exposure + color_mip * BloomIntensity);
 }
 
 #endif
