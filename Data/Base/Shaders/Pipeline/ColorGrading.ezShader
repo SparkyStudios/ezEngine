@@ -58,7 +58,7 @@ void main(uint3 threadId : SV_DispatchThreadID)
   color = lerp(color, moodColor, saturate(luminance * MoodStrength));
 
   // Contrast adjustment
-  color = saturate(lerp(luminance.xxx, color, Saturation));
+  color = saturate_16(lerp(luminance.xxx, color, Saturation));
   color = AdjustContrast(color);
 
   // Dither

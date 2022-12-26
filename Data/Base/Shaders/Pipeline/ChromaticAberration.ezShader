@@ -4,8 +4,7 @@ ALL
 
 [COMPUTESHADER]
 
-#include <Shaders/Common/GlobalConstants.h>
-#include <Shaders/Common/Common.h>
+#include <Shaders/Common/Utils.h>
 
 #include "ChromaticAberrationConstants.h"
 
@@ -14,14 +13,14 @@ Texture2D OffsetTexture;
 
 RWTexture2D<float4> Output;
 
-[numthreads(8, 8, 1)]
+[numthreads(THREAD_GROUP_COUNT_X, THREAD_GROUP_COUNT_Y, 1)]
 void main(uint3 threadId : SV_DispatchThreadID)
 {
   // Out of bounds check
   if (any(int2(threadId.xy) >= ViewportSize.xy))
     return;
 
-  const float2 uv    = (threadId.xy + 0.5f) * ViewportSize.zw;
+  const float2 uv    = (threadId.xy + 0.5f) * TexelSize;
   float camera_error = Strength / Aperture;
   float intensity    = camera_error * OffsetTexture.SampleLevel(LinearClampSampler, uv, 0).r * 100.0f;
   float2 shift       = float2(intensity, -intensity);
@@ -32,9 +31,9 @@ void main(uint3 threadId : SV_DispatchThreadID)
 
   // Sample color
   float3 color = 0.0f;
-  color.r      = ColorTexture.SampleLevel(LinearClampSampler, uv + (ViewportSize.zw * shift), 0).r;
+  color.r      = ColorTexture.SampleLevel(LinearClampSampler, uv + (TexelSize * shift), 0).r;
   color.g      = ColorTexture[threadId.xy].g;
-  color.b      = ColorTexture.SampleLevel(LinearClampSampler, uv - (ViewportSize.zw * shift), 0).b;
+  color.b      = ColorTexture.SampleLevel(LinearClampSampler, uv - (TexelSize * shift), 0).b;
 
   Output[threadId.xy] = float4(color, ColorTexture[threadId.xy].a);
 }
