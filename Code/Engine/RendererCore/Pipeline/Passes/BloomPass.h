@@ -21,8 +21,7 @@ public:
   void ExecuteInactive(const ezRenderViewContext& renderViewContext, const ezArrayPtr<ezRenderPipelinePassConnection* const> inputs, const ezArrayPtr<ezRenderPipelinePassConnection* const> outputs) override;
 
 protected:
-  void UpdateBloomConstantBuffer(ezVec2 pixelSize, ezUInt32 uiWorkGroupCount);
-  void DownsamplePass(ezGALPass* pPass, const ezRenderViewContext& renderViewContext, const ezGALTextureHandle& hBloomTexture, ezUInt32 uiWidth, ezUInt32 uiHeight);
+  void UpdateConstantBuffer(ezVec2 pixelSize, ezUInt32 uiWorkGroupCount) const;
 
   ezRenderPipelineNodeInputPin m_PinInput;
   ezRenderPipelineNodeOutputPin m_PinOutput;

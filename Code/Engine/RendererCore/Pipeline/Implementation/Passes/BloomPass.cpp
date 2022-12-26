@@ -107,6 +107,7 @@ void ezBloomPass::Execute(const ezRenderViewContext& renderViewContext, const ez
   }
 
   ezTempHashedString sLuminancePass = "BLOOM_PASS_MODE_LUMINANCE";
+  ezTempHashedString sDownscalePass = "BLOOM_PASS_MODE_DOWNSCALE";
   ezTempHashedString sUpscaleBlendPass = "BLOOM_PASS_MODE_UPSCALE_BLEND_MIP";
   ezTempHashedString sColorBlendPass = "BLOOM_PASS_MODE_BLEND_FRAME";
 
@@ -158,168 +159,25 @@ void ezBloomPass::Execute(const ezRenderViewContext& renderViewContext, const ez
     const ezUInt32 uiDispatchX = (uiWidth + THREAD_GROUP_COUNT_X - 1) / THREAD_GROUP_COUNT_X;
     const ezUInt32 uiDispatchY = (uiHeight + THREAD_GROUP_COUNT_Y - 1) / THREAD_GROUP_COUNT_Y;
 
-    UpdateBloomConstantBuffer(ezVec2(1.0f / static_cast<float>(uiWidth), 1.0f / static_cast<float>(uiHeight)), uiDispatchX * uiDispatchY);
+    UpdateConstantBuffer(ezVec2(1.0f / static_cast<float>(uiWidth), 1.0f / static_cast<float>(uiHeight)), uiDispatchX * uiDispatchY);
 
     renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
-
-    // Cleanup
-    pCommandEncoder->UnsetResourceViews(pDevice->GetDefaultResourceView(pInput->m_TextureHandle));
-    pCommandEncoder->UnsetUnorderedAccessViews(hLuminanceOutput);
   }
 
   // Downsample pass
   {
-    DownsamplePass(pPass, renderViewContext, hBloomTexture, uiWidth, uiHeight);
-  }
+    // AMD FidelityFX Single Pass Downsampler.
+    // Provides an RDNA™-optimized solution for generating up to 12 MIP levels of a texture.
+    // GitHub:        https://github.com/GPUOpen-Effects/FidelityFX-SPD
+    // Documentation: https://github.com/GPUOpen-Effects/FidelityFX-SPD/blob/master/docs/FidelityFX_SPD.pdf
 
-  // Upsample and Blend pass
-  {
-    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "UpscaleBlend");
+    const ezUInt32 uiOutputMipCount = m_uiMipCount - 1;
+    const ezUInt32 uiSmallestWidth = uiWidth >> uiOutputMipCount;
+    const ezUInt32 uiSmallestHeight = uiWidth >> uiOutputMipCount;
 
-    renderViewContext.m_pRenderContext->BindShader(m_hShader);
+    // Ensure that the input texture meets the requirements.
+    EZ_ASSERT_DEV(uiOutputMipCount + 1 <= 12, "AMD FidelityFX Single Pass Downsampler can't generate more than 12 mipmap levels."); // As per documentation (page 22)
 
-    for (ezUInt32 i = m_uiMipCount - 1; i > 0; --i)
-    {
-      ezUInt32 uiMipSmall = i;
-      ezUInt32 uiMipLarge = i - 1;
-
-      ezUInt32 uiMipLargeWidth = uiWidth >> uiMipLarge;
-      ezUInt32 uiMipLargeHeight = uiHeight >> uiMipLarge;
-
-      ezGALResourceViewHandle hUpscaleBlendInput;
-      {
-        ezGALResourceViewCreationDescription desc;
-        desc.m_hTexture = hBloomTexture;
-        desc.m_uiMostDetailedMipLevel = uiMipSmall;
-        desc.m_uiMipLevelsToUse = 1;
-        desc.m_bUnsetUAV = false;
-        hUpscaleBlendInput = pDevice->CreateResourceView(desc);
-      }
-
-      ezGALUnorderedAccessViewHandle hUpscaleBlendOutput;
-      {
-        ezGALUnorderedAccessViewCreationDescription desc;
-        desc.m_hTexture = hBloomTexture;
-        desc.m_uiMipLevelToUse = uiMipLarge;
-        desc.m_bUnsetResourceView = false;
-        hUpscaleBlendOutput = pDevice->CreateUnorderedAccessView(desc);
-      }
-
-      renderViewContext.m_pRenderContext->BindUAV("Output", hUpscaleBlendOutput);
-      renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", hUpscaleBlendInput);
-      renderViewContext.m_pRenderContext->BindConstantBuffer("ezBloomConstants", m_hConstantBuffer);
-
-      renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", sUpscaleBlendPass);
-
-      const auto uiDispatchX = static_cast<ezUInt32>(ezMath::Ceil(static_cast<float>(uiMipLargeWidth) / THREAD_GROUP_COUNT_X));
-      const auto uiDispatchY = static_cast<ezUInt32>(ezMath::Ceil(static_cast<float>(uiMipLargeHeight) / THREAD_GROUP_COUNT_Y));
-
-      UpdateBloomConstantBuffer(ezVec2(1.0f / static_cast<float>(uiMipLargeWidth), 1.0f / static_cast<float>(uiMipLargeHeight)), uiDispatchX * uiDispatchY);
-
-      renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
-
-      // Cleanup
-      pCommandEncoder->UnsetResourceViews(hUpscaleBlendInput);
-      pCommandEncoder->UnsetUnorderedAccessViews(hUpscaleBlendOutput);
-    }
-  }
-
-  // Color Blend
-  {
-    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "ColorBlend");
-
-    renderViewContext.m_pRenderContext->BindShader(m_hShader);
-
-    ezGALResourceViewHandle hBloomInput;
-    {
-      ezGALResourceViewCreationDescription desc;
-      desc.m_hTexture = hBloomTexture;
-      desc.m_uiMostDetailedMipLevel = 0;
-      desc.m_uiMipLevelsToUse = 1;
-      hBloomInput = pDevice->CreateResourceView(desc);
-    }
-
-    ezGALUnorderedAccessViewHandle hColorBlendOutput;
-    {
-      ezGALUnorderedAccessViewCreationDescription desc;
-      desc.m_hTexture = pOutput->m_TextureHandle;
-      desc.m_uiMipLevelToUse = 0;
-      hColorBlendOutput = pDevice->CreateUnorderedAccessView(desc);
-    }
-
-    renderViewContext.m_pRenderContext->BindUAV("Output", hColorBlendOutput);
-    renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", pDevice->GetDefaultResourceView(pInput->m_TextureHandle));
-    renderViewContext.m_pRenderContext->BindTexture2D("MipTexture", hBloomInput);
-    renderViewContext.m_pRenderContext->BindConstantBuffer("ezBloomConstants", m_hConstantBuffer);
-
-    renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", sColorBlendPass);
-
-    const ezUInt32 uiDispatchX = (uiWidth + THREAD_GROUP_COUNT_X - 1) / THREAD_GROUP_COUNT_X;
-    const ezUInt32 uiDispatchY = (uiHeight + THREAD_GROUP_COUNT_Y - 1) / THREAD_GROUP_COUNT_Y;
-
-    UpdateBloomConstantBuffer(ezVec2(1.0f / static_cast<float>(uiWidth), 1.0f / static_cast<float>(uiHeight)), uiDispatchX * uiDispatchY);
-
-    renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
-
-    // Cleanup
-    pCommandEncoder->UnsetResourceViews(pDevice->GetDefaultResourceView(pInput->m_TextureHandle));
-    pCommandEncoder->UnsetResourceViews(hBloomInput);
-    pCommandEncoder->UnsetUnorderedAccessViews(hColorBlendOutput);
-  }
-
-  // Cleanup resources
-  pDevice->DestroyTexture(hBloomTexture);
-}
-
-void ezBloomPass::ExecuteInactive(const ezRenderViewContext& renderViewContext, const ezArrayPtr<ezRenderPipelinePassConnection* const> inputs, const ezArrayPtr<ezRenderPipelinePassConnection* const> outputs)
-{
-  auto pColorOutput = outputs[m_PinOutput.m_uiOutputIndex];
-  if (pColorOutput == nullptr)
-  {
-    return;
-  }
-
-  ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
-
-  ezGALRenderingSetup renderingSetup;
-  renderingSetup.m_RenderTargetSetup.SetRenderTarget(0, pDevice->GetDefaultRenderTargetView(pColorOutput->m_TextureHandle));
-  renderingSetup.m_uiRenderTargetClearMask = 0xFFFFFFFF;
-  renderingSetup.m_ClearColor = ezColor::Black;
-
-  auto pCommandEncoder = ezRenderContext::BeginPassAndRenderingScope(renderViewContext, renderingSetup, "Clear");
-}
-
-void ezBloomPass::UpdateBloomConstantBuffer(ezVec2 pixelSize, ezUInt32 uiWorkGroupCount)
-{
-  auto* constants = ezRenderContext::GetConstantBufferData<ezBloomConstants>(m_hConstantBuffer);
-  constants->PixelSize = pixelSize;
-  constants->BloomIntensity = m_fIntensity;
-  constants->MipCount = m_uiMipCount;
-  constants->WorkGroupCount = uiWorkGroupCount;
-}
-
-void ezBloomPass::DownsamplePass(ezGALPass* pPass, const ezRenderViewContext& renderViewContext, const ezGALTextureHandle& hBloomTexture, ezUInt32 uiWidth, ezUInt32 uiHeight)
-{
-  // AMD FidelityFX Single Pass Downsampler.
-  // Provides an RDNA™-optimized solution for generating up to 12 MIP levels of a texture.
-  // GitHub:        https://github.com/GPUOpen-Effects/FidelityFX-SPD
-  // Documentation: https://github.com/GPUOpen-Effects/FidelityFX-SPD/blob/master/docs/FidelityFX_SPD.pdf
-
-  if (hBloomTexture.IsInvalidated())
-    return;
-
-  const ezUInt32 uiOutputMipCount = m_uiMipCount - 1;
-  const ezUInt32 uiSmallestWidth = uiWidth >> uiOutputMipCount;
-  const ezUInt32 uiSmallestHeight = uiWidth >> uiOutputMipCount;
-
-  // Ensure that the input texture meets the requirements.
-  EZ_ASSERT_DEV(uiOutputMipCount + 1 <= 12, "AMD FidelityFX Single Pass Downsampler can't generate more than 12 mipmap levels."); // As per documentation (page 22)
-
-  ezTempHashedString sDownscalePass = "BLOOM_PASS_MODE_DOWNSCALE";
-
-  ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
-
-  {
     auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "Downsample");
 
     renderViewContext.m_pRenderContext->BindShader(m_hShader);
@@ -373,14 +231,124 @@ void ezBloomPass::DownsamplePass(ezGALPass* pPass, const ezRenderViewContext& re
 
     renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", sDownscalePass);
 
-    UpdateBloomConstantBuffer(ezVec2(1.0f / static_cast<float>(uiWidth), 1.0f / static_cast<float>(uiHeight)), uiDispatchX * uiDispatchY);
+    UpdateConstantBuffer(ezVec2(1.0f / static_cast<float>(uiWidth), 1.0f / static_cast<float>(uiHeight)), uiDispatchX * uiDispatchY);
 
     renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
-
-    // Clean up
-    pCommandEncoder->UnsetUnorderedAccessViews(pDevice->GetTexture(hBloomTexture));
-    pCommandEncoder->UnsetResourceViews(hBloomInput);
   }
+
+  // Upsample and Blend pass
+  {
+    for (ezUInt32 i = m_uiMipCount - 1; i > 0; --i)
+    {
+      ezStringBuilder sb;
+      auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, ezFmt("UpscaleBlend Mip {}", i).GetText(sb));
+
+      renderViewContext.m_pRenderContext->BindShader(m_hShader);
+
+      ezUInt32 uiMipSmall = i;
+      ezUInt32 uiMipLarge = i - 1;
+
+      ezUInt32 uiMipLargeWidth = uiWidth >> uiMipLarge;
+      ezUInt32 uiMipLargeHeight = uiHeight >> uiMipLarge;
+
+      ezGALResourceViewHandle hUpscaleBlendInput;
+      {
+        ezGALResourceViewCreationDescription desc;
+        desc.m_hTexture = hBloomTexture;
+        desc.m_uiMostDetailedMipLevel = uiMipSmall;
+        desc.m_uiMipLevelsToUse = 1;
+        desc.m_bUnsetUAV = false;
+        hUpscaleBlendInput = pDevice->CreateResourceView(desc);
+      }
+
+      ezGALUnorderedAccessViewHandle hUpscaleBlendOutput;
+      {
+        ezGALUnorderedAccessViewCreationDescription desc;
+        desc.m_hTexture = hBloomTexture;
+        desc.m_uiMipLevelToUse = uiMipLarge;
+        desc.m_bUnsetResourceView = false;
+        hUpscaleBlendOutput = pDevice->CreateUnorderedAccessView(desc);
+      }
+
+      renderViewContext.m_pRenderContext->BindUAV("Output", hUpscaleBlendOutput);
+      renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", hUpscaleBlendInput);
+      renderViewContext.m_pRenderContext->BindConstantBuffer("ezBloomConstants", m_hConstantBuffer);
+
+      renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", sUpscaleBlendPass);
+
+      const auto uiDispatchX = static_cast<ezUInt32>(ezMath::Ceil(static_cast<float>(uiMipLargeWidth) / THREAD_GROUP_COUNT_X));
+      const auto uiDispatchY = static_cast<ezUInt32>(ezMath::Ceil(static_cast<float>(uiMipLargeHeight) / THREAD_GROUP_COUNT_Y));
+
+      UpdateConstantBuffer(ezVec2(1.0f / static_cast<float>(uiMipLargeWidth), 1.0f / static_cast<float>(uiMipLargeHeight)), uiDispatchX * uiDispatchY);
+
+      renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
+    }
+  }
+
+  // Color Blend
+  {
+    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "ColorBlend");
+
+    renderViewContext.m_pRenderContext->BindShader(m_hShader);
+
+    ezGALResourceViewHandle hBloomInput;
+    {
+      ezGALResourceViewCreationDescription desc;
+      desc.m_hTexture = hBloomTexture;
+      desc.m_uiMostDetailedMipLevel = 0;
+      desc.m_uiMipLevelsToUse = 1;
+      hBloomInput = pDevice->CreateResourceView(desc);
+    }
+
+    ezGALUnorderedAccessViewHandle hColorBlendOutput;
+    {
+      ezGALUnorderedAccessViewCreationDescription desc;
+      desc.m_hTexture = pOutput->m_TextureHandle;
+      desc.m_uiMipLevelToUse = 0;
+      hColorBlendOutput = pDevice->CreateUnorderedAccessView(desc);
+    }
+
+    renderViewContext.m_pRenderContext->BindUAV("Output", hColorBlendOutput);
+    renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", pDevice->GetDefaultResourceView(pInput->m_TextureHandle));
+    renderViewContext.m_pRenderContext->BindTexture2D("MipTexture", hBloomInput);
+    renderViewContext.m_pRenderContext->BindConstantBuffer("ezBloomConstants", m_hConstantBuffer);
+
+    renderViewContext.m_pRenderContext->SetShaderPermutationVariable("BLOOM_PASS_MODE", sColorBlendPass);
+
+    const ezUInt32 uiDispatchX = (uiWidth + THREAD_GROUP_COUNT_X - 1) / THREAD_GROUP_COUNT_X;
+    const ezUInt32 uiDispatchY = (uiHeight + THREAD_GROUP_COUNT_Y - 1) / THREAD_GROUP_COUNT_Y;
+
+    UpdateConstantBuffer(ezVec2(1.0f / static_cast<float>(uiWidth), 1.0f / static_cast<float>(uiHeight)), uiDispatchX * uiDispatchY);
+
+    renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
+  }
+
+  // Cleanup resources
+  pDevice->DestroyTexture(hBloomTexture);
+}
+
+void ezBloomPass::ExecuteInactive(const ezRenderViewContext& renderViewContext, const ezArrayPtr<ezRenderPipelinePassConnection* const> inputs, const ezArrayPtr<ezRenderPipelinePassConnection* const> outputs)
+{
+  const auto* const pInput = inputs[m_PinInput.m_uiInputIndex];
+  const auto* const pOutput = outputs[m_PinOutput.m_uiOutputIndex];
+
+  if (pInput == nullptr || pOutput == nullptr)
+  {
+    return;
+  }
+
+  auto pCommandEncoder = ezRenderContext::BeginPassAndComputeScope(renderViewContext, GetName());
+
+  pCommandEncoder->CopyTexture(pOutput->m_TextureHandle, pInput->m_TextureHandle);
+}
+
+void ezBloomPass::UpdateConstantBuffer(ezVec2 pixelSize, ezUInt32 uiWorkGroupCount) const
+{
+  auto* constants = ezRenderContext::GetConstantBufferData<ezBloomConstants>(m_hConstantBuffer);
+  constants->PixelSize = pixelSize;
+  constants->BloomIntensity = m_fIntensity;
+  constants->MipCount = m_uiMipCount;
+  constants->WorkGroupCount = uiWorkGroupCount;
 }
 
 EZ_STATICLINK_FILE(RendererCore, RendererCore_Pipeline_Implementation_Passes_BloomPass);

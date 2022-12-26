@@ -77,6 +77,7 @@ public:
   EZ_ALWAYS_INLINE ezGALDevice& GetDevice() { return m_Device; }
   // Don't use light hearted ;)
   void InvalidateState();
+  void InvalidateBindings();
 
 protected:
   friend class ezGALDevice;

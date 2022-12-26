@@ -504,5 +504,45 @@ ezGALCommandEncoder::~ezGALCommandEncoder() = default;
 
 void ezGALCommandEncoder::InvalidateState()
 {
+  // Invalidate state
   m_State.InvalidateState();
+}
+
+void ezGALCommandEncoder::InvalidateBindings()
+{
+  // Unbind UAVs
+  for (ezUInt32 uiSlot = 0; uiSlot < m_State.m_pResourcesForUnorderedAccessViews.GetCount(); ++uiSlot)
+  {
+    m_CommonImpl.SetUnorderedAccessViewPlatform(uiSlot, nullptr);
+    m_State.m_hUnorderedAccessViews[uiSlot].Invalidate();
+    m_State.m_pResourcesForUnorderedAccessViews[uiSlot] = nullptr;
+  }
+
+  // Unbind SRVs
+  for (ezUInt32 stage = 0; stage < ezGALShaderStage::ENUM_COUNT; ++stage)
+  {
+    for (ezUInt32 uiSlot = 0; uiSlot < m_State.m_pResourcesForResourceViews[stage].GetCount(); ++uiSlot)
+    {
+      m_CommonImpl.SetResourceViewPlatform(static_cast<ezGALShaderStage::Enum>(stage), uiSlot, nullptr);
+      m_State.m_hResourceViews[stage][uiSlot].Invalidate();
+      m_State.m_pResourcesForResourceViews[stage][uiSlot] = nullptr;
+    }
+  }
+
+  // Unbind sampler states
+  for (ezUInt32 stage = 0; stage < ezGALShaderStage::ENUM_COUNT; ++stage)
+  {
+    for (ezUInt32 uiSlot = 0; uiSlot < EZ_GAL_MAX_SAMPLER_COUNT; uiSlot++)
+    {
+      m_CommonImpl.SetSamplerStatePlatform(static_cast<ezGALShaderStage::Enum>(stage), uiSlot, nullptr);
+      m_State.m_hSamplerStates[stage][uiSlot].Invalidate();
+    }
+  }
+
+  // Unbind Shaders
+  m_CommonImpl.SetShaderPlatform(nullptr);
+  m_State.m_hShader.Invalidate();
+
+  // Flush
+  m_CommonImpl.FlushPlatform();
 }

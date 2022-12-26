@@ -173,6 +173,7 @@ ezGALRenderCommandEncoder* ezRenderContext::BeginRendering(ezGALPass* pGALPass, 
 
 void ezRenderContext::EndRendering()
 {
+  m_pGALCommandEncoder->InvalidateBindings();
   m_pGALPass->EndRendering(GetRenderCommandEncoder());
 
   m_pGALPass = nullptr;
@@ -182,7 +183,7 @@ void ezRenderContext::EndRendering()
   // TODO: The render context needs to reset its state after every encoding block if we want to record to separate command buffers.
   // Although this is currently not possible since a lot of high level code binds stuff only once per frame on the render context.
   // Resetting the state after every encoding block breaks those assumptions.
-  //ResetContextState();
+  ResetContextState();
 }
 
 ezGALComputeCommandEncoder* ezRenderContext::BeginCompute(ezGALPass* pGALPass, const char* szName /*= ""*/)
@@ -198,13 +199,14 @@ ezGALComputeCommandEncoder* ezRenderContext::BeginCompute(ezGALPass* pGALPass, c
 
 void ezRenderContext::EndCompute()
 {
+  m_pGALCommandEncoder->InvalidateBindings();
   m_pGALPass->EndCompute(GetComputeCommandEncoder());
 
   m_pGALPass = nullptr;
   m_pGALCommandEncoder = nullptr;
 
   // TODO: See EndRendering
-  //ResetContextState();
+  ResetContextState();
 }
 
 void ezRenderContext::SetShaderPermutationVariable(const char* szName, const ezTempHashedString& sTempValue)
