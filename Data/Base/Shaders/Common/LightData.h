@@ -153,7 +153,7 @@ struct EZ_SHADER_STRUCT ezPerDecalData
 };
 
 #define NUM_CLUSTERS_X 16
-#define NUM_CLUSTERS_Y 8
+#define NUM_CLUSTERS_Y 9
 #define NUM_CLUSTERS_Z 24
 #define NUM_CLUSTERS_XY (NUM_CLUSTERS_X * NUM_CLUSTERS_Y)
 #define NUM_CLUSTERS (NUM_CLUSTERS_X * NUM_CLUSTERS_Y * NUM_CLUSTERS_Z)
@@ -179,4 +179,4 @@ struct ezPerClusterData
   StructuredBuffer<uint> clusterItemBuffer;
 #endif
 
-  // clang-format on
+// clang-format on

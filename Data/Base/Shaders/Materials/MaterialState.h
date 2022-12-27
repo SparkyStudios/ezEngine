@@ -23,7 +23,7 @@ DepthTestFunc = CompareFunc_LessEqual
 
 #if defined(BLEND_MODE) && (BLEND_MODE == BLEND_MODE_OPAQUE || BLEND_MODE == BLEND_MODE_MASKED)
 
-  #if defined(RENDER_PASS) && (RENDER_PASS == RENDER_PASS_FORWARD || RENDER_PASS == RENDER_PASS_EDITOR)
+  #if defined(RENDER_PASS) && (RENDER_PASS == RENDER_PASS_FORWARD || RENDER_PASS == RENDER_PASS_DEFERRED || RENDER_PASS == RENDER_PASS_EDITOR)
 
     #if defined(FORWARD_PASS_WRITE_DEPTH)
       #if FORWARD_PASS_WRITE_DEPTH == FALSE
@@ -72,8 +72,8 @@ DepthTestFunc = CompareFunc_LessEqual
 	|| RENDER_PASS == RENDER_PASS_PICKING 			/* for transparent objects to be pickable*/\
 	|| RENDER_PASS == RENDER_PASS_PICKING_WIREFRAME /* for transparent objects to be pickable*/\
 	|| RENDER_PASS == RENDER_PASS_DEPTH_ONLY 		/* for transparent objects to have a selection outline */\
-	) 
-	
+	)
+
   BlendingEnabled0 = false
   DepthWrite = true
 #endif

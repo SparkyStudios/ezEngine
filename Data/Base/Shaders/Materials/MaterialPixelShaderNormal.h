@@ -3,7 +3,7 @@
 #if BLEND_MODE == BLEND_MODE_MASKED && RENDER_PASS != RENDER_PASS_WIREFRAME
 
   // No need to do alpha test again if we have a depth prepass
-  #if defined(FORWARD_PASS_WRITE_DEPTH) && (RENDER_PASS == RENDER_PASS_FORWARD || RENDER_PASS == RENDER_PASS_EDITOR)
+  #if defined(FORWARD_PASS_WRITE_DEPTH) && (RENDER_PASS == RENDER_PASS_FORWARD || RENDER_PASS == RENDER_PASS_DEFERRED || RENDER_PASS == RENDER_PASS_EDITOR)
     #if FORWARD_PASS_WRITE_DEPTH == TRUE
       #define USE_ALPHA_TEST
     #endif
@@ -24,13 +24,19 @@
 
 struct PS_OUT
 {
-  #if RENDER_PASS != RENDER_PASS_DEPTH_ONLY
-    float4 Color : SV_Target;
-  #endif
+#if RENDER_PASS != RENDER_PASS_DEPTH_ONLY
+  float4 Color    : SV_Target0;
 
-  #if defined(USE_ALPHA_TEST_SUPER_SAMPLING)
-    uint Coverage : SV_Coverage;
-  #endif
+#if RENDER_PASS == RENDER_PASS_DEFERRED
+  float4 Normal   : SV_Target1;
+  float4 Material : SV_Target2;
+  float2 Velocity : SV_Target3;
+#endif
+#endif
+
+#if defined(USE_ALPHA_TEST_SUPER_SAMPLING)
+  uint Coverage   : SV_Coverage;
+#endif
 };
 
 PS_OUT main(PS_IN Input)
@@ -60,8 +66,10 @@ PS_OUT main(PS_IN Input)
 
   ezMaterialData matData = FillMaterialData();
 
-  ezPerClusterData clusterData = GetClusterData(Input.Position.xyw);
   uint gameObjectId = GetInstanceData().GameObjectID;
+
+#if RENDER_PASS == RENDER_PASS_FORWARD || RENDER_PASS == RENDER_PASS_EDITOR
+  ezPerClusterData clusterData = GetClusterData(Input.Position.xyw);
 
   #if defined(USE_DECALS)
     ApplyDecals(matData, clusterData, gameObjectId);
@@ -93,10 +101,11 @@ PS_OUT main(PS_IN Input)
 
       float specularNormalization = lerp(1.0f, 1.0f / matData.opacity, saturate(matData.opacity * 10.0f));
       light.specularLight *= specularNormalization;
-#endif
+  #endif
 
   float3 litColor = light.diffuseLight + light.specularLight;
   litColor += matData.emissiveColor;
+#endif
 
   #if RENDER_PASS == RENDER_PASS_FORWARD
     #if defined(USE_FOG)
@@ -258,6 +267,12 @@ PS_OUT main(PS_IN Input)
     Output.Color = RGBA8ToFloat4(gameObjectId);
 
   #elif RENDER_PASS == RENDER_PASS_DEPTH_ONLY
+
+  #elif RENDER_PASS == RENDER_PASS_DEFERRED
+    Output.Color    = float4(matData.diffuseColor + matData.specularColor + matData.emissiveColor, GetLuminance(matData.emissiveColor));
+    Output.Normal   = float4(matData.worldNormal, pack_uint32_to_float16(gameObjectId));
+    Output.Material = float4(matData.metalness, matData.roughness, matData.occlusion, matData.cavity);
+    Output.Velocity = matData.velocity;
 
   #else
     Output.Color = float4(litColor, matData.opacity);

@@ -5,24 +5,6 @@
 #include <Shaders/Common/CameraConstantsAccess.h>
 
 /*------------------------------------------------------------------------------
-  CONSTANTS
-------------------------------------------------------------------------------*/
-static const float PI2                 = 6.28318530f;
-static const float PI4                 = 12.5663706f;
-static const float INV_PI              = 0.31830988f;
-static const float PI_HALF             = PI * 0.5f;
-static const float FLT_MIN             = 0.00000001f;
-static const float FLT_MAX_10          = 511.0f;
-static const float FLT_MAX_11          = 1023.0f;
-static const float FLT_MAX_14          = 8191.0f;
-static const float FLT_MAX_16          = 32767.0f;
-static const float FLT_MAX_16U         = 65535.0f;
-static const float ALPHA_THRESHOLD     = 0.6f;
-static const float RPC_9               = 0.11111111111f;
-static const float RPC_16              = 0.0625f;
-static const float ENVIRONMENT_MAX_MIP = 11.0f;
-
-/*------------------------------------------------------------------------------
   MACROS
 ------------------------------------------------------------------------------*/
 #define TexelSize ViewportSize.zw
@@ -163,116 +145,6 @@ float4 saturate_16(float4 x)
 }
 
 /*------------------------------------------------------------------------------
-    PACKING/UNPACKING
-------------------------------------------------------------------------------*/
-float3 unpack(float3 value)
-{
-  return value * 2.0f - 1.0f;
-}
-
-float3 pack(float3 value)
-{
-  return value * 0.5f + 0.5f;
-}
-
-float2 unpack(float2 value)
-{
-  return value * 2.0f - 1.0f;
-}
-
-float2 pack(float2 value)
-{
-  return value * 0.5f + 0.5f;
-}
-
-float unpack(float value)
-{
-  return value * 2.0f - 1.0f;
-}
-
-float pack(float value)
-{
-  return value * 0.5f + 0.5f;
-}
-
-float pack_uint32_to_float16(uint i)
-{
-  return (float)i / FLT_MAX_16;
-}
-
-uint unpack_float16_to_uint32(float f)
-{
-  return round(f * FLT_MAX_16);
-}
-
-float pack_float_int(float f, uint i, uint numBitI, uint numBitTarget)
-{
-  // Constant optimize by compiler
-  float precision = float(1U << numBitTarget);
-  float maxi = float(1U << numBitI);
-  float precisionMinusOne = precision - 1.0;
-  float t1 = ((precision / maxi) - 1.0) / precisionMinusOne;
-  float t2 = (precision / maxi) / precisionMinusOne;
-
-  // Code
-  return t1 * f + t2 * float(i);
-}
-
-void unpack_float_int(float val, uint numBitI, uint numBitTarget, out float f, out uint i)
-{
-  // Constant optimize by compiler
-  float precision = float(1U << numBitTarget);
-  float maxi = float(1U << numBitI);
-  float precisionMinusOne = precision - 1.0;
-  float t1 = ((precision / maxi) - 1.0) / precisionMinusOne;
-  float t2 = (precision / maxi) / precisionMinusOne;
-
-  // Code
-  // extract integer part
-  // + rcp(precisionMinusOne) to deal with precision issue
-  i = int((val / t2) + rcp(precisionMinusOne));
-  // Now that we have i, solve formula in PackFloatInt for f
-  // f = (val - t2 * float(i)) / t1 => convert in mads form
-  f = saturate((-t2 * float(i) + val) / t1); // Saturate in case of precision issue
-}
-
-/*------------------------------------------------------------------------------
-    FAST MATH APPROXIMATIONS
-------------------------------------------------------------------------------*/
-
-// Relative error : < 0.7% over full
-// Precise format : ~small float
-// 1 ALU
-float fast_sqrt(float x)
-{
-  int i = asint(x);
-  i = 0x1FBD1DF5 + (i >> 1);
-  return asfloat(i);
-}
-
-float fast_length(float3 v)
-{
-  float LengthSqr = dot(v, v);
-  return fast_sqrt(LengthSqr);
-}
-
-float fast_sin(float x)
-{
-  const float B = 4 / PI;
-  const float C = -4 / PI2;
-  const float P = 0.225;
-
-  float y = B * x + C * x * abs(x);
-  y = P * (y * abs(y) - y) + y;
-  return y;
-}
-
-float fast_cos(float x)
-{
-  return abs(abs(x) / PI2 % 4 - 2) - 1;
-}
-
-/*------------------------------------------------------------------------------
     TRANSFORMATIONS
 ------------------------------------------------------------------------------*/
 float3 world_to_view(float3 x, bool is_position = true)
@@ -308,16 +180,6 @@ float2 view_to_uv(float3 x, bool is_position = true)
 {
   float4 uv = mul(float4(x, (float)is_position), GetCameraToScreenMatrix());
   return (uv.xy / uv.w) * float2(0.5f, -0.5f) + 0.5f;
-}
-
-float2 ndc_to_uv(float2 x)
-{
-  return x * float2(0.5f, -0.5f) + 0.5f;
-}
-
-float2 ndc_to_uv(float3 x)
-{
-  return x.xy * float2(0.5f, -0.5f) + 0.5f;
 }
 
 float3 get_position_ws_from_depth(const float2 uv, const float depth)

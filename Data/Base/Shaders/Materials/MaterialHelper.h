@@ -11,7 +11,6 @@ float3 GetNormal();
 
 #if defined(USE_SIMPLE_MATERIAL_MODEL)
   float3 GetBaseColor();
-  float GetMetallic();
   float GetReflectance();
 #else
   float3 GetDiffuseColor();
@@ -28,10 +27,15 @@ float3 GetNormal();
 
 // Note that this function actually returns perceptualRoughness.
 float GetRoughness();
+float GetMetallic();
 float GetOpacity();
 
 #if defined(USE_MATERIAL_OCCLUSION)
   float GetOcclusion();
+#endif
+
+#if defined(USE_MATERIAL_CAVITY)
+  float GetCavity();
 #endif
 
 #if defined(USE_MATERIAL_SUBSURFACE_COLOR)
@@ -61,7 +65,7 @@ uint CalculateCoverage()
     uint coverage = 0;
 
     float2 texCoords = G.Input.TexCoord0;
-    
+
     for (uint i = 0; i < NumMsaaSamples; ++i)
     {
       G.Input.TexCoord0 = ezEvaluateAttributeAtSample(texCoords, i, NumMsaaSamples);
@@ -69,7 +73,7 @@ uint CalculateCoverage()
       float opacity = GetOpacity();
       coverage |= (opacity > 0.0) ? (1U << i) : 0;
     }
-    
+
     G.Input.TexCoord0 = texCoords;
 
     return coverage;
@@ -139,7 +143,7 @@ ezMaterialData FillMaterialData()
   #else
     matData.emissiveColor = 0.0f;
   #endif
-  
+
   #if defined(USE_MATERIAL_REFRACTION)
     matData.refractionColor = GetRefractionColor();
   #else
@@ -152,20 +156,21 @@ ezMaterialData FillMaterialData()
     matData.perceptualRoughness = max(GetRoughness(), MIN_PERCEPTUAL_ROUGHNESS);
 #endif
 
-    matData.roughness = RoughnessFromPerceptualRoughness(matData.perceptualRoughness);
+    matData.roughness = RoughnessFromPerceptualRoughness(matData.perceptualRoughness, matData.worldNormal);
+    matData.metalness = GetMetallic();
 
 #if defined(USE_MATERIAL_OCCLUSION)
-#  if defined(USE_NORMAL)
-    float3 viewVector = normalize(GetCameraPosition() - matData.worldPosition);
-    float occlusionFade = saturate(dot(matData.vertexNormal, viewVector));
-#  else
-    float occlusionFade = 1.0f;
-#  endif
-    matData.occlusion = lerp(1.0f, GetOcclusion(), occlusionFade);
-  #else
+    matData.occlusion = GetOcclusion();
+#else
     matData.occlusion = 1.0f;
+#endif
+
+  #if defined(USE_MATERIAL_CAVITY)
+    matData.cavity = GetCavity();
+  #else
+    matData.cavity = 1.0f;
   #endif
-  
+
   #if BLEND_MODE != BLEND_MODE_OPAQUE && BLEND_MODE != BLEND_MODE_MASKED
     matData.opacity = GetOpacity();
   #else
@@ -176,6 +181,20 @@ ezMaterialData FillMaterialData()
     matData.subsurfaceColor = GetSubsurfaceColor() * matData.diffuseColor;
   #else
     matData.subsurfaceColor = 0.0;
+  #endif
+
+  #if defined(USE_VELOCITY)
+    // TODO: Set these values in the global constants buffer when implementing TAA
+    float2 CurrentTAAJitter = 0.0f;
+    float2 PreviousTAAJitter = 0.0f;
+
+    // TODO: Implement object velocities in shader code
+    // float2 uv_current  = NDC2UV((Input.CurrentPosition.xy / Input.CurrentPosition.w) - CurrentTAAJitter);
+    // float2 uv_previous = NDC2UV((Input.LastPosition.xy / Input.LastPosition.w) - PreviousTAAJitter);
+    // matData.velocity   = uv_current - uv_previous;
+    matData.velocity = float2(0, 0);
+  #else
+    matData.velocity = float2(0, 0);
   #endif
 
   #if defined(USE_MATERIAL_SUBSURFACE_PARAMS)

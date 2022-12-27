@@ -14,8 +14,12 @@ struct ezMaterialData
   float4 refractionColor;
   float roughness;
   float perceptualRoughness;
+  float metalness;
   float occlusion;
+  float cavity;
   float opacity;
+
+  float2 velocity;
 
   float3 subsurfaceColor;
   float subsurfaceScatterPower;

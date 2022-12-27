@@ -44,14 +44,23 @@ float MipLevelFromRoughness(float roughness, uint mipCount)
   return (mipCount - 1) * sqrt(roughness);
 }
 
-float RoughnessFromPerceptualRoughness(float perceptualRoughness)
+float RoughnessFromPerceptualRoughness(in float roughness, in float3 normal, const float strength = 1.0f)
 {
-    return perceptualRoughness * perceptualRoughness;
+  static const float max_roughness_gain = 0.02f;
+
+  float roughness2         = roughness * roughness;
+  float3 dndu              = ddx(normal);
+  float3 dndv              = ddy(normal);
+  float variance           = (dot(dndu, dndu) + dot(dndv, dndv));
+  float kernelRoughness2   = min(variance * strength, max_roughness_gain);
+  float filteredRoughness2 = saturate(roughness2 + kernelRoughness2);
+
+  return filteredRoughness2;
 }
 
 float PerceptualRoughnessFromRoughness(float roughness)
 {
-    return sqrt(roughness);
+  return fast_sqrt(roughness);
 }
 
 float3 DiffuseLambert( float3 diffuseColor )
@@ -95,7 +104,7 @@ float3 FresnelSchlick( float3 specularColor, float u )
   float f = 1.0f - u;
   float ff = f * f;
   float f5 = ff * ff * f;
-  
+
   // specularColor below 2% is considered to be shadowing
   return saturate(50.0 * GetLuminance(specularColor)) * f5 + (1 - f5) * specularColor;
 }
@@ -121,7 +130,7 @@ AccumulatedLight DefaultShading(ezMaterialData matData, float3 L, float3 V)
   float3 F = FresnelSchlick( matData.specularColor, VdotH );
 
   float3 diffuse = DiffuseLambert( matData.diffuseColor );
-  
+
   return InitializeLight(diffuse * NdotL, F * (D * Vis * NdotL));
 }
 
@@ -135,6 +144,6 @@ AccumulatedLight SubsurfaceShading(ezMaterialData matData, float3 L, float3 V)
 
   float wrapFactor = 0.5;
   float wrappedNdotH = saturate( ( dot(N, H) * wrapFactor + 1 - wrapFactor )) / (PI * 2);
-	
+
 	return InitializeLight(matData.subsurfaceColor * lerp(wrappedNdotH, 1, inScatter), 0.0);
 }
