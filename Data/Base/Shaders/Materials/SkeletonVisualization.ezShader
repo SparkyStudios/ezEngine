@@ -129,6 +129,11 @@ float GetRoughness(PS_IN Input)
   return 1.0f;
 }
 
+float GetMetallic(PS_IN Input)
+{
+  return 0.0f;
+}
+
 float GetOpacity(PS_IN Input)
 {
   return 1.0f;

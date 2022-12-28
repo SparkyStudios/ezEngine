@@ -105,6 +105,8 @@ PS_OUT main(PS_IN Input)
 
   float3 litColor = light.diffuseLight + light.specularLight;
   litColor += matData.emissiveColor;
+  litColor *= matData.cavity;
+
 #endif
 
   #if RENDER_PASS == RENDER_PASS_FORWARD
@@ -269,7 +271,7 @@ PS_OUT main(PS_IN Input)
   #elif RENDER_PASS == RENDER_PASS_DEPTH_ONLY
 
   #elif RENDER_PASS == RENDER_PASS_DEFERRED
-    Output.Color    = float4(matData.diffuseColor + matData.specularColor + matData.emissiveColor, GetLuminance(matData.emissiveColor));
+    Output.Color    = float4(matData.diffuseColor + lerp(0.0f, matData.specularColor, matData.metalness) + matData.emissiveColor, GetLuminance(matData.emissiveColor));
     Output.Normal   = float4(matData.worldNormal, pack_uint32_to_float16(gameObjectId));
     Output.Material = float4(matData.metalness, matData.roughness, matData.occlusion, matData.cavity);
     Output.Velocity = matData.velocity;

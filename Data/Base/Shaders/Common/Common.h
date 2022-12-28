@@ -24,6 +24,140 @@ static const float RPC_16              = 0.0625f;
 static const float ENVIRONMENT_MAX_MIP = 11.0f;
 
 /*------------------------------------------------------------------------------
+  MATH
+------------------------------------------------------------------------------*/
+
+float min2(float2 value)
+{
+  return min(value.x, value.y);
+}
+
+float min3(float3 value)
+{
+  return min(min(value.x, value.y), value.z);
+}
+
+float min3(float a, float b, float c)
+{
+  return min(min(a, b), c);
+}
+
+float min4(float a, float b, float c, float d)
+{
+  return min(min(min(a, b), c), d);
+}
+
+float min5(float a, float b, float c, float d, float e)
+{
+  return min(min(min(min(a, b), c), d), e);
+}
+
+float max2(float2 value)
+{
+  return max(value.x, value.y);
+}
+
+float max3(float3 value)
+{
+  return max(max(value.x, value.y), value.z);
+}
+
+float max4(float a, float b, float c, float d)
+{
+  return max(max(max(a, b), c), d);
+}
+
+float max5(float a, float b, float c, float d, float e)
+{
+  return max(max(max(max(a, b), c), d), e);
+}
+
+float pow2(float x)
+{
+  return x * x;
+}
+
+float pow3(float x)
+{
+  float xx = x * x;
+  return xx * x;
+}
+
+float pow4(float x)
+{
+  float xx = x * x;
+  return xx * xx;
+}
+
+bool is_saturated(float value)
+{
+  return value == saturate(value);
+}
+
+bool is_saturated(float2 value)
+{
+  return is_saturated(value.x) && is_saturated(value.y);
+}
+
+bool is_saturated(float3 value)
+{
+  return is_saturated(value.x) && is_saturated(value.y) && is_saturated(value.z);
+}
+
+bool is_saturated(float4 value)
+{
+  return is_saturated(value.x) && is_saturated(value.y) && is_saturated(value.z) && is_saturated(value.w);
+}
+
+bool is_valid_uv(float2 value)
+{
+  return (value.x >= 0.0f && value.x <= 1.0f) || (value.y >= 0.0f && value.y <= 1.0f);
+}
+
+/*------------------------------------------------------------------------------
+    SATURATE
+------------------------------------------------------------------------------*/
+float saturate_11(float x)
+{
+  return clamp(x, FLT_MIN, FLT_MAX_11);
+}
+
+float2 saturate_11(float2 x)
+{
+  return clamp(x, FLT_MIN, FLT_MAX_11);
+}
+
+float3 saturate_11(float3 x)
+{
+  return clamp(x, FLT_MIN, FLT_MAX_11);
+}
+
+float4 saturate_11(float4 x)
+{
+  return clamp(x, FLT_MIN, FLT_MAX_11);
+}
+
+float saturate_16(float x)
+{
+  return clamp(x, FLT_MIN, FLT_MAX_16);
+}
+
+float2 saturate_16(float2 x)
+{
+  return clamp(x, FLT_MIN, FLT_MAX_16);
+}
+
+float3 saturate_16(float3 x)
+{
+  return clamp(x, FLT_MIN, FLT_MAX_16);
+}
+
+float4 saturate_16(float4 x)
+{
+  return clamp(x, FLT_MIN, FLT_MAX_16);
+}
+
+/*------------------------------------------------------------------------------
     PACKING/UNPACKING
 ------------------------------------------------------------------------------*/
 float3 unpack(float3 value)

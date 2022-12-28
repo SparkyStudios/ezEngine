@@ -475,7 +475,7 @@ AccumulatedLight CalculateLighting(ezMaterialData matData, ezPerClusterData clus
     ezPerLightData lightData = perLightDataBuffer[lightIndex];
     uint type = (lightData.colorAndType >> 24) & 0xFF;
 
-    float3 lightDir = normalize(RGB10ToFloat3(lightData.direction) * 2.0f - 1.0f);
+    float3 lightDir = normalize(unpack(RGB10ToFloat3(lightData.direction)));
     float3 lightVector = lightDir;
     float attenuation = 1.0f;
     float distanceToLight = 1.0f;
@@ -538,8 +538,8 @@ AccumulatedLight CalculateLighting(ezMaterialData matData, ezPerClusterData clus
   }
 
   // normalize brdf
-  totalLight.diffuseLight *= (1.0f / PI);
-  totalLight.specularLight *= (1.0f / PI);
+  // totalLight.diffuseLight *= (1.0f / PI);
+  // totalLight.specularLight *= (1.0f / PI);
 
   float occlusion = matData.occlusion;
 
@@ -549,12 +549,23 @@ AccumulatedLight CalculateLighting(ezMaterialData matData, ezPerClusterData clus
     occlusion *= ssao;
   }
 
+  float NdotV = saturate(dot(matData.worldNormal, viewVector));
+
+  // Calculate Fresnel term for ambient lighting.
+  // Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
+  // use NdotV instead of angle with light's half-vector.
+  // See: https://seblagarde.wordpress.com/2011/08/17/hello-world/
+  float3 F = F_Schlick_Roughness(matData.specularColor, NdotV, matData.roughness);
+
+  // Get diffuse contribution factor (as with direct lighting).
+  float3 kD = ComputeDiffuseEnergy(F, matData.metalness);
+
   // sky light in ambient cube basis
-  float3 skyLight = EvaluateAmbientCube(SkyIrradianceTexture, SkyIrradianceIndex, matData.worldNormal).rgb;
+  float3 skyLight = EvaluateAmbientCube(SkyIrradianceTexture, SkyIrradianceIndex, matData.worldNormal).rgb * kD;
   totalLight.diffuseLight += matData.diffuseColor * skyLight * occlusion;
 
   // indirect specular
-  totalLight.specularLight += matData.specularColor * ComputeReflection(matData, viewVector, clusterData) * occlusion;
+  totalLight.specularLight += F * ComputeReflection(matData, viewVector, clusterData) * occlusion;
   //totalLight.specularLight += ComputeReflection(matData, viewVector, clusterData);
 
   // enable once we have proper sky visibility
@@ -562,10 +573,6 @@ AccumulatedLight CalculateLighting(ezMaterialData matData, ezPerClusterData clus
     skyLight = EvaluateAmbientCube(SkyIrradianceTexture, SkyIrradianceIndex, -matData.worldNormal).rgb;
     totalLight.diffuseLight += matData.subsurfaceColor * skyLight * occlusion;
   #endif*/
-
-  // object cavities
-  totalLight.diffuseLight *= matData.cavity;
-  totalLight.specularLight *= matData.cavity;
 
   return totalLight;
 }

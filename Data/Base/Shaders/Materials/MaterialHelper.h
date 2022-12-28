@@ -107,11 +107,11 @@ ezMaterialData FillMaterialData()
 #  endif
 #endif
 
-#if defined(USE_NORMAL)
+  #if defined(USE_NORMAL)
     matData.vertexNormal = normalize(G.Input.Normal);
-#else
+  #else
     matData.vertexNormal = float3(0, 0, 1);
-#endif
+  #endif
 
 #if defined(USE_SIMPLE_MATERIAL_MODEL)
     float3 baseColor = GetBaseColor();
@@ -138,7 +138,7 @@ ezMaterialData FillMaterialData()
 #  endif
 #endif
 
-#if defined(USE_MATERIAL_EMISSIVE)
+  #if defined(USE_MATERIAL_EMISSIVE)
     matData.emissiveColor = GetEmissiveColor();
   #else
     matData.emissiveColor = 0.0f;
@@ -150,20 +150,20 @@ ezMaterialData FillMaterialData()
     matData.refractionColor = float4(0, 0, 0, 1);
   #endif
 
-#if SHADING_MODE == SHADING_MODE_FULLBRIGHT
+  #if SHADING_MODE == SHADING_MODE_FULLBRIGHT
     matData.perceptualRoughness = MIN_PERCEPTUAL_ROUGHNESS;
-#else
+  #else
     matData.perceptualRoughness = max(GetRoughness(), MIN_PERCEPTUAL_ROUGHNESS);
-#endif
+  #endif
 
     matData.roughness = RoughnessFromPerceptualRoughness(matData.perceptualRoughness, matData.worldNormal);
     matData.metalness = GetMetallic();
 
-#if defined(USE_MATERIAL_OCCLUSION)
+  #if defined(USE_MATERIAL_OCCLUSION)
     matData.occlusion = GetOcclusion();
-#else
+  #else
     matData.occlusion = 1.0f;
-#endif
+  #endif
 
   #if defined(USE_MATERIAL_CAVITY)
     matData.cavity = GetCavity();

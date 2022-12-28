@@ -1,32 +1,31 @@
 [PLATFORMS]
 ALL
 
-[PERMUTATIONS]
 
-MICRO_SHADOW_FUNCTION=MICRO_SHADOW_FUNCTION_SQRT
-SHADING_QUALITY=SHADING_QUALITY_NORMAL
-BLEND_MODE=BLEND_MODE_OPAQUE
+[PERMUTATIONS]
+SHADING_QUALITY=SHADING_QUALITY_NORMAL // The deferred renderer only supports NORMAL shading quality
+BLEND_MODE=BLEND_MODE_OPAQUE // At the lightning stage, the blend mode is always set to OPAQUE
 
 CAMERA_MODE
 VERTEX_SHADER_RENDER_TARGET_ARRAY_INDEX
 
-[RENDERSTATE]
 
+[RENDERSTATE]
 DepthTest = false
 DepthTestFunc = CompareFunc_Less
 DepthWrite = false
 CullMode = CullMode_None
 
-[VERTEXSHADER]
 
+[VERTEXSHADER]
 #include <Shaders/Pipeline/FullscreenTriangleVertexShader.h>
 
-[GEOMETRYSHADER]
 
+[GEOMETRYSHADER]
 #include <Shaders/Pipeline/FullscreenTriangleStereoGeometryShader.h>
 
-[PIXELSHADER]
 
+[PIXELSHADER]
 #include <Shaders/Pipeline/FullscreenTriangleInterpolator.h>
 static const float Epsilon = 0.0001f;
 
@@ -47,326 +46,80 @@ Texture2D VelocityTexture;
 
 RWTexture2D<float4> Output;
 
+struct PS_GLOBALS
+{
+  PS_IN Input;
+};
+
+static PS_GLOBALS G;
+
 // ----- Material --------------------------------
 
-float3 GetNormal(float2 pos)
+float3 GetNormal()
 {
-  return NormalTexture[pos].xyz;
+  return NormalTexture[G.Input.Position.xy].xyz;
 }
 
-float GetMetallic(float2 pos)
+float GetMetallic()
 {
-  return MaterialTexture[pos].r;
+  return MaterialTexture[G.Input.Position.xy].r;
 }
 
-float3 GetDiffuseColor(float2 pos)
+float3 GetDiffuseColor()
 {
-  return AlbedoTexture[pos].rgb;
+  return AlbedoTexture[G.Input.Position.xy].rgb;
 }
 
-float GetRoughness(float2 pos)
+float GetRoughness()
 {
-  return MaterialTexture[pos].g;
+  return MaterialTexture[G.Input.Position.xy].g;
 }
 
-float3 GetEmissiveColor(float2 pos)
+float3 GetEmissiveColor()
 {
-  return AlbedoTexture[pos].rgb * AlbedoTexture[pos].a;
+  float4 color = AlbedoTexture[G.Input.Position.xy];
+  return color.rgb * color.a;
 }
 
-float GetOcclusion(float2 pos)
+float GetOcclusion()
 {
-  return MaterialTexture[pos].b;
+  return MaterialTexture[G.Input.Position.xy].b;
 }
 
-float GetCavity(float2 pos)
+float GetCavity()
 {
-  return MaterialTexture[pos].a;
+  return MaterialTexture[G.Input.Position.xy].a;
 }
 
-float2 GetVelocity(float2 pos)
+float2 GetVelocity()
 {
-  return VelocityTexture[pos].xy;
+  return VelocityTexture[G.Input.Position.xy].xy;
 }
 
-// ---------------------------------------------------------
-
-// ----- Cook Torrance BRDF --------------------------------
-
-float DistributionGGX(float3 N, float3 Lh, float roughness)
-{
-  float a      = roughness * roughness;
-  float a2     = a * a;
-  float NdotH  = saturate(dot(N, Lh));
-  float NdotH2 = NdotH * NdotH;
-
-  float denom  = NdotH2 * (a2 - 1.0f) + 1.0f;
-
-  return a2 / (PI * denom * denom);
-}
-
-float GeometrySchlickGGX(float cosTheta, float roughness)
-{
-  float r = roughness + 1.0f;
-  float k = (r * r) / 8.0f;
-
-  return cosTheta / (cosTheta * (1.0f - k) + k);
-}
-
-float GeometrySmith(float cosLo, float cosLi, float roughness)
-{
-  float ggx2 = GeometrySchlickGGX(cosLo, roughness);
-  float ggx1 = GeometrySchlickGGX(cosLi, roughness);
-
-  return ggx1 * ggx2;
-}
-
-// Shlick's approximation of the Fresnel factor
-float3 FresnelSchlick(float cosTheta, float3 F0)
-{
-  return F0 + (1.0f - F0) * pow(1.0f - cosTheta, 5.0f);
-}
-
-// ---------------------------------------------------------
-
-// ----- Enhanced PBR Lightning ----------------------------
-
-AccumulatedLight EnhancedShading(ezMaterialData matData, float3 Li, float3 Lo)
-{
-  float3 N = matData.worldNormal;
-
-  // Half-vector between Li and Lo.
-  float3 Lh = normalize(Li + Lo);
-
-  // Angle between surface normal and outgoing light direction
-  float cosLo = saturate(dot(N, Lo));
-
-  // Calculate angles between surface normal and various light vectors.
-  float cosLi = saturate(dot(N, Li));
-
-  // Calculate Fresnel term for direct lightning
-  float3 F  = FresnelSchlick(saturate(dot(Lh, Lo)), matData.specularColor);
-  // Calculate normal distribution of specular BRDF
-  float NDF = DistributionGGX(N, Lh, matData.perceptualRoughness);
-  // Calculate geometric attenuation for specular BRDF
-  float G   = GeometrySmith(cosLo, cosLi, matData.perceptualRoughness);
-
-  // kS is equal to Fresnel
-  float3 kS = F;
-
-  // Diffuse scattering happens due to light being refracted multiple times by a dielectric medium.
-  // Metals on the other hand either reflect or absorb energy, so diffuse contribution is always zero.
-  // To be energy conserving we must scale diffuse BRDF contribution based on Fresnel factor & metalness.
-  float3 kD = lerp(1.0f - kS, 0.0f, matData.metalness);
-
-  float3 diffuse = kD * DiffuseLambert(matData.diffuseColor);
-
-  // Cook-Torrance specular microfacet BRDF.
-  float3 specular = (F * NDF * G) / max(Epsilon, 4.0 * cosLi * cosLo);
-
-  return InitializeLight(diffuse * cosLi, specular * cosLi);
-}
-
-float MicroShadowEnhanced(float occlusion, float3 normal, float3 lightDir)
-{
-#if MICRO_SHADOW_FUNCTION == MICRO_SHADOW_FUNCTION_SQRT
-  float aperture = 2.0f * sqrt(occlusion);
-#elif MICRO_SHADOW_FUNCTION == MICRO_SHADOW_FUNCTION_LINEAR
-  float aperture = 2.0f * occlusion;
-#elif MICRO_SHADOW_FUNCTION == MICRO_SHADOW_FUNCTION_SQUARE
-  float aperture = 2.0f * pow2(occlusion);
-#elif MICRO_SHADOW_FUNCTION == MICRO_SHADOW_FUNCTION_CUBIC
-  float aperture = 2.0f * pow3(occlusion);
-#endif
-
-  return saturate(abs(dot(normal, lightDir)) + aperture - 1.0f);
-}
-
-AccumulatedLight CalculateLightingEnhanced(ezMaterialData matData, ezPerClusterData clusterData, float3 screenPosition, bool applySSAO)
-{
-  // Outgoing light direction (vector from world-space fragment position to the "eye").
-  float3 Lo = normalize(GetCameraPosition() - matData.worldPosition);
-
-  // Get current fragment's normal and transform to world space.
-  float3 N = matData.worldNormal;
-
-  // Angle between surface normal and outgoing light direction.
-  float cosLo = saturate(dot(N, Lo));
-
-  // Specular reflection vector.
-  float3 Lr = 2.0 * cosLo * N - Lo;
-
-  AccumulatedLight totalLight = InitializeLight(0.0f, 0.0f);
-
-  float noise = InterleavedGradientNoise(screenPosition.xy);
-  float2 randomAngle; sincos(noise * 2.0f * PI, randomAngle.x, randomAngle.y);
-  float2x2 randomRotation = {randomAngle.x, -randomAngle.y, randomAngle.y, randomAngle.x};
-
-  uint firstItemIndex = clusterData.offset;
-  uint lastItemIndex = firstItemIndex + GET_LIGHT_INDEX(clusterData.counts);
-
-  [loop]
-  for (uint i = firstItemIndex; i < lastItemIndex; ++i)
-  {
-    uint itemIndex = clusterItemBuffer[i];
-    uint lightIndex = GET_LIGHT_INDEX(itemIndex);
-
-    ezPerLightData lightData = perLightDataBuffer[lightIndex];
-    uint type = (lightData.colorAndType >> 24) & 0xFF;
-
-    float3 lightDir = normalize(RGB10ToFloat3(lightData.direction) * 2.0f - 1.0f);
-    float3 Li = lightDir;
-    float attenuation = 1.0f;
-    float distanceToLight = 1.0f;
-
-    [branch]
-    if (type != LIGHT_TYPE_DIR)
-    {
-      Li = lightData.position - matData.worldPosition;
-      float sqrDistance = dot(Li, Li);
-
-      attenuation = DistanceAttenuation(sqrDistance, lightData.invSqrAttRadius);
-
-      distanceToLight = sqrDistance * lightData.invSqrAttRadius;
-      Li *= rsqrt(sqrDistance);
-
-      [branch]
-      if (type == LIGHT_TYPE_SPOT)
-      {
-        float2 spotParams = RG16FToFloat2(lightData.spotParams);
-        attenuation *= SpotAttenuation(Li, lightDir, spotParams);
-      }
-    }
-
-    // Half-vector between Li and Lo.
-    float3 Lh = normalize(Li + Lo);
-
-    // Calculate angles between surface normal and various light vectors.
-    float cosLi = saturate(dot(N, Li));
-    float cosLh = saturate(dot(N, Lh));
-
-  #if !defined(USE_MATERIAL_SUBSURFACE_COLOR)
-    [branch]
-    if (attenuation * cosLi > 0.0f)
-  #endif
-    {
-      attenuation *= MicroShadowEnhanced(matData.occlusion, N, Li);
-
-      float3 debugColor = 1.0f;
-      float shadowTerm = 1.0;
-      float subsurfaceShadow = 1.0;
-
-      [branch]
-      if (lightData.shadowDataOffset != 0xFFFFFFFF)
-      {
-        uint shadowDataOffset = lightData.shadowDataOffset;
-
-        shadowTerm = CalculateShadowTerm(matData, Li, distanceToLight, type,
-          shadowDataOffset, noise, randomRotation, subsurfaceShadow, debugColor);
-      }
-
-      attenuation *= lightData.intensity;
-      float3 lightColor = RGB8ToFloat3(lightData.colorAndType);
-
-      // debug cascade or point face selection
-      #if 0
-        lightColor = lerp(1.0f, debugColor, 0.5f);
-      #endif
-
-      AccumulateLight(totalLight, EnhancedShading(matData, Li, Lo), lightColor * (attenuation * shadowTerm));
-
-      #if defined(USE_MATERIAL_SUBSURFACE_COLOR)
-        AccumulateLight(totalLight, SubsurfaceShading(matData, Li, Lo), lightColor * (attenuation * subsurfaceShadow));
-      #endif
-    }
-  }
-
-  // normalize brdf
-  totalLight.diffuseLight *= (1.0f / PI);
-  totalLight.specularLight *= (1.0f / PI);
-
-  float occlusion = matData.occlusion;
-
-  if (applySSAO)
-  {
-    float ssao = SampleSSAO(screenPosition);
-    occlusion *= ssao;
-  }
-
-  // Calculate Fresnel term for ambient lighting.
-  // Since we use pre-filtered cubemap(s) and irradiance is coming from many directions
-  // use cosLo instead of angle with light's half-vector (cosLh above).
-  // See: https://seblagarde.wordpress.com/2011/08/17/hello-world/
-  // float3 F = FresnelSchlickAdvanced(cosLo, matData.specularColor);
-
-  // Get diffuse contribution factor (as with direct lighting).
-  // float3 kD = lerp(1.0 - F, 0.0, GetMetallic());
-
-  // sky light in ambient cube basis
-  float3 skyLight = EvaluateAmbientCube(SkyIrradianceTexture, SkyIrradianceIndex, N).rgb;
-  totalLight.diffuseLight += matData.diffuseColor * skyLight * occlusion;
-
-  // indirect specular
-  totalLight.specularLight += matData.specularColor * ComputeReflection(matData, Lo, clusterData) * occlusion;
-
-  // enable once we have proper sky visibility
-  #if defined(USE_MATERIAL_SUBSURFACE_COLOR)
-    skyLight = EvaluateAmbientCube(SkyIrradianceTexture, SkyIrradianceIndex, -N).rgb;
-    totalLight.diffuseLight += matData.subsurfaceColor * skyLight * occlusion;
-  #endif
-
-  // object cavities
-  totalLight.diffuseLight *= matData.cavity;
-  totalLight.specularLight *= matData.cavity;
-
-  return totalLight;
-}
-
-ezMaterialData FillMaterialData(float2 pos)
+ezMaterialData FillMaterialData()
 {
   ezMaterialData matData;
 
-  matData.worldPosition = SampleScenePosition(pos);
-
-  matData.worldNormal = GetNormal(pos);
-
+  matData.worldPosition = SampleScenePosition(G.Input.Position.xy);
+  matData.worldNormal = GetNormal();
   matData.vertexNormal = float3(0, 0, 1);
-
-  matData.emissiveColor = GetEmissiveColor(pos);
-
-  matData.diffuseColor = GetDiffuseColor(pos) - matData.emissiveColor;
-
+  matData.emissiveColor = GetEmissiveColor();
+  matData.diffuseColor = GetDiffuseColor();
   matData.refractionColor = float4(0, 0, 0, 1);
-
-  matData.roughness = GetRoughness(pos);
-
+  matData.roughness = GetRoughness();
   matData.perceptualRoughness = PerceptualRoughnessFromRoughness(matData.roughness);
-
-  matData.metalness = GetMetallic(pos);
-
-  matData.occlusion = GetOcclusion(pos);
-
+  matData.metalness = GetMetallic();
+  matData.occlusion = GetOcclusion();
   matData.opacity = 1.0f;
-
-  matData.cavity = GetCavity(pos);
-
-  matData.velocity = GetVelocity(pos);
+  matData.cavity = GetCavity();
+  matData.velocity = GetVelocity();
 
   matData.specularColor = lerp(0.04f, matData.diffuseColor, matData.metalness);
   matData.diffuseColor = lerp(matData.diffuseColor, 0.0f, matData.metalness);
 
-  #if defined(USE_MATERIAL_SUBSURFACE_COLOR)
-    matData.subsurfaceColor = GetSubsurfaceColor() * matData.diffuseColor;
-  #else
-    matData.subsurfaceColor = 0.0;
-  #endif
-
-  #if defined(USE_MATERIAL_SUBSURFACE_PARAMS)
-    GetSubsurfaceParams(matData.subsurfaceScatterPower, matData.subsurfaceShadowFalloff);
-  #else
-    matData.subsurfaceScatterPower = 9.0;
-    matData.subsurfaceShadowFalloff = 0.0;
-  #endif
+  matData.subsurfaceColor = 0.0;
+  matData.subsurfaceScatterPower = 9.0;
+  matData.subsurfaceShadowFalloff = 0.0;
 
   return matData;
 }
@@ -379,10 +132,12 @@ float4 main(PS_IN Input) : SV_Target
   s_ActiveCameraEyeIndex = Input.RenderTargetArrayIndex;
 #endif
 
+  G.Input = Input;
+
   float depth = SampleSceneDepth(Input.Position.xy);
   float3 screenPos = float3(Input.Position.xy, depth);
 
-  ezMaterialData matData = FillMaterialData(Input.Position.xy);
+  ezMaterialData matData = FillMaterialData();
 
   ezPerClusterData clusterData = GetClusterData(screenPos);
   uint gameObjectId = unpack_float16_to_uint32(NormalTexture[Input.Position.xy].w);
@@ -391,21 +146,13 @@ float4 main(PS_IN Input) : SV_Target
   ApplyDecals(matData, clusterData, gameObjectId);
 #endif
 
-  AccumulatedLight light = CalculateLightingEnhanced(matData, clusterData, screenPos, true);
-
-  #if BLEND_MODE != BLEND_MODE_OPAQUE && BLEND_MODE != BLEND_MODE_MASKED
-    #if defined(USE_MATERIAL_REFRACTION)
-      ApplyRefraction(matData, light);
-    #endif
-
-      float specularNormalization = lerp(1.0f, 1.0f / matData.opacity, saturate(matData.opacity * 10.0f));
-      light.specularLight *= specularNormalization;
-  #endif
+  AccumulatedLight light = CalculateLighting(matData, clusterData, screenPos, true);
 
   float3 litColor = light.diffuseLight + light.specularLight;
   litColor += matData.emissiveColor;
+  litColor *= matData.cavity;
 
   litColor = ApplyFog(litColor, matData.worldPosition);
 
-  return float4(litColor, 1.0);
+  return float4(litColor, matData.opacity);
 }
