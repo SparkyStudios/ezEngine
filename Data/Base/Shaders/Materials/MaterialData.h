@@ -12,12 +12,20 @@ struct ezMaterialData
   float3 specularColor;
   float3 emissiveColor;
   float4 refractionColor;
+
   float roughness;
   float perceptualRoughness;
   float metalness;
   float occlusion;
   float cavity;
   float opacity;
+
+  float clearcoat;
+  float clearcoatRoughness;
+  float anisotropic;
+  float anisotropicRotation;
+  float sheen;
+  float sheenTintFactor;
 
   float2 velocity;
 

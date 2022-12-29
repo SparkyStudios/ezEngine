@@ -46,6 +46,17 @@ float GetOpacity();
   void GetSubsurfaceParams(out float scatterPower, out float shadowFalloff);
 #endif
 
+#if defined(USE_MATERIAL_SPECULAR_PARAMS)
+  void GetSpecularParams(
+    out float clearcoat,
+    out float clearcoatRoughness,
+    out float anisotropic,
+    out float anisotropicRotation,
+    out float sheen,
+    out float sheenTintFactor
+  );
+#endif
+
 struct PS_GLOBALS
 {
   PS_IN Input;
@@ -196,6 +207,25 @@ ezMaterialData FillMaterialData()
   #else
     matData.velocity = float2(0, 0);
   #endif
+
+  #if defined(USE_MATERIAL_SPECULAR_PARAMS)
+    GetSpecularParams(
+      matData.clearcoat,
+      matData.clearcoatRoughness,
+      matData.anisotropic,
+      matData.anisotropicRotation,
+      matData.sheen,
+      matData.sheenTintFactor
+    );
+  #else
+    matData.clearcoat = 0;
+    matData.clearcoatRoughness = 0;
+    matData.anisotropic = 0;
+    matData.anisotropicRotation = 0;
+    matData.sheen = 0;
+    matData.sheenTintFactor = 0;
+  #endif
+
 
   #if defined(USE_MATERIAL_SUBSURFACE_PARAMS)
     GetSubsurfaceParams(matData.subsurfaceScatterPower, matData.subsurfaceShadowFalloff);

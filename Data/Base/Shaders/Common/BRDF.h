@@ -192,81 +192,73 @@ float3 BRDF_Specular_Isotropic(
   float D  = D_GGX(a2, NoH);
   float3 F = F_Schlick(matData.specularColor, VoH);
 
-  kD  *= ComputeDiffuseEnergy(F, matData.metalness);
-  kS  *= F;
+  kD *= ComputeDiffuseEnergy(F, matData.metalness);
+  kS *= F;
 
   return D * V * F;
 }
 
-inline float3 BRDF_Specular_Anisotropic(ezMaterialData matData, float3 v, float3 l, float3 h, float NoV, float NoL, float NoH, float LoH, inout float3 kD, inout float3 kS)
+float3 BRDF_Specular_Anisotropic(ezMaterialData matData, float3 h, float NoV, float NoL, float NoH, float LoH, inout float3 kD, inout float3 kS)
 {
-  // TODO: Add anisotropic brdf parameters in materials
-  // // Construct TBN from the normal
-  // float3 t, b;
-  // find_best_axis_vectors(matData.normal, t, b);
-  // float3x3 TBN = float3x3(t, b, matData.normal);
+  // Construct TBN from the normal
+  float3 t, b;
+  FindBestAxisVectors(matData.worldNormal, t, b);
+  float3x3 TBN = float3x3(t, b, matData.worldNormal);
 
-  // // Rotate tangent and bitagent
-  // float rotation   = max(matData.anisotropic_rotation * PI2, FLT_MIN); // convert material property to a full rotation
-  // float2 direction = float2(cos(rotation), sin(rotation));             // convert rotation to direction
-  // t                = normalize(mul(float3(direction, 0.0f), TBN).xyz); // compute direction derived tangent
-  // b                = normalize(cross(matData.normal, t));              // re-compute bitangent
+  // Rotate tangent and bitagent
+  float rotation   = max(matData.anisotropicRotation * PI2, FLT_MIN); // convert material property to a full rotation
+  float2 direction = float2(cos(rotation), sin(rotation));             // convert rotation to direction
+  t                = normalize(mul(float3(direction, 0.0f), TBN).xyz); // compute direction derived tangent
+  b                = normalize(cross(matData.worldNormal, t));              // re-compute bitangent
 
-  // float alpha_ggx = matData.roughness;
-  // float aspect    = sqrt(1.0 - matData.anisotropic * 0.9);
-  // float ax        = alpha_ggx / aspect;
-  // float ay        = alpha_ggx * aspect;
-  // float XdotH     = dot(t, h);
-  // float YdotH     = dot(b, h);
+  float alpha_ggx = matData.roughness;
+  float aspect    = sqrt(1.0 - matData.anisotropic * 0.9);
+  float ax        = alpha_ggx / aspect;
+  float ay        = alpha_ggx * aspect;
+  float XdotH     = dot(t, h);
+  float YdotH     = dot(b, h);
 
-  // // specular anisotropic BRDF
-  // float D   = D_GGX_Anisotropic(NoH, ax, ay, XdotH, YdotH);
-  // float V   = V_GGX_anisotropic_2cos(NoV, ax, ay, XdotH, YdotH) * V_GGX_anisotropic_2cos(NoV, ax, ay, XdotH, YdotH);
-  // float f90 = saturate(dot(matData.F0, 50.0 * 0.33));
-  // float3 F  = F_Schlick(matData.F0, f90, LoH);
+  // specular anisotropic BRDF
+  float D   = D_GGX_Anisotropic(NoH, ax, ay, XdotH, YdotH);
+  float V   = V_GGX_anisotropic_2cos(NoV, ax, ay, XdotH, YdotH) * V_GGX_anisotropic_2cos(NoV, ax, ay, XdotH, YdotH);
+  float f90 = saturate(dot(matData.specularColor, 50.0 * GetLuminance(matData.specularColor)));
+  float3 F  = F_Schlick(matData.specularColor, f90, LoH);
 
-  // kD  *= ComputeDiffuseEnergy(F, matData.metalness);
-  // kS *= F;
+  kD *= ComputeDiffuseEnergy(F, matData.metalness);
+  kS *= F;
 
-  // return D * V * F;
-
-  return float3(0.0f, 0.0f, 0.0f);
+  return D * V * F;
 }
 
-inline float3 BRDF_Specular_Clearcoat(ezMaterialData matData, float NoH, float VoH, inout float3 kD, inout float3 kS)
+float3 BRDF_Specular_Clearcoat(ezMaterialData matData, float NoH, float VoH, inout float3 kD, inout float3 kS)
 {
-  // TODO: Add clearcoat brdf parameters in materials
   // float a2 = pow4(matData.roughness);
+  float a2 = pow4(matData.roughness * matData.clearcoatRoughness);
 
-  // float D  = D_GGX(a2, NoH);
-  // float V  = V_Kelemen(VoH);
-  // float3 F = F_Schlick(0.04, 1.0, VoH) * matData.clearcoat;
+  float D  = D_GGX(a2, NoH);
+  float V  = V_Kelemen(VoH);
+  float3 F = F_Schlick(0.04, 1.0, VoH) * matData.clearcoat;
 
-  // kD  *= ComputeDiffuseEnergy(F, matData.metalness);
-  // kS *= F;
+  kD *= ComputeDiffuseEnergy(F, matData.metalness);
+  kS *= F;
 
-  // return D * V * F;
-
-  return float3(0.0f, 0.0f, 0.0f);
+  return D * V * F;
 }
 
-inline float3 BRDF_Specular_Sheen(ezMaterialData matData, float NoV, float NoL, float NoH, inout float3 kD, inout float3 kS)
+float3 BRDF_Specular_Sheen(ezMaterialData matData, float NoV, float NoL, float NoH, inout float3 kD, inout float3 kS)
 {
-  // TODO: Add sheen brdf parameters in materials
-  // // Mix between white and using base color for sheen reflection
-  // float tint = matData.sheen_tint * matData.sheen_tint;
-  // float3 f0  = lerp(1.0f, matData.F0, tint);
+  // Mix between white and using base color for sheen reflection
+  float tint = pow2(matData.sheenTintFactor);
+  float3 f0  = lerp(1.0f, matData.specularColor, tint);
 
-  // float D  = D_Charlie(matData.roughness, NoH);
-  // float V  = V_Neubelt(NoV, NoL);
-  // float3 F = f0 * matData.sheen;
+  float D  = D_Charlie(matData.roughness, NoH);
+  float V  = V_Neubelt(NoV, NoL);
+  float3 F = f0 * matData.sheen;
 
-  // kD  *= ComputeDiffuseEnergy(F, matData.metalness);
-  // kS *= F;
+  kD *= ComputeDiffuseEnergy(F, matData.metalness);
+  kS *= F;
 
-  // return D * V * F;
-
-  return float3(0.0f, 0.0f, 0.0f);
+  return D * V * F;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -362,10 +354,39 @@ AccumulatedLight DefaultShading(ezMaterialData matData, float3 L, float3 V)
   float3 kS = 1.0f;
   float3 kD = 1.0f;
 
-  float3 diffuse  = BRDF_Diffuse(matData, NoV, NoL, VoH);
-  float3 specular = BRDF_Specular_Isotropic(matData, NoV, NoL, NoH, VoH, LoH, kD, kS);
+  float3 specular = 0.0f;
+  float3 diffuse  = 0.0f;
 
-  return InitializeLight(diffuse * kD * NoL, specular * NoL);
+  // Specular
+  if (matData.anisotropic == 0.0f)
+  {
+    specular += BRDF_Specular_Isotropic(matData, NoV, NoL, NoH, VoH, LoH, kD, kS);
+  }
+  else
+  {
+    specular += BRDF_Specular_Anisotropic(matData, H, NoV, NoL, NoH, LoH, kD, kS);
+  }
+
+  // Specular clearcoat
+  if (matData.clearcoat != 0.0f)
+  {
+    specular += BRDF_Specular_Clearcoat(matData, NoH, VoH, kD, kS);
+  }
+
+  // Specular sheen
+  if (matData.sheen != 0.0f)
+  {
+    specular += BRDF_Specular_Sheen(matData, NoV, NoL, NoH, kD, kS);
+  }
+
+  // Diffuse
+  diffuse  = BRDF_Diffuse(matData, NoV, NoL, VoH);
+
+  // Composition
+  diffuse  *= kD * NoL;
+  specular *= NoL;
+
+  return InitializeLight(diffuse, specular);
 }
 
 AccumulatedLight SubsurfaceShading(ezMaterialData matData, float3 L, float3 V)

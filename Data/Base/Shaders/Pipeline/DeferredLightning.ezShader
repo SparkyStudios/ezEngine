@@ -96,6 +96,16 @@ float2 GetVelocity()
   return VelocityTexture[G.Input.Position.xy].xy;
 }
 
+// TODO: Another G-Buffer map to store this?
+void GetSpecularParams(
+  out float clearcoat,
+  out float clearcoatRoughness,
+  out float anisotropic,
+  out float anisotropicRotation,
+  out float sheen,
+  out float sheenTintFactor
+) {}
+
 ezMaterialData FillMaterialData()
 {
   ezMaterialData matData;
@@ -116,6 +126,15 @@ ezMaterialData FillMaterialData()
 
   matData.specularColor = lerp(0.04f, matData.diffuseColor, matData.metalness);
   matData.diffuseColor = lerp(matData.diffuseColor, 0.0f, matData.metalness);
+
+  GetSpecularParams(
+    matData.clearcoat,
+    matData.clearcoatRoughness,
+    matData.anisotropic,
+    matData.anisotropicRotation,
+    matData.sheen,
+    matData.sheenTintFactor
+  );
 
   matData.subsurfaceColor = 0.0;
   matData.subsurfaceScatterPower = 9.0;

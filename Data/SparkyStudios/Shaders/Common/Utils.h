@@ -173,26 +173,6 @@ float screen_fade(float2 uv)
   return saturate(1.0f - dot(fade, fade));
 }
 
-// Find good arbitrary axis vectors to represent U and V axes of a plane,
-// given just the normal. Ported from UnMath.h
-void find_best_axis_vectors(float3 In, out float3 Axis1, out float3 Axis2)
-{
-  const float3 N = abs(In);
-
-  // Find best basis vectors.
-  if (N.z > N.x && N.z > N.y)
-  {
-    Axis1 = float3(1, 0, 0);
-  }
-  else
-  {
-    Axis1 = float3(0, 0, 1);
-  }
-
-  Axis1 = normalize(Axis1 - In * dot(Axis1, In));
-  Axis2 = cross(Axis1, In);
-}
-
 // http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
 float3 dither(uint2 screen_pos)
 {
