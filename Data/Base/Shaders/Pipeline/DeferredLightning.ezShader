@@ -104,7 +104,14 @@ void GetSpecularParams(
   out float anisotropicRotation,
   out float sheen,
   out float sheenTintFactor
-) {}
+) {
+  clearcoat = 0;
+  clearcoatRoughness = 0;
+  anisotropic = 0;
+  anisotropicRotation = 0;
+  sheen = 0;
+  sheenTintFactor = 0;
+}
 
 ezMaterialData FillMaterialData()
 {

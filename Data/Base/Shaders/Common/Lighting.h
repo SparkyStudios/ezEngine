@@ -272,6 +272,7 @@ float CalculateShadowTerm(ezMaterialData matData, float3 lightVector, float dist
   }
 
   float shadowTerm = 1.0f;
+  subsurfaceShadow = 1.0f;
 
   [branch]
   if (fadeOut > 0.0f)
