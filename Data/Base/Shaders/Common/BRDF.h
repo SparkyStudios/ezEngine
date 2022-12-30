@@ -138,9 +138,9 @@ float D_Charlie(float roughness, float NoH)
     Diffuse
 ------------------------------------------------------------------------------*/
 
-float3 Diffuse_Lambert(float3 diffuse_color)
+float3 Diffuse_Lambert(ezMaterialData matData, float NoV, float NoL, float VoH)
 {
-  return diffuse_color * (1 / PI);
+  return matData.diffuseColor * (1 / PI);
 }
 
 // [Burley 2012, "Physically-Based Shading at Disney"]
@@ -206,10 +206,10 @@ float3 BRDF_Specular_Anisotropic(ezMaterialData matData, float3 h, float NoV, fl
   float3x3 TBN = float3x3(t, b, matData.worldNormal);
 
   // Rotate tangent and bitagent
-  float rotation   = max(matData.anisotropicRotation * PI2, FLT_MIN); // convert material property to a full rotation
+  float rotation   = max(matData.anisotropicRotation * PI2, FLT_MIN);  // convert material property to a full rotation
   float2 direction = float2(cos(rotation), sin(rotation));             // convert rotation to direction
   t                = normalize(mul(float3(direction, 0.0f), TBN).xyz); // compute direction derived tangent
-  b                = normalize(cross(matData.worldNormal, t));              // re-compute bitangent
+  b                = normalize(cross(matData.worldNormal, t));         // re-compute bitangent
 
   float alpha_ggx = matData.roughness;
   float aspect    = sqrt(1.0 - matData.anisotropic * 0.9);
@@ -232,14 +232,13 @@ float3 BRDF_Specular_Anisotropic(ezMaterialData matData, float3 h, float NoV, fl
 
 float3 BRDF_Specular_Clearcoat(ezMaterialData matData, float NoH, float VoH, inout float3 kD, inout float3 kS)
 {
-  // float a2 = pow4(matData.roughness);
-  float a2 = pow4(matData.roughness * matData.clearcoatRoughness);
+  float a2 = pow4(matData.clearcoatRoughness);
 
   float D  = D_GGX(a2, NoH);
   float V  = V_Kelemen(VoH);
   float3 F = F_Schlick(0.04, 1.0, VoH) * matData.clearcoat;
 
-  kD *= ComputeDiffuseEnergy(F, matData.metalness);
+  kD *= 1.0f - F;
   kS *= F;
 
   return D * V * F;
@@ -284,7 +283,7 @@ float RoughnessFromPerceptualRoughness(in float roughness, in float3 normal, con
   float kernelRoughness2   = min(variance * strength, max_roughness_gain);
   float filteredRoughness2 = saturate(roughness2 + kernelRoughness2);
 
-  return filteredRoughness2;
+  return saturate(filteredRoughness2);
 }
 
 float PerceptualRoughnessFromRoughness(float roughness)
@@ -360,23 +359,23 @@ AccumulatedLight DefaultShading(ezMaterialData matData, float3 L, float3 V)
   // Specular
   if (matData.anisotropic == 0.0f)
   {
-    specular += BRDF_Specular_Isotropic(matData, NoV, NoL, NoH, VoH, LoH, kD, kS);
+    specular += BRDF_Specular_Isotropic(matData, NoV, NoL, NoH, VoH, LoH, kD, kS) * NoL;
   }
   else
   {
-    specular += BRDF_Specular_Anisotropic(matData, H, NoV, NoL, NoH, LoH, kD, kS);
+    specular += BRDF_Specular_Anisotropic(matData, H, NoV, NoL, NoH, LoH, kD, kS) * NoL;
   }
 
   // Specular clearcoat
   if (matData.clearcoat != 0.0f)
   {
-    specular += BRDF_Specular_Clearcoat(matData, NoH, VoH, kD, kS);
+    specular += BRDF_Specular_Clearcoat(matData, saturate(dot(matData.vertexNormal, H)), VoH, kD, kS) * saturate(dot(matData.vertexNormal, L));
   }
 
   // Specular sheen
   if (matData.sheen != 0.0f)
   {
-    specular += BRDF_Specular_Sheen(matData, NoV, NoL, NoH, kD, kS);
+    specular += BRDF_Specular_Sheen(matData, NoV, NoL, NoH, kD, kS) * NoL;
   }
 
   // Diffuse
@@ -384,7 +383,6 @@ AccumulatedLight DefaultShading(ezMaterialData matData, float3 L, float3 V)
 
   // Composition
   diffuse  *= kD * NoL;
-  specular *= NoL;
 
   return InitializeLight(diffuse, specular);
 }

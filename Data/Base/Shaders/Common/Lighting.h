@@ -304,13 +304,13 @@ float computeDistanceBaseRoughness(float distIntersectionToShadedPoint, float di
   return lerp(newLinearRoughness, linearRoughness, linearRoughness);
 }
 
-float3 ComputeReflection(inout ezMaterialData matData, float3 viewVector, ezPerClusterData clusterData)
+float3 ComputeReflection(in float3 worldPosition, in float3 worldNormal, in float roughnessLinear, float3 viewVector, ezPerClusterData clusterData)
 {
   uint firstItemIndex = clusterData.offset;
   uint lastItemIndex = firstItemIndex + GET_PROBE_INDEX(clusterData.counts);
 
-  const float3 positionWS = matData.worldPosition;
-  const float3 reflDirectionWS = reflect(-viewVector, matData.worldNormal);
+  const float3 positionWS = worldPosition;
+  const float3 reflDirectionWS = reflect(-viewVector, worldNormal);
 
   float4 ref = float4(0, 0, 0, 0);
 
@@ -337,7 +337,7 @@ float3 ComputeReflection(inout ezMaterialData matData, float3 viewVector, ezPerC
       float3(worldToProbeProjectionMatrix._m10, worldToProbeProjectionMatrix._m11, worldToProbeProjectionMatrix._m12),
       float3(worldToProbeProjectionMatrix._m20, worldToProbeProjectionMatrix._m21, worldToProbeProjectionMatrix._m22));
     const float3x3 worldToProbeCubeMapNormalMatrix = TransformToRotation(probeData.WorldToProbeProjectionMatrix);
-    const float3 probeProjectionPosition = mul(worldToProbeProjectionMatrix, float4(matData.worldPosition, 1.0f)).xyz;
+    const float3 probeProjectionPosition = mul(worldToProbeProjectionMatrix, float4(worldPosition, 1.0f)).xyz;
 
     float alpha;
     float3 intersectPositionWS;
@@ -372,7 +372,7 @@ float3 ComputeReflection(inout ezMaterialData matData, float3 viewVector, ezPerC
         // The optimized ray-sphere intersection above only works with the normalized probeProjectionReflDirection.
         // Thus, we need to adjust the length when applying in world space.
         const float distance = (sqrt(determinant) - b) / reflDirectionLength;
-        intersectPositionWS = matData.worldPosition + distance * reflDirectionWS;
+        intersectPositionWS = worldPosition + distance * reflDirectionWS;
       }
     }
     else
@@ -430,7 +430,7 @@ float3 ComputeReflection(inout ezMaterialData matData, float3 viewVector, ezPerC
     // ignoring scale.
     const float3 cubemapPositionWS = probeData.ProbePosition.xyz;
     const float3 reflectionDir = bIsProjected ? CubeMapDirection(mul(worldToProbeCubeMapNormalMatrix, intersectPositionWS - cubemapPositionWS).xyz) : CubeMapDirection(reflDirectionWS);
-    const float roughness = computeDistanceBaseRoughness(length(intersectPositionWS - matData.worldPosition), length(intersectPositionWS - cubemapPositionWS), matData.roughness);
+    const float roughness = computeDistanceBaseRoughness(length(intersectPositionWS - worldPosition), length(intersectPositionWS - cubemapPositionWS), roughnessLinear);
     // Sample the cube map
     const float4 coord = float4(reflectionDir, index);
     const float mipLevel = MipLevelFromRoughness(roughness, NUM_REFLECTION_MIPS);
@@ -447,7 +447,7 @@ float3 ComputeReflection(inout ezMaterialData matData, float3 viewVector, ezPerC
   // Sample global fallback probe.
   float3 reflectionDir = CubeMapDirection(reflDirectionWS);
   float4 coord = float4(reflectionDir, 0);
-  float mipLevel = MipLevelFromRoughness(matData.roughness, NUM_REFLECTION_MIPS);
+  float mipLevel = MipLevelFromRoughness(roughnessLinear, NUM_REFLECTION_MIPS);
   float4 indirectLight = ReflectionSpecularTexture.SampleLevel(LinearSampler, coord, mipLevel);
   ref += indirectLight * (1.0f - ref.w);
 
@@ -560,14 +560,29 @@ AccumulatedLight CalculateLighting(ezMaterialData matData, ezPerClusterData clus
 
   // Get diffuse contribution factor (as with direct lighting).
   float3 kD = ComputeDiffuseEnergy(F, matData.metalness);
+  float3 kS = F;
+  float3 kN = 1.0f;
+
+  // Calculate specular contribution.
+
+  if (matData.clearcoat != 0)
+  {
+    // Clear coat layer has fixed IOR = 1.5 and transparent => F0 = (1.5 - 1)^2 / (1.5 + 1)^2 = 0.04
+    kN *= F_Schlick_Roughness(0.04f, saturate(dot(matData.vertexNormal, viewVector)), matData.clearcoatRoughness) * matData.clearcoat;
+    kD *= 1.0f - kN;
+  }
 
   // sky light in ambient cube basis
-  float3 skyLight = EvaluateAmbientCube(SkyIrradianceTexture, SkyIrradianceIndex, matData.worldNormal).rgb * kD;
+  float3 skyLight = kD * EvaluateAmbientCube(SkyIrradianceTexture, SkyIrradianceIndex, matData.worldNormal).rgb;
   totalLight.diffuseLight += matData.diffuseColor * skyLight * occlusion;
 
   // indirect specular
-  totalLight.specularLight += F * ComputeReflection(matData, viewVector, clusterData) * occlusion;
-  //totalLight.specularLight += ComputeReflection(matData, viewVector, clusterData);
+  totalLight.specularLight += kS * ComputeReflection(matData.worldPosition, matData.worldNormal, matData.roughness, viewVector, clusterData) * occlusion;
+
+  if (matData.clearcoat != 0)
+  {
+    totalLight.specularLight += kN * ComputeReflection(matData.worldPosition, matData.vertexNormal, matData.clearcoatRoughness, viewVector, clusterData);
+  }
 
   // enable once we have proper sky visibility
   /*#if defined(USE_MATERIAL_SUBSURFACE_COLOR)
