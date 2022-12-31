@@ -269,21 +269,24 @@ float RoughnessFromMipLevel(uint mipLevel, uint mipCount)
 
 float MipLevelFromRoughness(float roughness, uint mipCount)
 {
-  return (mipCount - 1) * sqrt(roughness);
+  return (mipCount - 1) * fast_sqrt(roughness);
 }
 
-float RoughnessFromPerceptualRoughness(in float roughness, in float3 normal, const float strength = 1.0f)
+// Specular Anti-Aliasing technique from this paper:
+// http://www.jp.square-enix.com/tech/library/pdf/ImprovedGeometricSpecularAA.pdf
+float RoughnessFromPerceptualRoughness(in float roughness, in float3 normal, const float strength = 2.0f)
 {
-  static const float max_roughness_gain = 0.02f;
+  // Constants for formula below
+  static const float screenVariance    = 0.25f;
+  static const float varianceThreshold = 0.18f;
 
   float roughness2         = roughness * roughness;
-  float3 dndu              = ddx(normal);
-  float3 dndv              = ddy(normal);
-  float variance           = (dot(dndu, dndu) + dot(dndv, dndv));
-  float kernelRoughness2   = min(variance * strength, max_roughness_gain);
-  float filteredRoughness2 = saturate(roughness2 + kernelRoughness2);
+  float3 dndu              = ddx_fine(normal);
+  float3 dndv              = ddy_fine(normal);
+  float variance           = screenVariance * (dot(dndu, dndu) + dot(dndv, dndv));
+  float kernelRoughness2   = min(variance * strength, varianceThreshold);
 
-  return saturate(filteredRoughness2);
+  return saturate(roughness2 + kernelRoughness2);
 }
 
 float PerceptualRoughnessFromRoughness(float roughness)
@@ -356,34 +359,41 @@ AccumulatedLight DefaultShading(ezMaterialData matData, float3 L, float3 V)
   float3 specular = 0.0f;
   float3 diffuse  = 0.0f;
 
+#if defined(USE_MATERIAL_SPECULAR_ANISOTROPIC)
   // Specular
-  if (matData.anisotropic == 0.0f)
-  {
-    specular += BRDF_Specular_Isotropic(matData, NoV, NoL, NoH, VoH, LoH, kD, kS) * NoL;
-  }
-  else
+  if (matData.anisotropic != 0.0f)
   {
     specular += BRDF_Specular_Anisotropic(matData, H, NoV, NoL, NoH, LoH, kD, kS) * NoL;
   }
+  else
+#endif
+  {
+    specular += BRDF_Specular_Isotropic(matData, NoV, NoL, NoH, VoH, LoH, kD, kS) * NoL;
+  }
 
+#if defined(USE_MATERIAL_SPECULAR_CLEARCOAT)
   // Specular clearcoat
   if (matData.clearcoat != 0.0f)
   {
-    specular += BRDF_Specular_Clearcoat(matData, saturate(dot(matData.vertexNormal, H)), VoH, kD, kS) * saturate(dot(matData.vertexNormal, L));
-  }
+    float cNoH = saturate(dot(matData.clearcoatNormal, H));
+    float cNoL = saturate(dot(matData.clearcoatNormal, L));
 
+    specular += BRDF_Specular_Clearcoat(matData, cNoH, VoH, kD, kS) * cNoL;
+  }
+#endif
+
+#if defined(USE_MATERIAL_SPECULAR_SHEEN)
   // Specular sheen
   if (matData.sheen != 0.0f)
   {
     specular += BRDF_Specular_Sheen(matData, NoV, NoL, NoH, kD, kS) * NoL;
   }
+#endif
 
   // Diffuse
-  diffuse  = BRDF_Diffuse(matData, NoV, NoL, VoH);
+  diffuse  = BRDF_Diffuse(matData, NoV, NoL, VoH) * kD * NoL;
 
   // Composition
-  diffuse  *= kD * NoL;
-
   return InitializeLight(diffuse, specular);
 }
 

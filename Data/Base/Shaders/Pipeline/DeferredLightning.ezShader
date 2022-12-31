@@ -29,12 +29,6 @@ CullMode = CullMode_None
 #include <Shaders/Pipeline/FullscreenTriangleInterpolator.h>
 static const float Epsilon = 0.0001f;
 
-#define USE_MATERIAL_EMISSIVE
-#define USE_MATERIAL_OCCLUSION
-#define USE_TWO_SIDED_LIGHTING
-#define USE_DECALS
-#define USE_FOG
-
 #include <Shaders/Pipeline/FullscreenTriangleInterpolator.h>
 #include <Shaders/Common/Utils.h>
 #include <Shaders/Common/Lighting.h>
@@ -97,20 +91,23 @@ float2 GetVelocity()
 }
 
 // TODO: Another G-Buffer map to store this?
-void GetSpecularParams(
-  out float clearcoat,
-  out float clearcoatRoughness,
-  out float anisotropic,
-  out float anisotropicRotation,
-  out float sheen,
-  out float sheenTintFactor
-) {
+void GetSpecularClearCoatParams(out float clearcoat, out float clearcoatRoughness, out float3 normal)
+{
   clearcoat = 0;
   clearcoatRoughness = 0;
+  normal = normalize(G.Input.Normal);
+}
+
+void GetSpecularAnisotopicParams(out float anisotropic, out float rotation)
+{
   anisotropic = 0;
-  anisotropicRotation = 0;
+  rotation = 0;
+}
+
+void GetSpecularSheenParams(out float sheen, out float tintFactor)
+{
   sheen = 0;
-  sheenTintFactor = 0;
+  tintFactor = 0;
 }
 
 ezMaterialData FillMaterialData()
@@ -134,14 +131,9 @@ ezMaterialData FillMaterialData()
   matData.specularColor = lerp(0.04f, matData.diffuseColor, matData.metalness);
   matData.diffuseColor = lerp(matData.diffuseColor, 0.0f, matData.metalness);
 
-  GetSpecularParams(
-    matData.clearcoat,
-    matData.clearcoatRoughness,
-    matData.anisotropic,
-    matData.anisotropicRotation,
-    matData.sheen,
-    matData.sheenTintFactor
-  );
+  GetSpecularClearCoatParams(matData.clearcoat, matData.clearcoatRoughness, matData.clearcoatNormal);
+  GetSpecularAnisotopicParams(matData.anisotropic, matData.anisotropicRotation);
+  GetSpecularSheenParams(matData.sheen, matData.sheenTintFactor);
 
   matData.subsurfaceColor = 0.0;
   matData.subsurfaceScatterPower = 9.0;

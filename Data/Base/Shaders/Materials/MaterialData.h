@@ -22,8 +22,11 @@ struct ezMaterialData
 
   float clearcoat;
   float clearcoatRoughness;
+  float3 clearcoatNormal;
+
   float anisotropic;
   float anisotropicRotation;
+
   float sheen;
   float sheenTintFactor;
 

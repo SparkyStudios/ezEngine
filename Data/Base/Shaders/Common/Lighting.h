@@ -561,16 +561,18 @@ AccumulatedLight CalculateLighting(ezMaterialData matData, ezPerClusterData clus
   // Get diffuse contribution factor (as with direct lighting).
   float3 kD = ComputeDiffuseEnergy(F, matData.metalness);
   float3 kS = F;
-  float3 kN = 1.0f;
 
   // Calculate specular contribution.
+#if defined(USE_MATERIAL_SPECULAR_CLEARCOAT)
+  float3 kN = 1.0f;
 
   if (matData.clearcoat != 0)
   {
     // Clear coat layer has fixed IOR = 1.5 and transparent => F0 = (1.5 - 1)^2 / (1.5 + 1)^2 = 0.04
-    kN *= F_Schlick_Roughness(0.04f, saturate(dot(matData.vertexNormal, viewVector)), matData.clearcoatRoughness) * matData.clearcoat;
+    kN *= F_Schlick_Roughness(0.04f, saturate(dot(matData.clearcoatNormal, viewVector)), matData.clearcoatRoughness) * matData.clearcoat;
     kD *= 1.0f - kN;
   }
+#endif
 
   // sky light in ambient cube basis
   float3 skyLight = kD * EvaluateAmbientCube(SkyIrradianceTexture, SkyIrradianceIndex, matData.worldNormal).rgb;
@@ -579,10 +581,12 @@ AccumulatedLight CalculateLighting(ezMaterialData matData, ezPerClusterData clus
   // indirect specular
   totalLight.specularLight += kS * ComputeReflection(matData.worldPosition, matData.worldNormal, matData.roughness, viewVector, clusterData) * occlusion;
 
+#if defined(USE_MATERIAL_SPECULAR_CLEARCOAT)
   if (matData.clearcoat != 0)
   {
-    totalLight.specularLight += kN * ComputeReflection(matData.worldPosition, matData.vertexNormal, matData.clearcoatRoughness, viewVector, clusterData);
+    totalLight.specularLight += kN * ComputeReflection(matData.worldPosition, matData.clearcoatNormal, matData.clearcoatRoughness, viewVector, clusterData);
   }
+#endif
 
   // enable once we have proper sky visibility
   /*#if defined(USE_MATERIAL_SUBSURFACE_COLOR)

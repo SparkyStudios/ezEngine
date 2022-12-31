@@ -46,15 +46,16 @@ float GetOpacity();
   void GetSubsurfaceParams(out float scatterPower, out float shadowFalloff);
 #endif
 
-#if defined(USE_MATERIAL_SPECULAR_PARAMS)
-  void GetSpecularParams(
-    out float clearcoat,
-    out float clearcoatRoughness,
-    out float anisotropic,
-    out float anisotropicRotation,
-    out float sheen,
-    out float sheenTintFactor
-  );
+#if defined(USE_MATERIAL_SPECULAR_CLEARCOAT)
+  void GetSpecularClearCoatParams(out float clearcoat, out float clearcoatRoughness, out float3 normal);
+#endif
+
+#if defined(USE_MATERIAL_SPECULAR_ANISOTROPIC)
+  void GetSpecularAnisotopicParams(out float anisotropic, out float rotation);
+#endif
+
+#if defined(USE_MATERIAL_SPECULAR_SHEEN)
+  void GetSpecularSheenParams(out float sheen, out float tintFactor);
 #endif
 
 struct PS_GLOBALS
@@ -208,24 +209,31 @@ ezMaterialData FillMaterialData()
     matData.velocity = float2(0, 0);
   #endif
 
-  #if defined(USE_MATERIAL_SPECULAR_PARAMS)
-    GetSpecularParams(
-      matData.clearcoat,
-      matData.clearcoatRoughness,
-      matData.anisotropic,
-      matData.anisotropicRotation,
-      matData.sheen,
-      matData.sheenTintFactor
-    );
+  #if defined(USE_MATERIAL_SPECULAR_CLEARCOAT)
+    GetSpecularClearCoatParams(matData.clearcoat, matData.clearcoatRoughness, matData.clearcoatNormal);
   #else
     matData.clearcoat = 0;
     matData.clearcoatRoughness = 0;
+  #if defined(USE_NORMAL)
+    matData.clearcoatNormal = normalize(G.Input.Normal);
+  #else
+    matData.clearcoatNormal = float3(0, 0, 1);
+  #endif
+  #endif
+
+  #if defined(USE_MATERIAL_SPECULAR_ANISOTROPIC)
+    GetSpecularAnisotopicParams(matData.anisotropic, matData.anisotropicRotation);
+  #else
     matData.anisotropic = 0;
     matData.anisotropicRotation = 0;
+  #endif
+
+  #if defined(USE_MATERIAL_SPECULAR_SHEEN)
+    GetSpecularSheenParams(matData.sheen, matData.sheenTintFactor);
+  #else
     matData.sheen = 0;
     matData.sheenTintFactor = 0;
   #endif
-
 
   #if defined(USE_MATERIAL_SUBSURFACE_PARAMS)
     GetSubsurfaceParams(matData.subsurfaceScatterPower, matData.subsurfaceShadowFalloff);
