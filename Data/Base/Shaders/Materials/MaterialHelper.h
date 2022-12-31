@@ -246,14 +246,16 @@ ezMaterialData FillMaterialData()
 }
 
 #if defined(USE_NORMAL)
-  float3 TangentToWorldSpace(float3 normalTS)
-  {
-    #if defined(USE_TANGENT)
-	  return normalTS.x * G.Input.Tangent + normalTS.y * G.Input.BiTangent + normalTS.z * G.Input.Normal;
-	#else
-	  return normalTS.z * G.Input.Normal;
-	#endif
-  }
+float3 TangentToWorldSpace(float3 normalTS)
+{
+  #if defined(USE_TANGENT)
+    return normalTS.x * G.Input.Tangent + normalTS.y * G.Input.BiTangent + normalTS.z * G.Input.Normal;
+  #elif defined(USE_NORMAL)
+    return normalTS.z * G.Input.Normal;
+  #else
+    return normalTS;
+  #endif
+}
 #endif
 
 float3 BlendNormals(float3 baseNormal, float3 detailNormal)
@@ -284,4 +286,3 @@ float4 ColorizeGameObjectId(uint gameObjectId)
   bool isDynamic = gameObjectId & (1 << 31);
   return float4(isDynamic ? intensity : 0.0f, isDynamic ? 0.0f : intensity, 0.0f, 1.0f);
 }
-
