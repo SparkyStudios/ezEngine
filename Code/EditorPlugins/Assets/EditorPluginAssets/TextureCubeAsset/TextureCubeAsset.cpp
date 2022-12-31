@@ -222,6 +222,7 @@ ezTextureCubeAssetDocumentGenerator::ezTextureCubeAssetDocumentGenerator()
 {
   AddSupportedFileType("dds");
   AddSupportedFileType("hdr");
+  AddSupportedFileType("exr");
 
   // these formats would need to use 6 files for the faces
   // more elaborate detection and mapping would need to be implemented
@@ -238,7 +239,7 @@ void ezTextureCubeAssetDocumentGenerator::GetImportModes(const char* szParentDir
   ezStringBuilder baseOutputFile = szParentDirRelativePath;
 
   const ezStringBuilder baseFilename = baseOutputFile.GetFileName();
-  const bool isHDR = ezPathUtils::HasExtension(szParentDirRelativePath, "hdr");
+  const bool isHDR = ezPathUtils::HasExtension(szParentDirRelativePath, "hdr") || ezPathUtils::HasExtension(szParentDirRelativePath, "exr");
 
   /// \todo Make this configurable
   const bool isCubemap = ((baseFilename.FindSubString_NoCase("cubemap") != nullptr) || (baseFilename.FindSubString_NoCase("skybox") != nullptr));

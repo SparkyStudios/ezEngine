@@ -520,6 +520,7 @@ ezTextureAssetDocumentGenerator::ezTextureAssetDocumentGenerator()
   AddSupportedFileType("jpeg");
   AddSupportedFileType("hdr");
   AddSupportedFileType("png");
+  AddSupportedFileType("exr");
 }
 
 ezTextureAssetDocumentGenerator::~ezTextureAssetDocumentGenerator() = default;
@@ -586,6 +587,10 @@ void ezTextureAssetDocumentGenerator::GetImportModes(const char* szParentDirRela
   else if (baseFilename.EndsWith_NoCase("_alpha"))
   {
     tt = TextureType::Linear;
+  }
+  else if (ezPathUtils::HasExtension(szParentDirRelativePath, "exr"))
+  {
+    tt = TextureType::HDR;
   }
 
   ezAssetDocumentGenerator::Info& info = out_Modes.ExpandAndGetRef();
