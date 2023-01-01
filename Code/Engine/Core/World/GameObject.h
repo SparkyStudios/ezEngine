@@ -251,6 +251,8 @@ public:
   void SetGlobalTransform(const ezTransform& transform);
   ezTransform GetGlobalTransform() const;
 
+  ezTransform GetLastGlobalTransform() const;
+
   // Simd variants of above methods
   void SetLocalPosition(const ezSimdVec4f& position, UpdateBehaviorIfStatic updateBehavior = UpdateBehaviorIfStatic::UpdateImmediately);
   const ezSimdVec4f& GetLocalPositionSimd() const;
@@ -529,7 +531,7 @@ private:
     ezSimdTransform m_globalTransform;
 
 #if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
-    ezSimdVec4f m_lastGlobalPosition;
+    ezSimdTransform m_lastGlobalTransform;
     ezSimdVec4f m_velocity; // w != 0 indicates custom velocity
 #endif
 

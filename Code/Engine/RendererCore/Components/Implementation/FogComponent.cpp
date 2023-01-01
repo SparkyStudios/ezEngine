@@ -123,6 +123,7 @@ void ezFogComponent::OnMsgExtractRenderData(ezMsgExtractRenderData& msg) const
 
   auto pRenderData = ezCreateRenderDataForThisFrame<ezFogRenderData>(GetOwner());
 
+  pRenderData->m_LastGlobalTransform = GetOwner()->GetLastGlobalTransform();
   pRenderData->m_GlobalTransform = GetOwner()->GetGlobalTransform();
   pRenderData->m_Color = m_Color;
   pRenderData->m_fDensity = m_fDensity / 100.0f;

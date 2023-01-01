@@ -9,12 +9,20 @@ namespace ezInternal
   EZ_FORCE_INLINE void FillPerInstanceData(ezPerInstanceData& perInstanceData, const ezMeshRenderData* pRenderData)
   {
     ezMat4 objectToWorld = pRenderData->m_GlobalTransform.GetAsMat4();
-
     perInstanceData.ObjectToWorld = objectToWorld;
+
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+    ezMat4 lastObjectToWorld = pRenderData->m_LastGlobalTransform.GetAsMat4();
+    perInstanceData.LastObjectToWorld = lastObjectToWorld;
+#endif
 
     if (pRenderData->m_uiUniformScale)
     {
       perInstanceData.ObjectToWorldNormal = objectToWorld;
+
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+      perInstanceData.LastObjectToWorldNormal = lastObjectToWorld;
+#endif
     }
     else
     {
@@ -26,6 +34,16 @@ namespace ezInternal
       ezShaderTransform shaderT;
       shaderT = mInverse.GetTranspose();
       perInstanceData.ObjectToWorldNormal = shaderT;
+
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+      mInverse = lastObjectToWorld.GetRotationalPart();
+      mInverse.Invert(0.0f).IgnoreResult();
+      // we explicitly ignore the return value here (success / failure)
+      // because when we have a scale of 0 (which happens temporarily during editing) that would be annoying
+
+      shaderT = mInverse.GetTranspose();
+      perInstanceData.LastObjectToWorldNormal = shaderT;
+#endif
     }
 
     perInstanceData.BoundingSphereRadius = pRenderData->m_GlobalBounds.m_fSphereRadius;

@@ -68,6 +68,16 @@ EZ_ALWAYS_INLINE bool ezCamera::IsStereoscopic() const
   return m_Mode == ezCameraMode::Stereo;
 }
 
+EZ_ALWAYS_INLINE float ezCamera::GetShutterSpeed() const
+{
+  return m_fShutterSpeed;
+}
+
+EZ_ALWAYS_INLINE void ezCamera::SetShutterSpeed(float fShutterSpeed)
+{
+  m_fShutterSpeed = fShutterSpeed;
+}
+
 EZ_ALWAYS_INLINE float ezCamera::GetExposure() const
 {
   return m_fExposure;

@@ -26,11 +26,11 @@ struct PS_OUT
 {
 #if RENDER_PASS != RENDER_PASS_DEPTH_ONLY
   float4 Color    : SV_Target0;
+  float2 Velocity : SV_Target1;
 
 #if RENDER_PASS == RENDER_PASS_DEFERRED
-  float4 Normal   : SV_Target1;
-  float4 Material : SV_Target2;
-  float2 Velocity : SV_Target3;
+  float4 Normal   : SV_Target2;
+  float4 Material : SV_Target3;
 #endif
 #endif
 
@@ -106,7 +106,6 @@ PS_OUT main(PS_IN Input)
   float3 litColor = light.diffuseLight + light.specularLight;
   litColor += matData.emissiveColor;
   litColor *= matData.cavity;
-
 #endif
 
   #if RENDER_PASS == RENDER_PASS_FORWARD
@@ -121,6 +120,7 @@ PS_OUT main(PS_IN Input)
     #endif
 
     Output.Color = float4(litColor, matData.opacity);
+    Output.Velocity = matData.velocity;
 
   #elif RENDER_PASS == RENDER_PASS_EDITOR
     if (RenderPass == EDITOR_RENDER_PASS_DIFFUSE_LIT_ONLY)

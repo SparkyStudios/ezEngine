@@ -12,11 +12,12 @@
 #include <RendererFoundation/Resources/Texture.h>
 
 // clang-format off
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezForwardRenderPass, 1, ezRTTINoAllocator)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezForwardRenderPass, 2, ezRTTINoAllocator)
 {
   EZ_BEGIN_PROPERTIES
   {
     EZ_MEMBER_PROPERTY("Color", m_PinColor),
+    EZ_MEMBER_PROPERTY("Velocity", m_PinVelocity),
     EZ_MEMBER_PROPERTY("DepthStencil", m_PinDepthStencil),
     EZ_ENUM_MEMBER_PROPERTY("ShadingQuality", ezForwardRenderShadingQuality, m_ShadingQuality)->AddAttributes(new ezDefaultValueAttribute((int)ezForwardRenderShadingQuality::Normal)),
   }
@@ -48,6 +49,12 @@ bool ezForwardRenderPass::GetRenderTargetDescriptions(const ezView& view, const 
   {
     ezLog::Error("No color input connected to pass '{0}'!", GetName());
     return false;
+  }
+
+  // Velocity
+  if (inputs[m_PinVelocity.m_uiInputIndex])
+  {
+    outputs[m_PinVelocity.m_uiOutputIndex] = *inputs[m_PinVelocity.m_uiInputIndex];
   }
 
   // DepthStencil
@@ -89,6 +96,11 @@ void ezForwardRenderPass::SetupResources(ezGALPass* pGALPass, const ezRenderView
   if (inputs[m_PinColor.m_uiInputIndex])
   {
     renderingSetup.m_RenderTargetSetup.SetRenderTarget(0, pDevice->GetDefaultRenderTargetView(inputs[m_PinColor.m_uiInputIndex]->m_TextureHandle));
+  }
+
+  if (inputs[m_PinVelocity.m_uiInputIndex])
+  {
+    renderingSetup.m_RenderTargetSetup.SetRenderTarget(1, pDevice->GetDefaultRenderTargetView(inputs[m_PinVelocity.m_uiInputIndex]->m_TextureHandle));
   }
 
   if (inputs[m_PinDepthStencil.m_uiInputIndex])
@@ -147,5 +159,28 @@ void ezForwardRenderPass::SetupLighting(const ezRenderViewContext& renderViewCon
     // todo
   }
 }
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+#include <Foundation/Serialization/AbstractObjectGraph.h>
+#include <Foundation/Serialization/GraphPatch.h>
+
+class ezForwardRenderPassPatch_1_2 : public ezGraphPatch
+{
+public:
+  ezForwardRenderPassPatch_1_2()
+    : ezGraphPatch("ezForwardRenderPass", 2)
+  {
+  }
+
+  virtual void Patch(ezGraphPatchContext& context, ezAbstractObjectGraph* pGraph, ezAbstractObjectNode* pNode) const override
+  {
+    pNode->AddProperty("Velocity", {});
+  }
+};
+
+ezForwardRenderPassPatch_1_2 g_ezForwardRenderPassPatch_1_2;
 
 EZ_STATICLINK_FILE(RendererCore, RendererCore_Pipeline_Implementation_Passes_ForwardRenderPass);

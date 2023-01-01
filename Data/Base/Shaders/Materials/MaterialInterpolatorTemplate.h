@@ -4,6 +4,11 @@ struct STAGE_TEMPLATE
 {
   float4 Position : SV_Position;
 
+#if defined(USE_VELOCITY)
+  float4 ScreenPosition : SCREEN_POSITION;
+  float4 LastScreenPosition : LAST_SCREEN_POSITION;
+#endif
+
 #if defined(USE_WORLDPOS)
   float3 WorldPosition : WORLDPOS;
 #endif

@@ -308,6 +308,7 @@ void ezBakedProbesComponent::OnExtractRenderData(ezMsgExtractRenderData& msg) co
 
     ezMeshRenderData* pRenderData = ezCreateRenderDataForThisFrame<ezMeshRenderData>(pOwner);
     {
+      pRenderData->m_LastGlobalTransform = transform;
       pRenderData->m_GlobalTransform = transform;
       pRenderData->m_GlobalBounds.SetInvalid();
       pRenderData->m_hMesh = pManager->m_hDebugSphere;

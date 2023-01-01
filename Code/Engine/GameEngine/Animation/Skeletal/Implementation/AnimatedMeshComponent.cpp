@@ -160,6 +160,7 @@ void ezAnimatedMeshComponent::MapModelSpacePoseToSkinningSpace(const ezHashTable
 ezMeshRenderData* ezAnimatedMeshComponent::CreateRenderData() const
 {
   auto pRenderData = ezCreateRenderDataForThisFrame<ezSkinnedMeshRenderData>(GetOwner());
+  pRenderData->m_LastGlobalTransform = m_RootTransform;
   pRenderData->m_GlobalTransform = m_RootTransform;
 
   m_SkinningState.FillSkinnedMeshRenderData(*pRenderData);

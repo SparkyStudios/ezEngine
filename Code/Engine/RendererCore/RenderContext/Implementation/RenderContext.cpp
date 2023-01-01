@@ -155,6 +155,12 @@ ezGALRenderCommandEncoder* ezRenderContext::BeginRendering(ezGALPass* pGALPass, 
     SetShaderPermutationVariable("MSAA", "FALSE");
   }
 
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+  SetShaderPermutationVariable("GAMEOBJECT_VELOCITY", "TRUE");
+#else
+  SetShaderPermutationVariable("GAMEOBJECT_VELOCITY", "FALSE");
+#endif
+
   auto& gc = WriteGlobalConstants();
   gc.ViewportSize = ezVec4(viewport.width, viewport.height, 1.0f / viewport.width, 1.0f / viewport.height);
   gc.NumMsaaSamples = msaaSampleCount;

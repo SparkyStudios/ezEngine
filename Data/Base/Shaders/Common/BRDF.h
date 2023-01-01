@@ -155,7 +155,7 @@ float3 Diffuse_Burley(ezMaterialData matData, float NoV, float NoL, float VoH)
 // Diffuse - [Gotanda 2012, "Beyond a Simple Physically Based Blinn-Phong Model in Real-Time"]
 float3 Diffuse_OrenNayar(ezMaterialData matData, float NoV, float NoL, float VoH)
 {
-  float a     = pow2(matData.roughness);
+  float a     = matData.roughness;
   float s     = a;                    // ( 1.29 + 0.5 * a );
   float s2    = s * s;
   float VoL   = 2 * VoH * VoH - 1;    // double angle identity
@@ -185,11 +185,11 @@ float3 BRDF_Specular_Isotropic(
   inout float3 kS
 )
 {
-  float a  = pow2(matData.perceptualRoughness);
-  float a2 = pow4(matData.perceptualRoughness);
+  float a  = matData.roughness;
+  float a2 = pow2(a);
 
-  float V  = V_SmithJointApprox(a, NoV, NoL);
-  float D  = D_GGX(a2, NoH);
+  float  V = V_SmithJointApprox(a, NoV, NoL);
+  float  D = D_GGX(a2, NoH);
   float3 F = F_Schlick(matData.specularColor, VoH);
 
   kD *= ComputeDiffuseEnergy(F, matData.metalness);

@@ -183,6 +183,7 @@ void ezEditorSelectedObjectsExtractor::UpdateRenderTargetCamera(const ezCameraCo
   const ezVec3 up = pCamComp->GetOwner()->GetGlobalDirUp();
 
   m_RenderTargetCamera.LookAt(pos, pos + dir, up);
+  m_RenderTargetCamera.SetShutterSpeed(pCamComp->GetShutterTime().AsFloatInSeconds());
   m_RenderTargetCamera.SetExposure(pCamComp->GetExposure());
   m_RenderTargetCamera.SetAperture(pCamComp->GetAperture());
   m_RenderTargetCamera.SetISO(pCamComp->GetISO());

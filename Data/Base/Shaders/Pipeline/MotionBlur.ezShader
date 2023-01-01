@@ -1,0 +1,78 @@
+[PLATFORMS]
+ALL
+
+
+[COMPUTESHADER]
+#include <Shaders/Common/Utils.h>
+
+#include "MotionBlurConstants.h"
+
+static const uint k_MotionBlurSamples = 16;
+
+Texture2D VelocityTexture;
+Texture2D ColorTexture;
+
+RWTexture2D<float4> MotionBlurOutput;
+
+float2 GetMaxVelocity(float2 uv)
+{
+  float2 maxVelocity = 0.0f;
+  float maxLength = 0.0f;
+
+  [unroll]
+  for (int y = -1; y <= 1; ++y)
+  {
+    [unroll]
+    for (int x = -1; x <= 1; ++x)
+    {
+      float2 offset = float2(x, y) * TexelSize;
+      float2 velocity = VelocityTexture.SampleLevel(PointClampSampler, uv + offset, 0).xy;
+      float l = dot(velocity, velocity);
+
+      if (l > maxLength)
+      {
+        maxVelocity = velocity;
+        maxLength = l;
+      }
+    }
+  }
+
+  return maxVelocity;
+}
+
+[numthreads(THREAD_GROUP_COUNT_X, THREAD_GROUP_COUNT_Y, 1)]
+void main(uint3 threadId: SV_DispatchThreadID)
+{
+  // Out of bounds check
+  if (any(int2(threadId.xy) >= ViewportSize.xy))
+    return;
+
+  const float2 uv = (threadId.xy + 0.5f) * TexelSize;
+  float4 color    = ColorTexture[threadId.xy];
+  float2 velocity = GetMaxVelocity(uv);
+
+  // Compute motion blur strength from camera's shutter time
+  float motionBlurStrength = saturate(ShutterSpeed * MotionBlurStrength);
+
+  // Scale with delta time
+  motionBlurStrength /= DeltaTime + FLT_MIN;
+
+  // Scale velocity
+  velocity *= motionBlurStrength;
+
+  // Early exit
+  if (abs(velocity.x) + abs(velocity.y) < FLT_MIN)
+  {
+    MotionBlurOutput[threadId.xy] = color;
+    return;
+  }
+
+  [unroll]
+  for (uint i = 1; i < k_MotionBlurSamples; ++i)
+  {
+    float2 offset = velocity * (float(i) / float(k_MotionBlurSamples - 1) - 0.5f);
+    color.rgb += ColorTexture.SampleLevel(LinearClampSampler, uv + offset, 0).rgb;
+  }
+
+  MotionBlurOutput[threadId.xy] = float4(color.rgb / float(k_MotionBlurSamples), 1.0f);
+}

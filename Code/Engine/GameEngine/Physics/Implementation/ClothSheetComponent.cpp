@@ -263,12 +263,12 @@ void ezClothSheetComponent::OnMsgExtractRenderData(ezMsgExtractRenderData& msg) 
   auto pRenderData = ezCreateRenderDataForThisFrame<ezClothSheetRenderData>(GetOwner());
   pRenderData->m_uiUniqueID = GetUniqueIdForRendering();
   pRenderData->m_Color = m_Color;
+  pRenderData->m_LastGlobalTransform = GetOwner()->GetLastGlobalTransform();
   pRenderData->m_GlobalTransform = GetOwner()->GetGlobalTransform();
   pRenderData->m_uiBatchId = ezHashingUtils::StringHashTo32(m_hMaterial.GetResourceIDHash());
   pRenderData->m_uiSortingKey = pRenderData->m_uiBatchId;
   pRenderData->m_GlobalBounds = GetOwner()->GetGlobalBounds();
   pRenderData->m_hMaterial = m_hMaterial;
-
 
   if (m_Simulator.m_Nodes.IsEmpty())
   {
@@ -513,6 +513,11 @@ void ezClothSheetRenderer::RenderBatch(const ezRenderViewContext& renderViewCont
 
     ezUInt32 uiInstanceDataOffset = 0;
     ezArrayPtr<ezPerInstanceData> instanceData = pInstanceData->GetInstanceData(1, uiInstanceDataOffset);
+
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+    instanceData[0].LastObjectToWorld = pRenderData->m_LastGlobalTransform;
+    instanceData[0].LastObjectToWorldNormal = instanceData[0].LastObjectToWorld;
+#endif
 
     instanceData[0].ObjectToWorld = pRenderData->m_GlobalTransform;
     instanceData[0].ObjectToWorldNormal = instanceData[0].ObjectToWorld;

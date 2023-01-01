@@ -4,6 +4,7 @@ ALL
 [PERMUTATIONS]
 
 CAMERA_MODE = CAMERA_MODE_PERSPECTIVE
+GAMEOBJECT_VELOCITY = FALSE
 
 [MATERIALPARAMETER]
 
@@ -48,7 +49,7 @@ float4 SampleTexture(PS_IN Input)
 {
   float3 normal = normalize(Input.Normal);
   float3 viewDir = normalize(Input.WorldPosition - GetCameraPosition());
-  
+
   // I find this simple lookup way more useful than the reflected, distorted thing below
   // especially with alpha cut-outs, the reflected thing is completely unusable
   float3 dir = CubeMapDirection(normal);

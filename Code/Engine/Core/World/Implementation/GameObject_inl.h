@@ -238,6 +238,16 @@ EZ_ALWAYS_INLINE ezTransform ezGameObject::GetGlobalTransform() const
 }
 
 
+EZ_ALWAYS_INLINE ezTransform ezGameObject::GetLastGlobalTransform() const
+{
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+  return ezSimdConversion::ToTransform(m_pTransformationData->m_lastGlobalTransform);
+#else
+  return ezSimdConversion::ToTransform(m_pTransformationData->m_globalTransform);
+#endif
+}
+
+
 EZ_ALWAYS_INLINE void ezGameObject::SetLocalPosition(const ezSimdVec4f& position, UpdateBehaviorIfStatic updateBehavior)
 {
   m_pTransformationData->m_localPosition = position;
@@ -366,6 +376,10 @@ EZ_ALWAYS_INLINE const ezSimdVec4f& ezGameObject::GetGlobalScalingSimd() const
 
 EZ_ALWAYS_INLINE void ezGameObject::SetGlobalTransform(const ezSimdTransform& transform)
 {
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+  m_pTransformationData->m_lastGlobalTransform = m_pTransformationData->m_globalTransform;
+#endif
+
   m_pTransformationData->m_globalTransform = transform;
 
   // ezTransformTemplate<Type>::SetLocalTransform will produce NaNs in w components
@@ -543,6 +557,10 @@ EZ_ALWAYS_INLINE void ezGameObject::SetStableRandomSeed(ezUInt32 seed)
 
 EZ_ALWAYS_INLINE void ezGameObject::TransformationData::UpdateGlobalTransformWithoutParent()
 {
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+  m_lastGlobalTransform = m_globalTransform;
+#endif
+
   m_globalTransform.m_Position = m_localPosition;
   m_globalTransform.m_Rotation = m_localRotation;
   m_globalTransform.m_Scale = m_localScaling * m_localScaling.w();
@@ -550,6 +568,10 @@ EZ_ALWAYS_INLINE void ezGameObject::TransformationData::UpdateGlobalTransformWit
 
 EZ_ALWAYS_INLINE void ezGameObject::TransformationData::UpdateGlobalTransformWithParent()
 {
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+  m_lastGlobalTransform = m_globalTransform;
+#endif
+
   const ezSimdVec4f vScale = m_localScaling * m_localScaling.w();
   const ezSimdTransform localTransform(m_localPosition, m_localRotation, vScale);
   m_globalTransform.SetGlobalTransform(m_pParentData->m_globalTransform, localTransform);
@@ -566,10 +588,9 @@ EZ_ALWAYS_INLINE void ezGameObject::TransformationData::UpdateVelocity(const ezS
 #if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
   // A w value != 0 indicates a custom velocity, don't overwrite it.
   ezSimdVec4b customVel = (m_velocity.Get<ezSwizzle::WWWW>() != ezSimdVec4f::ZeroVector());
-  ezSimdVec4f newVel = (m_globalTransform.m_Position - m_lastGlobalPosition) * fInvDeltaSeconds;
+  ezSimdVec4f newVel = (m_globalTransform.m_Position - m_lastGlobalTransform.m_Position) * fInvDeltaSeconds;
   m_velocity = ezSimdVec4f::Select(customVel, m_velocity, newVel);
 
-  m_lastGlobalPosition = m_globalTransform.m_Position;
   m_velocity.SetW(ezSimdFloat::Zero());
 #endif
 }

@@ -197,14 +197,13 @@ ezMaterialData FillMaterialData()
 
   #if defined(USE_VELOCITY)
     // TODO: Set these values in the global constants buffer when implementing TAA
-    float2 CurrentTAAJitter = 0.0f;
+    float2 CurrentTAAJitter  = 0.0f;
     float2 PreviousTAAJitter = 0.0f;
 
-    // TODO: Implement object velocities in shader code
-    // float2 uv_current  = NDC2UV((Input.CurrentPosition.xy / Input.CurrentPosition.w) - CurrentTAAJitter);
-    // float2 uv_previous = NDC2UV((Input.LastPosition.xy / Input.LastPosition.w) - PreviousTAAJitter);
-    // matData.velocity   = uv_current - uv_previous;
-    matData.velocity = float2(0, 0);
+    float2 uv_current  = NDC2UV((G.Input.ScreenPosition.xy / G.Input.ScreenPosition.w) - CurrentTAAJitter);
+    float2 uv_previous = NDC2UV((G.Input.LastScreenPosition.xy / G.Input.LastScreenPosition.w) - PreviousTAAJitter);
+
+    matData.velocity = uv_current - uv_previous;
   #else
     matData.velocity = float2(0, 0);
   #endif

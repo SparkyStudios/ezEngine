@@ -250,37 +250,88 @@ void ezView::UpdateCachedMatrices() const
 
   if (m_uiLastCameraOrientationModification != pCamera->GetOrientationModificationCounter())
   {
+    const ezMat4 viewMatrixL = pCamera->GetViewMatrix(ezCameraEye::Left);
+    const ezMat4 viewMatrixR = pCamera->GetViewMatrix(ezCameraEye::Right);
+
+    const ezMat4 invViewMatrixL = viewMatrixL.GetInverse(0.0f);
+    const ezMat4 invViewMatrixR = viewMatrixR.GetInverse(0.0f);
+
+    if (m_uiLastCameraOrientationModification == 0)
+    {
+      m_Data.m_LastViewMatrix[0] = viewMatrixL;
+      m_Data.m_LastViewMatrix[1] = viewMatrixR;
+
+      m_Data.m_LastInverseViewMatrix[0] = invViewMatrixL;
+      m_Data.m_LastInverseViewMatrix[1] = invViewMatrixR;
+    }
+    else
+    {
+      m_Data.m_LastViewMatrix[0] = m_Data.m_ViewMatrix[0];
+      m_Data.m_LastViewMatrix[1] = m_Data.m_ViewMatrix[1];
+
+      m_Data.m_LastInverseViewMatrix[0] = m_Data.m_InverseViewMatrix[0];
+      m_Data.m_LastInverseViewMatrix[1] = m_Data.m_InverseViewMatrix[1];
+    }
+
     bUpdateVP = true;
     m_uiLastCameraOrientationModification = pCamera->GetOrientationModificationCounter();
 
-    m_Data.m_ViewMatrix[0] = pCamera->GetViewMatrix(ezCameraEye::Left);
-    m_Data.m_ViewMatrix[1] = pCamera->GetViewMatrix(ezCameraEye::Right);
+    m_Data.m_ViewMatrix[0] = viewMatrixL;
+    m_Data.m_ViewMatrix[1] = viewMatrixR;
 
     // Some of our matrices contain very small values so that the matrix inversion will fall below the default epsilon.
     // We pass zero as epsilon here since all view and projection matrices are invertible.
-    m_Data.m_InverseViewMatrix[0] = m_Data.m_ViewMatrix[0].GetInverse(0.0f);
-    m_Data.m_InverseViewMatrix[1] = m_Data.m_ViewMatrix[1].GetInverse(0.0f);
+    m_Data.m_InverseViewMatrix[0] = invViewMatrixL;
+    m_Data.m_InverseViewMatrix[1] = invViewMatrixR;
   }
 
   const float fViewportAspectRatio = m_Data.m_ViewPortRect.HasNonZeroArea() ? m_Data.m_ViewPortRect.width / m_Data.m_ViewPortRect.height : 1.0f;
   if (m_uiLastCameraSettingsModification != pCamera->GetSettingsModificationCounter() || m_fLastViewportAspectRatio != fViewportAspectRatio)
   {
-    bUpdateVP = true;
-    m_uiLastCameraSettingsModification = pCamera->GetSettingsModificationCounter();
     m_fLastViewportAspectRatio = fViewportAspectRatio;
 
+    ezMat4 projectionMatrixL, projectionMatrixR;
 
-    pCamera->GetProjectionMatrix(m_fLastViewportAspectRatio, m_Data.m_ProjectionMatrix[0], ezCameraEye::Left);
-    m_Data.m_InverseProjectionMatrix[0] = m_Data.m_ProjectionMatrix[0].GetInverse(0.0f);
+    pCamera->GetProjectionMatrix(m_fLastViewportAspectRatio, projectionMatrixL, ezCameraEye::Left);
+    const ezMat4 invProjectionMatrixL = projectionMatrixL.GetInverse(0.0f);
 
-    pCamera->GetProjectionMatrix(m_fLastViewportAspectRatio, m_Data.m_ProjectionMatrix[1], ezCameraEye::Right);
-    m_Data.m_InverseProjectionMatrix[1] = m_Data.m_ProjectionMatrix[1].GetInverse(0.0f);
+    pCamera->GetProjectionMatrix(m_fLastViewportAspectRatio, projectionMatrixR, ezCameraEye::Right);
+    const ezMat4 invProjectionMatrixR = projectionMatrixL.GetInverse(0.0f);
+
+    if (m_uiLastCameraSettingsModification == 0)
+    {
+      m_Data.m_LastProjectionMatrix[0] = projectionMatrixL;
+      m_Data.m_LastProjectionMatrix[1] = projectionMatrixR;
+
+      m_Data.m_LastInverseProjectionMatrix[0] = invProjectionMatrixL;
+      m_Data.m_LastInverseProjectionMatrix[1] = invProjectionMatrixR;
+    }
+    else
+    {
+      m_Data.m_LastProjectionMatrix[0] = m_Data.m_ProjectionMatrix[0];
+      m_Data.m_LastProjectionMatrix[1] = m_Data.m_ProjectionMatrix[1];
+
+      m_Data.m_LastInverseProjectionMatrix[0] = m_Data.m_InverseProjectionMatrix[0];
+      m_Data.m_LastInverseProjectionMatrix[1] = m_Data.m_InverseProjectionMatrix[1];
+    }
+
+    bUpdateVP = true;
+    m_uiLastCameraSettingsModification = pCamera->GetSettingsModificationCounter();
+
+    m_Data.m_ProjectionMatrix[0] = projectionMatrixL;
+    m_Data.m_ProjectionMatrix[1] = projectionMatrixR;
+
+    m_Data.m_InverseProjectionMatrix[0] = invProjectionMatrixL;
+    m_Data.m_InverseProjectionMatrix[1] = invProjectionMatrixR;
   }
 
   if (bUpdateVP)
   {
     for (int i = 0; i < 2; ++i)
     {
+      m_Data.m_LastViewProjectionMatrix[i] = m_Data.m_LastProjectionMatrix[i] * m_Data.m_LastViewMatrix[i];
+      m_Data.m_LastInverseViewProjectionMatrix[i] = m_Data.m_LastViewProjectionMatrix[i].GetInverse(0.0f);
+
       m_Data.m_ViewProjectionMatrix[i] = m_Data.m_ProjectionMatrix[i] * m_Data.m_ViewMatrix[i];
       m_Data.m_InverseViewProjectionMatrix[i] = m_Data.m_ViewProjectionMatrix[i].GetInverse(0.0f);
     }

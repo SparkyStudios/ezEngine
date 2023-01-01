@@ -189,6 +189,7 @@ ezGameObjectHandle ezWorld::CreateObject(const ezGameObjectDesc& desc, ezGameObj
   pTransformationData->m_localScaling = ezSimdConversion::ToVec4(desc.m_LocalScaling.GetAsVec4(desc.m_LocalUniformScaling));
   pTransformationData->m_globalTransform.SetIdentity();
 #if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+  pTransformationData->m_lastGlobalTransform.SetIdentity();
   pTransformationData->m_velocity.SetZero();
 #endif
   pTransformationData->m_localBounds.SetInvalid();
@@ -219,7 +220,7 @@ ezGameObjectHandle ezWorld::CreateObject(const ezGameObjectDesc& desc, ezGameObj
   pTransformationData->UpdateGlobalTransformNonRecursive();
 
 #if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
-  pTransformationData->m_lastGlobalPosition = pTransformationData->m_globalTransform.m_Position;
+  pTransformationData->m_lastGlobalTransform = pTransformationData->m_globalTransform;
 #endif
 
   // link the transformation data to the game object

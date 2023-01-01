@@ -22,6 +22,13 @@ struct EZ_RENDERERCORE_DLL ezViewData
       m_InverseProjectionMatrix[i].SetIdentity();
       m_ViewProjectionMatrix[i].SetIdentity();
       m_InverseViewProjectionMatrix[i].SetIdentity();
+
+      m_LastViewMatrix[i].SetIdentity();
+      m_LastInverseViewMatrix[i].SetIdentity();
+      m_LastProjectionMatrix[i].SetIdentity();
+      m_LastInverseProjectionMatrix[i].SetIdentity();
+      m_LastViewProjectionMatrix[i].SetIdentity();
+      m_LastInverseViewProjectionMatrix[i].SetIdentity();
     }
   }
 
@@ -38,6 +45,13 @@ struct EZ_RENDERERCORE_DLL ezViewData
   ezMat4 m_InverseProjectionMatrix[2];
   ezMat4 m_ViewProjectionMatrix[2];
   ezMat4 m_InverseViewProjectionMatrix[2];
+
+  ezMat4 m_LastViewMatrix[2];
+  ezMat4 m_LastInverseViewMatrix[2];
+  ezMat4 m_LastProjectionMatrix[2];
+  ezMat4 m_LastInverseProjectionMatrix[2];
+  ezMat4 m_LastViewProjectionMatrix[2];
+  ezMat4 m_LastInverseViewProjectionMatrix[2];
 
   /// \brief Returns the start position and direction (in world space) of the picking ray through the screen position in this view.
   ///

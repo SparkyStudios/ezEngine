@@ -1089,6 +1089,13 @@ void ezRenderPipeline::Render(ezRenderContext* pRenderContext)
   auto& gc = pRenderContext->WriteGlobalConstants();
   for (int i = 0; i < 2; ++i)
   {
+    gc.LastCameraToScreenMatrix[i] = pViewData->m_LastProjectionMatrix[i];
+    gc.LastScreenToCameraMatrix[i] = pViewData->m_LastInverseProjectionMatrix[i];
+    gc.LastWorldToCameraMatrix[i] = pViewData->m_LastViewMatrix[i];
+    gc.LastCameraToWorldMatrix[i] = pViewData->m_LastInverseViewMatrix[i];
+    gc.LastWorldToScreenMatrix[i] = pViewData->m_LastViewProjectionMatrix[i];
+    gc.LastScreenToWorldMatrix[i] = pViewData->m_LastInverseViewProjectionMatrix[i];
+
     gc.CameraToScreenMatrix[i] = pViewData->m_ProjectionMatrix[i];
     gc.ScreenToCameraMatrix[i] = pViewData->m_InverseProjectionMatrix[i];
     gc.WorldToCameraMatrix[i] = pViewData->m_ViewMatrix[i];
@@ -1112,6 +1119,7 @@ void ezRenderPipeline::Render(ezRenderContext* pRenderContext)
   gc.GlobalTime = (float)ezMath::Mod(ezClock::GetGlobalClock()->GetAccumulatedTime().GetSeconds(), 20790.0);
   gc.WorldTime = (float)ezMath::Mod(data.GetWorldTime().GetSeconds(), 20790.0);
 
+  gc.ShutterSpeed = pCamera->GetShutterSpeed();
   gc.Exposure = pCamera->GetExposure();
   gc.Aperture = pCamera->GetAperture();
   gc.ISO = pCamera->GetISO();

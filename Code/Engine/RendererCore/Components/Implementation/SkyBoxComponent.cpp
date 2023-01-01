@@ -95,6 +95,8 @@ void ezSkyBoxComponent::OnMsgExtractRenderData(ezMsgExtractRenderData& msg) cons
 
   ezMeshRenderData* pRenderData = ezCreateRenderDataForThisFrame<ezMeshRenderData>(GetOwner());
   {
+    pRenderData->m_LastGlobalTransform = GetOwner()->GetLastGlobalTransform();
+    pRenderData->m_LastGlobalTransform.m_vPosition.SetZero(); // skybox should always be at the origin
     pRenderData->m_GlobalTransform = GetOwner()->GetGlobalTransform();
     pRenderData->m_GlobalTransform.m_vPosition.SetZero(); // skybox should always be at the origin
     pRenderData->m_GlobalBounds = GetOwner()->GetGlobalBounds();

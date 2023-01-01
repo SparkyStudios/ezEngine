@@ -68,7 +68,7 @@ namespace ezInternal
     m_Objects.Insert(nullptr);
 
 #if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
-    EZ_CHECK_AT_COMPILETIME(sizeof(ezGameObject::TransformationData) == 224);
+    EZ_CHECK_AT_COMPILETIME(sizeof(ezGameObject::TransformationData) == 256);
 #else
     EZ_CHECK_AT_COMPILETIME(sizeof(ezGameObject::TransformationData) == 192);
 #endif

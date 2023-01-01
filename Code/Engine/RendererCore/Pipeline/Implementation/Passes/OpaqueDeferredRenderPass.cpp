@@ -88,11 +88,6 @@ bool ezOpaqueDeferredRenderPass::GetRenderTargetDescriptions(const ezView& view,
   {
     outputs[m_PinVelocity.m_uiOutputIndex] = *inputs[m_PinVelocity.m_uiInputIndex];
   }
-  else
-  {
-    ezLog::Error("No velocity input connected to pass '{0}'.", GetName());
-    return false;
-  }
 
   // Depth - Stencil
   if (inputs[m_PinDepthStencil.m_uiInputIndex])
@@ -124,19 +119,19 @@ void ezOpaqueDeferredRenderPass::Execute(const ezRenderViewContext& renderViewCo
         renderingSetup.m_RenderTargetSetup.SetRenderTarget(0, pDevice->GetDefaultRenderTargetView(inputs[m_PinAlbedo.m_uiInputIndex]->m_TextureHandle));
       }
 
+      if (inputs[m_PinVelocity.m_uiInputIndex])
+      {
+        renderingSetup.m_RenderTargetSetup.SetRenderTarget(1, pDevice->GetDefaultRenderTargetView(inputs[m_PinVelocity.m_uiInputIndex]->m_TextureHandle));
+      }
+
       if (inputs[m_PinNormal.m_uiInputIndex])
       {
-        renderingSetup.m_RenderTargetSetup.SetRenderTarget(1, pDevice->GetDefaultRenderTargetView(inputs[m_PinNormal.m_uiInputIndex]->m_TextureHandle));
+        renderingSetup.m_RenderTargetSetup.SetRenderTarget(2, pDevice->GetDefaultRenderTargetView(inputs[m_PinNormal.m_uiInputIndex]->m_TextureHandle));
       }
 
       if (inputs[m_PinMaterial.m_uiInputIndex])
       {
-        renderingSetup.m_RenderTargetSetup.SetRenderTarget(2, pDevice->GetDefaultRenderTargetView(inputs[m_PinMaterial.m_uiInputIndex]->m_TextureHandle));
-      }
-
-      if (inputs[m_PinVelocity.m_uiInputIndex])
-      {
-        renderingSetup.m_RenderTargetSetup.SetRenderTarget(3, pDevice->GetDefaultRenderTargetView(inputs[m_PinVelocity.m_uiInputIndex]->m_TextureHandle));
+        renderingSetup.m_RenderTargetSetup.SetRenderTarget(3, pDevice->GetDefaultRenderTargetView(inputs[m_PinMaterial.m_uiInputIndex]->m_TextureHandle));
       }
 
       if (inputs[m_PinDepthStencil.m_uiInputIndex])

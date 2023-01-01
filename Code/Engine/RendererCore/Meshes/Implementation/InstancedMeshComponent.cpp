@@ -331,9 +331,18 @@ ezArrayPtr<ezPerInstanceData> ezInstancedMeshComponent::GetInstanceData() const
 
     instanceData[i].ObjectToWorld = objectToWorld;
 
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+    const ezMat4 lastObjectToWorld = (GetOwner()->GetLastGlobalTransform() * m_RawInstancedData[i].m_transform).GetAsMat4();
+    instanceData[i].LastObjectToWorld = lastObjectToWorld;
+#endif
+
     if (m_RawInstancedData[i].m_transform.ContainsUniformScale())
     {
       instanceData[i].ObjectToWorldNormal = objectToWorld;
+
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+      instanceData[i].LastObjectToWorldNormal = lastObjectToWorld;
+#endif
     }
     else
     {
@@ -345,6 +354,16 @@ ezArrayPtr<ezPerInstanceData> ezInstancedMeshComponent::GetInstanceData() const
       ezShaderTransform shaderT;
       shaderT = mInverse.GetTranspose();
       instanceData[i].ObjectToWorldNormal = shaderT;
+
+#if EZ_ENABLED(EZ_GAMEOBJECT_VELOCITY)
+      mInverse = lastObjectToWorld.GetRotationalPart();
+      mInverse.Invert(0.0f).IgnoreResult();
+      // we explicitly ignore the return value here (success / failure)
+      // because when we have a scale of 0 (which happens temporarily during editing) that would be annoying
+
+      shaderT = mInverse.GetTranspose();
+      instanceData[i].LastObjectToWorldNormal = shaderT;
+#endif
     }
 
     instanceData[i].GameObjectID = GetUniqueIdForRendering();

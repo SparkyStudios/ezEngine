@@ -181,6 +181,7 @@ void ezMeshComponentBase::OnMsgExtractRenderData(ezMsgExtractRenderData& msg) co
 
     ezMeshRenderData* pRenderData = CreateRenderData();
     {
+      pRenderData->m_LastGlobalTransform = GetOwner()->GetLastGlobalTransform() * pRenderData->m_LastGlobalTransform;
       pRenderData->m_GlobalTransform = GetOwner()->GetGlobalTransform() * pRenderData->m_GlobalTransform;
       pRenderData->m_GlobalBounds = GetOwner()->GetGlobalBounds();
       pRenderData->m_hMesh = m_hMesh;
