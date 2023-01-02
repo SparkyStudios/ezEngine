@@ -70,13 +70,6 @@ void importanceSampleGGXDir(float2 u,
     L = 2.0f * dot(V, H) * H - V;
 }
 
-
-inline float D_GGX_Divide_Pi (float NdotH, float roughness)
-{
-  const float invPi = 1.0f / PI;
-  return SpecularGGX(roughness, NdotH) *  invPi;
-}
-
 // Ref: Listing 19 in "Moving Frostbite to PBR"
 float4  integrateCubeLDOnly(in float3 V,in float3 N,in float roughness)
 {
@@ -106,9 +99,9 @@ float4  integrateCubeLDOnly(in float3 V,in float3 N,in float roughness)
       // Since we pre -integrate  the  result  for  normal  direction ,
       // N == V and  then  NdotH ==  LdotH. This is why the  BRDF  pdf
       // can be  simplifed  from:
-      //     pdf = D_GGX_Divide_Pi(NdotH , roughness)*NdotH /(4* LdotH);
+      //     pdf = D_GGX(roughness , NdotH)*NdotH /(4* LdotH);
       // to
-      //     pdf = D_GGX_Divide_Pi(NdotH , roughness) / 4;
+      //     pdf = D_GGX(roughness , NdotH) / 4;
       //
       // The  mipmap  level is  clamped  to  something  lower  than 8x8
       // in  order to  avoid   cubemap  filtering  issues
@@ -117,12 +110,12 @@ float4  integrateCubeLDOnly(in float3 V,in float3 N,in float roughness)
       //   - OmegaP: Solid  angle  associated  to a pixel  of the  cubemap
       float  NdotH = saturate(dot(N, H));
       float  LdotH = saturate(dot(L, H));
-      
-      float  pdf = D_GGX_Divide_Pi(NdotH , roughness) / 4;
+
+      float  pdf = D_GGX(pow2(roughness), NdotH) / 4;
       float  omegaS = 1.0 / (sampleCount * pdf);
       float  omegaP = 4.0 * PI / (6.0 * width * width);
       float  mipLevel = 0.5 * log2(omegaS / omegaP);
- 
+
       float4  Li = InputCubemap.SampleLevel(LinearSampler, L, mipLevel);
 
       accBrdf  += Li * NdotL;
