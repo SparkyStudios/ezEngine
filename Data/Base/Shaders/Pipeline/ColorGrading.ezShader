@@ -62,7 +62,9 @@ void main(uint3 threadId : SV_DispatchThreadID)
   color = AdjustContrast(color);
 
   // Dither
+  color  = sqrt(color);
   color += dither(threadId.xy * ViewportSize.xy);
+  color *= color;
 
   Output[threadId.xy] = float4(color, InputTexture[threadId.xy].a);
 }
