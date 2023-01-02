@@ -90,12 +90,13 @@ float2 GetVelocity()
   return VelocityTexture[G.Input.Position.xy].xy;
 }
 
-// TODO: Another G-Buffer map to store this?
+// Clearcoat is disabled for deferred rendering.
+// Materials using clearcoat should use the forward path instead.
 void GetSpecularClearCoatParams(out float clearcoat, out float clearcoatRoughness, out float3 normal)
 {
   clearcoat = 0;
   clearcoatRoughness = 0;
-  normal = normalize(G.Input.Normal);
+  normal = float3(0, 0, 1);
 }
 
 void GetSpecularAnisotopicParams(out float anisotropic, out float rotation)
