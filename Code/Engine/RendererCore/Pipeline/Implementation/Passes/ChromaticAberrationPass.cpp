@@ -7,7 +7,7 @@
 
 #include <RendererFoundation/Resources/Texture.h>
 
-#include <RendererCore/../../../Data/Base/Shaders/Pipeline/ChromaticAberrationConstants.h>
+#include "../../../../../../Data/Base/Shaders/Pipeline/ChromaticAberrationConstants.h"
 
 // clang-format off
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezChromaticAberrationPass, 1, ezRTTIDefaultAllocator<ezChromaticAberrationPass>)
@@ -91,7 +91,7 @@ void ezChromaticAberrationPass::Execute(const ezRenderViewContext& renderViewCon
 
   ezGALPass* pPass = pDevice->BeginPass(GetName());
   {
-    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "ChromaticAberration");
+    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext);
 
     renderViewContext.m_pRenderContext->BindShader(m_hShader);
 
@@ -112,8 +112,8 @@ void ezChromaticAberrationPass::Execute(const ezRenderViewContext& renderViewCon
     const ezUInt32 uiWidth = pColorOutput->m_Desc.m_uiWidth;
     const ezUInt32 uiHeight = pColorOutput->m_Desc.m_uiHeight;
 
-    const ezUInt32 uiDispatchX = (uiWidth + 7) / 8;
-    const ezUInt32 uiDispatchY = (uiHeight + 7) / 8;
+    const ezUInt32 uiDispatchX = (uiWidth + THREAD_GROUP_COUNT_X - 1) / THREAD_GROUP_COUNT_X;
+    const ezUInt32 uiDispatchY = (uiHeight + THREAD_GROUP_COUNT_Y - 1) / THREAD_GROUP_COUNT_Y;
 
     UpdateConstantBuffer();
 

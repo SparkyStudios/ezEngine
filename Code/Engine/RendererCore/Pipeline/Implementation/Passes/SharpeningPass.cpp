@@ -92,7 +92,7 @@ void ezSharpeningPass::Execute(const ezRenderViewContext& renderViewContext, con
 
   ezGALPass* pPass = pDevice->BeginPass(GetName());
   {
-    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "Sharpening");
+    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext);
     renderViewContext.m_pRenderContext->BindShader(m_hShader);
 
     renderViewContext.m_pRenderContext->BindTexture2D("InputTexture", pDevice->GetDefaultResourceView(pColorInput->m_TextureHandle));

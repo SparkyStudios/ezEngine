@@ -5,9 +5,6 @@
 #include <RendererCore/Pipeline/View.h>
 #include <RendererCore/RenderContext/RenderContext.h>
 
-#include <RendererFoundation/Profiling/Profiling.h>
-#include <RendererFoundation/Resources/Texture.h>
-
 #include "../../../../../../Data/Base/Shaders/Pipeline/TonemapConstants.h"
 
 // clang-format off
@@ -19,7 +16,7 @@ EZ_BEGIN_STATIC_REFLECTED_ENUM(ezTonemapMode, 1)
   EZ_ENUM_CONSTANT(ezTonemapMode::None),
 EZ_END_STATIC_REFLECTED_ENUM;
 
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezTonemapPass, 1, ezRTTIDefaultAllocator<ezTonemapPass>)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezTonemapPass, 2, ezRTTIDefaultAllocator<ezTonemapPass>)
 {
   EZ_BEGIN_PROPERTIES
   {
@@ -131,3 +128,31 @@ void ezTonemapPass::UpdateConstantBuffer()
   auto* constants = ezRenderContext::GetConstantBufferData<ezTonemapConstants>(m_hConstantBuffer);
   constants->ToneMappingMode = m_eTonemapMode.GetValue();
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+#include <Foundation/Serialization/AbstractObjectGraph.h>
+#include <Foundation/Serialization/GraphPatch.h>
+
+class ezTonemapPassPatch_1_2 : public ezGraphPatch
+{
+public:
+  ezTonemapPassPatch_1_2()
+    : ezGraphPatch("ezTonemapPass", 2)
+  {
+  }
+
+  virtual void Patch(ezGraphPatchContext& context, ezAbstractObjectGraph* pGraph, ezAbstractObjectNode* pNode) const override
+  {
+    pNode->AddProperty("Mode", ezTonemapMode::AMD);
+    pNode->RenameProperty("Color", "Input");
+    pNode->RemoveProperty("Bloom");
+  }
+};
+
+ezTonemapPassPatch_1_2 g_ezTonemapPassPatch_1_2;
+
+EZ_STATICLINK_FILE(RendererCore, RendererCore_Pipeline_Implementation_Passes_TonemapPass);

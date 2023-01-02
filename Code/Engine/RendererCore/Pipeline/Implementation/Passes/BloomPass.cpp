@@ -4,12 +4,11 @@
 #include <RendererCore/Pipeline/Passes/BloomPass.h>
 #include <RendererCore/Pipeline/View.h>
 #include <RendererCore/RenderContext/RenderContext.h>
-#include <RendererFoundation/Profiling/Profiling.h>
 
 #include "../../../../../../Data/Base/Shaders/Pipeline/BloomConstants.h"
 
 // clang-format off
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezBloomPass, 1, ezRTTIDefaultAllocator<ezBloomPass>)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezBloomPass, 2, ezRTTIDefaultAllocator<ezBloomPass>)
 {
   EZ_BEGIN_PROPERTIES
   {
@@ -350,5 +349,29 @@ void ezBloomPass::UpdateConstantBuffer(ezVec2 pixelSize, ezUInt32 uiWorkGroupCou
   constants->MipCount = m_uiMipCount;
   constants->WorkGroupCount = uiWorkGroupCount;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+#include <Foundation/Serialization/AbstractObjectGraph.h>
+#include <Foundation/Serialization/GraphPatch.h>
+
+class ezBloomPassPatch_1_2 : public ezGraphPatch
+{
+public:
+  ezBloomPassPatch_1_2()
+    : ezGraphPatch("ezBloomPass", 2)
+  {
+  }
+
+  virtual void Patch(ezGraphPatchContext& context, ezAbstractObjectGraph* pGraph, ezAbstractObjectNode* pNode) const override
+  {
+    pNode->AddProperty("MipCount", 6);
+  }
+};
+
+ezBloomPassPatch_1_2 g_ezBloomPassPatch_1_2;
 
 EZ_STATICLINK_FILE(RendererCore, RendererCore_Pipeline_Implementation_Passes_BloomPass);
