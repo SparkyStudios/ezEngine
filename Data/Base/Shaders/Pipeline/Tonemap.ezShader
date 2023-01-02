@@ -172,5 +172,5 @@ void main(uint3 threadId : SV_DispatchThreadID)
 
   // Tone map and gamma correct
   float4 color = InputTexture[threadId.xy];
-  Output[threadId.xy] = float4(saturate_16(gamma(tonemap(color.rgb))), color.a);
+  Output[threadId.xy] = float4(gamma(tonemap(color.rgb)), color.a);
 }

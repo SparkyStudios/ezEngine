@@ -33,6 +33,7 @@ public:
 
   // Inherited via ezWindowBase
   virtual ezSizeU32 GetClientAreaSize() const override { return ezSizeU32(m_uiWidth, m_uiHeight); }
+  virtual ezSizeU32 GetRenderAreaSize() const override { return GetClientAreaSize(); }
   virtual ezWindowHandle GetNativeWindowHandle() const override { return m_hWnd; }
   virtual void ProcessWindowMessages() override {}
   virtual bool IsFullscreenWindow(bool bOnlyProperFullscreenMode = false) const override { return false; }

@@ -1,4 +1,4 @@
-﻿#include <RendererCore/RendererCorePCH.h>
+#include <RendererCore/RendererCorePCH.h>
 
 #include <RendererCore/GPUResourcePool/GPUResourcePool.h>
 #include <RendererCore/Pipeline/Passes/FXAAPass.h>
@@ -92,10 +92,10 @@ bool ezFXAAPass::GetRenderTargetDescriptions(const ezView& view, const ezArrayPt
 
 void ezFXAAPass::Execute(const ezRenderViewContext& renderViewContext, const ezArrayPtr<ezRenderPipelinePassConnection* const> inputs, const ezArrayPtr<ezRenderPipelinePassConnection* const> outputs)
 {
-  const auto* const pColorInput = inputs[m_PinInput.m_uiInputIndex];
-  const auto* const pColorOutput = outputs[m_PinOutput.m_uiOutputIndex];
+  const auto* const pInput = inputs[m_PinInput.m_uiInputIndex];
+  const auto* const pOutput = outputs[m_PinOutput.m_uiOutputIndex];
 
-  if (pColorInput == nullptr || pColorOutput == nullptr)
+  if (pInput == nullptr || pOutput == nullptr)
   {
     return;
   }
@@ -115,17 +115,17 @@ void ezFXAAPass::Execute(const ezRenderViewContext& renderViewContext, const ezA
     ezGALUnorderedAccessViewHandle hOutput;
     {
       ezGALUnorderedAccessViewCreationDescription desc;
-      desc.m_hTexture = pColorOutput->m_TextureHandle;
+      desc.m_hTexture = pOutput->m_TextureHandle;
       desc.m_uiMipLevelToUse = 0;
       hOutput = pDevice->CreateUnorderedAccessView(desc);
     }
 
     renderViewContext.m_pRenderContext->BindUAV("Output", hOutput);
-    renderViewContext.m_pRenderContext->BindTexture2D("InputTexture", pDevice->GetDefaultResourceView(pColorInput->m_TextureHandle));
+    renderViewContext.m_pRenderContext->BindTexture2D("InputTexture", pDevice->GetDefaultResourceView(pInput->m_TextureHandle));
     renderViewContext.m_pRenderContext->BindConstantBuffer("ezFXAAConstants", m_hConstantBuffer);
 
-    const ezUInt32 uiWidth = pColorOutput->m_Desc.m_uiWidth;
-    const ezUInt32 uiHeight = pColorOutput->m_Desc.m_uiHeight;
+    const ezUInt32 uiWidth = pOutput->m_Desc.m_uiWidth;
+    const ezUInt32 uiHeight = pOutput->m_Desc.m_uiHeight;
 
     const ezUInt32 uiDispatchX = (uiWidth + THREAD_GROUP_COUNT_X - 1) / THREAD_GROUP_COUNT_X;
     const ezUInt32 uiDispatchY = (uiHeight + THREAD_GROUP_COUNT_Y - 1) / THREAD_GROUP_COUNT_Y;

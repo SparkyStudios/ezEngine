@@ -17,6 +17,7 @@ public:
   virtual ~ezWindowXR();
 
   virtual ezSizeU32 GetClientAreaSize() const override;
+  virtual ezSizeU32 GetRenderAreaSize() const override;
 
   virtual ezWindowHandle GetNativeWindowHandle() const override;
 

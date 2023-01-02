@@ -128,6 +128,7 @@ public:
   virtual ~ezWindowBase() {}
 
   virtual ezSizeU32 GetClientAreaSize() const = 0;
+  virtual ezSizeU32 GetRenderAreaSize() const = 0;
   virtual ezWindowHandle GetNativeWindowHandle() const = 0;
 
   /// \brief Whether the window is a fullscreen window
@@ -204,6 +205,9 @@ struct EZ_CORE_DLL ezWindowCreationDesc
   /// The pixel resolution of the window.
   ezSizeU32 m_Resolution = ezSizeU32(1280, 720);
 
+  /// The pixel resolution of the render target.
+  ezSizeU32 m_RenderResolution = ezSizeU32(1280, 720);
+
   /// The number of the window. This is mostly used for setting up the input system, which then reports
   /// different mouse positions for each window.
   ezUInt8 m_uiWindowNumber = 0;
@@ -242,6 +246,9 @@ public:
 
   /// \brief Returns the size of the client area / ie. the window resolution.
   virtual ezSizeU32 GetClientAreaSize() const override { return m_CreationDescription.m_Resolution; }
+
+  /// \brief Returns the size of the render area.
+  virtual ezSizeU32 GetRenderAreaSize() const override { return m_CreationDescription.m_RenderResolution; }
 
   /// \brief Returns the platform specific window handle.
   virtual ezWindowHandle GetNativeWindowHandle() const override;

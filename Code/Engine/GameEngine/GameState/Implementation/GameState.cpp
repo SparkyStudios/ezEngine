@@ -136,13 +136,13 @@ ezUniquePtr<ezActor> ezGameState::CreateXRActor()
     pOutput = CreateMainOutputTarget(pMainWindow.Borrow());
     ConfigureMainWindowInputDevices(pMainWindow.Borrow());
     CreateMainView();
-    SetupMainView(pOutput->m_hSwapChain, pMainWindow->GetClientAreaSize());
+    SetupMainView(pOutput->m_hSwapChain, pMainWindow->GetRenderAreaSize(), pMainWindow->GetClientAreaSize());
   }
   else
   {
     // XR Window (no companion window)
     CreateMainView();
-    SetupMainView({}, {});
+    SetupMainView({}, {}, {});
   }
 
   if (m_bXRRemotingEnabled)
@@ -174,7 +174,7 @@ void ezGameState::CreateActors()
   ezUniquePtr<ezWindowOutputTargetGAL> pOutput = CreateMainOutputTarget(pMainWindow.Borrow());
   ConfigureMainWindowInputDevices(pMainWindow.Borrow());
   CreateMainView();
-  SetupMainView(pOutput->m_hSwapChain, pMainWindow->GetClientAreaSize());
+  SetupMainView(pOutput->m_hSwapChain, pMainWindow->GetRenderAreaSize(), pMainWindow->GetClientAreaSize());
 
   {
     // Default flat window
@@ -191,7 +191,7 @@ void ezGameState::ConfigureMainWindowInputDevices(ezWindow* pWindow) {}
 
 void ezGameState::ConfigureInputActions() {}
 
-void ezGameState::SetupMainView(ezGALSwapChainHandle hSwapChain, ezSizeU32 viewportSize)
+void ezGameState::SetupMainView(ezGALSwapChainHandle hSwapChain, ezSizeU32 renderSize, ezSizeU32 windowSize)
 {
   ezView* pView = nullptr;
   if (!ezRenderWorld::TryGetView(m_hMainView, pView))
@@ -216,7 +216,8 @@ void ezGameState::SetupMainView(ezGALSwapChainHandle hSwapChain, ezSizeU32 viewp
       auto renderPipeline = ezResourceManager::LoadResource<ezRenderPipelineResource>(pConfig->m_sMainRenderPipeline);
       pView->SetRenderPipelineResource(renderPipeline);
       pView->SetSwapChain(hSwapChain);
-      pView->SetViewport(ezRectFloat(0.0f, 0.0f, (float)viewportSize.width, (float)viewportSize.height));
+      pView->SetViewport(ezRectFloat(0.0f, 0.0f, (float)renderSize.width, (float)renderSize.height));
+      pView->SetTargetViewport(ezRectFloat(0.0f, 0.0f, (float)windowSize.width, (float)windowSize.height));
       pView->ForceUpdate();
     }
   }
@@ -358,9 +359,8 @@ ezUniquePtr<ezWindow> ezGameState::CreateMainWindow()
 
 ezUniquePtr<ezWindowOutputTargetGAL> ezGameState::CreateMainOutputTarget(ezWindow* pMainWindow)
 {
-  ezUniquePtr<ezWindowOutputTargetGAL> pOutput = EZ_DEFAULT_NEW(ezWindowOutputTargetGAL, [this](ezGALSwapChainHandle hSwapChain, ezSizeU32 size) {
-    SetupMainView(hSwapChain, size);
-  });
+  ezUniquePtr<ezWindowOutputTargetGAL> pOutput = EZ_DEFAULT_NEW(ezWindowOutputTargetGAL, [this, pMainWindow](ezGALSwapChainHandle hSwapChain, ezSizeU32 size)
+    { SetupMainView(hSwapChain, pMainWindow->GetRenderAreaSize(), size); });
 
   ezGALWindowSwapChainCreationDescription desc;
   desc.m_pWindow = pMainWindow;

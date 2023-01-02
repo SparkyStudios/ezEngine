@@ -14,9 +14,9 @@ RWTexture2D<float4> Output;
 #define A_GPU
 #define A_HLSL
 
-#include <Shaders/ThirdParty/FFX/A.h>
+#include <Shaders/ThirdParty/FFX/ffx_a.h>
 
-// FFX CAS.h wants defined
+// ffx_cas.h wants defined
 float3 CasLoad(float2 pos)
 {
   return InputTexture[pos].rgb;
@@ -28,18 +28,18 @@ void CasInput(inout float r, inout float g, inout float b)
   // noop
 }
 
-#include <Shaders/ThirdParty/FFX/CAS.h>
+#include <Shaders/ThirdParty/FFX/ffx_cas.h>
 
 [numthreads(THREAD_GROUP_COUNT_X, THREAD_GROUP_COUNT_Y, 1)]
 void main(uint3 threadId : SV_DispatchThreadID)
 {
   // Out of bounds check
-  if (any(int2(threadId.xy) >= ViewportSize.xy))
+  if (any(int2(threadId.xy) >= TargetViewportSize.xy))
     return;
 
   float4 const0;
   float4 const1;
-  CasSetup(const0, const1, Strength, ViewportSize.x, ViewportSize.y, ViewportSize.x, ViewportSize.y);
+  CasSetup(const0, const1, Strength, TargetViewportSize.x, TargetViewportSize.y, TargetViewportSize.x, TargetViewportSize.y);
 
   float3 color = 0.0f;
   CasFilter(color.r, color.g, color.b, threadId.xy, const0, const1, true);

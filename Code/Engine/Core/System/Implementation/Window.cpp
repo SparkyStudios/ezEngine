@@ -110,6 +110,7 @@ void ezWindowCreationDesc::SaveToDDL(ezOpenDdlWriter& writer)
   }
 
   ezOpenDdlUtils::StoreVec2U(writer, ezVec2U32(m_Resolution.width, m_Resolution.height), "Resolution");
+  ezOpenDdlUtils::StoreVec2U(writer, ezVec2U32(m_RenderResolution.width, m_RenderResolution.height), "RenderTargetResolution");
 
   ezOpenDdlUtils::StoreBool(writer, m_bClipMouseCursor, "ClipMouseCursor");
   ezOpenDdlUtils::StoreBool(writer, m_bShowMouseCursor, "ShowMouseCursor");
@@ -174,6 +175,14 @@ void ezWindowCreationDesc::LoadFromDDL(const ezOpenDdlReaderElement* pParentElem
       ezOpenDdlUtils::ConvertToVec2U(pPosition, res).IgnoreResult();
       m_Resolution.width = res.x;
       m_Resolution.height = res.y;
+    }
+
+    if (const ezOpenDdlReaderElement* pPosition = pDesc->FindChild("RenderTargetResolution"))
+    {
+      ezVec2U32 res;
+      ezOpenDdlUtils::ConvertToVec2U(pPosition, res).IgnoreResult();
+      m_RenderResolution.width = res.x;
+      m_RenderResolution.height = res.y;
     }
 
     if (const ezOpenDdlReaderElement* pClipMouseCursor = pDesc->FindChildOfType(ezOpenDdlPrimitiveType::Bool, "ClipMouseCursor"))

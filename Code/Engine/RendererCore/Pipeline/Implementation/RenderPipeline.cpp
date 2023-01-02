@@ -1104,8 +1104,11 @@ void ezRenderPipeline::Render(ezRenderContext* pRenderContext)
     gc.ScreenToWorldMatrix[i] = pViewData->m_InverseViewProjectionMatrix[i];
   }
 
-  const ezRectFloat& viewport = pViewData->m_ViewPortRect;
-  gc.ViewportSize = ezVec4(viewport.width, viewport.height, 1.0f / viewport.width, 1.0f / viewport.height);
+  const ezRectFloat& renderViewport = pViewData->m_ViewPortRect;
+  const ezRectFloat& targetViewport = pViewData->m_TargetViewportRect;
+
+  gc.ViewportSize = ezVec4(renderViewport.width, renderViewport.height, 1.0f / renderViewport.width, 1.0f / renderViewport.height);
+  gc.TargetViewportSize = ezVec4(targetViewport.width, targetViewport.height, 1.0f / targetViewport.width, 1.0f / targetViewport.height);
 
   float fNear = pCamera->GetNearPlane();
   float fFar = pCamera->GetFarPlane();

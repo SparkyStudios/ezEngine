@@ -94,12 +94,10 @@ void ezDebandingPass::Execute(const ezRenderViewContext& renderViewContext, cons
     const ezUInt32 uiWidth = pOutput->m_Desc.m_uiWidth;
     const ezUInt32 uiHeight = pOutput->m_Desc.m_uiHeight;
 
-    constexpr ezUInt32 uiThreadsX = 8;
-    constexpr ezUInt32 uiThreadsY = 8;
-    const ezUInt32 uiDispatchX = (uiWidth + uiThreadsX - 1) / uiThreadsX;
-    const ezUInt32 uiDispatchY = (uiHeight + uiThreadsY - 1) / uiThreadsY;
+    const ezUInt32 uiDispatchX = (uiWidth + THREAD_GROUP_COUNT_X - 1) / THREAD_GROUP_COUNT_X;
+    const ezUInt32 uiDispatchY = (uiHeight + THREAD_GROUP_COUNT_Y - 1) / THREAD_GROUP_COUNT_Y;
 
-    renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 6).IgnoreResult();
+    renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
   }
   pDevice->EndPass(pPass);
 

@@ -40,6 +40,9 @@ void ezQtWindowCfgDlg::FillUI(const ezWindowCreationDesc& desc)
   m_SpinResX->setValue(desc.m_Resolution.width);
   m_SpinResY->setValue(desc.m_Resolution.height);
 
+  m_SpinRenderResX->setValue(desc.m_RenderResolution.width);
+  m_SpinRenderResY->setValue(desc.m_RenderResolution.height);
+
   m_ClipMouseCursor->setCheckState(desc.m_bClipMouseCursor ? Qt::Checked : Qt::Unchecked);
   m_ShowMouseCursor->setCheckState(desc.m_bShowMouseCursor ? Qt::Checked : Qt::Unchecked);
 
@@ -55,6 +58,8 @@ void ezQtWindowCfgDlg::GrabUI(ezWindowCreationDesc& desc)
   desc.m_WindowMode = (ezWindowMode::Enum)(m_ComboMode->currentIndex());
   desc.m_Resolution.width = m_SpinResX->value();
   desc.m_Resolution.height = m_SpinResY->value();
+  desc.m_RenderResolution.width = m_SpinRenderResX->value();
+  desc.m_RenderResolution.height = m_SpinRenderResY->value();
   desc.m_bClipMouseCursor = m_ClipMouseCursor->isChecked();
   desc.m_bShowMouseCursor = m_ShowMouseCursor->isChecked();
 }
@@ -68,6 +73,8 @@ void ezQtWindowCfgDlg::UpdateUI()
   m_ComboMode->setEnabled(bEnable);
   m_SpinResX->setEnabled(bEnable);
   m_SpinResY->setEnabled(bEnable);
+  m_SpinRenderResX->setEnabled(bEnable);
+  m_SpinRenderResY->setEnabled(bEnable);
   m_ClipMouseCursor->setEnabled(bEnable);
   m_ShowMouseCursor->setEnabled(bEnable);
   m_CheckOverrideDefault->setVisible(m_uiCurDesc != 0);

@@ -81,44 +81,44 @@ bool ezFramePass::GetRenderTargetDescriptions(const ezView& view, const ezArrayP
 
 void ezFramePass::Execute(const ezRenderViewContext& renderViewContext, const ezArrayPtr<ezRenderPipelinePassConnection* const> inputs, const ezArrayPtr<ezRenderPipelinePassConnection* const> outputs)
 {
-  const auto* const pColorInput = inputs[m_PinInput.m_uiInputIndex];
-  const auto* const pColorOutput = outputs[m_PinOutput.m_uiOutputIndex];
-  if (pColorInput == nullptr || pColorOutput == nullptr)
+  const auto* const pInput = inputs[m_PinInput.m_uiInputIndex];
+  const auto* const pOutput = outputs[m_PinOutput.m_uiOutputIndex];
+  if (pInput == nullptr || pOutput == nullptr)
   {
     return;
   }
 
-  // const ezUInt32 uiWidth = pColorInput->m_Desc.m_uiWidth;
-  // const ezUInt32 uiHeight = pColorInput->m_Desc.m_uiHeight;
+  const ezUInt32 uiWidth = pOutput->m_Desc.m_uiWidth;
+  const ezUInt32 uiHeight = pOutput->m_Desc.m_uiHeight;
 
   ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
-  // ezGALPass* pPass = pDevice->BeginPass(GetName());
 
-  const ezGALTextureHandle& hInput = pColorInput->m_TextureHandle;
-  const ezGALTextureHandle& hOutput = pColorOutput->m_TextureHandle;
+  ezGALPass* pPass = pDevice->BeginPass(GetName());
+  {
+    const ezGALTextureHandle& hInput = pInput->m_TextureHandle;
+    const ezGALTextureHandle& hOutput = pOutput->m_TextureHandle;
 
-  // Setup render target
-  ezGALRenderingSetup renderingSetup;
-  renderingSetup.m_RenderTargetSetup.SetRenderTarget(0, pDevice->GetDefaultRenderTargetView(hOutput));
+    // Setup render target
+    ezGALRenderingSetup renderingSetup;
+    renderingSetup.m_RenderTargetSetup.SetRenderTarget(0, pDevice->GetDefaultRenderTargetView(hOutput));
 
-  // Bind render target and viewport
-  auto pCommandEncoder = ezRenderContext::BeginPassAndRenderingScope(renderViewContext, renderingSetup, GetName(), renderViewContext.m_pCamera->IsStereoscopic());
+    // Bind render target and viewport
+    // auto pCommandEncoder = ezRenderContext::BeginPassAndRenderingScope(renderViewContext, renderingSetup, GetName(), renderViewContext.m_pCamera->IsStereoscopic());
+    renderViewContext.m_pRenderContext->BeginRendering(pPass, renderingSetup, ezRectFloat(uiWidth, uiHeight), "", renderViewContext.m_pCamera->IsStereoscopic());
 
-  renderViewContext.m_pRenderContext->BindShader(m_hShader);
-  renderViewContext.m_pRenderContext->BindConstantBuffer("ezFrameConstants", m_hConstantBuffer);
+    renderViewContext.m_pRenderContext->BindShader(m_hShader);
+    renderViewContext.m_pRenderContext->BindConstantBuffer("ezFrameConstants", m_hConstantBuffer);
 
-  renderViewContext.m_pRenderContext->BindMeshBuffer(ezGALBufferHandle(), ezGALBufferHandle(), nullptr, ezGALPrimitiveTopology::Triangles, 1);
+    renderViewContext.m_pRenderContext->BindMeshBuffer(ezGALBufferHandle(), ezGALBufferHandle(), nullptr, ezGALPrimitiveTopology::Triangles, 1);
 
-  // renderViewContext.m_pRenderContext->BeginRendering(pPass, renderingSetup, ezRectFloat(uiWidth, uiHeight), "Frame", renderViewContext.m_pCamera->IsStereoscopic());
+    UpdateConstantBuffer();
 
-  UpdateConstantBuffer();
+    renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", pDevice->GetDefaultResourceView(hInput));
+    renderViewContext.m_pRenderContext->DrawMeshBuffer().IgnoreResult();
 
-  renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", pDevice->GetDefaultResourceView(hInput));
-  renderViewContext.m_pRenderContext->DrawMeshBuffer().IgnoreResult();
-
-  // renderViewContext.m_pRenderContext->EndRendering();
-
-  // pDevice->EndPass(pPass);
+    renderViewContext.m_pRenderContext->EndRendering();
+  }
+  pDevice->EndPass(pPass);
 }
 
 void ezFramePass::ExecuteInactive(const ezRenderViewContext& renderViewContext, const ezArrayPtr<ezRenderPipelinePassConnection* const> inputs, const ezArrayPtr<ezRenderPipelinePassConnection* const> outputs)

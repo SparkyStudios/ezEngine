@@ -15,11 +15,11 @@ static const float Offset = 0.5f / 255.0f;
 void main(uint3 threadId : SV_DispatchThreadID)
 {
   // Out of bounds check
-  if (any(int2(threadId.xy) >= ViewportSize.xy))
+  if (any(int2(threadId.xy) >= TargetViewportSize.xy))
     return;
 
   float4 color = InputTexture[threadId.xy];
-  float rnd    = dither(threadId.xy * ViewportSize.xy).x;
+  float rnd    = dither(threadId.xy * TargetViewportSize.xy).x;
 
   Output[threadId.xy] = color + lerp(-Offset, Offset, rnd);
 }

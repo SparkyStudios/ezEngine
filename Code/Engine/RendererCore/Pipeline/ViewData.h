@@ -11,6 +11,7 @@ struct EZ_RENDERERCORE_DLL ezViewData
 {
   ezViewData()
   {
+    m_TargetViewportRect = ezRectFloat(0.0f, 0.0f);
     m_ViewPortRect = ezRectFloat(0.0f, 0.0f);
     m_ViewRenderMode = ezViewRenderMode::None;
 
@@ -34,7 +35,10 @@ struct EZ_RENDERERCORE_DLL ezViewData
 
   ezGALRenderTargets m_renderTargets;
   ezGALSwapChainHandle m_hSwapChain;
+
+  ezRectFloat m_TargetViewportRect;
   ezRectFloat m_ViewPortRect;
+
   ezEnum<ezViewRenderMode> m_ViewRenderMode;
   ezEnum<ezCameraUsageHint> m_CameraUsageHint;
 

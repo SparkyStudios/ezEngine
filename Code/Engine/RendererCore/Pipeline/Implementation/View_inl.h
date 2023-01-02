@@ -79,6 +79,11 @@ EZ_ALWAYS_INLINE const ezRectFloat& ezView::GetViewport() const
   return m_Data.m_ViewPortRect;
 }
 
+EZ_ALWAYS_INLINE const ezRectFloat& ezView::GetTargetViewport() const
+{
+  return m_Data.m_TargetViewportRect;
+}
+
 EZ_ALWAYS_INLINE const ezViewData& ezView::GetData() const
 {
   UpdateCachedMatrices();

@@ -34,6 +34,12 @@ ezSizeU32 ezWindowXR::GetClientAreaSize() const
   return m_pVrInterface->GetHmdInfo().m_vEyeRenderTargetSize;
 }
 
+ezSizeU32 ezWindowXR::GetRenderAreaSize() const
+{
+  // In XR mode, the render area should be the size of the eye render target.
+  return GetClientAreaSize();
+}
+
 ezWindowHandle ezWindowXR::GetNativeWindowHandle() const
 {
   if (m_pCompanionWindow)

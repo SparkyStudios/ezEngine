@@ -1,0 +1,114 @@
+[PLATFORMS]
+ALL
+
+
+[PERMUTATIONS]
+
+FSR_PRECISION=FSR_PRECISION_FP32
+UPSCALE_MODE
+
+
+[COMPUTESHADER]
+
+#include <Shaders/Common/Utils.h>
+
+#include "UpscaleConstants.h"
+
+#define A_GPU
+#define A_HLSL
+
+SamplerState UpscaleSampler;
+
+#if FSR_PRECISION == FSR_PRECISION_FP16
+
+  #define A_HALF
+  #include <Shaders/ThirdParty/FFX/ffx_a.h>
+
+  Texture2D<AH4> InputTexture;
+  RWTexture2D<AH4> Output;
+
+  #if UPSCALE_MODE == UPSCALE_MODE_FSR_UPSCALE
+    #define FSR_EASU_H 1
+    AH4 FsrEasuRH(AF2 p) { AH4 res = InputTexture.GatherRed(UpscaleSampler, p, int2(0, 0)); return res; }
+    AH4 FsrEasuGH(AF2 p) { AH4 res = InputTexture.GatherGreen(UpscaleSampler, p, int2(0, 0)); return res; }
+    AH4 FsrEasuBH(AF2 p) { AH4 res = InputTexture.GatherBlue(UpscaleSampler, p, int2(0, 0)); return res; }
+  #endif
+
+  #if UPSCALE_MODE == UPSCALE_MODE_FSR_SHARPEN
+    #define FSR_RCAS_H 1
+    AH4 FsrRcasLoadH(ASW2 p) { return InputTexture.Load(ASW3(ASW2(p), 0)); }
+    void FsrRcasInputH(inout AH1 r,inout AH1 g,inout AH1 b){}
+  #endif
+
+#else
+
+  #include <Shaders/ThirdParty/FFX/ffx_a.h>
+
+  Texture2D InputTexture;
+  RWTexture2D<float4> Output;
+
+  #if UPSCALE_MODE == UPSCALE_MODE_FSR_UPSCALE
+    #define FSR_EASU_F 1
+    AF4 FsrEasuRF(AF2 p) { AF4 res = InputTexture.GatherRed(UpscaleSampler, p, int2(0, 0)); return res; }
+    AF4 FsrEasuGF(AF2 p) { AF4 res = InputTexture.GatherGreen(UpscaleSampler, p, int2(0, 0)); return res; }
+    AF4 FsrEasuBF(AF2 p) { AF4 res = InputTexture.GatherBlue(UpscaleSampler, p, int2(0, 0)); return res; }
+  #endif
+
+  #if UPSCALE_MODE == UPSCALE_MODE_FSR_SHARPEN
+    #define FSR_RCAS_F 1
+    AF4 FsrRcasLoadF(ASU2 p) { return InputTexture.Load(int3(ASU2(p), 0)); }
+    void FsrRcasInputF(inout AF1 r,inout AF1 g,inout AF1 b){}
+  #endif
+
+#endif
+
+#include <Shaders/ThirdParty/FFX/ffx_fsr1.h>
+
+void Process(int2 pos)
+{
+#if UPSCALE_MODE == UPSCALE_MODE_BILINEAR
+  AF2 pp = (AF2(pos) * AF2_AU2(Const0.xy) + AF2_AU2(Const0.zw)) * AF2_AU2(Const1.xy) + AF2(0.5, -0.5) * AF2_AU2(Const1.zw);
+  Output[pos] = InputTexture.SampleLevel(UpscaleSampler, pp, 0.0);
+#endif
+
+#if UPSCALE_MODE == UPSCALE_MODE_FSR_UPSCALE
+  #if FSR_PRECISION == FSR_PRECISION_FP16
+    AH3 c;
+    FsrEasuH(c, pos, Const0, Const1, Const2, Const3);
+    Output[pos] = AH4(c, 1);
+  #else
+    AF3 c;
+    FsrEasuF(c, pos, Const0, Const1, Const2, Const3);
+    Output[pos] = AF4(c, 1);
+  #endif
+#endif
+
+#if UPSCALE_MODE == UPSCALE_MODE_FSR_SHARPEN
+  #if FSR_PRECISION == FSR_PRECISION_FP16
+    AH3 c;
+    FsrRcasH(c.r, c.g, c.b, pos, Const0);
+    Output[pos] = AH4(c, 1);
+  #else
+    AF3 c;
+    FsrRcasF(c.r, c.g, c.b, pos, Const0);
+    Output[pos] = AF4(c, 1);
+  #endif
+#endif
+}
+
+[numthreads(64, 1, 1)]
+void main(uint3 localThreadId : SV_GroupThreadID, uint3 workGroupId : SV_GroupID, uint3 threadId : SV_DispatchThreadID)
+{
+  // Do remapping of local xy in workgroup for a more PS-like swizzle pattern.
+  AU2 gxy = ARmp8x8(localThreadId.x) + AU2(workGroupId.x << 4u, workGroupId.y << 4u);
+  Process(gxy);
+
+  gxy.x += 8u;
+  Process(gxy);
+
+  gxy.y += 8u;
+  Process(gxy);
+
+  gxy.x -= 8u;
+  Process(gxy);
+}

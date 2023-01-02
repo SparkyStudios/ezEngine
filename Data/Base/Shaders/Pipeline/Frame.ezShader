@@ -36,13 +36,13 @@ float3 main(PS_IN Input) : SV_Target
   {
     if (Ratio >= 1.0f)
     {
-      const float height = ViewportSize.x / Ratio;
-      const float margin = (ViewportSize.y - height) / 2.0f;
+      const float height = TargetViewportSize.x / Ratio;
+      const float margin = (TargetViewportSize.y - height) / 2.0f;
 
-      if (Input.TexCoord0.y * ViewportSize.y < margin)
+      if (Input.TexCoord0.y * TargetViewportSize.y < margin)
         return Color;
 
-      if (Input.TexCoord0.y * ViewportSize.y > height + margin)
+      if (Input.TexCoord0.y * TargetViewportSize.y > height + margin)
         return Color;
 
       return ColorTexture.SampleLevel(PointClampSampler, Input.TexCoord0.xy, 0).rgb;
@@ -50,13 +50,13 @@ float3 main(PS_IN Input) : SV_Target
 
     if (Ratio < 1.0f)
     {
-      const float width = ViewportSize.y * Ratio;
-      const float margin = (ViewportSize.x - width) / 2.0f;
+      const float width = TargetViewportSize.y * Ratio;
+      const float margin = (TargetViewportSize.x - width) / 2.0f;
 
-      if (Input.TexCoord0.x * ViewportSize.x < margin)
+      if (Input.TexCoord0.x * TargetViewportSize.x < margin)
         return Color;
 
-      if (Input.TexCoord0.x * ViewportSize.x > width + margin)
+      if (Input.TexCoord0.x * TargetViewportSize.x > width + margin)
         return Color;
 
       return ColorTexture.SampleLevel(PointClampSampler, Input.TexCoord0.xy, 0).rgb;

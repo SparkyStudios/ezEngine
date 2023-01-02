@@ -37,7 +37,7 @@ void main(uint3 threadId : SV_DispatchThreadID)
 #define SPD_NO_WAVE_OPERATIONS
 #define SPD_LINEAR_SAMPLER
 
-#include <Shaders/ThirdParty/FFX/A.h>
+#include <Shaders/ThirdParty/FFX/ffx_a.h>
 
 groupshared AF4 spd_intermediate[16][16];
 groupshared AU1 spd_counter;
@@ -98,7 +98,7 @@ void SpdResetAtomicCounter(AU1 slice)
   AtomicCounter[0].Value = 0;
 }
 
-#include <Shaders/ThirdParty/FFX/SPD.h>
+#include <Shaders/ThirdParty/FFX/ffx_spd.h>
 
 [numthreads(256, 1, 1)]
 void main(uint3 workGroupId : SV_GroupID, uint localThreadIndex : SV_GroupIndex)
