@@ -45,7 +45,7 @@ float3 main(PS_IN Input) : SV_Target
       if (Input.TexCoord0.y * ViewportSize.y > height + margin)
         return Color;
 
-      return ColorTexture.Sample(LinearClampSampler, Input.TexCoord0.xy).rgb;
+      return ColorTexture.SampleLevel(PointClampSampler, Input.TexCoord0.xy, 0).rgb;
     }
 
     if (Ratio < 1.0f)
@@ -59,9 +59,9 @@ float3 main(PS_IN Input) : SV_Target
       if (Input.TexCoord0.x * ViewportSize.x > width + margin)
         return Color;
 
-      return ColorTexture.Sample(LinearClampSampler, Input.TexCoord0.xy).rgb;
+      return ColorTexture.SampleLevel(PointClampSampler, Input.TexCoord0.xy, 0).rgb;
     }
   }
 
-  return ColorTexture.Sample(LinearClampSampler, Input.TexCoord0.xy).rgb;
+  return ColorTexture.SampleLevel(PointClampSampler, Input.TexCoord0.xy, 0).rgb;
 }
