@@ -42,7 +42,7 @@ void main(uint3 threadId : SV_DispatchThreadID)
 groupshared AF4 spd_intermediate[16][16];
 groupshared AU1 spd_counter;
 
-globallycoherent RWStructuredBuffer<ezAtomicCounterBuffer> AtomicCounter;
+globallycoherent RWStructuredBuffer<uint> AtomicCounter;
 globallycoherent RWTexture2D<float4> DownsampleOutput[12];
 
 AF4 SpdLoadSourceImage(ASU2 p, AU1 slice)
@@ -85,7 +85,7 @@ AF4 SpdReduce4(AF4 s1, AF4 s2, AF4 s3, AF4 s4)
 
 void SpdIncreaseAtomicCounter(AU1 slice)
 {
-  InterlockedAdd(AtomicCounter[0].Value, 1, spd_counter);
+  InterlockedAdd(AtomicCounter[0], 1, spd_counter);
 }
 
 AU1 SpdGetAtomicCounter()
@@ -95,7 +95,7 @@ AU1 SpdGetAtomicCounter()
 
 void SpdResetAtomicCounter(AU1 slice)
 {
-  AtomicCounter[0].Value = 0;
+  AtomicCounter[0]= 0;
 }
 
 #include <Shaders/ThirdParty/FFX/ffx_spd.h>

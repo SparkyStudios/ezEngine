@@ -40,7 +40,7 @@ ezBloomPass::ezBloomPass()
     m_hConstantBuffer = ezRenderContext::CreateConstantBufferStorage<ezBloomConstants>();
 
     ezGALBufferCreationDescription desc;
-    desc.m_uiStructSize = 4;
+    desc.m_uiStructSize = sizeof(ezUInt32);
     desc.m_uiTotalSize = desc.m_uiStructSize;
     desc.m_BufferType = ezGALBufferType::Generic;
     desc.m_bAllowUAV = true;
@@ -48,8 +48,8 @@ ezBloomPass::ezBloomPass()
     desc.m_bAllowShaderResourceView = true;
     desc.m_ResourceAccess.m_bImmutable = false;
 
-    m_DownsampleAtomicCounter = EZ_NEW_ARRAY(ezAlignedAllocatorWrapper::GetAllocator(), ezAtomicCounterBuffer, 1);
-    m_DownsampleAtomicCounter[0].Value = 0;
+    m_DownsampleAtomicCounter = EZ_NEW_ARRAY(ezAlignedAllocatorWrapper::GetAllocator(), ezUInt32, 1);
+    m_DownsampleAtomicCounter[0] = 0;
 
     m_hDownsampleAtomicCounterBuffer = pDevice->CreateBuffer(desc, m_DownsampleAtomicCounter.ToByteArray());
   }
@@ -58,9 +58,10 @@ ezBloomPass::ezBloomPass()
 ezBloomPass::~ezBloomPass()
 {
   ezGALDevice* pDevice = ezGALDevice::GetDefaultDevice();
-  pDevice->DestroyBuffer(m_hDownsampleAtomicCounterBuffer);
 
+  pDevice->DestroyBuffer(m_hDownsampleAtomicCounterBuffer);
   EZ_DELETE_ARRAY(ezAlignedAllocatorWrapper::GetAllocator(), m_DownsampleAtomicCounter);
+  m_hDownsampleAtomicCounterBuffer.Invalidate();
 
   ezRenderContext::DeleteConstantBufferStorage(m_hConstantBuffer);
   m_hConstantBuffer.Invalidate();

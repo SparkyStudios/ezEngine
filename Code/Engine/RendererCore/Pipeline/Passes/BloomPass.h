@@ -5,8 +5,6 @@
 #include <RendererCore/Shader/ConstantBufferStorage.h>
 #include <RendererCore/Shader/ShaderResource.h>
 
-struct ezAtomicCounterBuffer;
-
 class EZ_RENDERERCORE_DLL ezBloomPass : public ezRenderPipelinePass
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezBloomPass, ezRenderPipelinePass);
@@ -30,7 +28,7 @@ protected:
   ezShaderResourceHandle m_hShader;
   ezConstantBufferStorageHandle m_hConstantBuffer;
   ezGALBufferHandle m_hDownsampleAtomicCounterBuffer;
-  ezArrayPtr<ezAtomicCounterBuffer> m_DownsampleAtomicCounter;
+  ezArrayPtr<ezUInt32> m_DownsampleAtomicCounter;
 
   float m_fIntensity;
   ezUInt32 m_uiMipCount;
