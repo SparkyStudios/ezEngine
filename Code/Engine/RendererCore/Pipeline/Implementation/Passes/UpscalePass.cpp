@@ -34,7 +34,7 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezUpscalePass, 1, ezRTTIDefaultAllocator<ezUpsca
     EZ_ENUM_MEMBER_PROPERTY("Mode", ezUpscaleMode, m_eUpscaleMode),
     EZ_ENUM_MEMBER_PROPERTY("FSR_Preset", ezFSRUpscalePreset, m_eFSRPreset),
     EZ_MEMBER_PROPERTY("FSR_Sharpen", m_bFSRSharpen),
-    EZ_MEMBER_PROPERTY("FSR_Sharpness", m_fFSRSharpness)->AddAttributes(new ezDefaultValueAttribute(0.87f), new ezClampValueAttribute(0.0f, 1.0f)),
+    EZ_MEMBER_PROPERTY("FSR_Sharpness", m_fFSRSharpness)->AddAttributes(new ezDefaultValueAttribute(0.2f), new ezClampValueAttribute(0.0f, 2.0f)),
   }
   EZ_END_PROPERTIES;
 }
@@ -47,7 +47,7 @@ ezUpscalePass::ezUpscalePass()
   , m_eUpscaleMode(ezUpscaleMode::FSR)
   , m_eFSRPreset(ezFSRUpscalePreset::UltraQuality)
   , m_bFSRSharpen(true)
-  , m_fFSRSharpness(0.87f)
+  , m_fFSRSharpness(0.2f)
 {
   // Load shader
   {
@@ -87,8 +87,8 @@ bool ezUpscalePass::GetRenderTargetDescriptions(const ezView& view, const ezArra
   // Output has the window resolution
   {
     ezGALTextureCreationDescription desc = *inputs[m_PinInput.m_uiInputIndex];
-    desc.m_uiWidth = static_cast<ezUInt32>(view.GetTargetViewport().width);
-    desc.m_uiHeight = static_cast<ezUInt32>(view.GetTargetViewport().height);
+    desc.m_uiWidth = ezMath::Max(static_cast<ezUInt32>(view.GetTargetViewport().width), desc.m_uiWidth);
+    desc.m_uiHeight = ezMath::Max(static_cast<ezUInt32>(view.GetTargetViewport().height), desc.m_uiHeight);
     desc.m_bAllowUAV = true;
     desc.m_bCreateRenderTarget = true;
     outputs[m_PinOutput.m_uiOutputIndex] = std::move(desc);
@@ -106,6 +106,7 @@ void ezUpscalePass::Execute(const ezRenderViewContext& renderViewContext, const 
 
   const auto* const pInput = inputs[m_PinInput.m_uiInputIndex];
   const auto* const pOutput = outputs[m_PinOutput.m_uiOutputIndex];
+
   if (pInput == nullptr || pOutput == nullptr)
     return;
 
@@ -218,7 +219,7 @@ void ezUpscalePass::Execute(const ezRenderViewContext& renderViewContext, const 
       if (m_bFSRSharpen)
       // Sharpen Pass
       {
-        FsrRcasCon(const0, ezMath::Pow(0.5f, m_fFSRSharpness));
+        FsrRcasCon(const0, m_fFSRSharpness);
 
         auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext, "FSR Sharpen");
 
