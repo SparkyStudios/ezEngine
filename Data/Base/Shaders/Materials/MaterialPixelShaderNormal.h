@@ -26,7 +26,9 @@ struct PS_OUT
 {
 #if RENDER_PASS != RENDER_PASS_DEPTH_ONLY
   float4 Color    : SV_Target0;
+#if defined(USE_VELOCITY)
   float2 Velocity : SV_Target1;
+#endif
 
 #if RENDER_PASS == RENDER_PASS_DEFERRED
   float4 Normal   : SV_Target2;
@@ -120,7 +122,9 @@ PS_OUT main(PS_IN Input)
     #endif
 
     Output.Color = float4(litColor, matData.opacity);
+    #if defined(USE_VELOCITY)
     Output.Velocity = matData.velocity;
+    #endif
 
   #elif RENDER_PASS == RENDER_PASS_EDITOR
     if (RenderPass == EDITOR_RENDER_PASS_DIFFUSE_LIT_ONLY)
@@ -274,7 +278,9 @@ PS_OUT main(PS_IN Input)
     Output.Color    = float4(matData.diffuseColor + lerp(0.0f, matData.specularColor, matData.metalness) + matData.emissiveColor, GetLuminance(matData.emissiveColor));
     Output.Normal   = float4(matData.worldNormal, pack_uint32_to_float16(gameObjectId));
     Output.Material = float4(matData.metalness, matData.roughness, matData.occlusion, matData.cavity);
+    #if defined(USE_VELOCITY)
     Output.Velocity = matData.velocity;
+    #endif
 
   #else
     Output.Color = float4(litColor, matData.opacity);

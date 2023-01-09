@@ -7,14 +7,20 @@
 #include "../../../../Data/Base/Shaders/Pipeline/MotionBlurConstants.h"
 
 // clang-format off
+EZ_BEGIN_STATIC_REFLECTED_ENUM(ezMotionBlurMode, 1)
+  EZ_ENUM_CONSTANTS(ezMotionBlurMode::ObjectBased, ezMotionBlurMode::ScreenBased)
+EZ_END_STATIC_REFLECTED_ENUM;
+
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezMotionBlurPass, 1, ezRTTIDefaultAllocator<ezMotionBlurPass>)
 {
   EZ_BEGIN_PROPERTIES
   {
     EZ_MEMBER_PROPERTY("Color", m_PinInputColor),
     EZ_MEMBER_PROPERTY("Velocity", m_PinInputVelocity),
+    EZ_MEMBER_PROPERTY("DepthStencil", m_PinInputDepth),
     EZ_MEMBER_PROPERTY("Output", m_PinOutput),
     EZ_MEMBER_PROPERTY("Strength", m_fStrength)->AddAttributes(new ezClampValueAttribute(0.0f, 1.0f), new ezDefaultValueAttribute(1.0f)),
+    EZ_ENUM_MEMBER_PROPERTY("Mode", ezMotionBlurMode, m_eMode)->AddAttributes(new ezDefaultValueAttribute(ezMotionBlurMode::ObjectBased)),
   }
   EZ_END_PROPERTIES;
 }
@@ -24,6 +30,7 @@ EZ_END_DYNAMIC_REFLECTED_TYPE;
 ezMotionBlurPass::ezMotionBlurPass()
   : ezRenderPipelinePass("MotionBlurPass")
   , m_fStrength(1.0f)
+  , m_eMode(ezMotionBlurMode::ObjectBased)
 {
   // Load shaders
   {
@@ -54,9 +61,24 @@ bool ezMotionBlurPass::GetRenderTargetDescriptions(const ezView& view, const ezA
       return false;
     }
   }
-  else
+  else if (m_eMode == ezMotionBlurMode::ObjectBased) // Required when object based
   {
     ezLog::Error("No velocity input connected to '{0}'!", GetName());
+    return false;
+  }
+
+  // Depth
+  if (inputs[m_PinInputDepth.m_uiInputIndex])
+  {
+    if (!inputs[m_PinInputDepth.m_uiInputIndex]->m_bAllowShaderResourceView)
+    {
+      ezLog::Error("'{0}' depth input must allow shader resource view.", GetName());
+      return false;
+    }
+  }
+  else if (m_eMode == ezMotionBlurMode::ScreenBased) // Required when screen based
+  {
+    ezLog::Error("No depth input connected to '{0}'!", GetName());
     return false;
   }
 
@@ -87,9 +109,11 @@ bool ezMotionBlurPass::GetRenderTargetDescriptions(const ezView& view, const ezA
 
 void ezMotionBlurPass::Execute(const ezRenderViewContext& renderViewContext, const ezArrayPtr<ezRenderPipelinePassConnection* const> inputs, const ezArrayPtr<ezRenderPipelinePassConnection* const> outputs)
 {
-  const auto* pInputColor = inputs[m_PinInputColor.m_uiInputIndex];
-  const auto* pInputVelocity = inputs[m_PinInputVelocity.m_uiInputIndex];
-  if (pInputColor == nullptr || pInputVelocity == nullptr)
+  const auto* const pInputColor = inputs[m_PinInputColor.m_uiInputIndex];
+  const auto* const pInputVelocity = inputs[m_PinInputVelocity.m_uiInputIndex];
+  const auto* const pInputDepth = inputs[m_PinInputDepth.m_uiInputIndex];
+
+  if (pInputColor == nullptr || (m_eMode == ezMotionBlurMode::ObjectBased && pInputVelocity == nullptr) || (m_eMode == ezMotionBlurMode::ScreenBased && pInputDepth == nullptr))
   {
     return;
   }
@@ -100,18 +124,28 @@ void ezMotionBlurPass::Execute(const ezRenderViewContext& renderViewContext, con
   const bool bAllowAsyncShaderLoading = renderViewContext.m_pRenderContext->GetAllowAsyncShaderLoading();
   renderViewContext.m_pRenderContext->SetAllowAsyncShaderLoading(false);
 
-  ezGALPass* pGALPass = pDevice->BeginPass(GetName());
+  ezGALPass* pPass = pDevice->BeginPass(GetName());
   EZ_SCOPE_EXIT(
-    pDevice->EndPass(pGALPass);
+    pDevice->EndPass(pPass);
     renderViewContext.m_pRenderContext->SetAllowAsyncShaderLoading(bAllowAsyncShaderLoading));
 
   if (const auto* pColorOutput = outputs[m_PinOutput.m_uiOutputIndex]; pColorOutput != nullptr && !pColorOutput->m_TextureHandle.IsInvalidated())
   {
-    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pGALPass, renderViewContext);
+    auto pCommandEncoder = ezRenderContext::BeginComputeScope(pPass, renderViewContext);
     renderViewContext.m_pRenderContext->BindShader(m_hShader);
 
     renderViewContext.m_pRenderContext->BindTexture2D("ColorTexture", pDevice->GetDefaultResourceView(pInputColor->m_TextureHandle));
-    renderViewContext.m_pRenderContext->BindTexture2D("VelocityTexture", pDevice->GetDefaultResourceView(pInputVelocity->m_TextureHandle));
+
+    if (m_eMode == ezMotionBlurMode::ObjectBased)
+    {
+      renderViewContext.m_pRenderContext->BindTexture2D("VelocityTexture", pDevice->GetDefaultResourceView(pInputVelocity->m_TextureHandle));
+      renderViewContext.m_pRenderContext->SetShaderPermutationVariable("MOTION_BLUR_MODE", "MOTION_BLUR_MODE_OBJECT_BASED");
+    }
+    else
+    {
+      renderViewContext.m_pRenderContext->BindTexture2D("DepthTexture", pDevice->GetDefaultResourceView(pInputDepth->m_TextureHandle));
+      renderViewContext.m_pRenderContext->SetShaderPermutationVariable("MOTION_BLUR_MODE", "MOTION_BLUR_MODE_SCREEN_BASED");
+    }
 
     ezGALUnorderedAccessViewHandle hMotionBlurOutput;
     {
@@ -133,7 +167,7 @@ void ezMotionBlurPass::Execute(const ezRenderViewContext& renderViewContext, con
 
     renderViewContext.m_pRenderContext->BindConstantBuffer("ezMotionBlurConstants", m_hConstantBuffer);
 
-    renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 6).IgnoreResult();
+    renderViewContext.m_pRenderContext->Dispatch(uiDispatchX, uiDispatchY, 1).IgnoreResult();
   }
 }
 
