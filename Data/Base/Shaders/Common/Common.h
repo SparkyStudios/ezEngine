@@ -24,6 +24,14 @@ static const float RPC_16              = 0.0625f;
 static const float ENVIRONMENT_MAX_MIP = 11.0f;
 
 /*------------------------------------------------------------------------------
+  MACROS
+------------------------------------------------------------------------------*/
+#define TexelSize ViewportSize.zw
+#define TargetTexelSize TargetViewportSize.zw
+#define degamma(color) pow(abs(color), Gamma)
+#define gamma(color) pow(abs(color), 1.0f / Gamma)
+
+/*------------------------------------------------------------------------------
   MATH
 ------------------------------------------------------------------------------*/
 

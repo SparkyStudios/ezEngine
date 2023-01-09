@@ -1,0 +1,31 @@
+[PLATFORMS]
+ALL
+
+
+[PERMUTATIONS]
+COPY_TEXTURE_FILTERING
+
+
+[COMPUTESHADER]
+
+#include <Shaders/Common/Utils.h>
+
+#include "CopyConstants.h"
+
+Texture2D InputTexture;
+RWTexture2D<float4> Output;
+
+[numthreads(THREAD_GROUP_COUNT_X, THREAD_GROUP_COUNT_Y, 1)]
+void main(uint3 threadId : SV_DispatchThreadID)
+{
+  // Out of bounds check
+  if (any(int2(threadId.xy) >= OutputSize.xy))
+    return;
+
+#if COPY_TEXTURE_FILTERING == COPY_TEXTURE_FILTERING_BILINEAR
+  const float2 uv = (threadId.xy + 0.5f) / OutputSize.xy;
+  Output[threadId.xy] = InputTexture.SampleLevel(LinearClampSampler, uv, 0);
+#else
+  Output[threadId.xy] = InputTexture[threadId.xy];
+#endif
+}

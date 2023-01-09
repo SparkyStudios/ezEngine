@@ -5,14 +5,6 @@
 #include <Shaders/Common/CameraConstantsAccess.h>
 
 /*------------------------------------------------------------------------------
-  MACROS
-------------------------------------------------------------------------------*/
-#define TexelSize ViewportSize.zw
-#define TargetTexelSize TargetViewportSize.zw
-#define degamma(color) pow(abs(color), Gamma)
-#define gamma(color) pow(abs(color), 1.0f / Gamma)
-
-/*------------------------------------------------------------------------------
     TRANSFORMATIONS
 ------------------------------------------------------------------------------*/
 float3 world_to_view(float3 x, bool is_position = true)

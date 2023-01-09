@@ -6,4 +6,5 @@
 CONSTANT_BUFFER(ezCopyConstants, 3)
 {
   INT2(Offset);
+  UINT2(OutputSize);
 };
