@@ -34,32 +34,42 @@ float2 UVScale @Default(float2(1.0, 1.0));
 
 bool UseBaseTexture;
 Texture2D BaseTexture;
+bool UseDiffuseStochasticTexturing;
 Color BaseColor @Default(Color(1.0, 1.0, 1.0));
 
 bool UseNormalTexture;
 Texture2D NormalTexture;
+bool UseNormalStochasticTexturing;
 float NormalIntensity @Default(1.0) @Clamp(0.0, 2.0);
 
 bool UseRoughnessTexture;
 Texture2D RoughnessTexture;
+bool UseRoughnessStochasticTexturing;
 float RoughnessValue @Default(0.7) @Clamp(0.0, 1.0);
 
 bool UseMetallicTexture;
 Texture2D MetallicTexture;
+bool UseMetallicStochasticTexturing;
 float MetallicValue @Default(0.0) @Clamp(0.0, 1.0);
 
 bool UseSpecularTexture;
 Texture2D SpecularTexture;
+bool UseSpecularStochasticTexturing;
 Color SpecularColor @Default(Color(0.04, 0.04, 0.04));
 
 float Clearcoat @Default(0.0) @Clamp(0.0, 1.0);
 bool UseClearcoatInfluenceTexture;
 Texture2D ClearcoatInfluenceTexture;
+bool UseClearcoatInfluenceStochasticTexturing;
+
 bool UseClearcoatRoughnessTexture;
 Texture2D ClearcoatRoughnessTexture;
 float ClearcoatRoughness @Default(0.0) @Clamp(0.0, 1.0);
+bool UseClearcoatRoughnessStochasticTexturing;
+
 bool UseClearcoatNormalTexture;
 Texture2D ClearcoatNormalTexture;
+bool UseClearcoatNormalStochasticTexturing;
 
 float Anisotropic @Default(0.0) @Clamp(0.0, 1.0);
 float AnisotropicRotation @Default(0.0) @Clamp(0.0, 1.0);
@@ -69,17 +79,21 @@ float SheenTintFactor @Default(0.0) @Clamp(0.0, 1.0);
 
 bool UseEmissiveTexture;
 Texture2D EmissiveTexture;
+bool UseEmissiveStochasticTexturing;
 Color EmissiveColor @Default(Color(0.0, 0.0, 0.0));
 
 bool UseDisplacementTexture;
 Texture2D DisplacementTexture;
+bool UseDisplacementStochasticTexturing;
 float HeightScale @Default(1.0) @Clamp(0.0, 1.0);
 
 bool UseOcclusionTexture;
 Texture2D OcclusionTexture;
+bool UseOcclusionStochasticTexturing;
 
 bool UseCavityTexture;
 Texture2D CavityTexture;
+bool UseCavityStochasticTexturing;
 
 
 [RENDERSTATE]
@@ -152,6 +166,21 @@ CONSTANT_BUFFER(ezMaterialConstants, 1)
   BOOL1(UseOcclusionTexture);
   BOOL1(UseCavityTexture);
   BOOL1(UseSubsurfaceTexture);
+
+  BOOL1(UseDiffuseStochasticTexturing);
+  BOOL1(UseNormalStochasticTexturing);
+  BOOL1(UseRoughnessStochasticTexturing);
+  BOOL1(UseMetallicStochasticTexturing);
+
+  BOOL1(UseSpecularStochasticTexturing);
+  BOOL1(UseClearcoatInfluenceStochasticTexturing);
+  BOOL1(UseClearcoatRoughnessStochasticTexturing);
+  BOOL1(UseClearcoatNormalStochasticTexturing);
+
+  BOOL1(UseEmissiveStochasticTexturing);
+  BOOL1(UseDisplacementStochasticTexturing);
+  BOOL1(UseOcclusionStochasticTexturing);
+  BOOL1(UseCavityStochasticTexturing);
 };
 
 
@@ -289,6 +318,49 @@ float2 ComputeParallaxMapping(in float2 uv, in float3 viewDirection, in float sc
   return finalTexCoords;
 }
 
+// Stochastic sampling
+// Based on the following implementation:
+// https://www.reddit.com/r/Unity3D/comments/dhr5g2/i_made_a_stochastic_texture_sampling_shader/
+float4 Sample(in Texture2D tex, in SamplerState sam, in float2 uv, in bool useStochastic = false)
+{
+  float4 c;
+
+  if (useStochastic)
+  {
+    // Triangle vertices and blend weights
+    // BW_vx[0...2].xyz = triangle verts
+    // BW_vx[3].xy = blend weights (z is unused)
+    float4x3 BW_vx;
+
+    // UV transformed into triangular grid space with UV scaled by approximation of 2*sqrt(3)
+    float2 skewUV = mul(float2x2 (1.0 , 0.0 , -0.57735027 , 1.15470054), uv * 3.464);
+
+    // Vertex IDs and barycentric coords
+    float2 vxID = float2(floor(skewUV));
+    float3 barry = float3(frac(skewUV), 0);
+    barry.z = 1.0f - barry.x - barry.y;
+
+    BW_vx = ((barry.z>0) ?
+      float4x3(float3(vxID, 0), float3(vxID + float2(0, 1), 0), float3(vxID + float2(1, 0), 0), barry.zyx) :
+      float4x3(float3(vxID + float2 (1, 1), 0), float3(vxID + float2 (1, 0), 0), float3(vxID + float2 (0, 1), 0), float3(-barry.z, 1.0 - barry.y, 1.0 - barry.x)));
+
+    // Calculate derivatives to avoid triangular grid artifacts
+    float2 dx = ddx_coarse(uv);
+    float2 dy = ddy_coarse(uv);
+
+    // Blend samples with calculated weights
+    c = mul(tex.SampleGrad(sam, uv + Hash2D(BW_vx[0].xy), dx, dy), BW_vx[3].x) +
+        mul(tex.SampleGrad(sam, uv + Hash2D(BW_vx[1].xy), dx, dy), BW_vx[3].y) +
+        mul(tex.SampleGrad(sam, uv + Hash2D(BW_vx[2].xy), dx, dy), BW_vx[3].z);
+  }
+  else
+  {
+    c = tex.Sample(sam, uv);
+  }
+
+  return c;
+}
+
 void FillCustomGlobals()
 {
   [branch]
@@ -308,7 +380,7 @@ float3 GetBaseColor()
   [branch]
   if (UseBaseTexture)
   {
-    float3 color = BaseTexture.Sample(BaseTexture_AutoSampler, G.Input.TexCoord0.xy).rgb;
+    float3 color = Sample(BaseTexture, BaseTexture_AutoSampler, G.Input.TexCoord0.xy, UseDiffuseStochasticTexturing).rgb;
     // color = degamma(color);
     baseColor *= color;
   }
@@ -322,7 +394,7 @@ float3 GetSubsurfaceColor()
   [branch]
   if (UseSubsurfaceTexture)
   {
-    return SubsurfaceTexture.Sample(SubsurfaceTexture_AutoSampler, G.Input.TexCoord0.xy).rgb;
+    return Sample(SubsurfaceTexture, SubsurfaceTexture_AutoSampler, G.Input.TexCoord0.xy).rgb;
   }
 
   return SubsurfaceColor.rgb;
@@ -335,7 +407,7 @@ float3 GetNormal()
   if (UseNormalTexture)
   {
     // per-pixel normal read from the provided texture
-    float3 normalTS = DecodeNormalTexture(NormalTexture.Sample(NormalTexture_AutoSampler, G.Input.TexCoord0.xy), NormalIntensity);
+    float3 normalTS = DecodeNormalTexture(Sample(NormalTexture, NormalTexture_AutoSampler, G.Input.TexCoord0.xy, UseNormalStochasticTexturing), NormalIntensity);
     return TangentToWorldSpace(normalTS);
   }
   else
@@ -355,7 +427,7 @@ float GetMetallic()
   [branch]
   if (UseMetallicTexture)
   {
-    return MetallicValue * MetallicTexture.Sample(MetallicTexture_AutoSampler, G.Input.TexCoord0.xy).r;
+    return MetallicValue * Sample(MetallicTexture, MetallicTexture_AutoSampler, G.Input.TexCoord0.xy, UseMetallicStochasticTexturing).r;
   }
   else
   {
@@ -381,7 +453,7 @@ float3 GetSpecularColor()
   [branch]
   if (UseSpecularTexture)
   {
-    return SpecularTexture.Sample(SpecularTexture_AutoSampler, G.Input.TexCoord0.xy).rgb;
+    return Sample(SpecularTexture, SpecularTexture_AutoSampler, G.Input.TexCoord0.xy, UseSpecularStochasticTexturing).rgb;
   }
   else
   {
@@ -394,7 +466,7 @@ float GetRoughness()
   [branch]
   if (UseRoughnessTexture)
   {
-    return RoughnessValue * RoughnessTexture.Sample(RoughnessTexture_AutoSampler, G.Input.TexCoord0.xy).r;
+    return RoughnessValue * Sample(RoughnessTexture, RoughnessTexture_AutoSampler, G.Input.TexCoord0.xy, UseRoughnessStochasticTexturing).r;
   }
   else
   {
@@ -409,7 +481,7 @@ float GetOpacity()
   [branch]
   if (UseBaseTexture)
   {
-    opacity *= BaseTexture.Sample(BaseTexture_AutoSampler, G.Input.TexCoord0.xy).a;
+    opacity *= Sample(BaseTexture, BaseTexture_AutoSampler, G.Input.TexCoord0.xy, UseDiffuseStochasticTexturing).a;
   }
 
   #if BLEND_MODE == BLEND_MODE_MASKED
@@ -424,7 +496,7 @@ float3 GetEmissiveColor()
   [branch]
   if (UseEmissiveTexture)
   {
-    return EmissiveTexture.Sample(EmissiveTexture_AutoSampler, G.Input.TexCoord0.xy).rgb * EmissiveColor.rgb;
+    return Sample(EmissiveTexture, EmissiveTexture_AutoSampler, G.Input.TexCoord0.xy, UseEmissiveStochasticTexturing).rgb * EmissiveColor.rgb;
   }
   else
   {
@@ -437,7 +509,7 @@ float GetOcclusion()
   [branch]
   if (UseOcclusionTexture)
   {
-    return OcclusionTexture.Sample(OcclusionTexture_AutoSampler, G.Input.TexCoord0.xy).r;
+    return Sample(OcclusionTexture, OcclusionTexture_AutoSampler, G.Input.TexCoord0.xy, UseOcclusionStochasticTexturing).r;
   }
   else
   {
@@ -450,7 +522,7 @@ float GetCavity()
   [branch]
   if (UseCavityTexture)
   {
-    return CavityTexture.Sample(CavityTexture_AutoSampler, G.Input.TexCoord0.xy).r;
+    return Sample(CavityTexture, CavityTexture_AutoSampler, G.Input.TexCoord0.xy, UseCavityStochasticTexturing).r;
   }
   else
   {
@@ -467,19 +539,19 @@ void GetSpecularClearCoatParams(out float clearcoat, out float clearcoatRoughnes
   [branch]
   if (UseClearcoatInfluenceTexture)
   {
-    clearcoat *= ClearcoatInfluenceTexture.Sample(ClearcoatInfluenceTexture_AutoSampler, G.Input.TexCoord0.xy).x;
+    clearcoat *= Sample(ClearcoatInfluenceTexture, ClearcoatInfluenceTexture_AutoSampler, G.Input.TexCoord0.xy, UseClearcoatInfluenceStochasticTexturing).x;
   }
 
   [branch]
   if (UseClearcoatRoughnessTexture)
   {
-    clearcoatRoughness *= ClearcoatNormalTexture.Sample(ClearcoatNormalTexture_AutoSampler, G.Input.TexCoord0.xy).x;
+    clearcoatRoughness *= Sample(ClearcoatRoughnessTexture, ClearcoatRoughnessTexture_AutoSampler, G.Input.TexCoord0.xy, UseClearcoatRoughnessStochasticTexturing).x;
   }
 
   [branch]
   if (UseClearcoatNormalTexture)
   {
-    float3 normalTS = DecodeNormalTexture(ClearcoatNormalTexture.Sample(ClearcoatNormalTexture_AutoSampler, G.Input.TexCoord0.xy));
+    float3 normalTS = DecodeNormalTexture(Sample(ClearcoatNormalTexture, ClearcoatNormalTexture_AutoSampler, G.Input.TexCoord0.xy, UseClearcoatNormalStochasticTexturing));
     normal = normalize(TangentToWorldSpace(normalTS));
   }
 }
