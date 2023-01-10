@@ -122,7 +122,8 @@ bool UseCavityStochasticTexturing;
 #define USE_DEBUG_INTERPOLATOR
 #endif
 
-#include <Shaders/Common/Utils.h>
+#include <Shaders/Common/Common.h>
+#include <Shaders/Common/GlobalConstants.h>
 
 CONSTANT_BUFFER(ezMaterialConstants, 1)
 {

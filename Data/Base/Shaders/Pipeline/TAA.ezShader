@@ -1,13 +1,14 @@
 [PLATFORMS]
 ALL
 
+
 [PERMUTATIONS]
 SHADING_QUALITY = SHADING_QUALITY_NORMAL
 
 
 [COMPUTESHADER]
-
-#include <Shaders/Common/Utils.h>
+#include <Shaders/Common/Common.h>
+#include <Shaders/Common/GlobalConstants.h>
 #include <Shaders/Common/Lighting.h>
 #include <Shaders/Common/Tonemapping.h>
 

@@ -4,7 +4,8 @@ ALL
 
 [COMPUTESHADER]
 
-#include <Shaders/Common/Utils.h>
+#include <Shaders/Common/Common.h>
+#include <Shaders/Common/GlobalConstants.h>
 
 #include "FilmGrainConstants.h"
 
@@ -34,7 +35,7 @@ void main(uint3 threadId : SV_DispatchThreadID)
   float film_grain = noise * Intensity;
 
   // Iso noise
-  float iso_noise = get_random(frac(uv.x * uv.y * WorldTime)) * ISO * 0.00002f;
+  float iso_noise = Random(frac(uv.x * uv.y * WorldTime)) * ISO * 0.00002f;
 
   // Additive blending
   color.rgb += (film_grain + iso_noise) * 0.5f;

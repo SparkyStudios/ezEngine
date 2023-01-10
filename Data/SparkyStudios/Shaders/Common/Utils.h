@@ -89,11 +89,6 @@ uint direction_to_cube_face_index(const float3 direction)
 /*------------------------------------------------------------------------------
     NOISE/OFFSETS/ROTATIONS
 ------------------------------------------------------------------------------*/
-float get_random(float2 uv)
-{
-  return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
-}
-
 // Based on Activision GTAO paper: https://www.activision.com/cdn/research/s2016_pbs_activision_occlusion.pptx
 float get_offset_non_temporal(uint2 screen_pos)
 {
@@ -164,16 +159,6 @@ float screen_fade(float2 uv)
 {
   float2 fade = max(0.0f, 12.0f * abs(uv - 0.5f) - 5.0f);
   return saturate(1.0f - dot(fade, fade));
-}
-
-// http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
-float3 dither(uint2 screen_pos)
-{
-  float3 dither = dot(float2(171.0f, 231.0f), float2(screen_pos));
-  dither        = frac(dither / float3(103.0f, 71.0f, 97.0f));
-  dither        /= 255.0f;
-
-  return dither;
 }
 
 static const float3 hemisphere_samples[64] =

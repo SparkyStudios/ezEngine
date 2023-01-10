@@ -434,3 +434,25 @@ void FindBestAxisVectors(float3 In, out float3 Axis1, out float3 Axis2)
   Axis1 = normalize(Axis1 - In * dot(Axis1, In));
   Axis2 = cross(Axis1, In);
 }
+
+// Hash a 2D vector for randomness
+float2 Hash2D(float2 s)
+{
+  return frac(sin(fmod(float2(dot(s, float2(127.1, 311.7)), dot(s, float2(269.5, 183.3))), 3.14159)) * 43758.5453);
+}
+
+// http://alex.vlachos.com/graphics/Alex_Vlachos_Advanced_VR_Rendering_GDC2015.pdf
+float3 dither(uint2 screen_pos)
+{
+  float3 dither = dot(float2(171.0f, 231.0f), float2(screen_pos));
+  dither        = frac(dither / float3(103.0f, 71.0f, 97.0f));
+  dither        /= 255.0f;
+
+  return dither;
+}
+
+float Random(in float2 st)
+{
+  st = float2(dot(st, float2(127.1, 311.7)), dot(st, float2(269.5, 183.3)));
+  return -1.0f + 2.0f * frac(sin(dot(st.xy, float2(12.9898, 78.233))) * 43758.5453123);
+}

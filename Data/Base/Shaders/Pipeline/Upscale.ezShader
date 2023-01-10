@@ -3,14 +3,13 @@ ALL
 
 
 [PERMUTATIONS]
-
 FSR_PRECISION=FSR_PRECISION_FP32
 UPSCALE_MODE
 
 
 [COMPUTESHADER]
-
-#include <Shaders/Common/Utils.h>
+#include <Shaders/Common/Common.h>
+#include <Shaders/Common/GlobalConstants.h>
 
 #include "UpscaleConstants.h"
 

@@ -8,7 +8,8 @@ LUT_MODE
 
 [COMPUTESHADER]
 
-#include <Shaders/Common/Utils.h>
+#include <Shaders/Common/Common.h>
+#include <Shaders/Common/GlobalConstants.h>
 
 #include "ColorGradingConstants.h"
 
