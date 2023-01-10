@@ -26,6 +26,8 @@ CullMode = CullMode_None
 
 
 [PIXELSHADER]
+#define USE_DECALS
+
 #include <Shaders/Pipeline/FullscreenTriangleInterpolator.h>
 static const float Epsilon = 0.0001f;
 
@@ -118,7 +120,7 @@ ezMaterialData FillMaterialData()
 
   matData.worldPosition = SampleScenePosition(G.Input.Position.xy);
   matData.worldNormal = GetNormal();
-  matData.vertexNormal = float3(0, 0, 1);
+  matData.vertexNormal = GetNormal();
   matData.emissiveColor = GetEmissiveColor();
   matData.diffuseColor = GetDiffuseColor();
   matData.refractionColor = float4(0, 0, 0, 1);
