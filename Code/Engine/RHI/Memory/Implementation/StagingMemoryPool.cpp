@@ -1,8 +1,3 @@
-#include "Foundation/Basics/Assert.h"
-#include "Foundation/Memory/AllocatorBase.h"
-#include "Foundation/Threading/Lock.h"
-#include "Foundation/Types/ArrayPtr.h"
-#include "Foundation/Types/Types.h"
 #include <RHI/RHIPCH.h>
 
 #include <RHI/Memory/StagingMemoryPool.h>
@@ -21,13 +16,13 @@ spStagingMemoryPool::~spStagingMemoryPool()
 
   m_AvailableMemoryBlocks.Clear();
 
-  for (auto it = m_Storage.GetIterator(); it.IsValid(); it.Next())
-    m_pAllocator->Deallocate(it->m_pData);
+  for (const auto& it : m_Storage)
+    m_pAllocator->Deallocate(it.m_pData);
 
   m_Storage.Clear();
 }
 
-spStagingMemoryBlock spStagingMemoryPool::Stage(void* pData, ezUint32 uiSize)
+spStagingMemoryBlock spStagingMemoryPool::Stage(void* pData, ezUInt32 uiSize)
 {
   spStagingMemoryBlock block;
   Rent(uiSize, block);
@@ -54,9 +49,9 @@ spStagingMemoryBlock spStagingMemoryPool::GetBlockWithId(ezUInt32 uiId)
 {
   EZ_LOCK(m_Lock);
 
-  for (auto it = m_Storage.GetIterator(); it.IsValid(); it.Next())
-    if (it->m_uiId == uiId)
-      return *it;
+  for (const auto& it : m_Storage)
+    if (it.m_uiId == uiId)
+      return it;
 
   return {};
 }

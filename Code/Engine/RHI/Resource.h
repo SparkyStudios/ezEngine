@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Foundation/Basics/Compiler/Clang/Clang.h"
 #include <RHI/RHIDLL.h>
 
 #include <RHI/Core.h>
@@ -24,23 +25,21 @@ class spDevice;
 /// \brief Abstract class for a resource on the graphics device.
 class SP_RHI_DLL spDeviceResource : public ezReflectedClass, public ezRefCounted
 {
-  EZ_ADD_DYNAMIC_REFLECTION(spDeviceResource, ezReflectedClass);
-
 public:
   spDeviceResource() = default;
   ~spDeviceResource() override = default;
 
   /// \brief Gets the handle of this resource.
-  EZ_NODISCARD spResourceHandle GetHandle() const;
+  EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetHandle() const { return m_Handle; }
 
   /// \brief Gets the debug name of the resource.
-  EZ_NODISCARD const ezString& GetDebugName() const;
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezString& GetDebugName() const { return m_sDebugName; }
 
   /// \brief Sets the debug name of the resource.
-  void SetDebugName(const ezString& debugName);
+  EZ_ALWAYS_INLINE void SetDebugName(const ezString& debugName) { m_sDebugName = debugName; }
 
   /// \brief Gets the graphics device in which this resource has been created.
-  EZ_NODISCARD spDevice* GetGraphicsDevice() const;
+  EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetGraphicsDevice() const { return m_pDevice; }
 
   /// \brief Releases the resource.
   virtual void ReleaseResource() = 0;
@@ -54,12 +53,14 @@ protected:
   bool m_bReleased{false};
 };
 
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDeviceResource);
+
 /// \brief Abstract class for device resources which are created only when needed.
 class SP_RHI_DLL spDeferredDeviceResource : public spDeviceResource
 {
 public:
   /// \brief Gets whether the resource has been created.
-  EZ_NODISCARD bool IsResourceCreated() const;
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool IsResourceCreated() const { return m_bIsResourceCreated; }
 
   /// \brief Creates the resource, or do nothing if the resource
   /// is already created.
