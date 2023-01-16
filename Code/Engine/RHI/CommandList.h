@@ -4,6 +4,66 @@
 
 #include <RHI/Resource.h>
 
+struct SP_RHI_DLL spCommandListIndexBuffer : public ezHashableStruct<spCommandListIndexBuffer>
+{
+  spCommandListIndexBuffer(spResourceHandle hIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset)
+    : ezHashableStruct<spCommandListIndexBuffer>()
+    , m_hIndexBuffer(std::move(hIndexBuffer))
+    , m_eIndexFormat(eFormat)
+    , m_uiOffset(uiOffset)
+  {
+  }
+
+  /// \brief Compares this \see spCommandListIndexBuffer to an \a other instance for equality.
+  EZ_ALWAYS_INLINE bool operator==(const spCommandListIndexBuffer& other) const
+  {
+    return m_hIndexBuffer == other.m_hIndexBuffer && m_eIndexFormat == other.m_eIndexFormat && m_uiOffset == other.m_uiOffset;
+  }
+
+  /// \brief Compares this \see spCommandListIndexBuffer to an \a other instance for inequality.
+  EZ_ALWAYS_INLINE bool operator!=(const spCommandListIndexBuffer& other) const
+  {
+    return !(*this == other);
+  }
+
+  spResourceHandle m_hIndexBuffer;
+  ezEnum<spIndexFormat> m_eIndexFormat;
+  ezUInt32 m_uiOffset;
+};
+
+struct SP_RHI_DLL spCommandListResourceSet : public ezHashableStruct<spCommandListResourceSet>
+{
+  spCommandListResourceSet(spResourceHandle hResource, ezUInt32 uiOffsetCount, ezUInt32* pOffsets)
+    : ezHashableStruct<spCommandListResourceSet>()
+    , m_hResourceSet(std::move(hResource))
+  {
+    m_Offsets = ezMakeArrayPtr(pOffsets, uiOffsetCount);
+  }
+
+  /// \brief Compares this \see spCommandListResourceSet to an \a other instance for equality.
+  EZ_ALWAYS_INLINE bool operator==(const spCommandListResourceSet& other) const
+  {
+    return m_hResourceSet == other.m_hResourceSet && m_Offsets == other.m_Offsets;
+  }
+
+  /// \brief Compares this \see spCommandListResourceSet to an \a other instance for inequality.
+  EZ_ALWAYS_INLINE bool operator!=(const spCommandListResourceSet& other) const
+  {
+    return !(*this == other);
+  }
+
+  spResourceHandle m_hResourceSet;
+  ezSmallArray<ezUInt32, 16> m_Offsets;
+};
+
+struct SP_RHI_DLL spCommandListDescription : public ezHashableStruct<spCommandListDescription>
+{
+  spCommandListDescription()
+    : ezHashableStruct<spCommandListDescription>()
+  {
+  }
+};
+
 class SP_RHI_DLL spCommandList : public spDeviceResource
 {
 public:
@@ -21,13 +81,13 @@ public:
   virtual void SetIndexBuffer(spResourceHandle hIndexBuffer, ezEnum<spIndexFormat> eFormat) = 0;
   virtual void SetIndexBuffer(spResourceHandle hIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset) = 0;
   virtual void SetComputePipeline(spResourceHandle hComputePipeline) = 0;
-  virtual void SetGraphicsPipeline(spResourceHandle hGraphicsPipeline) = 0;
+  virtual void SetGraphicPipeline(spResourceHandle hGraphicPipeline) = 0;
   virtual void SetComputeResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet) = 0;
   virtual void SetComputeResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezDynamicArray<ezUInt32> dynamicOffsets) = 0;
   virtual void SetComputeResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezUInt32 uiDynamicOffsetCount, ezUInt32* pDynamicOffsets) = 0;
-  virtual void SetGraphicsResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet) = 0;
-  virtual void SetGraphicsResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezDynamicArray<ezUInt32> dynamicOffsets) = 0;
-  virtual void SetGraphicsResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezUInt32 uiDynamicOffsetCount, ezUInt32* pDynamicOffsets) = 0;
+  virtual void SetGraphicResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet) = 0;
+  virtual void SetGraphicResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezDynamicArray<ezUInt32> dynamicOffsets) = 0;
+  virtual void SetGraphicResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezUInt32 uiDynamicOffsetCount, ezUInt32* pDynamicOffsets) = 0;
   virtual void SetScissorRect(ezUInt32 uiSlot, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiWidth, ezUInt32 uiHeight) = 0;
   virtual void SetFullScissorRect() = 0;
   virtual void SetFullScissorRect(ezUInt32 uiSlot) = 0;
