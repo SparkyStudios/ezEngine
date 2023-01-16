@@ -1,0 +1,462 @@
+#pragma once
+
+#include <RHI/RHIDLL.h>
+
+#include <RHI/Core.h>
+
+struct spBufferDescription;
+struct spCommandListDescription;
+struct spComputePipelineDescription;
+struct spFenceDescription;
+struct spFramebufferDescription;
+struct spInputLayoutDescription;
+struct spRenderingPipelineDescription;
+struct spResourceLayoutDescription;
+struct spResourceSetDescription;
+struct spSamplerDescription;
+struct spShaderDescription;
+struct spSwapchainDescription;
+struct spTextureDescription;
+struct spTextureViewDescription;
+
+class spDevice;
+
+/// \brief Abstract class for a resource on the graphics device.
+class SP_RHI_DLL spDeviceResource : public ezReflectedClass, public ezRefCounted
+{
+  EZ_ADD_DYNAMIC_REFLECTION(spDeviceResource, ezReflectedClass);
+
+public:
+  spDeviceResource() = default;
+  ~spDeviceResource() override = default;
+
+  /// \brief Gets the handle of this resource.
+  EZ_NODISCARD spResourceHandle GetHandle() const;
+
+  /// \brief Gets the debug name of the resource.
+  EZ_NODISCARD const ezString& GetDebugName() const;
+
+  /// \brief Sets the debug name of the resource.
+  void SetDebugName(const ezString& debugName);
+
+  /// \brief Gets the graphics device in which this resource has been created.
+  EZ_NODISCARD spDevice* GetGraphicsDevice() const;
+
+  /// \brief Releases the resource.
+  virtual void ReleaseResource() = 0;
+
+protected:
+  spResourceHandle m_Handle;
+
+  ezString m_sDebugName;
+  spDevice* m_pDevice{nullptr};
+
+  bool m_bReleased{false};
+};
+
+/// \brief Abstract class for device resources which are created only when needed.
+class SP_RHI_DLL spDeferredDeviceResource : public spDeviceResource
+{
+public:
+  /// \brief Gets whether the resource has been created.
+  EZ_NODISCARD bool IsResourceCreated() const;
+
+  /// \brief Creates the resource, or do nothing if the resource
+  /// is already created.
+  virtual void CreateResource() = 0;
+
+protected:
+  bool m_bIsResourceCreated{false};
+};
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDeferredDeviceResource);
+
+/// \brief Abstract class for device resources used in shaders.
+class SP_RHI_DLL spShaderResource : public spDeviceResource
+{
+};
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spShaderResource);
+
+/// \brief Abstract class for shader resources which can be mapped to
+/// CPU memory.
+class SP_RHI_DLL spMappableResource : public spShaderResource
+{
+};
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spMappableResource);
+
+/// \brief Describes the layout of a mapped resource object.
+class SP_RHI_DLL spMappedResource
+{
+public:
+  /// \brief Constructs an empty spMappedResource
+  spMappedResource();
+
+  /// \brief Constructs a spMappedResource from a resource handle and a raw pointer.
+  /// \param [in] hResource The handle of the resource which should be mapped.
+  /// \param [in] eAccess The access mode of the mapped resource.
+  /// \param [in] pData Pointer to the mapped data region.
+  /// \param [in] uiSize The size in bytes of the mapped data region.
+  /// \param [in] uiSubResource The sub-resource which is mapped.
+  /// \param [in] uiRowPitch The number of bytes between each row of texels for texture resources.
+  /// \param [in] uiDepthPitch The number of bytes between each depth slice for 3D texture resources.
+  spMappedResource(const spResourceHandle& hResource, ezEnum<spMapAccess> eAccess, void* pData, ezUInt32 uiSize, ezUInt32 uiSubResource = 0, ezUInt32 uiRowPitch = 0, ezUInt32 uiDepthPitch = 0);
+
+  /// \brief Constructs a spMappedResource from a resource handle and a raw pointer.
+  /// \param [in] hResource The handle of the resource which should be mapped.
+  /// \param [in] eAccess The access mode of the mapped resource.
+  /// \param [in] data A byte array to get data and size from.
+  spMappedResource(const spResourceHandle& hResource, ezEnum<spMapAccess> eAccess, const ezByteArrayPtr& data);
+
+  /// \brief Checks whether the mapped resource is valid.
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool IsValid() const { return !m_hResource.IsInvalidated() && m_pData != nullptr; }
+
+  /// \brief Gets the mapped resource.
+  EZ_NODISCARD const spResourceHandle& GetResource() const;
+
+  /// \brief Gets the mapped resource access mode.
+  EZ_NODISCARD ezEnum<spMapAccess> GetAccess() const;
+
+  /// \brief Gets the mapped resource data pointer.
+  EZ_NODISCARD void* GetData() const;
+
+  /// \brief Gets the mapped resource size.
+  EZ_NODISCARD ezUInt32 GetSize() const;
+
+  /// \brief Gets the mapped resource sub-resource.
+  EZ_NODISCARD ezUInt32 GetSubResource() const;
+
+  /// \brief Gets the mapped resource row pitch.
+  EZ_NODISCARD ezUInt32 GetRowPitch() const;
+
+  /// \brief Gets the mapped resource depth pitch.
+  EZ_NODISCARD ezUInt32 GetDepthPitch() const;
+
+private:
+  /// \brief The mapped resource.
+  spResourceHandle m_hResource;
+
+  /// \brief The access mode used to map the resource.
+  ezEnum<spMapAccess> m_eAccess;
+
+  /// \brief A pointer to the start of the mapped data region.
+  void* m_pData{nullptr};
+
+  /// \brief The size in bytes of the mapped data region.
+  ezUInt32 m_uiSize{0};
+
+  /// \brief For mapped \see spTexture resources, this is the subresource which is mapped.
+  /// For \see spBuffer resources, this field has no meaning.
+  /// </summary>
+  ezUInt32 m_uiSubResource{0};
+
+  /// \brief For mapped \see spTexture resources, this is the number of bytes between each row of texels.
+  /// For \see spBuffer resources, this field has no meaning.
+  /// </summary>
+  ezUInt32 m_uiRowPitch{0};
+
+  /// \brief For mapped \see spTexture resources, this is the number of bytes between each depth slice of a 3D Texture.
+  /// For \see spBuffer resources or 2D Textures, this field has no meaning.
+  /// </summary>
+  ezUInt32 m_uiDepthPitch{0};
+};
+
+/// \brief A typed view of a \see spMappedResource. Provides by-reference structured
+/// access to individual elements in the mapped data.
+template <typename T>
+class SP_RHI_DLL spMappedResourceView
+{
+public:
+  /// \brief The \see spMappedResource viewed by this instance.
+  EZ_NODISCARD EZ_ALWAYS_INLINE const spMappedResource& GetMappedResource() const { return m_MappedResource; }
+
+  /// \brief The total size in bytes of the mapped resource.
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetSize() const { return m_uiSize; }
+
+  /// \brief The total number of structures that is contained in the mapped resource.
+  /// This is effectively the total number of bytes divided by the size of the structure type.
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezInt32 GetCount() const { return m_uiCount; }
+
+  /// \brief Creates a typed view of the given \see spMappedResource.
+  spMappedResourceView(const spMappedResource& resource)
+  {
+    m_MappedResource = resource;
+    m_uiSize = m_MappedResource.GetSize();
+    m_uiCount = m_uiSize / SizeOfT;
+  }
+
+  EZ_ALWAYS_INLINE T& operator[](ezUInt32 index)
+  {
+    EZ_ASSERT_DEV(index < m_uiCount, "Given index ({0}) is out of range.", index);
+    return GetAt(index);
+  }
+
+  EZ_ALWAYS_INLINE const T& operator[](ezUInt32 index) const
+  {
+    EZ_ASSERT_DEV(index < m_uiCount, "Given index ({0}) is out of range.", index);
+    return GetAt(index);
+  }
+
+  EZ_ALWAYS_INLINE T& operator[](ezInt32 index)
+  {
+    EZ_ASSERT_DEV(index < m_uiCount && index > 0, "Given index ({0}) is out of range.", index);
+    return GetAt(static_cast<ezUInt32>(index));
+  }
+
+  EZ_ALWAYS_INLINE const T& operator[](ezInt32 index) const
+  {
+    EZ_ASSERT_DEV(index < m_uiCount && index > 0, "Given index ({0}) is out of range.", index);
+    return GetAt(static_cast<ezUInt32>(index));
+  }
+
+  EZ_ALWAYS_INLINE T& operator[](ezVec2U32 index)
+  {
+    return GetAt(index.x, index.y);
+  }
+
+  EZ_ALWAYS_INLINE const T& operator[](ezVec2U32 index) const
+  {
+    return GetAt(index.x, index.y);
+  }
+
+  EZ_ALWAYS_INLINE T& operator[](ezVec2I32 index)
+  {
+    EZ_ASSERT_DEV(index.x > 0 && index.y > 0, "Given index ({0}) is out of range.", index);
+    return GetAt(static_cast<ezUInt32>(index.x), static_cast<ezUInt32>(index.y));
+  }
+
+  EZ_ALWAYS_INLINE const T& operator[](ezVec2I32 index) const
+  {
+    EZ_ASSERT_DEV(index.x > 0 && index.y > 0, "Given index ({0}) is out of range.", index);
+    return GetAt(static_cast<ezUInt32>(index.x), static_cast<ezUInt32>(index.y));
+  }
+
+  EZ_ALWAYS_INLINE T& operator[](ezVec3U32 index)
+  {
+    return GetAt(index.x, index.y, index.z);
+  }
+
+  EZ_ALWAYS_INLINE const T& operator[](ezVec3U32 index) const
+  {
+    return GetAt(index.x, index.y, index.z);
+  }
+
+  EZ_ALWAYS_INLINE T& operator[](ezVec3I32 index)
+  {
+    EZ_ASSERT_DEV(index.x > 0 && index.y > 0 && index.z > 0, "Given index ({0}) is out of range.", index);
+    return GetAt(static_cast<ezUInt32>(index.x), static_cast<ezUInt32>(index.y), static_cast<ezUInt32>(index.z));
+  }
+
+  EZ_ALWAYS_INLINE const T& operator[](ezVec3I32 index) const
+  {
+    EZ_ASSERT_DEV(index.x > 0 && index.y > 0 && index.z > 0, "Given index ({0}) is out of range.", index);
+    return GetAt(static_cast<ezUInt32>(index.x), static_cast<ezUInt32>(index.y), static_cast<ezUInt32>(index.z));
+  }
+
+private:
+  static const constexpr ezUInt64 SizeOfT = sizeof(T);
+
+  EZ_ALWAYS_INLINE T& GetAt(ezUInt32 x, ezUInt32 y = 0, ezUInt32 z = 0)
+  {
+    ezUInt8* ptr = reinterpret_cast<ezUInt8*>(m_MappedResource.GetData()) + (z * m_MappedResource.GetDepthPitch()) + (y * m_MappedResource.GetRowPitch()) + (x * SizeOfT);
+    return *reinterpret_cast<T*>(ptr);
+  }
+
+  spMappedResource m_MappedResource;
+  ezUInt32 m_uiSize;
+  ezUInt32 m_uiCount;
+};
+
+/// \brief Create resources for use in the graphics device.
+/// This class must be implemented for each platform implementation.
+class SP_RHI_DLL spDeviceResourceFactory
+{
+  friend class spDevice;
+
+public:
+  virtual ~spDeviceResourceFactory() = default;
+
+  /// \brief Gets the graphics device for which resources are created.
+  EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetGraphicsDevice() const { return m_pDevice; }
+
+  /// \brief Creates a new spShader resource.
+  /// \param [in] description The description of the shader resource to create.
+  /// @return An handle to the created shader resource.
+  virtual spResourceHandle CreateShader(const spShaderDescription& description) = 0;
+
+  /// \brief Creates a new spShaderProgram resource.
+  /// @return An handle to the created shader program resource.
+  virtual spResourceHandle CreateShaderProgram() = 0;
+
+  /// \brief Creates a new spTexture resource.
+  /// \param [in] description The description of the texture resource to create.
+  /// @return An handle to the created texture resource.
+  virtual spResourceHandle CreateTexture(const spTextureDescription& description) = 0;
+
+  /// \brief Creates a new spSampler resource.
+  /// \param [in] description The description of the sampler resource to create.
+  /// @return An handle to the created sampler resource.
+  virtual spResourceHandle CreateSampler(const spSamplerDescription& description) = 0;
+
+  /// \brief Creates a new spInputLayout resource.
+  /// \param [in] description The description of the input layout resource to create.
+  /// \param [in] hShader The handle to the shader resource used by the input layout.
+  /// @return An handle to the created input layout resource.
+  virtual spResourceHandle CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader) = 0;
+
+  /// \brief Creates a new spBuffer resource.
+  /// \param [in] description The description of the buffer resource to create.
+  /// @return An handle to the created buffer resource.
+  virtual spResourceHandle CreateBuffer(const spBufferDescription& description) = 0;
+
+  /// \brief Creates a new spResourceLayout resource.
+  /// \param [in] description The description of the resource layout resource to create.
+  /// @return An handle to the created resource layout resource.
+  virtual spResourceHandle CreateResourceLayout(const spResourceLayoutDescription& description) = 0;
+
+  /// \brief Creates a new spTextureView resource.
+  /// \param [in] description The description of the texture view resource to create.
+  /// @return An handle to the created texture view resource.
+  virtual spResourceHandle CreateTextureView(const spTextureViewDescription& description) = 0;
+
+  /// \brief Creates a new spTextureView resource.
+  /// \param [in] hTexture The handle to the texture from which create the view.
+  /// @return An handle to the created texture view resource.
+  virtual spResourceHandle CreateTextureView(const spResourceHandle& hTexture) = 0;
+
+  /// \brief Creates a new spSwapchain resource.
+  /// \param [in] description The description of the swapchain resource to create.
+  /// @return An handle to the created swapchain resource.
+  virtual spResourceHandle CreateSwapchain(const spSwapchainDescription& description) = 0;
+
+  /// \brief Creates a new spFence resource.
+  /// \param [in] description The description of the fence resource to create.
+  /// @return An handle to the created fence resource.
+  virtual spResourceHandle CreateFence(const spFenceDescription& description) = 0;
+
+  /// \brief Creates a new spFramebuffer resource.
+  /// \param [in] description The description of the framebuffer resource to create.
+  /// @return An handle to the created framebuffer resource.
+  virtual spResourceHandle CreateFramebuffer(const spFramebufferDescription& description) = 0;
+
+  /// \brief Creates a new spCommandList resource.
+  /// \param [in] description The description of the command list resource to create.
+  /// @return An handle to the created command list resource.
+  virtual spResourceHandle CreateCommandList(const spCommandListDescription& description) = 0;
+
+  /// \brief Creates a new spComputePipeline resource.
+  /// \param [in] description The description of the compute pipeline resource to create.
+  /// @return An handle to the created compute pipeline resource.
+  virtual spResourceHandle CreateComputePipeline(const spComputePipelineDescription& description) = 0;
+
+  /// \brief Creates a new spRenderingPipeline resource
+  /// \param [in] description The description of the rendering pipeline resource to create.
+  /// @return An handle to the created rendering pipeline resource.
+  virtual spResourceHandle CreateRenderingPipeline(const spRenderingPipelineDescription& description) = 0;
+
+  /// \brief Creates a new spResourceSet resource.
+  /// \param [in] description The description of the resource set resource to create.
+  /// @return An handle to the created resource set resource.
+  virtual spResourceHandle CreateResourceSet(const spResourceSetDescription& description) = 0;
+
+protected:
+  /// \brief Creates a new resource factory for the given device.
+  /// \param [in] pDevice The device for which the resource factory will create resources.
+  spDeviceResourceFactory(spDevice* pDevice)
+    : m_pDevice(pDevice)
+  {
+  }
+
+private:
+  spDevice* m_pDevice;
+};
+
+/// \brief Manages resources allocation/deallocation within a graphics devices.
+class SP_RHI_DLL spDeviceResourceManager
+{
+  friend class spDeviceResourceFactory;
+
+public:
+  virtual ~spDeviceResourceManager();
+
+  /// \brief Gets the graphics device for which resources are created.
+  EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetGraphicsDevice() const { return m_pDevice; }
+
+  /// \brief Registers a resource in the manager.
+  /// \param [in] pResource The resource to register.
+  /// \return The handle to the registered resource.
+  ///
+  /// \note The method is not meant to be called directly, otherwise, create your
+  /// resources using the \see spDeviceResourceFactory and it will do it for you.
+  spResourceHandle RegisterResource(spDeviceResource* pResource);
+
+  /// \brief Gets a registered resource from the manager using the given handle.
+  /// \param [in] hResource The handle to the resource.
+  /// \return The pointer of the found resource, or nullptr if the resource is not registered in this manager.
+  spDeviceResource* GetResource(const spResourceHandle& hResource) const;
+
+  /// \brief Gets a registered resource from the manager using the given handle.
+  /// The type parameter must be a child class of spDeviceResource.
+  /// \return The pointer of the found resource, or nullptr if the resource is not registered in this manager.
+  template <class T>
+  EZ_ALWAYS_INLINE T* GetResource(const spResourceHandle& hResource) const
+  {
+    return ezStaticCast<T*>(GetResource(hResource));
+  }
+
+  /// \brief Increments the reference count of the given resource.
+  /// \param [in] hResource The handle of the resource to increment the reference count.
+  /// \return The new reference count.
+  ezUInt32 IncrementResourceRef(spResourceHandle hResource) const;
+
+  /// \brief Decrements the reference count of the given resource.
+  /// \param [in] hResource The handle of the resource to decrement the reference count.
+  /// \return The new reference count.
+  ezUInt32 DecrementResourceRef(spResourceHandle hResource) const;
+
+  /// \brief Enqueue a resource for deallocation at the end of the current frame.
+  /// \param [in] hResource The resource to be deallocated.
+  virtual void EnqueueReleaseResource(const spResourceHandle& hResource) = 0;
+
+  /// \brief Enqueue a resource for deallocation at the end of the current frame.
+  /// \param [in] pResource The resource to be deallocated.
+  virtual void EnqueueReleaseResource(spDeviceResource* pResource) = 0;
+
+  /// \brief Releases all the enqueued resources.
+  virtual void ReleaseResources() = 0;
+
+protected:
+  /// \brief Creates a new resource manager for the given device.
+  /// \param [in] pDevice The graphics device for which the resource manager will manage resources.
+  spDeviceResourceManager(spDevice* pDevice)
+    : m_pDevice(pDevice)
+  {
+  }
+
+  spDevice* m_pDevice;
+
+private:
+  ezArrayMap<spResourceHandle, spDeviceResource*> m_registeredResources;
+};
+
+/// \brief Default implementation of the resource manager. Use a queue to collect and dispose resources.
+class SP_RHI_DLL spDefaultDeviceResourceManager : public spDeviceResourceManager
+{
+public:
+  ~spDefaultDeviceResourceManager() override;
+
+  /// \brief Enqueue a resource for deallocation at the end of the current frame.
+  /// \param [in] hResource The resource to be deallocated.
+  void EnqueueReleaseResource(const spResourceHandle& hResource) override;
+
+  /// \brief Enqueue a resource for deallocation at the end of the current frame.
+  /// \param [in] pResource The resource to be deallocated.
+  void EnqueueReleaseResource(spDeviceResource* pResource) override;
+
+  /// \brief Releases all the enqueued resources.
+  void ReleaseResources() override;
+
+private:
+  ezDeque<spDeviceResource*> m_ResourcesQueue;
+};

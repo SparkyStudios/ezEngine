@@ -1,0 +1,38 @@
+#include <RHI/RHIPCH.h>
+
+#include <Foundation/Configuration/Singleton.h>
+
+#include <RHI/Device.h>
+#include <RHI/Framebuffer.h>
+
+#pragma region spFramebufferAttachment
+
+spFramebufferAttachment::spFramebufferAttachment(spFramebufferAttachmentDescription description)
+  : m_Description(std::move(description))
+{
+  auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
+  pDevice->GetResourceManager()->IncrementResourceRef(GetTarget());
+}
+
+spFramebufferAttachment::~spFramebufferAttachment()
+{
+  auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
+  pDevice->GetResourceManager()->DecrementResourceRef(GetTarget());
+}
+
+spResourceHandle spFramebufferAttachment::GetTarget() const
+{
+  return m_Description.m_hTarget;
+}
+
+ezUInt32 spFramebufferAttachment::GetArrayLayer() const
+{
+  return m_Description.m_uiArrayLayer;
+}
+
+ezUInt32 spFramebufferAttachment::GetMipLevel() const
+{
+  return m_Description.m_uiMipLevel;
+}
+
+#pragma endregion
