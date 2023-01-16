@@ -1,6 +1,11 @@
 #pragma once
 
+#include "Foundation/Basics/Compiler/Clang/Clang.h"
+#include "Foundation/Math/Constants.h"
+#include "Foundation/Math/Math.h"
 #include <RHI/RHIDLL.h>
+
+#include <Foundation/Math/Rect.h>
 
 /// \brief The maximum number of color targets in a frame buffer.
 #define SP_RHI_MAX_COLOR_TARGETS 8
@@ -21,6 +26,60 @@ class SP_RHI_DLL spResourceHandle
 class SP_RHI_DLL spContextHandle
 {
   EZ_DECLARE_HANDLE_TYPE(spContextHandle, spContextHandleId);
+};
+
+struct SP_RHI_DLL spViewport : ezHashableStruct<spViewport>
+{
+  EZ_ALWAYS_INLINE static spViewport From(ezRectI32 viewport)
+  {
+    return spViewport(
+      viewport.x,
+      viewport.y,
+      static_cast<ezUInt32>(viewport.width),
+      static_cast<ezUInt32>(viewport.height),
+      0.0f,
+      1.0f);
+  }
+
+  /// \brief Creates a new \see Viewport instance.
+  /// \param x The position over the X-axis of the viewport origin.
+  /// \param y The position over the Y-axis of the viewport origin.
+  /// \param width The viewport width.
+  /// \param height The viewport height.
+  /// \param minDepth The viewport minimum depth.
+  /// \param maxDepth The viewport maximum depth.
+  spViewport(ezInt32 iX, ezInt32 iY, ezUInt32 uiWidth, ezUInt32 uiHeight, float fMinDepth, float fMaxDepth)
+    : ezHashableStruct<spViewport>()
+    , m_iX(iX)
+    , m_iY(iY)
+    , m_uiWidth(uiWidth)
+    , m_uiHeight(uiHeight)
+    , m_fMinDepth(fMinDepth)
+    , m_fMaxDepth(fMaxDepth)
+  {
+  }
+
+  /// \brief Gets the aspect ratio of this viewport.
+  EZ_NODISCARD EZ_ALWAYS_INLINE float GetAspectRatio() const { return static_cast<float>(m_uiWidth) / m_uiHeight; }
+
+  /// \brief Compares this \see spViewport to an \a other instance for equality.
+  EZ_ALWAYS_INLINE bool operator==(const spViewport& other) const
+  {
+    return m_iX == other.m_iX && m_iY == other.m_iY && m_uiWidth == other.m_uiWidth && m_uiHeight == other.m_uiHeight && ezMath::IsEqual(m_fMinDepth, other.m_fMinDepth, ezMath::FloatEpsilon<float>()) && ezMath::IsEqual(m_fMaxDepth, other.m_fMaxDepth, ezMath::FloatEpsilon<float>());
+  }
+
+  /// \brief Compares this \see spViewport to an \a other instance for inequality.
+  EZ_ALWAYS_INLINE bool operator!=(const spViewport& other) const
+  {
+    return !(*this == other);
+  }
+
+  ezInt32 m_iX;
+  ezInt32 m_iY;
+  ezUInt32 m_uiWidth;
+  ezUInt32 m_uiHeight;
+  float m_fMinDepth;
+  float m_fMaxDepth;
 };
 
 /// \brief The list of graphics API usable by the spGraphicsDevice.
@@ -374,7 +433,7 @@ struct SP_RHI_DLL spMapAccess
     Read,
 
     /// \brief A write-only resource mapping. The mapped data region is writable, and will be transferred into the graphics resource
-    /// when <see cref="IGraphicsDevice.Unmap(IMappableResource, uint)"/> is called.
+    /// when \see spDevice::UnMap() is called.
     /// \note Upon mapping a buffer with this mode, the previous contents of the resource will be erased.
     /// This mode can only be used to entirely replace the contents of a resource.
     Write,
@@ -977,23 +1036,23 @@ struct SP_RHI_DLL spInputElementLocationSemantic
   enum Enum : StorageType
   {
     /// \brief Defines an input layout element storing vertices positions
-    /// data. Use the location 0 of the <see cref="ShaderPipeline"/>.
+    /// data. Use the location 0 of the \see ShaderPipeline.
     Position = 0,
 
     /// \brief Defines an input layout element storing texture coordinates
-    /// data. Use the location 2 of the <see cref="ShaderPipeline"/>.
+    /// data. Use the location 2 of the \see ShaderPipeline.
     TextureCoordinate = 1,
 
     /// \brief Defines an input layout element vertices normal vectors
-    /// data. Use the location 3 of the <see cref="ShaderPipeline"/>.
+    /// data. Use the location 3 of the \see ShaderPipeline.
     Normal = 2,
 
     /// \brief Defines an input layout element vertices tangent vectors
-    /// data. Use the location 4 of the <see cref="ShaderPipeline"/>.
+    /// data. Use the location 4 of the \see ShaderPipeline.
     Tangent = 3,
 
     /// \brief Defines an input layout element vertices bi-tangent vectors
-    /// data. Use the location 5 of the <see cref="ShaderPipeline"/>.
+    /// data. Use the location 5 of the \see ShaderPipeline.
     BiTangent = 4,
 
     /// \brief Defines the last possible value for input layout element managed

@@ -73,6 +73,7 @@ struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRan
   /// \param uiSize The range size in bytes.
   /// \param fence The synchronization fence of this buffer range.
   spBufferRangeDescription(ezUInt32 uiOffset, ezUInt32 uiSize, spFenceDescription fence)
+    : ezHashableStruct<spBufferRangeDescription>()
   {
     m_uiOffset = uiOffset;
     m_uiSize = uiSize;
@@ -104,8 +105,6 @@ struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRan
 /// \brief A range of a spBuffer.
 class spBufferRange : public spDeviceResource
 {
-  EZ_ADD_DYNAMIC_REFLECTION(spBufferRange, spDeviceResource);
-
 public:
   /// \brief Gets the offset in bytes from which stats this range in the parent buffer.
   EZ_NODISCARD virtual ezUInt32 GetOffset() const = 0;

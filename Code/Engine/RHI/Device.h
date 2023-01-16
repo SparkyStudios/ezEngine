@@ -4,8 +4,6 @@
 
 #include <RHI/Memory/StagingMemoryPool.h>
 
-#include <RHI/Core.h>
-
 #include <RHI/Buffer.h>
 #include <RHI/Resource.h>
 #include <RHI/Swapchain.h>
@@ -68,7 +66,7 @@ struct SP_RHI_DLL spDeviceDescription : public ezHashableStruct<spDeviceDescript
 class SP_RHI_DLL spDevice
 {
 public:
-  virtual ~spDevice();
+  virtual ~spDevice() = default;
 
   /// \brief Gets the currently used graphics API.
   EZ_NODISCARD virtual ezEnum<spGraphicsApi> GetAPI() const = 0;
