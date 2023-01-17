@@ -11,7 +11,7 @@ struct spComputePipelineDescription;
 struct spFenceDescription;
 struct spFramebufferDescription;
 struct spInputLayoutDescription;
-struct spRenderingPipelineDescription;
+struct spGraphicPipelineDescription;
 struct spResourceLayoutDescription;
 struct spResourceSetDescription;
 struct spSamplerDescription;
@@ -351,10 +351,10 @@ public:
   /// @return An handle to the created compute pipeline resource.
   virtual spResourceHandle CreateComputePipeline(const spComputePipelineDescription& description) = 0;
 
-  /// \brief Creates a new spRenderingPipeline resource
-  /// \param [in] description The description of the rendering pipeline resource to create.
-  /// @return An handle to the created rendering pipeline resource.
-  virtual spResourceHandle CreateRenderingPipeline(const spRenderingPipelineDescription& description) = 0;
+  /// \brief Creates a new spGraphicPipeline resource
+  /// \param [in] description The description of the graphic pipeline resource to create.
+  /// @return An handle to the created graphic pipeline resource.
+  virtual spResourceHandle CreateGraphicPipeline(const spGraphicPipelineDescription& description) = 0;
 
   /// \brief Creates a new spResourceSet resource.
   /// \param [in] description The description of the resource set resource to create.
