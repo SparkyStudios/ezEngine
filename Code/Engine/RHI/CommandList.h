@@ -4,6 +4,44 @@
 
 #include <RHI/Resource.h>
 
+/// \brief Data structure holding draw arrays commands for indirect drawing.
+struct SP_RHI_DLL alignas(16) spDrawIndirectCommand
+{
+  EZ_DECLARE_POD_TYPE();
+
+  /// \brief The number of indices (in an instance) to be drawn.
+  ezUInt32 m_uiCount;
+
+  /// \brief The number of instances to be drawn.
+  ezUInt32 m_uiInstanceCount;
+
+  /// \brief The start index in the enabled arrays.
+  ezUInt32 m_uiFirstIndex;
+
+  /// \brief The base instance for use in fetching instanced vertex attributes.
+  ezUInt32 m_uiBaseInstance;
+};
+
+struct SP_RHI_DLL alignas(16) spDrawIndexedIndirectCommand
+{
+  EZ_DECLARE_POD_TYPE();
+
+  /// \brief The number of elements (in an instance) to be drawn.
+  ezUInt32 m_uiCount;
+
+  /// \brief The number of instances to be drawn.
+  ezUInt32 m_uiInstanceCount;
+
+  /// \brief Index of the first element to be drawn.
+  ezUInt32 m_uiFirstIndex;
+
+  /// \brief Constant that should be added to each element when choosing elements the enabled vertex arrays.
+  ezUInt32 m_uiBaseVertex;
+
+  /// \brief The base instance for use in fetching instanced vertex attributes.
+  ezUInt32 m_uiBaseInstance;
+};
+
 struct SP_RHI_DLL spCommandListIndexBuffer : public ezHashableStruct<spCommandListIndexBuffer>
 {
   spCommandListIndexBuffer(spResourceHandle hIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset)
