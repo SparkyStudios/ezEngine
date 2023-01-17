@@ -1,8 +1,16 @@
-//
-// Created by axeln on 1/17/2023.
-//
+#pragma once
 
-#ifndef EZENGINE_BUILD_DEVICE_H
-#define EZENGINE_BUILD_DEVICE_H
+#include <RHID3D11/RHID3D11DLL.h>
 
-#endif //EZENGINE_BUILD_DEVICE_H
+#include <d3d11.h>
+
+#include <RHI/Device.h>
+
+class SP_RHID3D11_DLL spDeviceD3D11 final : public spDevice
+{
+public:
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Device* GetD3D11Device() const { return m_pD3D11Device; }
+
+private:
+  ID3D11Device* m_pD3D11Device;
+};
