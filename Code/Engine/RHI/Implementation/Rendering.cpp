@@ -183,3 +183,5 @@ const spRasterizerState spRasterizerState::CullNone = {
 };
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHI, RHI_Implementation_Rendering);

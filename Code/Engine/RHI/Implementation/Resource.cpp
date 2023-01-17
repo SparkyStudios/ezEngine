@@ -138,3 +138,5 @@ void spDefaultDeviceResourceManager::ReleaseResources()
 }
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHI, RHI_Implementation_Resource);
