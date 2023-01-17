@@ -1,8 +1,5 @@
 #pragma once
 
-#include "Foundation/Basics/Compiler/Clang/Clang.h"
-#include "Foundation/Math/Constants.h"
-#include "Foundation/Math/Math.h"
 #include <RHI/RHIDLL.h>
 
 #include <Foundation/Math/Rect.h>
@@ -28,6 +25,7 @@ class SP_RHI_DLL spContextHandle
   EZ_DECLARE_HANDLE_TYPE(spContextHandle, spContextHandleId);
 };
 
+/// \brief A viewport used for rendering.
 struct SP_RHI_DLL spViewport : ezHashableStruct<spViewport>
 {
   EZ_ALWAYS_INLINE static spViewport From(ezRectI32 viewport)
@@ -1088,3 +1086,194 @@ struct SP_RHI_DLL spResourceLayoutElementOptions
 };
 
 EZ_DECLARE_FLAGS_OPERATORS(spResourceLayoutElementOptions);
+
+/// \brief Determines how a sequence of vertices is interpreted by the rasterizer.
+struct SP_RHI_DLL spPrimitiveTopology
+{
+  typedef ezUInt8 StorageType;
+
+  enum Enum : StorageType
+  {
+    /// \brief A list of isolated, 3-elements triangles.
+    Triangles,
+
+    /// \brief A series of connected triangles.
+    TriangleStrip,
+
+    /// \brief A series of isolated, 2-elements segments.
+    Lines,
+
+    /// \brief A series of connected line segments.
+    LineStrip,
+
+    /// \brief A series of isolated points.
+    Points,
+
+    Default = Triangles
+  };
+};
+
+/// \brief Controls the influence of components in a blend operation.
+struct SP_RHI_DLL spBlendFactor
+{
+  typedef ezUInt8 StorageType;
+
+  enum Enum : StorageType
+  {
+    /// \brief Each component is multiplied by 0.
+    Zero,
+
+    /// \brief Each component is multiplied by 1.
+    One,
+
+    /// \brief Each component is multiplied by the source alpha component.
+    SourceAlpha,
+
+    /// \brief Each component is multiplied by (1 - source alpha).
+    InverseSourceAlpha,
+
+    /// \brief Each component is multiplied by the destination alpha.
+    DestinationAlpha,
+
+    /// \brief Each component is multiplied by (1 - destination alpha).
+    InverseDestinationAlpha,
+
+    /// \brief Each component is multiplied by the matching component of the source color.
+    SourceColor,
+
+    /// \brief Each component is multiplied by (1 - the matching component of the source color).
+    InverseSourceColor,
+
+    /// \brief Each component is multiplied by the matching component of the destination color.
+    DestinationColor,
+
+    /// \brief Each component is multiplied by (1 - the matching component of the destination color).
+    InverseDestinationColor,
+
+    /// \brief Each component is multiplied by the matching component in constant factor as specified in \see spBlendState::m_BlendFactor.
+    BlendFactor,
+
+    /// \brief Each component is multiplied by (1 - the matching component in constant factor as specified in \see spBlendState::m_BlendFactor).
+    InverseBlendFactor,
+
+    Default = SourceAlpha,
+  };
+};
+
+/// \brief Controls how the source and destination factors are combined in a blend operation.
+struct SP_RHI_DLL spBlendFunction
+{
+  typedef ezUInt8 StorageType;
+
+  enum Enum : StorageType
+  {
+    /// \brief Source and destination are added.
+    Add,
+
+    /// \brief Destination is subtracted from source.
+    Subtract,
+
+    /// \brief Source is subtracted from destination.
+    ReverseSubtract,
+
+    /// \brief The minimum of source and destination is selected.
+    Minimum,
+
+    /// \brief The maximum of source and destination is selected.
+    Maximum,
+
+    Default = Add
+  };
+};
+
+/// \brief Specifies an action taken on samples that pass or fail the stencil test.
+struct SP_RHI_DLL spStencilOperation
+{
+  typedef ezUInt8 StorageType;
+
+  enum Enum : StorageType
+  {
+    /// \brief Keep the existing value.
+    Keep,
+
+    /// \brief Sets the value to 0.
+    Zero,
+
+    /// \brief Replaces the existing value with the specified value.
+    Replace,
+
+    /// \brief Increments the existing value and clamp it to the maximum representable unsigned value.
+    IncrementClamp,
+
+    /// \brief Decrements the existing value and clamp it to 0.
+    DecrementClamp,
+
+    /// \brief Bitwise inverts the existing value.
+    Invert,
+
+    /// \brief Increments the existing value and wraps it to 0 when it exceeds the maximum representable unsigned value.
+    IncrementWrap,
+
+    /// \brief Decrements the existing value and wraps it to the maximum representable unsigned value when it would be reduced below 0.
+    DecrementWrap,
+
+    Default = Keep
+  };
+};
+
+/// \brief Indicates which faces will be culled.
+struct SP_RHI_DLL spFaceCullMode
+{
+  typedef ezUInt8 StorageType;
+
+  enum Enum : StorageType
+  {
+    /// \brief No face culling.
+    None,
+
+    /// \brief Cull the front face.
+    Front,
+
+    /// \brief Cull the back face.
+    Back,
+
+    Default = None
+  };
+};
+
+/// \brief The winding order used to determine the front face of a primitive.
+struct SP_RHI_DLL spFrontFace
+{
+  typedef ezUInt8 StorageType;
+
+  enum Enum : StorageType
+  {
+    /// \brief Clockwise winding order.
+    Clockwise,
+
+    /// \brief Counter-clockwise winding order.
+    CounterClockwise,
+
+    Default = Clockwise
+  };
+};
+
+/// \brief Indicates how the rasterizer should fill polygons.
+struct SP_RHI_DLL spPolygonFillMode
+{
+  typedef ezUInt8 StorageType;
+
+  enum Enum : StorageType
+  {
+    /// \brief Polygons are completely filled.
+    Solid,
+
+    /// \brief Polygons are outlined.
+    Wireframe,
+
+    /// \brief Only polygon points are drawn.
+    Point,
+
+    Default = Solid
+  };
+};

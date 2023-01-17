@@ -2,6 +2,8 @@
 
 #include <RHI/RHIDLL.h>
 
+#include <RHI/Output.h>
+#include <RHI/Rendering.h>
 #include <RHI/Resource.h>
 #include <RHI/ResourceLayout.h>
 #include <RHI/Shader.h>
@@ -69,6 +71,16 @@ struct SP_RHI_DLL spComputePipelineDescription : public ezHashableStruct<spCompu
   ezDynamicArray<spShaderSpecializationConstant> m_Specializations{};
 };
 
+/// \brief Describes a \see spGraphicPipeline, for creation using a \see spDeviceResourceFactory.
+struct SP_RHI_DLL spGraphicPipelineDescription : public ezHashableStruct<spGraphicPipelineDescription>
+{
+  spRenderingState m_RenderingState;
+  ezEnum<spPrimitiveTopology> m_ePrimitiveTopology;
+  spResourceHandle m_hShaderProgram;
+  spOutputDescription m_Output;
+  ezDynamicArray<spResourceHandle> m_ResourceLayouts;
+};
+
 class SP_RHI_DLL spPipeline : public spDeviceResource
 {
   EZ_ADD_DYNAMIC_REFLECTION(spPipeline, spDeviceResource);
@@ -112,3 +124,30 @@ private:
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spComputePipeline);
+
+/// \brief A graphic pipeline.
+class SP_RHI_DLL spGraphicPipeline : public spPipeline
+{
+public:
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool IsComputePipeline() const override { return false; }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderingState& GetRenderingState() const { return m_Description.m_RenderingState; }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezEnum<spPrimitiveTopology> GetPrimitiveTopology() const { return m_Description.m_ePrimitiveTopology; }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetShaderProgram() const { return m_Description.m_hShaderProgram; }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const { return m_Description.m_Output; }
+
+protected:
+  spGraphicPipeline(spGraphicPipelineDescription description)
+    : spPipeline()
+    , m_Description(std::move(description))
+  {
+  }
+
+private:
+  spGraphicPipelineDescription m_Description;
+};
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spGraphicPipeline);
