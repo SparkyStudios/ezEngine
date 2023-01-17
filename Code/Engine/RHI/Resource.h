@@ -6,6 +6,7 @@
 #include <RHI/Core.h>
 
 struct spBufferDescription;
+struct spBufferRangeDescription;
 struct spCommandListDescription;
 struct spComputePipelineDescription;
 struct spFenceDescription;
@@ -36,13 +37,16 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE const ezString& GetDebugName() const { return m_sDebugName; }
 
   /// \brief Sets the debug name of the resource.
-  EZ_ALWAYS_INLINE void SetDebugName(const ezString& debugName) { m_sDebugName = debugName; }
+  EZ_ALWAYS_INLINE virtual void SetDebugName(const ezString& debugName) { m_sDebugName = debugName; }
 
   /// \brief Gets the graphics device in which this resource has been created.
   EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetGraphicsDevice() const { return m_pDevice; }
 
   /// \brief Releases the resource.
   virtual void ReleaseResource() = 0;
+
+  /// \brief Check whether the resource has been released.
+  EZ_NODISCARD virtual bool IsReleased() const = 0;
 
 protected:
   spResourceHandle m_Handle;
@@ -56,7 +60,7 @@ protected:
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDeviceResource);
 
 /// \brief Abstract class for device resources which are created only when needed.
-class SP_RHI_DLL spDeferredDeviceResource : public spDeviceResource
+class SP_RHI_DLL spDeferredDeviceResource : ezReflectedClass
 {
 public:
   /// \brief Gets whether the resource has been created.
@@ -310,6 +314,11 @@ public:
   /// \param [in] description The description of the buffer resource to create.
   /// @return An handle to the created buffer resource.
   virtual spResourceHandle CreateBuffer(const spBufferDescription& description) = 0;
+
+  /// \brief Creates a new spBufferRange resource.
+  /// \param [in] description The description of the buffer range resource to create.
+  /// @return An handle to the created buffer range resource.
+  virtual spResourceHandle CreateBufferRange(const spBufferRangeDescription& description) = 0;
 
   /// \brief Creates a new spResourceLayout resource.
   /// \param [in] description The description of the resource layout resource to create.
