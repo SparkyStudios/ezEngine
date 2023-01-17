@@ -96,3 +96,5 @@ void spStagingMemoryPool::Free(const spStagingMemoryBlock& block)
   EZ_ASSERT_DEV(block.m_uiId < m_Storage.GetCount(), "The memory block is out of range.");
   m_AvailableMemoryBlocks.Insert(block.m_uiCapacity, block.m_uiId);
 }
+
+EZ_STATICLINK_FILE(RHI, RHI_Memory_Implementation_StagingMemoryPool);

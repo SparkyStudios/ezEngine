@@ -51,3 +51,5 @@ const spSamplerDescription spSamplerDescription::Anisotropic4x = {
 };
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHI, RHI_Implementation_Sampler);

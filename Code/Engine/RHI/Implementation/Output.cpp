@@ -57,3 +57,5 @@ spOutputDescription spOutputDescription::CreateFromFramebuffer(spResourceHandle 
 }
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHI, RHI_Implementation_Output);

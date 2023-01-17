@@ -115,3 +115,5 @@ void spDevice::UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset
 }
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHI, RHI_Implementation_Device);
