@@ -103,14 +103,14 @@ struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRan
 };
 
 /// \brief A range of a spBuffer.
-class spBufferRange : public spDeviceResource
+class SP_RHI_DLL spBufferRange : public spDeviceResource
 {
 public:
   /// \brief Gets the offset in bytes from which stats this range in the parent buffer.
-  EZ_NODISCARD virtual ezUInt32 GetOffset() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetOffset() const { return m_Description.m_uiOffset; }
 
   /// \brief Gets the size of this range.
-  EZ_NODISCARD virtual ezUInt32 GetSize() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetSize() const { return m_Description.m_uiSize; }
 
   /// \brief Gets the handle of the \see spFence which will control synchronization on this buffer range.
   EZ_NODISCARD virtual spResourceHandle GetFence() const = 0;
@@ -122,29 +122,31 @@ protected:
   {
   }
 
-private:
   spBufferRangeDescription m_Description;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spBufferRange);
 
 /// \brief A set of data in the memory, readable and writable from both CPU and GPU.
-class spBuffer : public spMappableResource
+class SP_RHI_DLL spBuffer : public spMappableResource
 {
 public:
   /// \brief Gets the size in bytes of the buffer. In case of multi-buffered buffers, this
   /// is the size of a single buffer.
-  EZ_NODISCARD virtual ezUInt32 GetSize() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetSize() const { return m_Description.m_uiSize; }
 
   /// \brief Gets the usage of the buffer.
-  EZ_NODISCARD virtual ezBitflags<spBufferUsage> GetUsage() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezBitflags<spBufferUsage> GetUsage() const { return m_Description.m_eUsage; }
 
   /// \brief Checks whether the buffer is dynamic.
-  EZ_NODISCARD EZ_ALWAYS_INLINE bool IsDynamic() const { return GetUsage().IsSet(spBufferUsage::Dynamic); }
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool IsDynamic() const { return GetUsage().IsAnySet(spBufferUsage::Dynamic | spBufferUsage::PersistentMapping); }
+
+  /// \brief Checks whether the buffer is a raw buffer.
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool IsRawBuffer() const { return m_Description.m_bRawBuffer; }
 
   /// \brief Gets the index of the currently bound buffer in case of multi-buffered buffers.
   /// \note This always returns 0 in case of single-buffered buffers.
-  EZ_NODISCARD virtual ezUInt32 GetBufferIndex() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetBufferIndex() const { return m_uiBufferIndex; }
 
   /// \brief Gets the buffer ranges stored by this buffer.
   ///
@@ -154,37 +156,34 @@ public:
   /// - For a triple-buffered buffer, there are three ranges.
   ///
   /// You can use the result of GetBufferIndex() to determine the range of the buffer currently being used.
-  EZ_NODISCARD virtual ezStaticArray<spBufferRange*, SP_RHI_MAX_BUFFERING_LEVEL> GetBufferRanges() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezStaticArray<spResourceHandle, SP_RHI_MAX_BUFFERING_LEVEL>& GetBufferRanges() const { return m_BufferRanges; }
 
   /// \brief Swap buffers in case of multi-buffering. This method is a no-op if the buffer is single-buffered.
-  virtual void SwapBuffers() = 0;
+  EZ_ALWAYS_INLINE void SwapBuffers() { m_uiBufferIndex = (m_uiBufferIndex + 1) % m_uiBufferCount; }
 
 protected:
-  spBuffer(spBufferDescription description)
-    : spMappableResource()
-    , m_Description(std::move(description))
-    , m_BufferRanges()
-  {
-  }
+  spBuffer(spBufferDescription description);
 
-private:
   spBufferDescription m_Description;
 
   ezUInt32 m_uiBufferIndex{0};
-  ezStaticArray<spBufferRange*, SP_RHI_MAX_BUFFERING_LEVEL> m_BufferRanges;
+  ezUInt32 m_uiBufferCount{1};
+  ezUInt32 m_uiBufferAlignedSize{0};
+
+  ezStaticArray<spResourceHandle, SP_RHI_MAX_BUFFERING_LEVEL> m_BufferRanges;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spBuffer);
 
 /// \brief Base class for an index buffer.
-class spIndexBuffer : public spBuffer
+class SP_RHI_DLL spIndexBuffer : public spBuffer
 {
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spIndexBuffer);
 
 /// \brief Base class for a vertex buffer.
-class spVertexBuffer : public spBuffer
+class SP_RHI_DLL spVertexBuffer : public spBuffer
 {
 };
 

@@ -287,7 +287,7 @@ public:
   /// \return The number of mipmaps in a texture with the given \a uiWidth and \a uiHeight.
   EZ_ALWAYS_INLINE static ezUInt32 CalculateMipCount(ezUInt32 uiWidth, ezUInt32 uiHeight)
   {
-    return 1 + ezMath::Floor(ezMath::Log2(ezMath::Max<float>(uiWidth, uiHeight)));
+    return 1 + static_cast<ezUInt32>(ezMath::Floor(ezMath::Log2(ezMath::Max(static_cast<float>(uiWidth), static_cast<float>(uiHeight)))));
   }
 
   /// \brief Calculates the subresource index, given a mipmap level and an array layer.
