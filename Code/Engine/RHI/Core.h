@@ -10,7 +10,7 @@
 /// \brief The maximum multi-buffering mode supported by the RHI.
 #define SP_RHI_MAX_BUFFERING_LEVEL 3
 
-typedef ezGenericId<16, 16> spResourceHandleId;
+typedef ezGenericId<28, 4> spResourceHandleId;
 typedef ezGenericId<24, 8> spContextHandleId;
 
 /// \brief An handle for every resource created by the graphics device.
@@ -654,23 +654,15 @@ struct SP_RHI_DLL spSamplerFilter
 
   enum Enum : StorageType
   {
+    /// \brief Ignore filtering. The final behavior is determined by the platform-specific
+    /// implementation of the RHI.
+    None,
+
     /// \brief Point sampling.
     Point,
 
-    /// \brief Point sampling.
-    PointMipmapPoint,
-
-    /// \brief Point sampling.
-    PointMipmapLinear,
-
     /// \brief Linear sampling.
     Linear,
-
-    /// \brief Linear sampling.
-    LinearMipmapPoint,
-
-    /// \brief Linear sampling.
-    LinearMipmapLinear,
 
     Default = Linear
   };

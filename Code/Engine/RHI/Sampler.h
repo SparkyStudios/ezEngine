@@ -16,7 +16,8 @@ struct SP_RHI_DLL spSamplerDescription : ezHashableStruct<spSamplerDescription>
   /// m_eAddressModeR = spSamplerAddressMode::ClampToEdge;
   /// m_eMinFilter = spSamplerFilter::Point;
   /// m_eMagFilter = spSamplerFilter::Point;
-  /// m_iLodBias = 0;
+  /// m_eMipFilter = spSamplerFilter::Point;
+  /// m_fLodBias = 0;
   /// m_uiMinLod = 0;
   /// m_uiMaxLod = 0xffffffff;
   /// m_uiMaxAnisotropy = 0;
@@ -31,7 +32,8 @@ struct SP_RHI_DLL spSamplerDescription : ezHashableStruct<spSamplerDescription>
   /// m_eAddressModeR = spSamplerAddressMode::ClampToEdge;
   /// m_eMinFilter = spSamplerFilter::Linear;
   /// m_eMagFilter = spSamplerFilter::Linear;
-  /// m_iLodBias = 0;
+  /// m_eMipFilter = spSamplerFilter::Linear;
+  /// m_fLodBias = 0;
   /// m_uiMinLod = 0;
   /// m_uiMaxLod = 0xffffffff;
   /// m_uiMaxAnisotropy = 0;
@@ -46,7 +48,8 @@ struct SP_RHI_DLL spSamplerDescription : ezHashableStruct<spSamplerDescription>
   /// m_eAddressModeR = spSamplerAddressMode::ClampToEdge;
   /// m_eMinFilter = spSamplerFilter::Linear;
   /// m_eMagFilter = spSamplerFilter::Linear;
-  /// m_iLodBias = 0;
+  /// m_eMipFilter = spSamplerFilter::Linear;
+  /// m_fLodBias = 0;
   /// m_uiMinLod = 0;
   /// m_uiMaxLod = 0xffffffff;
   /// m_uiMaxAnisotropy = 4;
@@ -60,7 +63,7 @@ struct SP_RHI_DLL spSamplerDescription : ezHashableStruct<spSamplerDescription>
   ezUInt32 m_uiMaxLod{0xffffffff};
 
   /// \brief The level of details bias.
-  ezInt32 m_iLodBias{0};
+  float m_fLodBias{0.0f};
 
   /// \brief The wrapping mode over the X axis.
   ezEnum<spSamplerAddressMode> m_eAddressModeS{spSamplerAddressMode::Default};
@@ -83,6 +86,9 @@ struct SP_RHI_DLL spSamplerDescription : ezHashableStruct<spSamplerDescription>
   /// \brief The magnification filtering mode.
   ezEnum<spSamplerFilter> m_eMagFilter{spSamplerFilter::Default};
 
+  /// \brief The mipmap filtering mode.
+  ezEnum<spSamplerFilter> m_eMipFilter{spSamplerFilter::Default};
+
   /// \brief The sampling comparison.
   ezEnum<spDepthStencilComparison> m_eSamplerComparison{spDepthStencilComparison::Default};
 };
@@ -98,9 +104,9 @@ EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spSamplerState);
 class SP_RHI_DLL spSampler : public spShaderResource
 {
 public:
-  EZ_NODISCARD virtual spSamplerState GetSamplerWithMipMap() const = 0;
+  EZ_NODISCARD virtual spResourceHandle GetSamplerWithMipMap() const = 0;
 
-  EZ_NODISCARD virtual spSamplerState GetSamplerWithoutMipMap() const = 0;
+  EZ_NODISCARD virtual spResourceHandle GetSamplerWithoutMipMap() const = 0;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spSampler);

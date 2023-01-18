@@ -17,6 +17,7 @@ const spSamplerDescription spSamplerDescription::Point = {
   0,
   spSamplerFilter::Point,
   spSamplerFilter::Point,
+  spSamplerFilter::Point,
   spDepthStencilComparison::Default,
 };
 
@@ -32,6 +33,7 @@ const spSamplerDescription spSamplerDescription::Linear = {
   0,
   spSamplerFilter::Linear,
   spSamplerFilter::Linear,
+  spSamplerFilter::Linear,
   spDepthStencilComparison::Default,
 };
 
@@ -45,6 +47,7 @@ const spSamplerDescription spSamplerDescription::Anisotropic4x = {
   spSamplerAddressMode::ClampToEdge,
   ezColor::Black,
   4,
+  spSamplerFilter::Linear,
   spSamplerFilter::Linear,
   spSamplerFilter::Linear,
   spDepthStencilComparison::Default,
