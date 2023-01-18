@@ -1,7 +1,8 @@
 #pragma once
 
-#include "Foundation/Basics/Compiler/Clang/Clang.h"
 #include <RHI/RHIDLL.h>
+
+#include <Foundation/Containers/IdTable.h>
 
 #include <RHI/Core.h>
 
@@ -26,6 +27,8 @@ class spDevice;
 /// \brief Abstract class for a resource on the graphics device.
 class SP_RHI_DLL spDeviceResource : public ezReflectedClass, public ezRefCounted
 {
+  friend class spDeviceResourceManager;
+
 public:
   spDeviceResource() = default;
   ~spDeviceResource() override = default;
@@ -373,7 +376,7 @@ public:
 protected:
   /// \brief Creates a new resource factory for the given device.
   /// \param [in] pDevice The device for which the resource factory will create resources.
-  spDeviceResourceFactory(spDevice* pDevice)
+  explicit spDeviceResourceFactory(spDevice* pDevice)
     : m_pDevice(pDevice)
   {
   }
@@ -433,21 +436,25 @@ public:
   /// \param [in] pResource The resource to be deallocated.
   virtual void EnqueueReleaseResource(spDeviceResource* pResource) = 0;
 
+  /// \brief Deallocate a resource now.
+  /// \param [in] hResource The resource to be deallocated.
+  virtual void ReleaseResource(spResourceHandle hResource) = 0;
+
   /// \brief Releases all the enqueued resources.
   virtual void ReleaseResources() = 0;
 
 protected:
+  using spResourceTable = ezIdTable<spResourceHandle::IdType, spDeviceResource*, ezLocalAllocatorWrapper>;
+
   /// \brief Creates a new resource manager for the given device.
   /// \param [in] pDevice The graphics device for which the resource manager will manage resources.
-  spDeviceResourceManager(spDevice* pDevice)
+  explicit spDeviceResourceManager(spDevice* pDevice)
     : m_pDevice(pDevice)
   {
   }
 
   spDevice* m_pDevice;
-
-private:
-  ezArrayMap<spResourceHandle, spDeviceResource*> m_registeredResources;
+  spResourceTable m_RegisteredResources;
 };
 
 /// \brief Default implementation of the resource manager. Use a queue to collect and dispose resources.
@@ -464,9 +471,15 @@ public:
   /// \param [in] pResource The resource to be deallocated.
   void EnqueueReleaseResource(spDeviceResource* pResource) override;
 
+  /// \brief Deallocate a resource now.
+  /// \param [in] hResource The resource to be deallocated.
+  void ReleaseResource(spResourceHandle hResource) override;
+
   /// \brief Releases all the enqueued resources.
   void ReleaseResources() override;
 
 private:
+  void ReleaseResource(spDeviceResource* pResource);
+
   ezDeque<spDeviceResource*> m_ResourcesQueue;
 };

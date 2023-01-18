@@ -63,7 +63,7 @@ struct SP_RHI_DLL spDeviceDescription : public ezHashableStruct<spDeviceDescript
 
 /// \brief Wrapper around the graphics device. Implementations should override this
 /// class and provide platform-specific functionality.
-class SP_RHI_DLL spDevice
+class SP_RHI_DLL spDevice : public ezReflectedClass
 {
 public:
   virtual ~spDevice() = default;
@@ -282,7 +282,9 @@ public:
 protected:
   /// \brief Constructs a new instance of the \see spDevice class.
   /// \param pResourceManager The resource manager for the device.
-  spDevice(const spDeviceDescription& description);
+  spDevice(const spDeviceDescription& description)
+    : m_Description(description)
+  {}
 
   virtual void WaitForIdleInternal() = 0;
   virtual spMappedResource MapInternal(spBuffer* pBuffer, ezEnum<spMapAccess> eAccess) = 0;
@@ -291,7 +293,11 @@ protected:
   virtual void UnMapInternal(spTexture* pTexture, ezUInt32 uiSubresource) = 0;
   virtual void UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, void* pData, ezUInt32 uiSize) = 0;
 
+  spDeviceDescription m_Description;
+
 private:
   spDeviceResourceManager* m_pResourceManager;
   spStagingMemoryPool* m_pStagingMemoryPool;
 };
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDevice);

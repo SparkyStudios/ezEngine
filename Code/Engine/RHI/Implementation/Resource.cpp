@@ -63,13 +63,13 @@ ezUInt32 spMappedResource::GetDepthPitch() const
 
 spDeviceResourceManager::~spDeviceResourceManager()
 {
-  m_registeredResources.Clear();
+  m_RegisteredResources.Clear();
 }
 
 spResourceHandle spDeviceResourceManager::RegisterResource(spDeviceResource* pResource)
 {
-  m_registeredResources.Insert(pResource->GetHandle(), pResource);
-  return pResource->GetHandle();
+  // Set resource handle
+  return pResource->m_Handle = spResourceHandle(m_RegisteredResources.Insert(pResource));
 }
 
 spDeviceResource* spDeviceResourceManager::GetResource(const spResourceHandle& hResource) const
@@ -77,11 +77,10 @@ spDeviceResource* spDeviceResourceManager::GetResource(const spResourceHandle& h
   if (hResource.IsInvalidated())
     return nullptr;
 
-  ezUInt32 index = m_registeredResources.Find(hResource);
-  if (index == ezInvalidIndex)
-    return nullptr;
+  spDeviceResource* pResource = nullptr;
+  m_RegisteredResources.TryGetValue(hResource.GetInternalID(), pResource);
 
-  return m_registeredResources.GetValue(index);
+  return pResource;
 }
 
 ezUInt32 spDeviceResourceManager::IncrementResourceRef(spResourceHandle hResource) const
@@ -125,6 +124,15 @@ void spDefaultDeviceResourceManager::EnqueueReleaseResource(spDeviceResource* pR
   m_ResourcesQueue.PushBack(pResource);
 }
 
+void spDefaultDeviceResourceManager::ReleaseResource(spResourceHandle hResource)
+{
+  spDeviceResource* pResource = GetResource(hResource);
+  if (pResource == nullptr)
+    return;
+
+  ReleaseResource(pResource);
+}
+
 void spDefaultDeviceResourceManager::ReleaseResources()
 {
   while (!m_ResourcesQueue.IsEmpty())
@@ -132,8 +140,16 @@ void spDefaultDeviceResourceManager::ReleaseResources()
     spDeviceResource* pResource = m_ResourcesQueue.PeekBack();
     m_ResourcesQueue.PopBack();
 
-    if (pResource->ReleaseRef() == 0)
-      pResource->ReleaseResource();
+    ReleaseResource(pResource);
+  }
+}
+
+void spDefaultDeviceResourceManager::ReleaseResource(spDeviceResource* pResource)
+{
+  if (pResource->ReleaseRef() == 0)
+  {
+    pResource->ReleaseResource();
+    m_RegisteredResources.Remove(pResource->GetHandle().GetInternalID(), nullptr);
   }
 }
 

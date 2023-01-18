@@ -77,3 +77,5 @@ private:
 
   ezString m_sName;
 };
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spBufferD3D11);

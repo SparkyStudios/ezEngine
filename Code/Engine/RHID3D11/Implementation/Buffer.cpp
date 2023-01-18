@@ -45,7 +45,7 @@ void spBufferD3D11::ReleaseResource()
 void spBufferD3D11::CreateResource()
 {
   D3D11_BUFFER_DESC desc;
-  desc.BindFlags = spBufferUsageToBindFlags(m_Description.m_eUsage);
+  desc.BindFlags = spToD3D11(m_Description.m_eUsage);
   desc.ByteWidth = m_Description.m_uiSize;
   desc.Usage = D3D11_USAGE_DEFAULT;
 

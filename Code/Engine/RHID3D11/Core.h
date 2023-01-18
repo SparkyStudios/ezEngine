@@ -5,7 +5,7 @@
 #include <RHI/Core.h>
 
 /// \brief Coverts a \see spBufferUsage flags into a \see D3D11_BIND_FLAG.
-static UINT spBufferUsageToBindFlags(ezBitflags<spBufferUsage> eUsage)
+static UINT spToD3D11(ezBitflags<spBufferUsage> eUsage)
 {
   UINT flags = 0;
 
@@ -26,9 +26,8 @@ static UINT spBufferUsageToBindFlags(ezBitflags<spBufferUsage> eUsage)
 
   return flags;
 }
-
 /*
-static UINT spPixelFormatToDxgiFormat(ezEnum<spPixelFormat> eFormat, bool bDepthFormat)
+static DXGI_FORMAT spToD3D11(const ezEnum<spPixelFormat>& eFormat, bool bDepthFormat)
 {
   switch (eFormat)
   {
@@ -195,3 +194,90 @@ static UINT spPixelFormatToDxgiFormat(ezEnum<spPixelFormat> eFormat, bool bDepth
   }
 }
 */
+static D3D11_COMPARISON_FUNC spToD3D11(const ezEnum<spDepthStencilComparison>& eFunction)
+{
+  switch (eFunction)
+  {
+    default:
+    case spDepthStencilComparison::None:
+    case spDepthStencilComparison::Never:
+      return D3D11_COMPARISON_NEVER;
+    case spDepthStencilComparison::Equal:
+      return D3D11_COMPARISON_EQUAL;
+    case spDepthStencilComparison::NotEqual:
+      return D3D11_COMPARISON_NOT_EQUAL;
+    case spDepthStencilComparison::Less:
+      return D3D11_COMPARISON_LESS;
+    case spDepthStencilComparison::LessEqual:
+      return D3D11_COMPARISON_LESS_EQUAL;
+    case spDepthStencilComparison::Greater:
+      return D3D11_COMPARISON_GREATER;
+    case spDepthStencilComparison::GreaterEqual:
+      return D3D11_COMPARISON_GREATER_EQUAL;
+    case spDepthStencilComparison::Always:
+      return D3D11_COMPARISON_ALWAYS;
+  }
+}
+
+static D3D11_TEXTURE_ADDRESS_MODE spToD3D11(const ezEnum<spSamplerAddressMode>& eAddressMode)
+{
+  switch (eAddressMode)
+  {
+    default:
+    case spSamplerAddressMode::None:
+      return D3D11_TEXTURE_ADDRESS_CLAMP;
+    case spSamplerAddressMode::Repeat:
+      return D3D11_TEXTURE_ADDRESS_WRAP;
+    case spSamplerAddressMode::ClampToEdge:
+      return D3D11_TEXTURE_ADDRESS_CLAMP;
+    case spSamplerAddressMode::BorderColor:
+      return D3D11_TEXTURE_ADDRESS_BORDER;
+    case spSamplerAddressMode::MirroredRepeat:
+      return D3D11_TEXTURE_ADDRESS_MIRROR;
+  }
+}
+
+static D3D11_FILTER spToD3D11(const ezEnum<spSamplerFilter>& eMinFilter, const ezEnum<spSamplerFilter>& eMagFilter, const ezEnum<spSamplerFilter>& eMipFilter, bool bIsComparison)
+{
+  if (eMipFilter == spSamplerFilter::Linear)
+  {
+    if (eMinFilter == eMagFilter)
+    {
+      if (eMinFilter == spSamplerFilter::Point)
+        return bIsComparison ? D3D11_FILTER_COMPARISON_MIN_MAG_POINT_MIP_LINEAR : D3D11_FILTER_MIN_MAG_POINT_MIP_LINEAR;
+
+      if (eMinFilter == spSamplerFilter::Linear)
+        return bIsComparison ? D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+    }
+    else
+    {
+      if (eMinFilter == spSamplerFilter::Point && eMagFilter == spSamplerFilter::Linear)
+        return bIsComparison ? D3D11_FILTER_COMPARISON_MIN_POINT_MAG_MIP_LINEAR : D3D11_FILTER_MIN_POINT_MAG_MIP_LINEAR;
+
+      if (eMinFilter == spSamplerFilter::Linear && eMagFilter == spSamplerFilter::Point)
+        return bIsComparison ? D3D11_FILTER_COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR : D3D11_FILTER_MIN_LINEAR_MAG_POINT_MIP_LINEAR;
+    }
+  }
+  else
+  {
+    if (eMinFilter == eMagFilter)
+    {
+      if (eMinFilter == spSamplerFilter::Point)
+        return bIsComparison ? D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT : D3D11_FILTER_MIN_MAG_MIP_POINT;
+
+      if (eMinFilter == spSamplerFilter::Linear)
+        return bIsComparison ? D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT : D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
+    }
+    else
+    {
+      if (eMinFilter == spSamplerFilter::Point && eMagFilter == spSamplerFilter::Linear)
+        return bIsComparison ? D3D11_FILTER_COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT : D3D11_FILTER_MIN_POINT_MAG_LINEAR_MIP_POINT;
+
+      if (eMinFilter == spSamplerFilter::Linear && eMagFilter == spSamplerFilter::Point)
+        return bIsComparison ? D3D11_FILTER_COMPARISON_MIN_LINEAR_MAG_MIP_POINT : D3D11_FILTER_MIN_LINEAR_MAG_MIP_POINT;
+    }
+  }
+
+  EZ_ASSERT_NOT_IMPLEMENTED;
+  return D3D11_FILTER_MIN_MAG_MIP_POINT;
+}

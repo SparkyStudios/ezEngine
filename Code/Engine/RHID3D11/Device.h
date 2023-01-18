@@ -14,3 +14,5 @@ public:
 private:
   ID3D11Device* m_pD3D11Device;
 };
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spDeviceD3D11);
