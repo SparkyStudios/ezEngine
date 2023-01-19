@@ -434,6 +434,28 @@ EZ_ALWAYS_INLINE static DXGI_FORMAT spGetViewFormat(DXGI_FORMAT eFormat)
   }
 }
 
+EZ_ALWAYS_INLINE static DXGI_FORMAT spGetDepthFormat(const ezEnum<spPixelFormat>& eFormat)
+{
+  switch (eFormat)
+  {
+    case spPixelFormat::R32Float:
+      return DXGI_FORMAT_D32_FLOAT;
+
+    case spPixelFormat::R16Float:
+      return DXGI_FORMAT_D16_UNORM;
+
+    case spPixelFormat::D24UNormS8UInt:
+      return DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+    case spPixelFormat::D32FloatS8UInt:
+      return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
+
+    default:
+      EZ_ASSERT_DEV(false, "Invalid depth texture pixel format");
+      return DXGI_FORMAT_UNKNOWN;
+  }
+}
+
 EZ_ALWAYS_INLINE static bool spIsCompressedFormat(const ezEnum<spPixelFormat>& eFormat)
 {
   return eFormat == spPixelFormat::Bc1RgbUNorm || eFormat == spPixelFormat::Bc1RgbUNormSRgb || eFormat == spPixelFormat::Bc1RgbaUNorm || eFormat == spPixelFormat::Bc1RgbaUNormSRgb || eFormat == spPixelFormat::Bc2UNorm || eFormat == spPixelFormat::Bc2UNormSRgb || eFormat == spPixelFormat::Bc3UNorm || eFormat == spPixelFormat::Bc3UNormSRgb || eFormat == spPixelFormat::Bc4UNorm || eFormat == spPixelFormat::Bc4SNorm || eFormat == spPixelFormat::Bc5UNorm || eFormat == spPixelFormat::Bc5SNorm || eFormat == spPixelFormat::Bc7UNorm || eFormat == spPixelFormat::Bc7UNormSRgb || eFormat == spPixelFormat::Etc2R8G8B8UNorm || eFormat == spPixelFormat::Etc2R8G8B8A1UNorm || eFormat == spPixelFormat::Etc2R8G8B8A8UNorm;

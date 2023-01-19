@@ -13,7 +13,7 @@ struct SP_RHI_DLL spFramebufferAttachmentDescription : public ezHashableStruct<s
   /// \brief Constructs an empty spFramebufferAttachmentDescription.
   spFramebufferAttachmentDescription()
     : ezHashableStruct<spFramebufferAttachmentDescription>()
-    , m_hTarget()
+      , m_hTarget()
   {
   }
 
@@ -21,7 +21,7 @@ struct SP_RHI_DLL spFramebufferAttachmentDescription : public ezHashableStruct<s
   /// \param hTarget The texture to render into.
   spFramebufferAttachmentDescription(const spResourceHandle& hTarget)
     : ezHashableStruct<spFramebufferAttachmentDescription>()
-    , m_hTarget(hTarget)
+      , m_hTarget(hTarget)
   {
   }
 
@@ -31,9 +31,9 @@ struct SP_RHI_DLL spFramebufferAttachmentDescription : public ezHashableStruct<s
   /// \param uiMipLevel The mip level from the target to render into.
   spFramebufferAttachmentDescription(const spResourceHandle& hTarget, ezUInt32 uiArrayLayer, ezUInt32 uiMipLevel = 0)
     : ezHashableStruct<spFramebufferAttachmentDescription>()
-    , m_hTarget(hTarget)
-    , m_uiArrayLayer(uiArrayLayer)
-    , m_uiMipLevel(uiMipLevel)
+      , m_hTarget(hTarget)
+      , m_uiArrayLayer(uiArrayLayer)
+      , m_uiMipLevel(uiMipLevel)
   {
   }
 
@@ -69,7 +69,7 @@ struct SP_RHI_DLL spFramebufferDescription : public ezHashableStruct<spFramebuff
   /// \brief Constructs an empty spFramebufferDescription.
   spFramebufferDescription()
     : ezHashableStruct<spFramebufferDescription>()
-    , m_DepthTarget(spResourceHandle())
+      , m_DepthTarget(spResourceHandle())
   {
   }
 
@@ -78,7 +78,7 @@ struct SP_RHI_DLL spFramebufferDescription : public ezHashableStruct<spFramebuff
   /// \param [in] colorTargets An array of color targets. All of them must have been created with the spTextureUsage::RenderTarget usage flag.
   spFramebufferDescription(const spResourceHandle& hDepthTarget, const ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS>& colorTargets)
     : ezHashableStruct<spFramebufferDescription>()
-    , m_DepthTarget(hDepthTarget)
+      , m_DepthTarget(hDepthTarget)
   {
     for (ezUInt32 i = 0, l = colorTargets.GetCount(); i < l; i++)
       m_ColorTargets[i] = spFramebufferAttachmentDescription(colorTargets[i]);
@@ -127,13 +127,15 @@ private:
 /// \brief Controls which color and depth textures are set as active render targets.
 class SP_RHI_DLL spFramebuffer : public spDeviceResource
 {
+  friend class spDeviceResourceFactory;
+
 public:
   /// \brief Gets the handle to the depth target attachment associated to this framebuffer. May be an invalid
   /// handle if no depth target was attached.
   EZ_NODISCARD virtual spResourceHandle GetDepthTarget() const = 0;
 
   /// \brief Gets the array of color targets attachment associated to this framebuffer.
-  EZ_NODISCARD virtual const ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS>& GetColorTargets() const = 0;
+  EZ_NODISCARD virtual ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS> GetColorTargets() const = 0;
 
   /// \brief Gets a spOutputDescription giving the formats of depth and color targets.
   EZ_NODISCARD virtual const spOutputDescription& GetOutputDescription() const = 0;
@@ -143,11 +145,6 @@ public:
 
   /// \brief Gets the framebuffer's height;
   EZ_NODISCARD virtual ezUInt32 GetHeight() const = 0;
-
-  /// \brief Resizes the framebuffer.
-  /// \param [in] uiWidth The new width of the framebuffer.
-  /// \param [in] uiHeight The new height of the framebuffer.
-  void virtual Resize(ezUInt32 uiWidth, ezUInt32 uiHeight) = 0;
 
   /// \brief Sets the given color target at the given index in the framebuffer.
   /// \param [in] uiIndex The index of the color target. Must be greater than 0 and less than SP_RHI_MAX_COLOR_TARGETS.
@@ -159,7 +156,15 @@ public:
   /// \param [in] uiArrayLayer The array layer to capture.
   /// \param [in] uiMipLevel The mip level to capture.
   /// \param [out] out_Pixels The output array in which store the captured pixels.
-  void virtual Snapshot(ezUInt32 uiColorTargetIndex, ezUInt32 uiArrayLayer, ezUInt32 uiMipLevel, ezByteArrayPtr& out_Pixels) const = 0;
+  void virtual Snapshot(ezUInt32 uiColorTargetIndex, ezUInt32 uiArrayLayer, ezUInt32 uiMipLevel, ezByteArrayPtr& out_Pixels) = 0;
+
+protected:
+  spFramebuffer(spFramebufferDescription description)
+    : m_Description(description)
+  {
+  }
+
+  spFramebufferDescription m_Description;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spFramebuffer);

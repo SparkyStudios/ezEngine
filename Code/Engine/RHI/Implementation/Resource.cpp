@@ -3,6 +3,18 @@
 #include <RHI/Device.h>
 #include <RHI/Resource.h>
 
+#pragma region spDeferredDeviceResource
+
+void spDeferredDeviceResource::EnsureResourceCreated()
+{
+  if (IsResourceCreated())
+    return;
+
+  CreateResource();
+}
+
+#pragma endregion
+
 #pragma region spMappedResource
 
 spMappedResource::spMappedResource()
@@ -30,6 +42,11 @@ spMappedResource::spMappedResource(const spResourceHandle& hResource, ezEnum<spM
 const spResourceHandle& spMappedResource::GetResource() const
 {
   return m_hResource;
+}
+
+ezEnum<spMapAccess> spMappedResource::GetAccess() const
+{
+  return m_eAccess;
 }
 
 void* spMappedResource::GetData() const
