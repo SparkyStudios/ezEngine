@@ -66,6 +66,11 @@ EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDeviceResource);
 class SP_RHI_DLL spDeferredDeviceResource
 {
 public:
+  spDeferredDeviceResource() = default;
+  virtual ~spDeferredDeviceResource() = default;
+
+  void EnsureResourceCreated();
+
   /// \brief Gets whether the resource has been created.
   EZ_NODISCARD EZ_ALWAYS_INLINE bool IsResourceCreated() const { return m_bIsResourceCreated; }
 
