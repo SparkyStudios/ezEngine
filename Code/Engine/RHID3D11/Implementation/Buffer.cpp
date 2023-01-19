@@ -40,6 +40,8 @@ void spBufferD3D11::ReleaseResource()
     SP_RHI_DX11_RELEASE(buffer.Value());
 
   SP_RHI_DX11_RELEASE(m_pBuffer);
+
+  m_bIsResourceCreated = false;
 }
 
 void spBufferD3D11::CreateResource()
@@ -77,7 +79,7 @@ void spBufferD3D11::CreateResource()
   }
 
   const HRESULT res = m_pD3D11Device->CreateBuffer(&desc, nullptr, &m_pBuffer);
-  EZ_ASSERT_DEV(SUCCEEDED(res), "An error occurred while creating a D3D11 buffer: {}.", (ezUInt32)HRESULT_CODE(res));
+  EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 buffer. Error Code: {}.", (ezUInt32)HRESULT_CODE(res));
 
   m_bIsResourceCreated = true;
 }
@@ -147,7 +149,7 @@ ID3D11ShaderResourceView* spBufferD3D11::CreateShaderResourceView(ezUInt32 uiOff
   }
 
   const HRESULT res = m_pD3D11Device->CreateShaderResourceView(m_pBuffer, &desc, &pSRV);
-  EZ_ASSERT_DEV(SUCCEEDED(res), "An error occurred while creating a D3D11 shader resource view: {}", (ezUInt32)HRESULT_CODE(res));
+  EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 shader resource view for a buffer resource. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
 
   return pSRV;
 }
@@ -174,7 +176,7 @@ ID3D11UnorderedAccessView* spBufferD3D11::CreateUnorderedAccessView(ezUInt32 uiO
   }
 
   const HRESULT res = m_pD3D11Device->CreateUnorderedAccessView(m_pBuffer, &desc, &pUAV);
-  EZ_ASSERT_DEV(SUCCEEDED(res), "An error occurred while creating a D3D11 Unordered Access View: {}", (ezUInt32)HRESULT_CODE(res));
+  EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 unordered access view for a buffer resource. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
 
   return pUAV;
 }
