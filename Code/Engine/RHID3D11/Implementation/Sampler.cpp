@@ -27,7 +27,7 @@ spSamplerStateD3D11::spSamplerStateD3D11(spDeviceD3D11* pDevice, const spSampler
   desc.BorderColor[3] = description.m_BorderColor.a;
 
   const HRESULT res = pDevice->GetD3D11Device()->CreateSamplerState(&desc, &m_pSamplerState);
-  EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 sampler state: {}", (ezUInt32)HRESULT_CODE(res));
+  EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 sampler state. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
 }
 
 spSamplerStateD3D11::~spSamplerStateD3D11()
@@ -91,6 +91,8 @@ void spSamplerD3D11::SetDebugName(const ezString& name)
 void spSamplerD3D11::ReleaseResource()
 {
   m_pDevice->GetResourceManager()->ReleaseResource(m_pSamplerState->GetHandle());
+
+  m_bIsResourceCreated = false;
 }
 
 bool spSamplerD3D11::IsReleased() const

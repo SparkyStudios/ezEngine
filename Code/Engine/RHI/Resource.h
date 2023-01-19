@@ -63,7 +63,7 @@ protected:
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDeviceResource);
 
 /// \brief Abstract class for device resources which are created only when needed.
-class SP_RHI_DLL spDeferredDeviceResource : ezReflectedClass
+class SP_RHI_DLL spDeferredDeviceResource
 {
 public:
   /// \brief Gets whether the resource has been created.

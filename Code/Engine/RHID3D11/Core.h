@@ -288,7 +288,7 @@ static D3D11_FILTER spToD3D11(const ezEnum<spSamplerFilter>& eMinFilter, const e
 
 #pragma region Utility Functions
 
-static DXGI_FORMAT spGetTypelessFormat(DXGI_FORMAT eFormat)
+EZ_ALWAYS_INLINE static DXGI_FORMAT spGetTypelessFormat(DXGI_FORMAT eFormat)
 {
   switch (eFormat)
   {
@@ -413,7 +413,28 @@ static DXGI_FORMAT spGetTypelessFormat(DXGI_FORMAT eFormat)
   }
 }
 
-static bool spIsCompressedFormat(const ezEnum<spPixelFormat>& eFormat)
+EZ_ALWAYS_INLINE static DXGI_FORMAT spGetViewFormat(DXGI_FORMAT eFormat)
+{
+  switch (eFormat)
+  {
+    case DXGI_FORMAT_R16_TYPELESS:
+      return DXGI_FORMAT_R16_UNORM;
+
+    case DXGI_FORMAT_R32_TYPELESS:
+      return DXGI_FORMAT_R32_FLOAT;
+
+    case DXGI_FORMAT_R24G8_TYPELESS:
+      return DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+
+    case DXGI_FORMAT_R32G8X24_TYPELESS:
+      return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
+
+    default:
+      return eFormat;
+  }
+}
+
+EZ_ALWAYS_INLINE static bool spIsCompressedFormat(const ezEnum<spPixelFormat>& eFormat)
 {
   return eFormat == spPixelFormat::Bc1RgbUNorm || eFormat == spPixelFormat::Bc1RgbUNormSRgb || eFormat == spPixelFormat::Bc1RgbaUNorm || eFormat == spPixelFormat::Bc1RgbaUNormSRgb || eFormat == spPixelFormat::Bc2UNorm || eFormat == spPixelFormat::Bc2UNormSRgb || eFormat == spPixelFormat::Bc3UNorm || eFormat == spPixelFormat::Bc3UNormSRgb || eFormat == spPixelFormat::Bc4UNorm || eFormat == spPixelFormat::Bc4SNorm || eFormat == spPixelFormat::Bc5UNorm || eFormat == spPixelFormat::Bc5SNorm || eFormat == spPixelFormat::Bc7UNorm || eFormat == spPixelFormat::Bc7UNormSRgb || eFormat == spPixelFormat::Etc2R8G8B8UNorm || eFormat == spPixelFormat::Etc2R8G8B8A1UNorm || eFormat == spPixelFormat::Etc2R8G8B8A8UNorm;
 }

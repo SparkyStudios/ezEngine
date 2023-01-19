@@ -217,12 +217,9 @@ protected:
 /// \brief A texture resource.
 class SP_RHI_DLL spTexture : public spMappableResource
 {
-public:
-  spTexture(spTextureDescription description)
-    : m_Description(std::move(description))
-  {
-  }
+  friend class spDeviceResourceManager;
 
+public:
   /// \brief Gets the format of individual texture elements stored in this instance.
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spPixelFormat> GetFormat() const { return m_Description.m_eFormat; }
 
@@ -253,6 +250,11 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spTextureSampleCount> GetSampleCount() const { return m_Description.m_eSampleCount; }
 
 protected:
+  explicit spTexture(spTextureDescription description)
+    : m_Description(std::move(description))
+  {
+  }
+
   spTextureDescription m_Description;
 };
 
@@ -261,29 +263,36 @@ EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spTexture);
 /// \brief A texture view resource.
 class SP_RHI_DLL spTextureView : public spMappableResource
 {
+  friend class spTextureView;
+
 public:
   /// \brief Gets the target \see spTexture resource to be sampled via this instance.
-  EZ_NODISCARD virtual spResourceHandle GetTexture() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual spResourceHandle GetTexture() const { return m_Description.m_hTarget; }
 
   /// \brief Gets the base mip level visible in the view.
-  EZ_NODISCARD virtual ezUInt32 GetBaseMipLevel() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetBaseMipLevel() const { return m_Description.m_uiBaseMipLevel; }
 
   /// \brief Gets the number of mipmaps in the view.
-  EZ_NODISCARD virtual ezUInt32 GetMipCount() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetMipCount() const { return m_Description.m_uiMipCount; }
 
   /// \brief Gets the base array layer visible in the view.
-  EZ_NODISCARD virtual ezUInt32 GetBaseArrayLayer() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetBaseArrayLayer() const { return m_Description.m_uiBaseArrayLayer; }
 
   /// \brief Gets the number of array layers in the view.
-  EZ_NODISCARD virtual ezUInt32 GetArrayLayerCount() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetArrayLayerCount() const { return m_Description.m_uiArrayLayers; }
 
   /// \brief Gets the format used to interpret the contents of the target texture.
   ///
   /// \note This may be different than the format specified in the target texture, but
   /// it should be of the same size.
-  EZ_NODISCARD virtual ezEnum<spPixelFormat> GetFormat() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spPixelFormat> GetFormat() const { return m_Description.m_eFormat; }
 
 protected:
+  explicit spTextureView(spTextureViewDescription description)
+    : m_Description(std::move(description))
+  {
+  }
+
   spTextureViewDescription m_Description;
 };
 

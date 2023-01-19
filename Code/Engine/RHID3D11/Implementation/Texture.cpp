@@ -4,7 +4,75 @@
 #include <RHID3D11/Device.h>
 #include <RHID3D11/Texture.h>
 
-#pragma region spTexture
+static D3D11_SHADER_RESOURCE_VIEW_DESC spGetShaderResourceViewDesc(spTextureD3D11* pTexture, ezUInt32 uiBaseMipLevel, ezUInt32 uiMipCount, ezUInt32 uiBaseArrayLayer, ezUInt32 uiArrayLayerCount, const ezEnum<spPixelFormat>& eFormat)
+{
+  D3D11_SHADER_RESOURCE_VIEW_DESC desc;
+  desc.Format = spGetViewFormat(spToD3D11(eFormat, pTexture->GetUsage().IsSet(spTextureUsage::DepthStencil)));
+
+  if (pTexture->GetUsage().IsSet(spTextureUsage::Cubemap))
+  {
+    desc.TextureCube.MipLevels = uiMipCount;
+    desc.TextureCube.MostDetailedMip = uiBaseMipLevel;
+
+    if (pTexture->GetArrayLayerCount() == 1)
+    {
+      desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+    }
+    else
+    {
+      desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
+      desc.TextureCubeArray.First2DArrayFace = uiBaseArrayLayer;
+      desc.TextureCubeArray.NumCubes = uiArrayLayerCount;
+    }
+  }
+  else if (pTexture->GetDepth() == 1)
+  {
+    if (pTexture->GetArrayLayerCount() == 1)
+    {
+      if (pTexture->GetDimension() == spTextureDimension::Texture1D)
+      {
+        desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
+        desc.Texture1D.MipLevels = uiMipCount;
+        desc.Texture1D.MostDetailedMip = uiBaseMipLevel;
+      }
+      else
+      {
+        desc.ViewDimension = pTexture->GetSampleCount() == spTextureSampleCount::None ? D3D11_SRV_DIMENSION_TEXTURE2D : D3D11_SRV_DIMENSION_TEXTURE2DMS;
+        desc.Texture2D.MipLevels = uiMipCount;
+        desc.Texture2D.MostDetailedMip = uiBaseMipLevel;
+      }
+    }
+    else
+    {
+      if (pTexture->GetDimension() == spTextureDimension::Texture1D)
+      {
+        desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1DARRAY;
+        desc.Texture1DArray.MipLevels = uiMipCount;
+        desc.Texture1DArray.MostDetailedMip = uiBaseMipLevel;
+        desc.Texture1DArray.FirstArraySlice = uiBaseArrayLayer;
+        desc.Texture1DArray.ArraySize = uiArrayLayerCount;
+      }
+      else
+      {
+        desc.ViewDimension = pTexture->GetSampleCount() == spTextureSampleCount::None ? D3D11_SRV_DIMENSION_TEXTURE2DARRAY : D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
+        desc.Texture2DArray.MipLevels = uiMipCount;
+        desc.Texture2DArray.MostDetailedMip = uiBaseMipLevel;
+        desc.Texture2DArray.FirstArraySlice = uiBaseArrayLayer;
+        desc.Texture2DArray.ArraySize = uiArrayLayerCount;
+      }
+    }
+  }
+  else
+  {
+    desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
+    desc.Texture3D.MipLevels = uiMipCount;
+    desc.Texture3D.MostDetailedMip = uiBaseMipLevel;
+  }
+
+  return desc;
+}
+
+#pragma region spTextureD3D11
 
 spTextureD3D11::spTextureD3D11(spDeviceD3D11* pDevice, const spTextureDescription& description)
   : spTexture(description)
@@ -32,6 +100,8 @@ void spTextureD3D11::SetDebugName(const ezString& debugName)
 void spTextureD3D11::ReleaseResource()
 {
   SP_RHI_DX11_RELEASE(m_pTexture);
+
+  m_bIsResourceCreated = false;
 }
 
 bool spTextureD3D11::IsReleased() const
@@ -98,7 +168,7 @@ void spTextureD3D11::CreateResource()
     desc.MiscFlags = uiOptionFlags;
 
     const HRESULT res = m_pD3D11Device->CreateTexture1D(&desc, nullptr, reinterpret_cast<ID3D11Texture1D**>(&m_pTexture));
-    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 texture: {}", (ezUInt32)HRESULT_CODE(res));
+    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 texture. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
   }
   else if (m_Description.m_eDimension == spTextureDimension::Texture2D)
   {
@@ -115,7 +185,7 @@ void spTextureD3D11::CreateResource()
     desc.MiscFlags = uiOptionFlags;
 
     const HRESULT res = m_pD3D11Device->CreateTexture2D(&desc, nullptr, reinterpret_cast<ID3D11Texture2D**>(&m_pTexture));
-    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 texture: {}", (ezUInt32)HRESULT_CODE(res));
+    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 texture. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
   }
   else if (m_Description.m_eDimension == spTextureDimension::Texture3D)
   {
@@ -131,7 +201,7 @@ void spTextureD3D11::CreateResource()
     desc.MiscFlags = uiOptionFlags;
 
     const HRESULT res = m_pD3D11Device->CreateTexture3D(&desc, nullptr, reinterpret_cast<ID3D11Texture3D**>(&m_pTexture));
-    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 texture: {}", (ezUInt32)HRESULT_CODE(res));
+    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 texture. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
   }
   else
   {
@@ -139,6 +209,128 @@ void spTextureD3D11::CreateResource()
   }
 
   m_bIsResourceCreated = true;
+}
+
+ID3D11Resource* spTextureD3D11::GetD3D11Texture() const
+{
+  return m_pTexture;
+}
+
+#pragma endregion
+
+#pragma region spTextureViewD3D11
+
+void spTextureViewD3D11::SetDebugName(const ezString& debugName)
+{
+  spDeviceResource::SetDebugName(debugName);
+
+  ezStringBuilder sSRVDebugName(debugName);
+  sSRVDebugName.Append("_SRV");
+
+  ezStringBuilder sUAVDebugName(debugName);
+  sUAVDebugName.Append("_UAV");
+
+  m_pShaderResourceView->SetPrivateData(WKPDID_D3DDebugObjectName, sSRVDebugName.GetElementCount(), sSRVDebugName.GetData());
+  m_pUnorderedAccessView->SetPrivateData(WKPDID_D3DDebugObjectName, sUAVDebugName.GetElementCount(), sUAVDebugName.GetData());
+}
+
+void spTextureViewD3D11::ReleaseResource()
+{
+  SP_RHI_DX11_RELEASE(m_pShaderResourceView);
+  SP_RHI_DX11_RELEASE(m_pUnorderedAccessView);
+
+  m_bIsResourceCreated = false;
+}
+
+bool spTextureViewD3D11::IsReleased() const
+{
+  return m_pShaderResourceView == nullptr && m_pUnorderedAccessView == nullptr;
+}
+
+void spTextureViewD3D11::CreateResource()
+{
+  auto* pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(m_Description.m_hTarget);
+  EZ_ASSERT_DEV(pTexture != nullptr, "Texture view resource using invalid texture resource as a target.");
+
+  // SRV
+  {
+    D3D11_SHADER_RESOURCE_VIEW_DESC desc = spGetShaderResourceViewDesc(pTexture, m_Description.m_uiBaseMipLevel, m_Description.m_uiMipCount, m_Description.m_uiBaseArrayLayer, m_Description.m_uiArrayLayers, m_Description.m_eFormat);
+
+    const HRESULT res = m_pD3D11Device->CreateShaderResourceView(pTexture->GetD3D11Texture(), &desc, &m_pShaderResourceView);
+    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 shader resource view for a texture view resource. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
+  }
+
+  // UAV
+  if (pTexture->GetUsage().IsSet(spTextureUsage::Storage))
+  {
+    D3D11_UNORDERED_ACCESS_VIEW_DESC desc;
+    desc.Format = spGetViewFormat(pTexture->m_eFormat);
+
+    if (pTexture->GetUsage().IsSet(spTextureUsage::Cubemap))
+    {
+      EZ_ASSERT_NOT_IMPLEMENTED
+    }
+    else if (pTexture->GetDepth() == 1)
+    {
+      if (pTexture->GetArrayLayerCount() == 1)
+      {
+        if (pTexture->GetDimension() == spTextureDimension::Texture1D)
+        {
+          desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
+          desc.Texture1D.MipSlice = m_Description.m_uiBaseMipLevel;
+        }
+        else
+        {
+          desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+          desc.Texture2D.MipSlice = m_Description.m_uiBaseMipLevel;
+        }
+      }
+      else
+      {
+        if (pTexture->GetDimension() == spTextureDimension::Texture1D)
+        {
+          desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1DARRAY;
+          desc.Texture1DArray.MipSlice = m_Description.m_uiBaseMipLevel;
+          desc.Texture1DArray.FirstArraySlice = m_Description.m_uiBaseArrayLayer;
+          desc.Texture1DArray.ArraySize = m_Description.m_uiArrayLayers;
+        }
+        else
+        {
+          desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
+          desc.Texture2DArray.MipSlice = m_Description.m_uiBaseMipLevel;
+          desc.Texture2DArray.FirstArraySlice = m_Description.m_uiBaseArrayLayer;
+          desc.Texture2DArray.ArraySize = m_Description.m_uiArrayLayers;
+        }
+      }
+    }
+    else
+    {
+      desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
+      desc.Texture3D.MipSlice = m_Description.m_uiBaseMipLevel;
+
+      // Maps the entire range of the 3D texture
+      desc.Texture3D.FirstWSlice = 0;
+      desc.Texture3D.WSize = pTexture->GetDepth();
+    }
+
+    const HRESULT res = m_pD3D11Device->CreateUnorderedAccessView(pTexture->GetD3D11Texture(), &desc, &m_pUnorderedAccessView);
+    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 unordered access view for a texture view resource. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
+  }
+
+  m_bIsResourceCreated = true;
+}
+
+spTextureViewD3D11::spTextureViewD3D11(spDeviceD3D11* pDevice, const spTextureViewDescription& description)
+  : spTextureView(description)
+{
+  m_pDevice = pDevice;
+  m_pD3D11Device = pDevice->GetD3D11Device();
+}
+
+spTextureViewD3D11::~spTextureViewD3D11()
+{
+  SP_RHI_DX11_RELEASE(m_pShaderResourceView);
+  SP_RHI_DX11_RELEASE(m_pUnorderedAccessView);
 }
 
 #pragma endregion
