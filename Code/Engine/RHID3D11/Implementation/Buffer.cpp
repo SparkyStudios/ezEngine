@@ -78,6 +78,8 @@ void spBufferD3D11::CreateResource()
 
   const HRESULT res = m_pD3D11Device->CreateBuffer(&desc, nullptr, &m_pBuffer);
   EZ_ASSERT_DEV(SUCCEEDED(res), "An error occurred while creating a D3D11 buffer: {}.", (ezUInt32)HRESULT_CODE(res));
+
+  m_bIsResourceCreated = true;
 }
 
 spBufferD3D11::spBufferD3D11(spDeviceD3D11* pDevice, const spBufferDescription& description)

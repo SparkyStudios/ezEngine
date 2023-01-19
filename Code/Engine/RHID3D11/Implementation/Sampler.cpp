@@ -77,6 +77,8 @@ void spSamplerD3D11::CreateResource()
 
   m_pSamplerState = new spSamplerStateD3D11(ezStaticCast<spDeviceD3D11*>(m_pDevice), m_Description);
   m_pDevice->GetResourceManager()->RegisterResource(m_pSamplerState);
+
+  m_bIsResourceCreated = true;
 }
 
 void spSamplerD3D11::SetDebugName(const ezString& name)
