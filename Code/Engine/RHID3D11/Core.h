@@ -4,6 +4,8 @@
 
 #include <RHI/Core.h>
 
+#pragma region Conversion Functions
+
 /// \brief Coverts a \see spBufferUsage flags into a \see D3D11_BIND_FLAG.
 static UINT spToD3D11(ezBitflags<spBufferUsage> eUsage)
 {
@@ -26,7 +28,7 @@ static UINT spToD3D11(ezBitflags<spBufferUsage> eUsage)
 
   return flags;
 }
-/*
+
 static DXGI_FORMAT spToD3D11(const ezEnum<spPixelFormat>& eFormat, bool bDepthFormat)
 {
   switch (eFormat)
@@ -193,7 +195,7 @@ static DXGI_FORMAT spToD3D11(const ezEnum<spPixelFormat>& eFormat, bool bDepthFo
       return DXGI_FORMAT_UNKNOWN;
   }
 }
-*/
+
 static D3D11_COMPARISON_FUNC spToD3D11(const ezEnum<spDepthStencilComparison>& eFunction)
 {
   switch (eFunction)
@@ -281,3 +283,139 @@ static D3D11_FILTER spToD3D11(const ezEnum<spSamplerFilter>& eMinFilter, const e
   EZ_ASSERT_NOT_IMPLEMENTED;
   return D3D11_FILTER_MIN_MAG_MIP_POINT;
 }
+
+#pragma endregion
+
+#pragma region Utility Functions
+
+static DXGI_FORMAT spGetTypelessFormat(DXGI_FORMAT eFormat)
+{
+  switch (eFormat)
+  {
+    case DXGI_FORMAT_UNKNOWN:
+      return DXGI_FORMAT_UNKNOWN;
+
+    case DXGI_FORMAT_R32G32B32A32_FLOAT:
+    case DXGI_FORMAT_R32G32B32A32_UINT:
+    case DXGI_FORMAT_R32G32B32A32_SINT:
+      return DXGI_FORMAT_R32G32B32A32_TYPELESS;
+
+    case DXGI_FORMAT_R32G32B32_FLOAT:
+    case DXGI_FORMAT_R32G32B32_UINT:
+    case DXGI_FORMAT_R32G32B32_SINT:
+      return DXGI_FORMAT_R32G32B32_TYPELESS;
+
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+    case DXGI_FORMAT_R16G16B16A16_UNORM:
+    case DXGI_FORMAT_R16G16B16A16_UINT:
+    case DXGI_FORMAT_R16G16B16A16_SNORM:
+    case DXGI_FORMAT_R16G16B16A16_SINT:
+      return DXGI_FORMAT_R16G16B16A16_TYPELESS;
+
+    case DXGI_FORMAT_R32G32_FLOAT:
+    case DXGI_FORMAT_R32G32_UINT:
+    case DXGI_FORMAT_R32G32_SINT:
+      return DXGI_FORMAT_R32G32_TYPELESS;
+
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+    case DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS:
+    case DXGI_FORMAT_X32_TYPELESS_G8X24_UINT:
+      return DXGI_FORMAT_R32G8X24_TYPELESS;
+
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+    case DXGI_FORMAT_R10G10B10A2_UINT:
+      return DXGI_FORMAT_R10G10B10A2_TYPELESS;
+
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+    case DXGI_FORMAT_R8G8B8A8_UINT:
+    case DXGI_FORMAT_R8G8B8A8_SNORM:
+    case DXGI_FORMAT_R8G8B8A8_SINT:
+      return DXGI_FORMAT_R8G8B8A8_TYPELESS;
+
+    case DXGI_FORMAT_R16G16_FLOAT:
+    case DXGI_FORMAT_R16G16_UNORM:
+    case DXGI_FORMAT_R16G16_UINT:
+    case DXGI_FORMAT_R16G16_SNORM:
+    case DXGI_FORMAT_R16G16_SINT:
+      return DXGI_FORMAT_R16G16_TYPELESS;
+
+    case DXGI_FORMAT_D32_FLOAT:
+    case DXGI_FORMAT_R32_FLOAT:
+    case DXGI_FORMAT_R32_UINT:
+    case DXGI_FORMAT_R32_SINT:
+      return DXGI_FORMAT_R32_TYPELESS;
+
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+    case DXGI_FORMAT_R24_UNORM_X8_TYPELESS:
+    case DXGI_FORMAT_X24_TYPELESS_G8_UINT:
+      return DXGI_FORMAT_R24G8_TYPELESS;
+
+    case DXGI_FORMAT_R8G8_UNORM:
+    case DXGI_FORMAT_R8G8_UINT:
+    case DXGI_FORMAT_R8G8_SNORM:
+    case DXGI_FORMAT_R8G8_SINT:
+      return DXGI_FORMAT_R8G8_TYPELESS;
+
+    case DXGI_FORMAT_R16_FLOAT:
+    case DXGI_FORMAT_D16_UNORM:
+    case DXGI_FORMAT_R16_UNORM:
+    case DXGI_FORMAT_R16_UINT:
+    case DXGI_FORMAT_R16_SNORM:
+    case DXGI_FORMAT_R16_SINT:
+      return DXGI_FORMAT_R16_TYPELESS;
+
+    case DXGI_FORMAT_R8_UNORM:
+    case DXGI_FORMAT_R8_UINT:
+    case DXGI_FORMAT_R8_SNORM:
+    case DXGI_FORMAT_R8_SINT:
+    case DXGI_FORMAT_A8_UNORM:
+      return DXGI_FORMAT_R8_TYPELESS;
+
+    case DXGI_FORMAT_BC1_UNORM:
+    case DXGI_FORMAT_BC1_UNORM_SRGB:
+      return DXGI_FORMAT_BC1_TYPELESS;
+
+    case DXGI_FORMAT_BC2_UNORM:
+    case DXGI_FORMAT_BC2_UNORM_SRGB:
+      return DXGI_FORMAT_BC2_TYPELESS;
+
+    case DXGI_FORMAT_BC3_UNORM:
+    case DXGI_FORMAT_BC3_UNORM_SRGB:
+      return DXGI_FORMAT_BC3_TYPELESS;
+
+    case DXGI_FORMAT_BC4_UNORM:
+    case DXGI_FORMAT_BC4_SNORM:
+      return DXGI_FORMAT_BC4_TYPELESS;
+
+    case DXGI_FORMAT_BC5_UNORM:
+    case DXGI_FORMAT_BC5_SNORM:
+      return DXGI_FORMAT_BC5_TYPELESS;
+
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
+    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+      return DXGI_FORMAT_B8G8R8A8_TYPELESS;
+
+    case DXGI_FORMAT_B8G8R8X8_UNORM:
+    case DXGI_FORMAT_B8G8R8X8_UNORM_SRGB:
+      return DXGI_FORMAT_B8G8R8X8_TYPELESS;
+
+    case DXGI_FORMAT_BC6H_UF16:
+    case DXGI_FORMAT_BC6H_SF16:
+      return DXGI_FORMAT_BC6H_TYPELESS;
+
+    case DXGI_FORMAT_BC7_UNORM:
+    case DXGI_FORMAT_BC7_UNORM_SRGB:
+      return DXGI_FORMAT_BC7_TYPELESS;
+
+    default:
+      return eFormat;
+  }
+}
+
+static bool spIsCompressedFormat(const ezEnum<spPixelFormat>& eFormat)
+{
+  return eFormat == spPixelFormat::Bc1RgbUNorm || eFormat == spPixelFormat::Bc1RgbUNormSRgb || eFormat == spPixelFormat::Bc1RgbaUNorm || eFormat == spPixelFormat::Bc1RgbaUNormSRgb || eFormat == spPixelFormat::Bc2UNorm || eFormat == spPixelFormat::Bc2UNormSRgb || eFormat == spPixelFormat::Bc3UNorm || eFormat == spPixelFormat::Bc3UNormSRgb || eFormat == spPixelFormat::Bc4UNorm || eFormat == spPixelFormat::Bc4SNorm || eFormat == spPixelFormat::Bc5UNorm || eFormat == spPixelFormat::Bc5SNorm || eFormat == spPixelFormat::Bc7UNorm || eFormat == spPixelFormat::Bc7UNormSRgb || eFormat == spPixelFormat::Etc2R8G8B8UNorm || eFormat == spPixelFormat::Etc2R8G8B8A1UNorm || eFormat == spPixelFormat::Etc2R8G8B8A8UNorm;
+}
+
+#pragma endregion
