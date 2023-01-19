@@ -66,7 +66,6 @@ private:
   ID3D11ShaderResourceView* CreateShaderResourceView(ezUInt32 uiOffset, ezUInt32 uiSize) const;
   ID3D11UnorderedAccessView* CreateUnorderedAccessView(ezUInt32 uiOffset, ezUInt32 uiSize) const;
 
-private:
   ID3D11Device* m_pD3D11Device{nullptr};
   ID3D11Buffer* m_pBuffer{nullptr};
 
@@ -74,8 +73,6 @@ private:
   ezMap<OffsetSizePair, ID3D11UnorderedAccessView*> m_pUnorderedAccessViews;
 
   ezMutex m_AccessViewLock;
-
-  ezString m_sName;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spBufferD3D11);

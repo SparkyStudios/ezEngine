@@ -4,7 +4,7 @@
 
 #include <RHI/Texture.h>
 
-class spTextureD3D11 final : public spTexture, public spDeferredDeviceResource
+class SP_RHID3D11_DLL spTextureD3D11 final : public spTexture, public spDeferredDeviceResource
 {
   friend class spTextureViewD3D11;
 
@@ -36,7 +36,7 @@ private:
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spTextureD3D11);
 
-class spTextureViewD3D11 : public spTextureView, public spDeferredDeviceResource
+class SP_RHID3D11_DLL spTextureViewD3D11 : public spTextureView, public spDeferredDeviceResource
 {
 public:
   // spDeviceResource

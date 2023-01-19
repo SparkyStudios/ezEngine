@@ -6,7 +6,7 @@
 
 #include <RHI/Fence.h>
 
-class spFenceD3D11 final : public spFence
+class SP_RHID3D11_DLL spFenceD3D11 final : public spFence
 {
   friend class spDeviceResourceFactoryD3D11;
 
