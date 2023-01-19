@@ -8,7 +8,7 @@
 
 class spDeviceD3D11;
 
-class spFramebufferD3D11 : public spFramebuffer, public spDeferredDeviceResource
+class SP_RHID3D11_DLL spFramebufferD3D11 : public spFramebuffer, public spDeferredDeviceResource
 {
 public:
   // spDeviceResource
