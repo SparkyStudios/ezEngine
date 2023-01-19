@@ -218,34 +218,42 @@ protected:
 class SP_RHI_DLL spTexture : public spMappableResource
 {
 public:
+  spTexture(spTextureDescription description)
+    : m_Description(std::move(description))
+  {
+  }
+
   /// \brief Gets the format of individual texture elements stored in this instance.
-  EZ_NODISCARD virtual ezEnum<spPixelFormat> GetFormat() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spPixelFormat> GetFormat() const { return m_Description.m_eFormat; }
 
   /// \brief Gets the total width of this instance.
-  EZ_NODISCARD virtual ezUInt32 GetWidth() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetWidth() const { return m_Description.m_uiWidth; }
 
   /// \brief Gets the total height of this instance.
-  EZ_NODISCARD virtual ezUInt32 GetHeight() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetHeight() const { return m_Description.m_uiHeight; }
 
   /// \brief Gets the total depth of this instance.
-  EZ_NODISCARD virtual ezUInt32 GetDepth() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetDepth() const { return m_Description.m_uiDepth; }
 
   /// \brief Gets the total number of mipmaps of this instance.
-  EZ_NODISCARD virtual ezUInt32 GetMipCount() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetMipCount() const { return m_Description.m_uiMipCount; }
 
   /// \brief Gets the total number of array slices of this instance.
-  EZ_NODISCARD virtual ezUInt32 GetArrayLayerCount() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetArrayLayerCount() const { return m_Description.m_uiArrayLayers; }
 
   /// \brief Gets the usage flags given when this instance was created. This property controls how
   /// this instance is permitted to be used, and it is an error to attempt to use the texture outside of those contexts.
-  EZ_NODISCARD virtual ezBitflags<spTextureUsage> GetUsage() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezBitflags<spTextureUsage> GetUsage() const { return m_Description.m_eUsage; }
 
   /// \brief Gets the dimensions of this instance.
-  EZ_NODISCARD virtual ezEnum<spTextureDimension> GetDimension() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spTextureDimension> GetDimension() const { return m_Description.m_eDimension; }
 
   /// \brief Gets the number os samples in this instance. If this returns any value other than
   /// \see spTextureSampleCount::None, the instance is considered a multisampled texture.
-  EZ_NODISCARD virtual ezEnum<spTextureSampleCount> GetSampleCount() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spTextureSampleCount> GetSampleCount() const { return m_Description.m_eSampleCount; }
+
+protected:
+  spTextureDescription m_Description;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spTexture);
@@ -274,6 +282,9 @@ public:
   /// \note This may be different than the format specified in the target texture, but
   /// it should be of the same size.
   EZ_NODISCARD virtual ezEnum<spPixelFormat> GetFormat() const = 0;
+
+protected:
+  spTextureViewDescription m_Description;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spTextureView);
