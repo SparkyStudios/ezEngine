@@ -4,10 +4,192 @@
 
 #include <RHI/Core.h>
 
+#pragma region Structs
+
+template <typename T>
+class spD3D11ScopedResource
+{
+public:
+  explicit spD3D11ScopedResource(T* resource = nullptr)
+    : m_pResource(resource)
+  {
+  }
+
+  ~spD3D11ScopedResource()
+  {
+    SP_RHI_DX11_RELEASE(m_pResource);
+  }
+
+  EZ_ALWAYS_INLINE T* operator*() const
+  {
+    return m_pResource;
+  }
+
+  EZ_ALWAYS_INLINE T** operator&() const
+  {
+    return &m_pResource;
+  }
+
+  EZ_ALWAYS_INLINE T* operator->() const
+  {
+    return static_cast<T*>(m_pResource);
+  }
+
+  EZ_ALWAYS_INLINE T* operator*()
+  {
+    return m_pResource;
+  }
+
+  EZ_ALWAYS_INLINE T** operator&()
+  {
+    return &m_pResource;
+  }
+
+  EZ_ALWAYS_INLINE T* operator->()
+  {
+    return static_cast<T*>(m_pResource);
+  }
+
+private:
+  T* m_pResource;
+};
+
+#pragma endregion
+
 #pragma region Conversion Functions
 
+EZ_ALWAYS_INLINE static ezEnum<spPixelFormat> spFromD3D11(DXGI_FORMAT eFormat)
+{
+  switch (eFormat)
+  {
+    case DXGI_FORMAT_R8_UNORM:
+      return spPixelFormat::R8UNorm;
+    case DXGI_FORMAT_R8_SNORM:
+      return spPixelFormat::R8SNorm;
+    case DXGI_FORMAT_R8_UINT:
+      return spPixelFormat::R8UInt;
+    case DXGI_FORMAT_R8_SINT:
+      return spPixelFormat::R8SInt;
+
+    case DXGI_FORMAT_R16_UNORM:
+    case DXGI_FORMAT_D16_UNORM:
+      return spPixelFormat::R16UNorm;
+    case DXGI_FORMAT_R16_SNORM:
+      return spPixelFormat::R16SNorm;
+    case DXGI_FORMAT_R16_UINT:
+      return spPixelFormat::R16UInt;
+    case DXGI_FORMAT_R16_SINT:
+      return spPixelFormat::R16SInt;
+    case DXGI_FORMAT_R16_FLOAT:
+      return spPixelFormat::R16Float;
+
+    case DXGI_FORMAT_R32_UINT:
+      return spPixelFormat::R32UInt;
+    case DXGI_FORMAT_R32_SINT:
+      return spPixelFormat::R32SInt;
+    case DXGI_FORMAT_R32_FLOAT:
+    case DXGI_FORMAT_D32_FLOAT:
+      return spPixelFormat::R32Float;
+
+    case DXGI_FORMAT_R8G8_UNORM:
+      return spPixelFormat::R8G8UNorm;
+    case DXGI_FORMAT_R8G8_SNORM:
+      return spPixelFormat::R8G8SNorm;
+    case DXGI_FORMAT_R8G8_UINT:
+      return spPixelFormat::R8G8UInt;
+    case DXGI_FORMAT_R8G8_SINT:
+      return spPixelFormat::R8G8SInt;
+
+    case DXGI_FORMAT_R16G16_UNORM:
+      return spPixelFormat::R16G16UNorm;
+    case DXGI_FORMAT_R16G16_SNORM:
+      return spPixelFormat::R16G16SNorm;
+    case DXGI_FORMAT_R16G16_UINT:
+      return spPixelFormat::R16G16UInt;
+    case DXGI_FORMAT_R16G16_SINT:
+      return spPixelFormat::R16G16SInt;
+    case DXGI_FORMAT_R16G16_FLOAT:
+      return spPixelFormat::R16G16Float;
+
+    case DXGI_FORMAT_R32G32_UINT:
+      return spPixelFormat::R32G32UInt;
+    case DXGI_FORMAT_R32G32_SINT:
+      return spPixelFormat::R32G32SInt;
+    case DXGI_FORMAT_R32G32_FLOAT:
+      return spPixelFormat::R32G32Float;
+
+    case DXGI_FORMAT_R8G8B8A8_UNORM:
+      return spPixelFormat::R8G8B8A8UNorm;
+    case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+      return spPixelFormat::R8G8B8A8UNormSRgb;
+
+    case DXGI_FORMAT_B8G8R8A8_UNORM:
+      return spPixelFormat::B8G8R8A8UNorm;
+    case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+      return spPixelFormat::B8G8R8A8UNormSRgb;
+    case DXGI_FORMAT_R8G8B8A8_SNORM:
+      return spPixelFormat::R8G8B8A8SNorm;
+    case DXGI_FORMAT_R8G8B8A8_UINT:
+      return spPixelFormat::R8G8B8A8UInt;
+    case DXGI_FORMAT_R8G8B8A8_SINT:
+      return spPixelFormat::R8G8B8A8SInt;
+
+    case DXGI_FORMAT_R16G16B16A16_UNORM:
+      return spPixelFormat::R16G16B16A16UNorm;
+    case DXGI_FORMAT_R16G16B16A16_SNORM:
+      return spPixelFormat::R16G16B16A16SNorm;
+    case DXGI_FORMAT_R16G16B16A16_UINT:
+      return spPixelFormat::R16G16B16A16UInt;
+    case DXGI_FORMAT_R16G16B16A16_SINT:
+      return spPixelFormat::R16G16B16A16SInt;
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+      return spPixelFormat::R16G16B16A16Float;
+
+    case DXGI_FORMAT_R32G32B32A32_UINT:
+      return spPixelFormat::R32G32B32A32UInt;
+    case DXGI_FORMAT_R32G32B32A32_SINT:
+      return spPixelFormat::R32G32B32A32SInt;
+    case DXGI_FORMAT_R32G32B32A32_FLOAT:
+      return spPixelFormat::R32G32B32A32Float;
+
+    case DXGI_FORMAT_BC1_UNORM:
+    case DXGI_FORMAT_BC1_TYPELESS:
+      return spPixelFormat::Bc1RgbaUNorm;
+    case DXGI_FORMAT_BC2_UNORM:
+      return spPixelFormat::Bc2UNorm;
+    case DXGI_FORMAT_BC3_UNORM:
+      return spPixelFormat::Bc3UNorm;
+    case DXGI_FORMAT_BC4_UNORM:
+      return spPixelFormat::Bc4UNorm;
+    case DXGI_FORMAT_BC4_SNORM:
+      return spPixelFormat::Bc4SNorm;
+    case DXGI_FORMAT_BC5_UNORM:
+      return spPixelFormat::Bc5UNorm;
+    case DXGI_FORMAT_BC5_SNORM:
+      return spPixelFormat::Bc5SNorm;
+    case DXGI_FORMAT_BC7_UNORM:
+      return spPixelFormat::Bc7UNorm;
+
+    case DXGI_FORMAT_D24_UNORM_S8_UINT:
+      return spPixelFormat::D24UNormS8UInt;
+    case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
+      return spPixelFormat::D32FloatS8UInt;
+
+    case DXGI_FORMAT_R10G10B10A2_UINT:
+      return spPixelFormat::R10G10B10A2UInt;
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+      return spPixelFormat::R10G10B10A2UNorm;
+    case DXGI_FORMAT_R11G11B10_FLOAT:
+      return spPixelFormat::R11G11B10Float;
+
+    default:
+      EZ_ASSERT_NOT_IMPLEMENTED
+      break;
+  }
+}
+
 /// \brief Coverts a \see spBufferUsage flags into a \see D3D11_BIND_FLAG.
-static UINT spToD3D11(ezBitflags<spBufferUsage> eUsage)
+EZ_ALWAYS_INLINE static UINT spToD3D11(ezBitflags<spBufferUsage> eUsage)
 {
   UINT flags = 0;
 
@@ -459,6 +641,33 @@ EZ_ALWAYS_INLINE static DXGI_FORMAT spGetDepthFormat(const ezEnum<spPixelFormat>
 EZ_ALWAYS_INLINE static bool spIsCompressedFormat(const ezEnum<spPixelFormat>& eFormat)
 {
   return eFormat == spPixelFormat::Bc1RgbUNorm || eFormat == spPixelFormat::Bc1RgbUNormSRgb || eFormat == spPixelFormat::Bc1RgbaUNorm || eFormat == spPixelFormat::Bc1RgbaUNormSRgb || eFormat == spPixelFormat::Bc2UNorm || eFormat == spPixelFormat::Bc2UNormSRgb || eFormat == spPixelFormat::Bc3UNorm || eFormat == spPixelFormat::Bc3UNormSRgb || eFormat == spPixelFormat::Bc4UNorm || eFormat == spPixelFormat::Bc4SNorm || eFormat == spPixelFormat::Bc5UNorm || eFormat == spPixelFormat::Bc5SNorm || eFormat == spPixelFormat::Bc7UNorm || eFormat == spPixelFormat::Bc7UNormSRgb || eFormat == spPixelFormat::Etc2R8G8B8UNorm || eFormat == spPixelFormat::Etc2R8G8B8A1UNorm || eFormat == spPixelFormat::Etc2R8G8B8A8UNorm;
+}
+
+EZ_ALWAYS_INLINE static ezBitflags<spTextureUsage> spGetTextureUsage(UINT bindFlags, UINT cpuAccessFlags, UINT optionFlags)
+{
+  ezBitflags<spTextureUsage> usage;
+
+  if ((bindFlags & D3D11_BIND_RENDER_TARGET) != 0)
+    usage |= spTextureUsage::RenderTarget;
+
+  if ((bindFlags & D3D11_BIND_DEPTH_STENCIL) != 0)
+    usage |= spTextureUsage::DepthStencil;
+
+  if ((bindFlags & D3D11_BIND_SHADER_RESOURCE) != 0)
+    usage |= spTextureUsage::Sampled;
+
+  if ((bindFlags & D3D11_BIND_UNORDERED_ACCESS) != 0)
+    usage |= spTextureUsage::Storage;
+
+  if ((optionFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0)
+    usage |= spTextureUsage::Cubemap;
+
+  if ((optionFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS) != 0)
+  {
+    usage |= spTextureUsage::GenerateMipmaps;
+  }
+
+  return usage;
 }
 
 #pragma endregion

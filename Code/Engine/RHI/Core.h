@@ -4,11 +4,14 @@
 
 #include <Foundation/Math/Rect.h>
 
-/// \brief The maximum number of color targets in a frame buffer.
-#define SP_RHI_MAX_COLOR_TARGETS 8
+enum SP_RHI_CONSTANTS
+{
+  /// \brief The maximum number of color targets in a frame buffer.
+  SP_RHI_MAX_COLOR_TARGETS = 8,
 
-/// \brief The maximum multi-buffering mode supported by the RHI.
-#define SP_RHI_MAX_BUFFERING_LEVEL 3
+  /// \brief The maximum multi-buffering mode supported by the RHI.
+  SP_RHI_MAX_BUFFERING_LEVEL = 3
+};
 
 typedef ezGenericId<28, 4> spResourceHandleId;
 typedef ezGenericId<24, 8> spContextHandleId;
@@ -40,12 +43,12 @@ struct SP_RHI_DLL spViewport : ezHashableStruct<spViewport>
   }
 
   /// \brief Creates a new \see Viewport instance.
-  /// \param x The position over the X-axis of the viewport origin.
-  /// \param y The position over the Y-axis of the viewport origin.
-  /// \param width The viewport width.
-  /// \param height The viewport height.
-  /// \param minDepth The viewport minimum depth.
-  /// \param maxDepth The viewport maximum depth.
+  /// \param iX The position over the X-axis of the viewport origin.
+  /// \param iY The position over the Y-axis of the viewport origin.
+  /// \param uiWidth The viewport width.
+  /// \param uiHeight The viewport height.
+  /// \param fMinDepth The viewport minimum depth.
+  /// \param fMaxDepth The viewport maximum depth.
   spViewport(ezInt32 iX, ezInt32 iY, ezUInt32 uiWidth, ezUInt32 uiHeight, float fMinDepth, float fMaxDepth)
     : ezHashableStruct<spViewport>()
     , m_iX(iX)

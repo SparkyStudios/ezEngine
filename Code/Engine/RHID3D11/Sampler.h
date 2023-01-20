@@ -2,8 +2,6 @@
 
 #include <RHID3D11/RHID3D11DLL.h>
 
-#include <d3d11.h>
-
 #include <RHI/Sampler.h>
 
 class spDeviceD3D11;
@@ -49,7 +47,7 @@ private:
   spSamplerD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description);
 
   spSamplerStateD3D11* m_pSamplerState;
-  
+
   spSamplerDescription m_Description;
 };
 
