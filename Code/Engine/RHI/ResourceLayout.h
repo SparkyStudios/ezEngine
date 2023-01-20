@@ -23,12 +23,18 @@ struct SP_RHI_DLL spResourceLayoutDescription : public ezHashableStruct<spResour
 
 class SP_RHI_DLL spResourceLayout : public spDeviceResource
 {
+  friend class spDeviceResourceFactory;
+
 public:
-  // spResoureLayout
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezDynamicArray<spResourceLayoutElementDescription> GetElements() const { return m_Elements; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceLayoutElementDescription>& GetElements() const { return m_Description.m_Elements; }
 
 protected:
-  ezDynamicArray<spResourceLayoutElementDescription> m_Elements;
+  spResourceLayout(spResourceLayoutDescription description)
+    : m_Description(std::move(description))
+  {
+  }
+
+  spResourceLayoutDescription m_Description;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spResourceLayout);
