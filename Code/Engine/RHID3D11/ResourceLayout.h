@@ -1,0 +1,43 @@
+﻿#pragma once
+
+#include <RHID3D11/RHID3D11DLL.h>
+
+#include <RHI/ResourceLayout.h>
+
+class spDeviceD3D11;
+
+class SP_RHID3D11_DLL spResourceLayoutD3D11 final : public spResourceLayout
+{
+  friend class spDeviceResourceFactoryD3D11;
+
+public:
+  // spDeviceResource
+
+  void ReleaseResource() override;
+  bool IsReleased() const override;
+
+  // spResourceLayout
+
+  struct BindingInfo
+  {
+    ezUInt32 m_uiSlot{0};
+    ezBitflags<spShaderStage> m_eShaderStage;
+    ezEnum<spShaderResourceType> m_eResourceType;
+    bool m_bDynamicBuffer{false};
+  };
+
+  BindingInfo GetBinding(ezUInt32 uiSlot) const;
+  bool IsDynamicBuffer(ezUInt32 uiSlot) const;
+
+  spResourceLayoutD3D11(spDeviceD3D11* pDevice, const spResourceLayoutDescription& description);
+
+private:
+  ezDynamicArray<BindingInfo> m_Bindings;
+
+  ezUInt32 m_uiConstantBufferCount{0};
+  ezUInt32 m_uiStorageBufferCount{0};
+  ezUInt32 m_uiTextureCount{0};
+  ezUInt32 m_uiSamplerCount{0};
+};
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spResourceLayoutD3D11);
