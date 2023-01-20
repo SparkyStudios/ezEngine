@@ -19,13 +19,19 @@ struct SP_RHI_DLL spResourceSetDescription : public ezHashableStruct<spResourceS
 
 class SP_RHI_DLL spResourceSet : public spDeviceResource
 {
+  friend class spDeviceResourceFactory;
+
 public:
-  EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetLayout() const { return m_hLayout; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezDynamicArray<spResourceHandle> GetElements() const { return m_Elements; }
+  EZ_NODISCARD const spResourceHandle& GetLayout() const { return m_Description.m_hResourceLayout; }
+  EZ_NODISCARD ezDynamicArray<spResourceHandle> GetElements() const { return m_Description.m_BoundResources; }
 
 protected:
-  spResourceHandle m_hLayout;
-  ezDynamicArray<spResourceHandle> m_Elements;
+  spResourceSet(spResourceSetDescription description)
+    : m_Description(std::move(description))
+  {
+  }
+
+  spResourceSetDescription m_Description;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spResourceSet);
