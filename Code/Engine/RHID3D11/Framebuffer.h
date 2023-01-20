@@ -2,14 +2,14 @@
 
 #include <RHID3D11/RHID3D11DLL.h>
 
-#include <d3d11.h>
-
 #include <RHI/Framebuffer.h>
 
 class spDeviceD3D11;
 
 class SP_RHID3D11_DLL spFramebufferD3D11 : public spFramebuffer, public spDeferredDeviceResource
 {
+  friend class spDeviceResourceFactoryD3D11;
+
 public:
   // spDeviceResource
 
@@ -31,10 +31,12 @@ public:
   void SetColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target) override;
   void Snapshot(ezUInt32 uiColorTargetIndex, ezUInt32 uiArrayLayer, ezUInt32 uiMipLevel, ezByteArrayPtr& out_Pixels) override;
 
-private:
+  // spFramebufferD3D11
+
   spFramebufferD3D11(spDeviceD3D11* pDevice, const spFramebufferDescription& description);
   ~spFramebufferD3D11() override;
 
+private:
   void ApplyColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target);
 
   ID3D11Device* m_pD3D11Device;

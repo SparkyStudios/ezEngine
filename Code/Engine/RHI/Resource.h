@@ -43,7 +43,7 @@ public:
   EZ_ALWAYS_INLINE virtual void SetDebugName(const ezString& debugName) { m_sDebugName = debugName; }
 
   /// \brief Gets the graphics device in which this resource has been created.
-  EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetGraphicsDevice() const { return m_pDevice; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
 
   /// \brief Releases the resource.
   virtual void ReleaseResource() = 0;

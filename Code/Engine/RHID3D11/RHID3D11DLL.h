@@ -1,7 +1,18 @@
 #pragma once
 
 #include <Foundation/Basics.h>
+#include <Foundation/Basics/Platform/Win/HResultUtils.h>
+
 #include <RHI/RHIDLL.h>
+
+#include <d3d11.h>
+
+#if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
+#include <dxgi1_3.h>
+#else
+#include <dxgi.h>
+#endif
+
 
 // Configure the DLL Import/Export Define
 #if EZ_ENABLED(EZ_COMPILE_ENGINE_AS_DLL)

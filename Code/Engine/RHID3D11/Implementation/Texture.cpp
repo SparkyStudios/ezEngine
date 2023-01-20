@@ -76,7 +76,6 @@ static D3D11_SHADER_RESOURCE_VIEW_DESC spGetShaderResourceViewDesc(spTextureD3D1
 
 spTextureD3D11::spTextureD3D11(spDeviceD3D11* pDevice, const spTextureDescription& description)
   : spTexture(description)
-  , m_pTexture(nullptr)
 {
   m_pDevice = pDevice;
   m_pD3D11Device = pDevice->GetD3D11Device();
@@ -87,7 +86,7 @@ spTextureD3D11::spTextureD3D11(spDeviceD3D11* pDevice, const spTextureDescriptio
 
 spTextureD3D11::~spTextureD3D11()
 {
-  SP_RHI_DX11_RELEASE(m_pTexture);
+  spTextureD3D11::ReleaseResource();
 }
 
 void spTextureD3D11::SetDebugName(const ezString& debugName)
@@ -99,7 +98,10 @@ void spTextureD3D11::SetDebugName(const ezString& debugName)
 
 void spTextureD3D11::ReleaseResource()
 {
-  SP_RHI_DX11_RELEASE(m_pTexture);
+  if (m_pParentTexture != nullptr)
+    EZ_IGNORE_UNUSED(m_pParentTexture->ReleaseRef());
+  else
+    SP_RHI_DX11_RELEASE(m_pTexture);
 
   m_bIsResourceCreated = false;
 }
@@ -209,6 +211,63 @@ void spTextureD3D11::CreateResource()
   }
 
   m_bIsResourceCreated = true;
+}
+
+spTextureD3D11* spTextureD3D11::FromExisting(spTextureD3D11* pTexture)
+{
+  spTextureDescription desc;
+  desc.m_uiWidth = pTexture->GetWidth();
+  desc.m_uiHeight = pTexture->GetHeight();
+  desc.m_uiDepth = pTexture->GetDepth();
+  desc.m_uiMipCount = pTexture->GetMipCount();
+  desc.m_uiArrayLayers = pTexture->GetArrayLayerCount();
+  desc.m_eFormat = pTexture->GetFormat();
+  desc.m_eSampleCount = pTexture->GetSampleCount();
+  desc.m_eDimension = pTexture->GetDimension();
+  desc.m_eUsage = pTexture->GetUsage();
+
+  auto* pResult = new spTextureD3D11(desc);
+  pResult->m_pDevice = pTexture->GetDevice();
+  pResult->m_pD3D11Device = ezStaticCast<spDeviceD3D11*>(pTexture->GetDevice())->GetD3D11Device();
+  pResult->m_pTexture = pTexture->GetD3D11Texture();
+  pResult->m_eFormat = pTexture->m_eFormat;
+  pResult->m_eTypelessFormat = pTexture->m_eTypelessFormat;
+  pResult->m_pParentTexture = pTexture;
+  pResult->m_bIsResourceCreated = true;
+
+  EZ_IGNORE_UNUSED(pTexture->AddRef());
+  pTexture->GetDevice()->GetResourceManager()->RegisterResource(pResult);
+
+  return pResult;
+}
+
+spTextureD3D11* spTextureD3D11::FromNative(spDeviceD3D11* pDevice, ID3D11Texture2D* pTexture, ezEnum<spTextureDimension> eDimension, ezEnum<spPixelFormat> eFormat)
+{
+  D3D11_TEXTURE2D_DESC nativeDesc;
+  pTexture->GetDesc(&nativeDesc);
+
+  spTextureDescription desc;
+  desc.m_uiWidth = nativeDesc.Width;
+  desc.m_uiHeight = nativeDesc.Height;
+  desc.m_uiDepth = 1;
+  desc.m_uiMipCount = nativeDesc.MipLevels;
+  desc.m_uiArrayLayers = nativeDesc.ArraySize;
+  desc.m_eFormat = eFormat;
+  desc.m_eSampleCount = spTextureSampleCount::GetSampleCount(static_cast<spTextureSampleCount::StorageType>(nativeDesc.SampleDesc.Count));
+  desc.m_eDimension = eDimension;
+  desc.m_eUsage = spGetTextureUsage(nativeDesc.BindFlags, nativeDesc.CPUAccessFlags, nativeDesc.MiscFlags);
+
+  auto* pResult = new spTextureD3D11(desc);
+  pResult->m_pDevice = pDevice;
+  pResult->m_pD3D11Device = ezStaticCast<spDeviceD3D11*>(pDevice)->GetD3D11Device();
+  pResult->m_pTexture = pTexture;
+  pResult->m_eFormat = spToD3D11(eFormat, desc.m_eUsage.IsSet(spTextureUsage::DepthStencil));
+  pResult->m_eTypelessFormat = spGetTypelessFormat(pResult->m_eFormat);
+  pResult->m_bIsResourceCreated = true;
+
+  pDevice->GetResourceManager()->RegisterResource(pResult);
+
+  return pResult;
 }
 
 ID3D11Resource* spTextureD3D11::GetD3D11Texture() const
@@ -331,6 +390,16 @@ spTextureViewD3D11::~spTextureViewD3D11()
 {
   SP_RHI_DX11_RELEASE(m_pShaderResourceView);
   SP_RHI_DX11_RELEASE(m_pUnorderedAccessView);
+}
+
+ID3D11ShaderResourceView* spTextureViewD3D11::GetShaderResourceView() const
+{
+  return m_pShaderResourceView;
+}
+
+ID3D11UnorderedAccessView* spTextureViewD3D11::GetUnorderedAccessView() const
+{
+  return m_pUnorderedAccessView;
 }
 
 #pragma endregion
