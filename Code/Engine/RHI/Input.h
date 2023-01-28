@@ -58,17 +58,17 @@ struct SP_RHI_DLL spInputLayoutDescription : public ezHashableStruct<spInputLayo
   /// \brief Compares this \see InputLayoutDescription with the given \a other description for equality.
   EZ_ALWAYS_INLINE bool operator==(const spInputLayoutDescription& other) const
   {
-    bool elementsAreEquals = true;
-    for (int i = 0, l = m_Elements.GetCount(); i < l; i++)
+    bool bElementsAreEquals = true;
+    for (ezUInt32 i = 0, l = m_Elements.GetCount(); i < l; i++)
     {
       if (m_Elements[i] == other.m_Elements[i])
         continue;
 
-      elementsAreEquals = false;
+      bElementsAreEquals = false;
       break;
     }
 
-    return elementsAreEquals && m_uiStride == other.m_uiStride && m_uiInstanceStepRate == other.m_uiInstanceStepRate;
+    return bElementsAreEquals && m_uiStride == other.m_uiStride && m_uiInstanceStepRate == other.m_uiInstanceStepRate;
   }
 
   /// \brief Compares this \see InputLayoutDescription with the given \a other description for inequality.
