@@ -1,6 +1,5 @@
 #pragma once
 
-#include "RHI/Core.h"
 #include <RHI/RHIDLL.h>
 
 #include <RHI/Input.h>
@@ -26,9 +25,9 @@ public:
   /// \param [in] uiData The value of the specialization constant.
   spShaderSpecializationConstant(ezUInt32 uiId, ezEnum<spShaderSpecializationConstantType> eType, ezUInt64 uiData)
     : ezHashableStruct<spShaderSpecializationConstant>()
-    , m_uiId(uiId)
-    , m_eType(eType)
-    , m_uiValue(uiData)
+      , m_uiId(uiId)
+      , m_eType(eType)
+      , m_uiValue(uiData)
   {
   }
 
@@ -173,16 +172,22 @@ EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spShaderProgram);
 
 class SP_RHI_DLL spShader : public spDeviceResource
 {
+  friend class spDeviceResourceFactory;
+
 public:
   /// \brief Gets the stage of this shader.
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezEnum<spShaderStage> GetStage() const { return m_eStage; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezEnum<spShaderStage> GetStage() const { return m_Description.m_eShaderStage; }
 
   /// \brief Get the name of the entry point function.
-  EZ_NODISCARD EZ_ALWAYS_INLINE const ezHashedString& GetEntryPoint() const { return m_sEntryPoint; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezHashedString& GetEntryPoint() const { return m_Description.m_sEntryPoint; }
 
-private:
-  ezEnum<spShaderStage> m_eStage;
-  ezHashedString m_sEntryPoint;
+protected:
+  spShader(spShaderDescription description)
+    : m_Description(std::move(description))
+  {
+  }
+
+  spShaderDescription m_Description;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spShader);
