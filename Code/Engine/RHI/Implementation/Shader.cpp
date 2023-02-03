@@ -13,59 +13,59 @@ spShaderPipeline::spShaderPipeline(
   spResourceHandle hDomainShader,
   spResourceHandle hHullShader)
   : ezHashableStruct<spShaderPipeline>()
-  , m_InputLayouts(inputLayouts)
+  , m_InputLayouts(std::move(inputLayouts))
   , m_hVertexShader(hVertexShader)
   , m_hPixelShader(hPixelShader)
   , m_hGeometryShader(hGeometryShader)
   , m_hHullShader(hHullShader)
   , m_hDomainShader(hDomainShader)
 {
-  spDevice* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<spDevice>();
-  pDevice->GetResourceManager()->IncrementResourceRef(m_hVertexShader);
-  pDevice->GetResourceManager()->IncrementResourceRef(m_hPixelShader);
+  const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<spDevice>();
+  EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->IncrementResourceRef(m_hVertexShader));
+  EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->IncrementResourceRef(m_hPixelShader));
 
   if (!m_hGeometryShader.IsInvalidated())
-    pDevice->GetResourceManager()->IncrementResourceRef(m_hGeometryShader);
+    EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->IncrementResourceRef(m_hGeometryShader));
 
   if (!m_hDomainShader.IsInvalidated())
-    pDevice->GetResourceManager()->IncrementResourceRef(m_hDomainShader);
+    EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->IncrementResourceRef(m_hDomainShader));
 
   if (!m_hHullShader.IsInvalidated())
-    pDevice->GetResourceManager()->IncrementResourceRef(m_hHullShader);
+    EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->IncrementResourceRef(m_hHullShader));
 }
 
 spShaderPipeline::spShaderPipeline(
   ezDynamicArray<spResourceHandle> inputLayouts,
   spResourceHandle hComputeShader)
   : ezHashableStruct<spShaderPipeline>()
-  , m_InputLayouts(inputLayouts)
+  , m_InputLayouts(std::move(inputLayouts))
   , m_hComputeShader(hComputeShader)
 {
-  spDevice* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<spDevice>();
-  pDevice->GetResourceManager()->IncrementResourceRef(m_hComputeShader);
+  const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<spDevice>();
+  EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->IncrementResourceRef(m_hComputeShader));
 }
 
 spShaderPipeline::~spShaderPipeline()
 {
-  spDevice* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<spDevice>();
+  const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<spDevice>();
 
   if (!m_hVertexShader.IsInvalidated())
-    pDevice->GetResourceManager()->DecrementResourceRef(m_hVertexShader);
+    EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->DecrementResourceRef(m_hVertexShader));
 
   if (!m_hPixelShader.IsInvalidated())
-    pDevice->GetResourceManager()->DecrementResourceRef(m_hPixelShader);
+    EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->DecrementResourceRef(m_hPixelShader));
 
   if (!m_hGeometryShader.IsInvalidated())
-    pDevice->GetResourceManager()->DecrementResourceRef(m_hGeometryShader);
+    EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->DecrementResourceRef(m_hGeometryShader));
 
   if (!m_hDomainShader.IsInvalidated())
-    pDevice->GetResourceManager()->DecrementResourceRef(m_hDomainShader);
+    EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->DecrementResourceRef(m_hDomainShader));
 
   if (!m_hHullShader.IsInvalidated())
-    pDevice->GetResourceManager()->DecrementResourceRef(m_hHullShader);
+    EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->DecrementResourceRef(m_hHullShader));
 
   if (!m_hComputeShader.IsInvalidated())
-    pDevice->GetResourceManager()->DecrementResourceRef(m_hComputeShader);
+    EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->DecrementResourceRef(m_hComputeShader));
 }
 
 #pragma endregion

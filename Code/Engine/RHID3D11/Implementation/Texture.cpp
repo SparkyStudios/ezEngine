@@ -281,7 +281,7 @@ ID3D11Resource* spTextureD3D11::GetD3D11Texture() const
 
 void spTextureViewD3D11::SetDebugName(const ezString& debugName)
 {
-  spDeviceResource::SetDebugName(debugName);
+  spTextureView::SetDebugName(debugName);
 
   ezStringBuilder sSRVDebugName(debugName);
   sSRVDebugName.Append("_SRV");

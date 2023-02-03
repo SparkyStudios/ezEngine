@@ -12,10 +12,10 @@ class SP_RHI_DLL spRenderingSurface : public ezReflectedClass
 
 protected:
   spRenderingSurface() = default;
-  virtual ~spRenderingSurface() = default;
+  ~spRenderingSurface() override = default;
 };
 
-struct SP_RHI_DLL spSwapchainDescription : public ezHashableStruct<spSwapchainDescription>
+struct spSwapchainDescription : public ezHashableStruct<spSwapchainDescription>
 {
   spSwapchainDescription()
     : ezHashableStruct<spSwapchainDescription>()

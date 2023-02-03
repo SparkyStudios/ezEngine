@@ -8,7 +8,7 @@
 #include <RHI/Resource.h>
 
 /// \brief Describes a single attachment for a \see spFramebuffer.
-struct SP_RHI_DLL spFramebufferAttachmentDescription : public ezHashableStruct<spFramebufferAttachmentDescription>
+struct spFramebufferAttachmentDescription : public ezHashableStruct<spFramebufferAttachmentDescription>
 {
   /// \brief Constructs an empty spFramebufferAttachmentDescription.
   spFramebufferAttachmentDescription()
@@ -64,7 +64,7 @@ struct SP_RHI_DLL spFramebufferAttachmentDescription : public ezHashableStruct<s
 };
 
 /// \brief Describes a \see spFramebuffer, for creation using a \see spDeviceResourceFactory.
-struct SP_RHI_DLL spFramebufferDescription : public ezHashableStruct<spFramebufferDescription>
+struct spFramebufferDescription : public ezHashableStruct<spFramebufferDescription>
 {
   /// \brief Constructs an empty spFramebufferDescription.
   spFramebufferDescription()

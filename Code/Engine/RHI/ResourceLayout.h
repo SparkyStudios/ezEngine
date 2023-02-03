@@ -5,7 +5,7 @@
 #include <RHI/Resource.h>
 
 /// \brief Describes a single element in a resource layout.
-struct SP_RHI_DLL spResourceLayoutElementDescription : public ezHashableStruct<spResourceLayoutElementDescription>
+struct spResourceLayoutElementDescription : public ezHashableStruct<spResourceLayoutElementDescription>
 {
   ezHashedString m_sName;
   ezEnum<spShaderResourceType> m_eType;
@@ -14,7 +14,7 @@ struct SP_RHI_DLL spResourceLayoutElementDescription : public ezHashableStruct<s
 };
 
 /// \brief Describes the layout of \see spShaderResource objects for a \see spRenderingPipeline.
-struct SP_RHI_DLL spResourceLayoutDescription : public ezHashableStruct<spResourceLayoutDescription>
+struct spResourceLayoutDescription : public ezHashableStruct<spResourceLayoutDescription>
 {
   /// \brief An array of \see spResourceLayoutElementDescription objects, describing the properties of each resource
   /// element in the \see spResourceLayout.
@@ -29,10 +29,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceLayoutElementDescription>& GetElements() const { return m_Description.m_Elements; }
 
 protected:
-  spResourceLayout(spResourceLayoutDescription description)
-    : m_Description(std::move(description))
-  {
-  }
+  explicit spResourceLayout(spResourceLayoutDescription description);
 
   spResourceLayoutDescription m_Description;
 };

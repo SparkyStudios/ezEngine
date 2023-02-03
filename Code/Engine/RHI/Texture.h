@@ -8,7 +8,7 @@
 class spTexture;
 
 /// \brief Describes a \see spTexture resource, for creation with a \see spDeviceResourceFactory.
-struct SP_RHI_DLL spTextureDescription : public ezHashableStruct<spTextureDescription>
+struct spTextureDescription : public ezHashableStruct<spTextureDescription>
 {
   /// \brief Creates a new \see spTextureDescription for a 1D \see spTexture resource.
   /// \param uiWidth The width of the texture in pixels.
@@ -138,7 +138,7 @@ struct SP_RHI_DLL spTextureDescription : public ezHashableStruct<spTextureDescri
 };
 
 /// \brief Describes a \see spTextureView resource, for creation with a \see spDeviceResourceFactory.
-struct SP_RHI_DLL spTextureViewDescription : public ezHashableStruct<spTextureViewDescription>
+struct spTextureViewDescription : public ezHashableStruct<spTextureViewDescription>
 {
   /// \brief Creates a new empty \see spTextureViewDescription.
   spTextureViewDescription();
@@ -263,7 +263,7 @@ EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spTexture);
 /// \brief A texture view resource.
 class SP_RHI_DLL spTextureView : public spMappableResource
 {
-  friend class spTextureView;
+  friend class spDeviceResourceManager;
 
 public:
   /// \brief Gets the target \see spTexture resource to be sampled via this instance.
@@ -297,6 +297,213 @@ protected:
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spTextureView);
+
+class SP_RHI_DLL spPixelFormatHelper
+{
+public:
+  EZ_ALWAYS_INLINE static ezUInt32 GetElementCount(const ezEnum<spInputElementFormat>& eFormat)
+  {
+    switch (eFormat)
+    {
+      case spInputElementFormat::Float1:
+      case spInputElementFormat::UInt1:
+      case spInputElementFormat::Int1:
+      case spInputElementFormat::Half1:
+        return 1;
+
+      case spInputElementFormat::Float2:
+      case spInputElementFormat::Byte2Norm:
+      case spInputElementFormat::Byte2:
+      case spInputElementFormat::SByte2Norm:
+      case spInputElementFormat::SByte2:
+      case spInputElementFormat::UShort2Norm:
+      case spInputElementFormat::UShort2:
+      case spInputElementFormat::Short2Norm:
+      case spInputElementFormat::Short2:
+      case spInputElementFormat::UInt2:
+      case spInputElementFormat::Int2:
+      case spInputElementFormat::Half2:
+        return 2;
+
+      case spInputElementFormat::Float3:
+      case spInputElementFormat::UInt3:
+      case spInputElementFormat::Int3:
+        return 3;
+
+      case spInputElementFormat::Float4:
+      case spInputElementFormat::Byte4Norm:
+      case spInputElementFormat::Byte4:
+      case spInputElementFormat::SByte4Norm:
+      case spInputElementFormat::SByte4:
+      case spInputElementFormat::UShort4Norm:
+      case spInputElementFormat::UShort4:
+      case spInputElementFormat::Short4Norm:
+      case spInputElementFormat::Short4:
+      case spInputElementFormat::UInt4:
+      case spInputElementFormat::Int4:
+      case spInputElementFormat::Half4:
+        return 4;
+
+      default:
+        EZ_ASSERT_NOT_IMPLEMENTED;
+        return 0;
+    }
+  }
+
+  EZ_ALWAYS_INLINE static bool IsStencilFormat(const ezEnum<spPixelFormat>& eFormat)
+  {
+    return eFormat == spPixelFormat::D24UNormS8UInt || eFormat == spPixelFormat::D32FloatS8UInt;
+  }
+
+  EZ_ALWAYS_INLINE static bool IsDepthStencilFormat(const ezEnum<spPixelFormat>& eFormat)
+  {
+    return eFormat == spPixelFormat::D24UNormS8UInt || eFormat == spPixelFormat::D32FloatS8UInt || eFormat == spPixelFormat::D16UNorm || eFormat == spPixelFormat::D32Float;
+  }
+
+  EZ_ALWAYS_INLINE static bool IsCompressedFormat(const ezEnum<spPixelFormat>& eFormat)
+  {
+    return eFormat == spPixelFormat::Bc1RgbUNorm || eFormat == spPixelFormat::Bc1RgbUNormSRgb || eFormat == spPixelFormat::Bc1RgbaUNorm || eFormat == spPixelFormat::Bc1RgbaUNormSRgb || eFormat == spPixelFormat::Bc2UNorm || eFormat == spPixelFormat::Bc2UNormSRgb || eFormat == spPixelFormat::Bc3UNorm || eFormat == spPixelFormat::Bc3UNormSRgb || eFormat == spPixelFormat::Bc4UNorm || eFormat == spPixelFormat::Bc4SNorm || eFormat == spPixelFormat::Bc5UNorm || eFormat == spPixelFormat::Bc5SNorm || eFormat == spPixelFormat::Bc7UNorm || eFormat == spPixelFormat::Bc7UNormSRgb || eFormat == spPixelFormat::Etc2R8G8B8UNorm || eFormat == spPixelFormat::Etc2R8G8B8A1UNorm || eFormat == spPixelFormat::Etc2R8G8B8A8UNorm;
+  }
+
+  EZ_ALWAYS_INLINE static ezUInt32 GetRowPitch(ezUInt32 uiWidth, const ezEnum<spPixelFormat>& eFormat)
+  {
+    if (IsCompressedFormat(eFormat))
+    {
+      ezUInt32 uiBlocksPerRow = (uiWidth + 3) / 4;
+      ezUInt32 uiBlockSizeInBytes = GetBlockSizeInBytes(eFormat);
+      return uiBlocksPerRow * uiBlockSizeInBytes;
+    }
+
+    return uiWidth * GetSizeInBytes(eFormat);
+  }
+
+  EZ_ALWAYS_INLINE static ezUInt32 GetBlockSizeInBytes(const ezEnum<spPixelFormat>& eFormat)
+  {
+    switch (eFormat)
+    {
+      case spPixelFormat::Bc1RgbUNorm:
+      case spPixelFormat::Bc1RgbUNormSRgb:
+      case spPixelFormat::Bc1RgbaUNorm:
+      case spPixelFormat::Bc1RgbaUNormSRgb:
+      case spPixelFormat::Bc4UNorm:
+      case spPixelFormat::Bc4SNorm:
+      case spPixelFormat::Etc2R8G8B8UNorm:
+      case spPixelFormat::Etc2R8G8B8A1UNorm:
+        return 8;
+
+      case spPixelFormat::Bc2UNorm:
+      case spPixelFormat::Bc2UNormSRgb:
+      case spPixelFormat::Bc3UNorm:
+      case spPixelFormat::Bc3UNormSRgb:
+      case spPixelFormat::Bc5UNorm:
+      case spPixelFormat::Bc5SNorm:
+      case spPixelFormat::Bc7UNorm:
+      case spPixelFormat::Bc7UNormSRgb:
+      case spPixelFormat::Etc2R8G8B8A8UNorm:
+        return 16;
+
+      default:
+        EZ_ASSERT_NOT_IMPLEMENTED;
+        return 0;
+    }
+  }
+
+  EZ_ALWAYS_INLINE static ezUInt32 GetSizeInBytes(const ezEnum<spPixelFormat>& eFormat)
+  {
+    switch (eFormat)
+    {
+      case spPixelFormat::R8UNorm:
+      case spPixelFormat::R8SNorm:
+      case spPixelFormat::R8UInt:
+      case spPixelFormat::R8SInt:
+        return 1;
+
+      case spPixelFormat::R16UNorm:
+      case spPixelFormat::R16SNorm:
+      case spPixelFormat::R16UInt:
+      case spPixelFormat::R16SInt:
+      case spPixelFormat::R16Float:
+      case spPixelFormat::R8G8UNorm:
+      case spPixelFormat::R8G8SNorm:
+      case spPixelFormat::R8G8UInt:
+      case spPixelFormat::R8G8SInt:
+        return 2;
+
+      case spPixelFormat::R32UInt:
+      case spPixelFormat::R32SInt:
+      case spPixelFormat::R32Float:
+      case spPixelFormat::R16G16UNorm:
+      case spPixelFormat::R16G16SNorm:
+      case spPixelFormat::R16G16UInt:
+      case spPixelFormat::R16G16SInt:
+      case spPixelFormat::R16G16Float:
+      case spPixelFormat::R8G8B8A8UNorm:
+      case spPixelFormat::R8G8B8A8UNormSRgb:
+      case spPixelFormat::R8G8B8A8SNorm:
+      case spPixelFormat::R8G8B8A8UInt:
+      case spPixelFormat::R8G8B8A8SInt:
+      case spPixelFormat::B8G8R8A8UNorm:
+      case spPixelFormat::B8G8R8A8UNormSRgb:
+      case spPixelFormat::R10G10B10A2UNorm:
+      case spPixelFormat::R10G10B10A2UInt:
+      case spPixelFormat::R11G11B10Float:
+      case spPixelFormat::D24UNormS8UInt:
+        return 4;
+
+      case spPixelFormat::D32FloatS8UInt:
+        return 5;
+
+      case spPixelFormat::R16G16B16A16UNorm:
+      case spPixelFormat::R16G16B16A16SNorm:
+      case spPixelFormat::R16G16B16A16UInt:
+      case spPixelFormat::R16G16B16A16SInt:
+      case spPixelFormat::R16G16B16A16Float:
+      case spPixelFormat::R32G32UInt:
+      case spPixelFormat::R32G32SInt:
+      case spPixelFormat::R32G32Float:
+        return 8;
+
+      case spPixelFormat::R32G32B32A32Float:
+      case spPixelFormat::R32G32B32A32UInt:
+      case spPixelFormat::R32G32B32A32SInt:
+        return 16;
+
+      case spPixelFormat::Bc1RgbUNorm:
+      case spPixelFormat::Bc1RgbUNormSRgb:
+      case spPixelFormat::Bc1RgbaUNorm:
+      case spPixelFormat::Bc1RgbaUNormSRgb:
+      case spPixelFormat::Bc2UNorm:
+      case spPixelFormat::Bc2UNormSRgb:
+      case spPixelFormat::Bc3UNorm:
+      case spPixelFormat::Bc3UNormSRgb:
+      case spPixelFormat::Bc4UNorm:
+      case spPixelFormat::Bc4SNorm:
+      case spPixelFormat::Bc5UNorm:
+      case spPixelFormat::Bc5SNorm:
+      case spPixelFormat::Bc7UNorm:
+      case spPixelFormat::Bc7UNormSRgb:
+      case spPixelFormat::Etc2R8G8B8UNorm:
+      case spPixelFormat::Etc2R8G8B8A1UNorm:
+      case spPixelFormat::Etc2R8G8B8A8UNorm:
+        EZ_ASSERT_DEV(false, "GetSizeInBytes should not be used on a compressed format.");
+        return 0;
+
+      default:
+        EZ_ASSERT_NOT_IMPLEMENTED;
+        return 0;
+    }
+  }
+
+  EZ_ALWAYS_INLINE static ezUInt32 GetNumRows(ezUInt32 uiHeight, const ezEnum<spPixelFormat>& eFormat)
+  {
+    return IsCompressedFormat(eFormat) ? (uiHeight + 3) / 4 : uiHeight;
+  }
+
+  EZ_ALWAYS_INLINE static ezUInt32 GetDepthPitch(ezUInt32 uiRowPitch, ezUInt32 uiHeight, const ezEnum<spPixelFormat>& eFormat)
+  {
+    return uiRowPitch * GetNumRows(uiHeight, eFormat);
+  }
+};
 
 class SP_RHI_DLL spTextureHelper
 {
@@ -355,5 +562,51 @@ public:
       uiDim /= 2;
 
     return ezMath::Max<ezUInt32>(uiDim, 1);
+  }
+
+  EZ_ALWAYS_INLINE static void CopyTextureRegion(
+    const void* pSource,
+    ezUInt32 uiSourceX,
+    ezUInt32 uiSourceY,
+    ezUInt32 uiSourceZ,
+    ezUInt32 uiSourceRowPitch,
+    ezUInt32 uiSourceDepthPitch,
+    void* pDestination,
+    ezUInt32 uiDestinationX,
+    ezUInt32 uiDestinationY,
+    ezUInt32 uiDestinationZ,
+    ezUInt32 uiDestinationRowPitch,
+    ezUInt32 uiDestinationDepthPitch,
+    ezUInt32 uiWidth,
+    ezUInt32 uiHeight,
+    ezUInt32 uiDepth,
+    const ezEnum<spPixelFormat>& eFormat)
+  {
+    ezUInt32 uiBlockSize = spPixelFormatHelper::IsCompressedFormat(eFormat) ? 4 : 1;
+    ezUInt32 uiBlockSizeInBytes = uiBlockSize > 1 ? spPixelFormatHelper::GetBlockSizeInBytes(eFormat) : spPixelFormatHelper::GetSizeInBytes(eFormat);
+    ezUInt32 uiCompressedSourceX = uiSourceX / uiBlockSize;
+    ezUInt32 uiCompressedSourceY = uiSourceY / uiBlockSize;
+    ezUInt32 uiCompressedDestinationX = uiDestinationX / uiBlockSize;
+    ezUInt32 uiCompressedDestinationY = uiDestinationY / uiBlockSize;
+    ezUInt32 uiNumRows = spPixelFormatHelper::GetNumRows(uiHeight, eFormat);
+    ezUInt32 uiRowSize = uiWidth / uiBlockSize * uiBlockSizeInBytes;
+
+    if (uiSourceRowPitch == uiDestinationRowPitch && uiSourceDepthPitch == uiDestinationDepthPitch)
+    {
+      ezUInt32 uiTotalCopySize = uiDepth * uiSourceDepthPitch;
+      ezMemoryUtils::RawByteCopy(pDestination, pSource, uiTotalCopySize);
+    }
+    else
+    {
+      for (ezUInt32 zz = 0; zz < uiDepth; zz++)
+      {
+        for (ezUInt32 yy = 0; yy < uiNumRows; yy++)
+        {
+          ezUInt8* pRowCopyDst = reinterpret_cast<ezUInt8*>(pDestination) + uiDestinationDepthPitch * (zz + uiDestinationZ) + uiDestinationRowPitch * (yy + uiCompressedDestinationY) + uiBlockSizeInBytes * uiCompressedSourceX;
+          const ezUInt8* pRowCopySrc = reinterpret_cast<const ezUInt8*>(pSource) + uiSourceDepthPitch * (zz + uiSourceZ) + uiSourceRowPitch * (yy + uiCompressedSourceY) + uiBlockSizeInBytes * uiCompressedDestinationX;
+          ezMemoryUtils::Copy(pRowCopyDst, pRowCopySrc, uiRowSize);
+        }
+      }
+    }
   }
 };

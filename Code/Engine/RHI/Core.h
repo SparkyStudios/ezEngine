@@ -83,7 +83,7 @@ struct SP_RHI_DLL spViewport : ezHashableStruct<spViewport>
   float m_fMaxDepth;
 };
 
-/// \brief The list of graphics API usable by the spGraphicsDevice.
+/// \brief The list of graphics API usable by the spDevice.
 struct SP_RHI_DLL spGraphicsApi
 {
   typedef ezUInt8 StorageType;
@@ -110,6 +110,26 @@ struct SP_RHI_DLL spGraphicsApi
 
     Default = OpenGL
   };
+};
+
+/// \brief Stores the version of the currently loaded graphics API.
+/// This value should be accessed from the \see spDevice instance.
+struct SP_RHI_DLL spGraphicsApiVersion
+{
+  spGraphicsApiVersion() = default;
+
+  spGraphicsApiVersion(ezUInt32 uiMajor, ezUInt32 uiMinor, ezUInt32 uiPatch = 0, ezUInt32 uiRevision = 0)
+    : m_uiMajor(uiMajor)
+    , m_uiMinor(uiMinor)
+    , m_uiPatch(uiPatch)
+    , m_uiRevision(uiRevision)
+  {
+  }
+
+  ezUInt32 m_uiMajor{0};
+  ezUInt32 m_uiMinor{0};
+  ezUInt32 m_uiPatch{0};
+  ezUInt32 m_uiRevision{0};
 };
 
 /// \brief The format of data stored in a spTexture.

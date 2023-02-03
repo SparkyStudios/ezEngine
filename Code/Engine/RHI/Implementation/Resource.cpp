@@ -18,13 +18,15 @@ void spDeferredDeviceResource::EnsureResourceCreated()
 #pragma region spMappedResource
 
 spMappedResource::spMappedResource()
-  : m_hResource()
+  : ezRefCounted()
+  , m_hResource()
   , m_eAccess(spMapAccess::Read)
 {
 }
 
 spMappedResource::spMappedResource(const spResourceHandle& hResource, ezEnum<spMapAccess> eAccess, void* pData, ezUInt32 uiSize, ezUInt32 uiSubResource, ezUInt32 uiRowPitch, ezUInt32 uiDepthPitch)
-  : m_hResource(hResource)
+  : ezRefCounted()
+  , m_hResource(hResource)
   , m_eAccess(eAccess)
   , m_pData(pData)
   , m_uiSize(uiSize)

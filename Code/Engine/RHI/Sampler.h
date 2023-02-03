@@ -6,7 +6,7 @@
 #include <RHI/Resource.h>
 
 /// \brief Describes a sampler resource, for creation with a \see spDeviceResourceFactory.
-struct SP_RHI_DLL spSamplerDescription : ezHashableStruct<spSamplerDescription>
+struct spSamplerDescription : ezHashableStruct<spSamplerDescription>
 {
   /// \brief Describes a common point filter sampler, with wrapping address mode.
   ///

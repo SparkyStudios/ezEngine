@@ -100,7 +100,7 @@ class SP_RHI_DLL spMappableResource : public spShaderResource
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spMappableResource);
 
 /// \brief Describes the layout of a mapped resource object.
-class SP_RHI_DLL spMappedResource
+class SP_RHI_DLL spMappedResource : public ezRefCounted
 {
 public:
   /// \brief Constructs an empty spMappedResource
@@ -161,17 +161,14 @@ private:
 
   /// \brief For mapped \see spTexture resources, this is the subresource which is mapped.
   /// For \see spBuffer resources, this field has no meaning.
-  /// </summary>
   ezUInt32 m_uiSubResource{0};
 
   /// \brief For mapped \see spTexture resources, this is the number of bytes between each row of texels.
   /// For \see spBuffer resources, this field has no meaning.
-  /// </summary>
   ezUInt32 m_uiRowPitch{0};
 
   /// \brief For mapped \see spTexture resources, this is the number of bytes between each depth slice of a 3D Texture.
   /// For \see spBuffer resources or 2D Textures, this field has no meaning.
-  /// </summary>
   ezUInt32 m_uiDepthPitch{0};
 };
 
@@ -272,13 +269,45 @@ private:
 
   EZ_ALWAYS_INLINE T& GetAt(ezUInt32 x, ezUInt32 y = 0, ezUInt32 z = 0)
   {
-    ezUInt8* ptr = reinterpret_cast<ezUInt8*>(m_MappedResource.GetData()) + (z * m_MappedResource.GetDepthPitch()) + (y * m_MappedResource.GetRowPitch()) + (x * SizeOfT);
+    ezUInt8* ptr = static_cast<ezUInt8*>(m_MappedResource.GetData()) + (z * m_MappedResource.GetDepthPitch()) + (y * m_MappedResource.GetRowPitch()) + (x * SizeOfT);
     return *reinterpret_cast<T*>(ptr);
   }
 
   spMappedResource m_MappedResource;
   ezUInt32 m_uiSize;
   ezUInt32 m_uiCount;
+};
+
+/// \brief A simple implementation of a cache key used to store mappable resources in
+/// a map. Used internally by RHI backends.
+struct SP_RHI_DLL spMappedResourceCacheKey : public ezHashableStruct<spMappedResourceCacheKey>
+{
+  spMappedResourceCacheKey() = default;
+
+  spMappedResourceCacheKey(spMappableResource* pResource, ezUInt32 uiSubResource)
+    : ezHashableStruct<spMappedResourceCacheKey>()
+  {
+    m_pResource = pResource;
+    m_uiSubResource = uiSubResource;
+  }
+
+  EZ_ALWAYS_INLINE bool operator==(const spMappedResourceCacheKey& other) const
+  {
+    return m_pResource == other.m_pResource && m_uiSubResource == other.m_uiSubResource;
+  }
+
+  EZ_ALWAYS_INLINE bool operator!=(const spMappedResourceCacheKey& other) const
+  {
+    return !(*this == other);
+  }
+
+  EZ_ALWAYS_INLINE bool operator<(const spMappedResourceCacheKey& other) const
+  {
+      return m_pResource < other.m_pResource || (m_pResource == other.m_pResource && m_uiSubResource < other.m_uiSubResource);
+  }
+
+  spMappableResource* m_pResource{nullptr};
+  ezUInt32 m_uiSubResource{0};
 };
 
 /// \brief Create resources for use in the graphics device.
@@ -412,7 +441,7 @@ public:
   /// \brief Gets a registered resource from the manager using the given handle.
   /// \param [in] hResource The handle to the resource.
   /// \return The pointer of the found resource, or nullptr if the resource is not registered in this manager.
-  spDeviceResource* GetResource(const spResourceHandle& hResource) const;
+  EZ_NODISCARD spDeviceResource* GetResource(const spResourceHandle& hResource) const;
 
   /// \brief Gets a registered resource from the manager using the given handle.
   /// The type parameter must be a child class of spDeviceResource.
@@ -426,12 +455,12 @@ public:
   /// \brief Increments the reference count of the given resource.
   /// \param [in] hResource The handle of the resource to increment the reference count.
   /// \return The new reference count.
-  ezUInt32 IncrementResourceRef(spResourceHandle hResource) const;
+  EZ_NODISCARD ezUInt32 IncrementResourceRef(spResourceHandle hResource) const;
 
   /// \brief Decrements the reference count of the given resource.
   /// \param [in] hResource The handle of the resource to decrement the reference count.
   /// \return The new reference count.
-  ezUInt32 DecrementResourceRef(spResourceHandle hResource) const;
+  EZ_NODISCARD ezUInt32 DecrementResourceRef(spResourceHandle hResource) const;
 
   /// \brief Enqueue a resource for deallocation at the end of the current frame.
   /// \param [in] hResource The resource to be deallocated.

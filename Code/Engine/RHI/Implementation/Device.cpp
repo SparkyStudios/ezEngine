@@ -41,7 +41,7 @@ void spDevice::ResizeSwapchain(ezUInt32 uiWidth, ezUInt32 uiHeight)
   if (hSwapchain.IsInvalidated())
     return;
 
-  spSwapchain* pSwapchain = GetResourceManager()->GetResource<spSwapchain>(hSwapchain);
+  auto* pSwapchain = GetResourceManager()->GetResource<spSwapchain>(hSwapchain);
   pSwapchain->Resize(uiWidth, uiHeight);
 }
 
@@ -51,19 +51,19 @@ void spDevice::WaitForIdle()
   GetResourceManager()->ReleaseResources();
 }
 
-spMappedResource spDevice::Map(const spResourceHandle& hResource, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource)
+const spMappedResource& spDevice::Map(const spResourceHandle& hResource, const ezEnum<spMapAccess>& eAccess, ezUInt32 uiSubResource)
 {
   spDeviceResource* pResource = GetResourceManager()->GetResource(hResource);
   if (pResource == nullptr)
   {
     EZ_ASSERT_DEV(pResource != nullptr, "Trying to map a resource that was not registered in the resource manager of the device. If you have created this resource without the resource factory, you should register it yourself.");
-    return {};
+    return m_InvalidDefaultMappedResource;
   }
 
   if (auto* pBuffer = ezDynamicCast<spBuffer*>(pResource); pBuffer != nullptr)
   {
     EZ_ASSERT_DEV(pBuffer->GetUsage().IsAnySet(spBufferUsage::Dynamic | spBufferUsage::Staging), "Buffers must have the Staging or Dynamic usage flag to be mapped.");
-    EZ_ASSERT_DEV(uiSubresource == 0, "Buffers must have the Staging or Dynamic usage flag to be mapped.");
+    EZ_ASSERT_DEV(uiSubResource == 0, "Buffers must have the Staging or Dynamic usage flag to be mapped.");
     EZ_ASSERT_DEV(!((eAccess == spMapAccess::Read || eAccess == spMapAccess::ReadWrite) && !pBuffer->GetUsage().IsSet(spBufferUsage::Staging)), "spMapAccess::Read and spMapAccess::ReadWrite can only be used on buffers created with spBufferUsage::Staging.");
     return MapInternal(pBuffer, eAccess);
   }
@@ -71,12 +71,12 @@ spMappedResource spDevice::Map(const spResourceHandle& hResource, ezEnum<spMapAc
   if (auto* pTexture = ezDynamicCast<spTexture*>(pResource); pTexture != nullptr)
   {
     EZ_ASSERT_DEV(pTexture->GetUsage().IsSet(spTextureUsage::Staging) == 0, "Texture must have the spTextureUsage::Staging usage flag to be mapped.");
-    EZ_ASSERT_DEV(uiSubresource < pTexture->GetArrayLayerCount() * pTexture->GetMipCount(), "The subresource index must be less than the number of subresources in the Texture being mapped.");
-    return MapInternal(pTexture, eAccess, uiSubresource);
+    EZ_ASSERT_DEV(uiSubResource < pTexture->GetArrayLayerCount() * pTexture->GetMipCount(), "The subresource index must be less than the number of subresources in the Texture being mapped.");
+    return MapInternal(pTexture, eAccess, uiSubResource);
   }
 
   EZ_ASSERT_NOT_IMPLEMENTED;
-  return {};
+  return m_InvalidDefaultMappedResource;
 }
 
 void spDevice::UnMap(const spResourceHandle& hResource, ezUInt32 uiSubresource)
@@ -103,7 +103,7 @@ void spDevice::UnMap(const spResourceHandle& hResource, ezUInt32 uiSubresource)
 
 void spDevice::UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, void* pSource, ezUInt32 uiSize)
 {
-  spBuffer* pBuffer = GetResourceManager()->GetResource<spBuffer>(hResource);
+  auto* pBuffer = GetResourceManager()->GetResource<spBuffer>(hResource);
   if (pBuffer == nullptr)
   {
     EZ_ASSERT_DEV(pBuffer != nullptr, "Trying to update a buffer that was not registered in the resource manager of the device. If you have created this resource without the resource factory, you should register it yourself.");

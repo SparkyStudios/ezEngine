@@ -26,7 +26,7 @@ public:
   void CreateResource() override;
 
   /// \brief Gets the wrapped native buffer.
-  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Buffer* GetBuffer() const { return m_pBuffer; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Buffer* GetD3D11Buffer() const { return m_pBuffer; }
 
 private:
   spBufferD3D11(spDeviceD3D11* pDevice, const spBufferDescription& description);

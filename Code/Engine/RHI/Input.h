@@ -9,7 +9,7 @@
 #include <RHI/Resource.h>
 
 /// \brief Describes a single input layout element.
-struct SP_RHI_DLL spInputElementDescription : ezHashableStruct<spInputElementDescription>
+struct spInputElementDescription : ezHashableStruct<spInputElementDescription>
 {
   /// \brief The input layout element name.
   ezHashedString m_sName;
@@ -49,7 +49,7 @@ struct SP_RHI_DLL spInputElementDescription : ezHashableStruct<spInputElementDes
   EZ_ALWAYS_INLINE bool operator!=(const spInputElementDescription& other) const { return !(*this == other); }
 };
 
-struct SP_RHI_DLL spInputLayoutDescription : public ezHashableStruct<spInputLayoutDescription>
+struct spInputLayoutDescription : public ezHashableStruct<spInputLayoutDescription>
 {
   ezUInt32 m_uiStride;
   ezDynamicArray<spInputElementDescription> m_Elements;
