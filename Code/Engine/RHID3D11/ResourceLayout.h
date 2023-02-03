@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <RHID3D11/RHID3D11DLL.h>
 
@@ -16,7 +16,7 @@ public:
   void ReleaseResource() override;
   bool IsReleased() const override;
 
-  // spResourceLayout
+  // spResourceLayoutD3D11
 
   struct BindingInfo
   {

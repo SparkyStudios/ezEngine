@@ -114,7 +114,7 @@ private:
 };
 
 /// \brief Describes a \see spShader, for creation using a \see spDeviceResourceFactory.
-struct SP_RHI_DLL spShaderDescription : public ezHashableStruct<spShaderDescription>
+struct spShaderDescription : public ezHashableStruct<spShaderDescription>
 {
   /// \brief The compiled binary representation of the shader.
   ezByteArrayPtr m_Buffer;

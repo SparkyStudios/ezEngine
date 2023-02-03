@@ -9,7 +9,7 @@
 #include <RHI/Shader.h>
 
 /// \brief Describes a \see spComputePipeline, for creation using a \see spDeviceResourceFactory.
-struct SP_RHI_DLL spComputePipelineDescription : public ezHashableStruct<spComputePipelineDescription>
+struct spComputePipelineDescription : public ezHashableStruct<spComputePipelineDescription>
 {
   spComputePipelineDescription()
     : ezHashableStruct<spComputePipelineDescription>()
@@ -72,7 +72,7 @@ struct SP_RHI_DLL spComputePipelineDescription : public ezHashableStruct<spCompu
 };
 
 /// \brief Describes a \see spGraphicPipeline, for creation using a \see spDeviceResourceFactory.
-struct SP_RHI_DLL spGraphicPipelineDescription : public ezHashableStruct<spGraphicPipelineDescription>
+struct spGraphicPipelineDescription : public ezHashableStruct<spGraphicPipelineDescription>
 {
   spRenderingState m_RenderingState;
   ezEnum<spPrimitiveTopology> m_ePrimitiveTopology;
@@ -99,7 +99,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceHandle>& GetResourceLayouts() const { return m_ResourceLayouts; }
 
 protected:
-  bool m_bActivated;
+  bool m_bActivated{false};
   spResourceHandle m_ShaderProgram;
   ezDynamicArray<spResourceHandle> m_ResourceLayouts;
 };

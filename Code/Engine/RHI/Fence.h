@@ -5,7 +5,7 @@
 #include <RHI/Resource.h>
 
 /// \brief Describes a Fence, for creation using a \see spDeviceResourceFactory.
-struct SP_RHI_DLL spFenceDescription : public ezHashableStruct<spFenceDescription>
+struct spFenceDescription : public ezHashableStruct<spFenceDescription>
 {
   /// \brief Constructs a spFenceDescription.
   spFenceDescription()

@@ -2,12 +2,10 @@
 
 #include <RHI/RHIDLL.h>
 
-#include <RHI/Resource.h>
-
 class spFramebuffer;
 
 /// \brief Describes an individual output attachment and its format.
-struct SP_RHI_DLL spOutputAttachmentDescription : public ezHashableStruct<spOutputAttachmentDescription>
+struct spOutputAttachmentDescription : public ezHashableStruct<spOutputAttachmentDescription>
 {
   spOutputAttachmentDescription()
     : ezHashableStruct<spOutputAttachmentDescription>()
@@ -40,7 +38,7 @@ struct SP_RHI_DLL spOutputAttachmentDescription : public ezHashableStruct<spOutp
 struct SP_RHI_DLL spOutputDescription : public ezHashableStruct<spOutputDescription>
 {
   /// \brief Indicates whether to use the depth attachment.
-  bool m_bUseDepthAttachment;
+  bool m_bUseDepthAttachment{false};
 
   /// \brief A description of the depth attachment. Must be set if the output is
   /// configured to use the depth attachment.

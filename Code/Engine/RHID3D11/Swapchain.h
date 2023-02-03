@@ -1,16 +1,18 @@
-﻿#pragma once
+#pragma once
 
 #include <RHID3D11/RHID3D11DLL.h>
 
 #include <RHI/Swapchain.h>
 
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
-#include <Foundation/Basics/Platform/uwp/UWPUtils.h>
-#include <windows.ui.xaml.media.dxinterop.h>
+#  include <Foundation/Basics/Platform/uwp/UWPUtils.h>
+#  include <windows.ui.xaml.media.dxinterop.h>
 #endif
 
-class spDeviceD3D11;
 class spCommandListD3D11;
+class spDeviceD3D11;
+class spFramebufferD3D11;
+class spTextureD3D11;
 
 class SP_RHID3D11_DLL spRenderingSurfaceWin32 final : public spRenderingSurface
 {

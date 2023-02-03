@@ -1,4 +1,4 @@
-﻿#include <RHID3D11/RHID3D11PCH.h>
+#include <RHID3D11/RHID3D11PCH.h>
 
 #include <RHID3D11/Device.h>
 #include <RHID3D11/ResourceLayout.h>

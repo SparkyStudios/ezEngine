@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <RHID3D11/RHID3D11DLL.h>
 

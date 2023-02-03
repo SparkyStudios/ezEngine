@@ -37,7 +37,7 @@ struct SP_RHI_DLL spBlendAttachment : public ezHashableStruct<spBlendAttachment>
   }
 
   /// \brief Controls whether blending is enabled for the color attachment.
-  bool m_bEnabled;
+  bool m_bEnabled{false};
 
   /// \brief Controls the source color's influence on the blended result.
   ezEnum<spBlendFactor> m_eSourceColorBlendFactor;
@@ -86,7 +86,7 @@ struct SP_RHI_DLL spBlendState : public ezHashableStruct<spBlendState>
   ezStaticArray<spBlendAttachment, SP_RHI_MAX_COLOR_TARGETS> m_AttachmentStates;
 
   /// \brief Enables alpha to coverage, which causes a fragment's alpha value to be used when determining multi-sample coverage.
-  bool m_bAlphaToCoverage;
+  bool m_bAlphaToCoverage{false};
 };
 
 #pragma endregion
@@ -133,13 +133,13 @@ struct SP_RHI_DLL spDepthState : public ezHashableStruct<spDepthState>
   const static spDepthState Disabled;
 
   /// \brief Defines whether the renderer has depth test capabilities enabled.
-  bool m_bDepthTestEnabled;
+  bool m_bDepthTestEnabled{false};
 
   /// \brief The function used for depth comparison.
   ezEnum<spDepthStencilComparison> m_DepthStencilComparison;
 
   /// \brief Defines whether the renderer can write to the depth mask.
-  bool m_bDepthMaskEnabled;
+  bool m_bDepthMaskEnabled{false};
 };
 
 #pragma endregion
@@ -184,7 +184,7 @@ struct SP_RHI_DLL spStencilBehavior : public ezHashableStruct<spStencilBehavior>
 struct SP_RHI_DLL spStencilState : public ezHashableStruct<spStencilState>
 {
   /// \brief Defines whether stencil testing is enabled.
-  bool m_bEnabled;
+  bool m_bEnabled{false};
 
   /// \brief The stencil test behavior for the front buffer.
   spStencilBehavior m_Front;
@@ -221,10 +221,10 @@ struct SP_RHI_DLL spRasterizerState : public ezHashableStruct<spRasterizerState>
   ezEnum<spFaceCullMode> m_eFaceCulling;
 
   /// \brief Defines whether the scissor test is enabled.
-  bool m_bScissorTestEnabled;
+  bool m_bScissorTestEnabled{false};
 
   /// \brief Defines whether the depth clipping is enabled.
-  bool m_bDepthClipEnabled;
+  bool m_bDepthClipEnabled{false};
 
   /// \brief Defines how the rasterizer will identify front faces from back faces.
   ezEnum<spFrontFace> m_eFrontFace;

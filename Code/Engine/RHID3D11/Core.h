@@ -211,7 +211,7 @@ EZ_ALWAYS_INLINE static UINT spToD3D11(ezBitflags<spBufferUsage> eUsage)
   return flags;
 }
 
-static DXGI_FORMAT spToD3D11(const ezEnum<spPixelFormat>& eFormat, bool bDepthFormat)
+EZ_ALWAYS_INLINE static DXGI_FORMAT spToD3D11(const ezEnum<spPixelFormat>& eFormat, bool bDepthFormat)
 {
   switch (eFormat)
   {
@@ -378,7 +378,7 @@ static DXGI_FORMAT spToD3D11(const ezEnum<spPixelFormat>& eFormat, bool bDepthFo
   }
 }
 
-static D3D11_COMPARISON_FUNC spToD3D11(const ezEnum<spDepthStencilComparison>& eFunction)
+EZ_ALWAYS_INLINE static D3D11_COMPARISON_FUNC spToD3D11(const ezEnum<spDepthStencilComparison>& eFunction)
 {
   switch (eFunction)
   {
@@ -403,7 +403,7 @@ static D3D11_COMPARISON_FUNC spToD3D11(const ezEnum<spDepthStencilComparison>& e
   }
 }
 
-static D3D11_TEXTURE_ADDRESS_MODE spToD3D11(const ezEnum<spSamplerAddressMode>& eAddressMode)
+EZ_ALWAYS_INLINE static D3D11_TEXTURE_ADDRESS_MODE spToD3D11(const ezEnum<spSamplerAddressMode>& eAddressMode)
 {
   switch (eAddressMode)
   {
@@ -421,7 +421,7 @@ static D3D11_TEXTURE_ADDRESS_MODE spToD3D11(const ezEnum<spSamplerAddressMode>& 
   }
 }
 
-static D3D11_FILTER spToD3D11(const ezEnum<spSamplerFilter>& eMinFilter, const ezEnum<spSamplerFilter>& eMagFilter, const ezEnum<spSamplerFilter>& eMipFilter, bool bIsComparison)
+EZ_ALWAYS_INLINE static D3D11_FILTER spToD3D11(const ezEnum<spSamplerFilter>& eMinFilter, const ezEnum<spSamplerFilter>& eMagFilter, const ezEnum<spSamplerFilter>& eMipFilter, bool bIsComparison)
 {
   if (eMipFilter == spSamplerFilter::Linear)
   {
@@ -464,6 +464,22 @@ static D3D11_FILTER spToD3D11(const ezEnum<spSamplerFilter>& eMinFilter, const e
 
   EZ_ASSERT_NOT_IMPLEMENTED;
   return D3D11_FILTER_MIN_MAG_MIP_POINT;
+}
+
+EZ_ALWAYS_INLINE static D3D11_MAP spToD3D11(const ezEnum<spMapAccess>& eMapAccess, bool bIsDynamic)
+{
+  switch (eMapAccess)
+  {
+    case spMapAccess::Read:
+      return D3D11_MAP_READ;
+    case spMapAccess::Write:
+      return bIsDynamic ? D3D11_MAP_WRITE_DISCARD : D3D11_MAP_WRITE;
+    case spMapAccess::ReadWrite:
+      return D3D11_MAP_READ_WRITE;
+    default:
+      EZ_ASSERT_NOT_IMPLEMENTED;
+      return D3D11_MAP_READ;
+  }
 }
 
 #pragma endregion
