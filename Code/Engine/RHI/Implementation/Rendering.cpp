@@ -7,6 +7,7 @@
 const spBlendAttachment spBlendAttachment::OverrideBlend = {
   {},
   true,
+  spColorWriteMask::All,
   spBlendFactor::One,
   spBlendFactor::Zero,
   spBlendFunction::Add,
@@ -18,6 +19,7 @@ const spBlendAttachment spBlendAttachment::OverrideBlend = {
 const spBlendAttachment spBlendAttachment::AlphaBlend = {
   {},
   true,
+  spColorWriteMask::All,
   spBlendFactor::SourceAlpha,
   spBlendFactor::InverseSourceAlpha,
   spBlendFunction::Add,
@@ -29,6 +31,7 @@ const spBlendAttachment spBlendAttachment::AlphaBlend = {
 const spBlendAttachment spBlendAttachment::AdditiveBlend = {
   {},
   true,
+  spColorWriteMask::All,
   spBlendFactor::SourceAlpha,
   spBlendFactor::One,
   spBlendFunction::Add,
@@ -40,6 +43,7 @@ const spBlendAttachment spBlendAttachment::AdditiveBlend = {
 const spBlendAttachment spBlendAttachment::MultiplyBlend = {
   {},
   true,
+  spColorWriteMask::All,
   spBlendFactor::DestinationColor,
   spBlendFactor::InverseSourceAlpha,
   spBlendFunction::Add,
@@ -51,6 +55,7 @@ const spBlendAttachment spBlendAttachment::MultiplyBlend = {
 const spBlendAttachment spBlendAttachment::Disabled = {
   {},
   false,
+  spColorWriteMask::All,
   spBlendFactor::One,
   spBlendFactor::Zero,
   spBlendFunction::Add,

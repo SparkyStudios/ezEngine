@@ -39,6 +39,9 @@ struct SP_RHI_DLL spBlendAttachment : public ezHashableStruct<spBlendAttachment>
   /// \brief Controls whether blending is enabled for the color attachment.
   bool m_bEnabled{false};
 
+  /// \brief Controls which components of the color are used for blending.
+  ezBitflags<spColorWriteMask> m_eColorWriteMask{spColorWriteMask::All};
+
   /// \brief Controls the source color's influence on the blended result.
   ezEnum<spBlendFactor> m_eSourceColorBlendFactor;
 
@@ -231,6 +234,9 @@ struct SP_RHI_DLL spRasterizerState : public ezHashableStruct<spRasterizerState>
 
   /// \brief Defines how the rasterizer will fill polygons.
   ezEnum<spPolygonFillMode> m_ePolygonFillMode;
+
+  /// \brief Defines whether to enable conservative rasterization.
+  bool m_bConservativeRasterization{false};
 };
 
 #pragma endregion

@@ -1,6 +1,8 @@
 #pragma once
 
-#include <d3d11.h>
+#include <RHID3D11/RHID3D11DLL.h>
+
+#include <dxgiformat.h>
 
 #include <RHI/Core.h>
 
@@ -184,7 +186,7 @@ EZ_ALWAYS_INLINE static ezEnum<spPixelFormat> spFromD3D11(DXGI_FORMAT eFormat)
 
     default:
       EZ_ASSERT_NOT_IMPLEMENTED
-      break;
+      return spPixelFormat::Default;
   }
 }
 
@@ -479,6 +481,223 @@ EZ_ALWAYS_INLINE static D3D11_MAP spToD3D11(const ezEnum<spMapAccess>& eMapAcces
     default:
       EZ_ASSERT_NOT_IMPLEMENTED;
       return D3D11_MAP_READ;
+  }
+}
+
+EZ_ALWAYS_INLINE static UINT spToD3D11(const ezBitflags<spColorWriteMask>& eColorWriteMask)
+{
+  UINT uiEnable = 0;
+
+  if (eColorWriteMask.IsSet(spColorWriteMask::Red))
+    uiEnable |= D3D11_COLOR_WRITE_ENABLE_RED;
+
+  if (eColorWriteMask.IsSet(spColorWriteMask::Green))
+    uiEnable |= D3D11_COLOR_WRITE_ENABLE_GREEN;
+
+  if (eColorWriteMask.IsSet(spColorWriteMask::Blue))
+    uiEnable |= D3D11_COLOR_WRITE_ENABLE_BLUE;
+
+  if (eColorWriteMask.IsSet(spColorWriteMask::Alpha))
+    uiEnable |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
+
+  return uiEnable;
+}
+
+EZ_ALWAYS_INLINE static D3D11_BLEND spToD3D11(const ezEnum<spBlendFactor>& eBlendFactor)
+{
+  switch (eBlendFactor)
+  {
+    case spBlendFactor::Zero:
+      return D3D11_BLEND_ZERO;
+    case spBlendFactor::One:
+      return D3D11_BLEND_ONE;
+    case spBlendFactor::SourceColor:
+      return D3D11_BLEND_SRC_COLOR;
+    case spBlendFactor::InverseSourceColor:
+      return D3D11_BLEND_INV_SRC_COLOR;
+    case spBlendFactor::SourceAlpha:
+      return D3D11_BLEND_SRC_ALPHA;
+    case spBlendFactor::InverseSourceAlpha:
+      return D3D11_BLEND_INV_SRC_ALPHA;
+    case spBlendFactor::DestinationColor:
+      return D3D11_BLEND_DEST_COLOR;
+    case spBlendFactor::InverseDestinationColor:
+      return D3D11_BLEND_INV_DEST_COLOR;
+    case spBlendFactor::DestinationAlpha:
+      return D3D11_BLEND_DEST_ALPHA;
+    case spBlendFactor::InverseDestinationAlpha:
+      return D3D11_BLEND_INV_DEST_ALPHA;
+    default:
+      EZ_ASSERT_NOT_IMPLEMENTED;
+      return D3D11_BLEND_ZERO;
+  }
+}
+
+EZ_ALWAYS_INLINE static D3D11_BLEND_OP spToD3D11(const ezEnum<spBlendFunction>& eBlendFunction)
+{
+  switch (eBlendFunction)
+  {
+    case spBlendFunction::Add:
+      return D3D11_BLEND_OP_ADD;
+    case spBlendFunction::Subtract:
+      return D3D11_BLEND_OP_SUBTRACT;
+    case spBlendFunction::ReverseSubtract:
+      return D3D11_BLEND_OP_REV_SUBTRACT;
+    case spBlendFunction::Minimum:
+      return D3D11_BLEND_OP_MIN;
+    case spBlendFunction::Maximum:
+      return D3D11_BLEND_OP_MAX;
+    default:
+      EZ_ASSERT_NOT_IMPLEMENTED;
+      return D3D11_BLEND_OP_ADD;
+  }
+}
+
+EZ_ALWAYS_INLINE static D3D11_STENCIL_OP spToD3D11(const ezEnum<spStencilOperation>& eStencilOperation)
+{
+  switch (eStencilOperation)
+  {
+    case spStencilOperation::Keep:
+      return D3D11_STENCIL_OP_KEEP;
+    case spStencilOperation::Zero:
+      return D3D11_STENCIL_OP_ZERO;
+    case spStencilOperation::Replace:
+      return D3D11_STENCIL_OP_REPLACE;
+    case spStencilOperation::IncrementClamp:
+      return D3D11_STENCIL_OP_INCR_SAT;
+    case spStencilOperation::DecrementClamp:
+      return D3D11_STENCIL_OP_DECR_SAT;
+    case spStencilOperation::Invert:
+      return D3D11_STENCIL_OP_INVERT;
+    case spStencilOperation::IncrementWrap:
+      return D3D11_STENCIL_OP_INCR;
+    case spStencilOperation::DecrementWrap:
+      return D3D11_STENCIL_OP_DECR;
+    default:
+      EZ_ASSERT_NOT_IMPLEMENTED;
+      return D3D11_STENCIL_OP_KEEP;
+  }
+}
+
+EZ_ALWAYS_INLINE static D3D11_CULL_MODE spToD3D11(const ezEnum<spFaceCullMode>& eCullMode)
+{
+  switch (eCullMode)
+  {
+    case spFaceCullMode::Back:
+      return D3D11_CULL_BACK;
+    case spFaceCullMode::Front:
+      return D3D11_CULL_FRONT;
+    case spFaceCullMode::None:
+      return D3D11_CULL_NONE;
+    default:
+      EZ_ASSERT_NOT_IMPLEMENTED;
+      return D3D11_CULL_BACK;
+  }
+}
+
+EZ_ALWAYS_INLINE static D3D11_FILL_MODE spToD3D11(const ezEnum<spPolygonFillMode>& eFillMode)
+{
+  switch (eFillMode)
+  {
+    case spPolygonFillMode::Wireframe:
+      return D3D11_FILL_WIREFRAME;
+    case spPolygonFillMode::Solid:
+      return D3D11_FILL_SOLID;
+    default:
+      EZ_ASSERT_NOT_IMPLEMENTED;
+      return D3D11_FILL_SOLID;
+  }
+}
+
+EZ_ALWAYS_INLINE static DXGI_FORMAT spToD3D11(const ezEnum<spInputElementFormat>& eFormat)
+{
+  switch (eFormat)
+  {
+    case spInputElementFormat::Float1:
+      return DXGI_FORMAT_R32_FLOAT;
+    case spInputElementFormat::Float2:
+      return DXGI_FORMAT_R32G32_FLOAT;
+    case spInputElementFormat::Float3:
+      return DXGI_FORMAT_R32G32B32_FLOAT;
+    case spInputElementFormat::Float4:
+      return DXGI_FORMAT_R32G32B32A32_FLOAT;
+    case spInputElementFormat::Byte2:
+      return DXGI_FORMAT_R8G8_UINT;
+    case spInputElementFormat::Byte2Norm:
+      return DXGI_FORMAT_R8G8_UNORM;
+    case spInputElementFormat::Byte4:
+      return DXGI_FORMAT_R8G8B8A8_UINT;
+    case spInputElementFormat::Byte4Norm:
+      return DXGI_FORMAT_R8G8B8A8_UNORM;
+    case spInputElementFormat::SByte2:
+      return DXGI_FORMAT_R8G8_SINT;
+    case spInputElementFormat::SByte2Norm:
+      return DXGI_FORMAT_R8G8_SNORM;
+    case spInputElementFormat::SByte4:
+      return DXGI_FORMAT_R8G8B8A8_SINT;
+    case spInputElementFormat::SByte4Norm:
+      return DXGI_FORMAT_R8G8B8A8_SNORM;
+    case spInputElementFormat::Short2:
+      return DXGI_FORMAT_R16G16_SINT;
+    case spInputElementFormat::Short2Norm:
+      return DXGI_FORMAT_R16G16_SNORM;
+    case spInputElementFormat::Short4:
+      return DXGI_FORMAT_R16G16B16A16_SINT;
+    case spInputElementFormat::Short4Norm:
+      return DXGI_FORMAT_R16G16B16A16_SNORM;
+    case spInputElementFormat::UShort2:
+      return DXGI_FORMAT_R16G16_UINT;
+    case spInputElementFormat::UShort2Norm:
+      return DXGI_FORMAT_R16G16_UNORM;
+    case spInputElementFormat::UShort4:
+      return DXGI_FORMAT_R16G16B16A16_UINT;
+    case spInputElementFormat::UShort4Norm:
+      return DXGI_FORMAT_R16G16B16A16_UNORM;
+    case spInputElementFormat::Int1:
+      return DXGI_FORMAT_R32_SINT;
+    case spInputElementFormat::Int2:
+      return DXGI_FORMAT_R32G32_SINT;
+    case spInputElementFormat::Int3:
+      return DXGI_FORMAT_R32G32B32_SINT;
+    case spInputElementFormat::Int4:
+      return DXGI_FORMAT_R32G32B32A32_SINT;
+    case spInputElementFormat::UInt1:
+      return DXGI_FORMAT_R32_UINT;
+    case spInputElementFormat::UInt2:
+      return DXGI_FORMAT_R32G32_UINT;
+    case spInputElementFormat::UInt3:
+      return DXGI_FORMAT_R32G32B32_UINT;
+    case spInputElementFormat::UInt4:
+      return DXGI_FORMAT_R32G32B32A32_UINT;
+    case spInputElementFormat::Half1:
+      return DXGI_FORMAT_R16_FLOAT;
+    case spInputElementFormat::Half2:
+      return DXGI_FORMAT_R16G16_FLOAT;
+    case spInputElementFormat::Half4:
+      return DXGI_FORMAT_R16G16B16A16_FLOAT;
+    default:
+      EZ_ASSERT_NOT_IMPLEMENTED;
+      return DXGI_FORMAT_UNKNOWN;
+  }
+}
+
+EZ_ALWAYS_INLINE static D3D11_PRIMITIVE_TOPOLOGY spToD3D11(const ezEnum<spPrimitiveTopology>& eTopology)
+{
+  switch (eTopology)
+  {
+    case spPrimitiveTopology::Points:
+      return D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+    case spPrimitiveTopology::Lines:
+      return D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+    case spPrimitiveTopology::LineStrip:
+      return D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+    case spPrimitiveTopology::Triangles:
+      return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+    case spPrimitiveTopology::TriangleStrip:
+      return D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+    default:
+      EZ_ASSERT_NOT_IMPLEMENTED;
+      return D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
   }
 }
 

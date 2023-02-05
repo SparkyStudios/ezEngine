@@ -18,8 +18,8 @@ bool spShaderProgramD3D11::IsReleased() const
 
 void spShaderProgramD3D11::Attach(const spResourceHandle& hShader)
 {
-  auto* pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(hShader);
-  EZ_ASSERT_DEV(pShader != nullptr, "Invalid shader handle {0}", hShader);
+  auto* const pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(hShader);
+  EZ_ASSERT_DEV(pShader != nullptr, "Invalid shader handle {0}", hShader.GetInternalID().m_Data);
 
   switch (pShader->GetStage())
   {
@@ -46,13 +46,13 @@ void spShaderProgramD3D11::Attach(const spResourceHandle& hShader)
       return;
   }
 
-  pShader->AddRef();
+  EZ_IGNORE_UNUSED(pShader->AddRef());
 }
 
 void spShaderProgramD3D11::Detach(const spResourceHandle& hShader)
 {
-  auto* pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(hShader);
-  EZ_ASSERT_DEV(pShader != nullptr, "Invalid shader handle {0}", hShader);
+  const auto* const pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(hShader);
+  EZ_ASSERT_DEV(pShader != nullptr, "Invalid shader handle {0}", hShader.GetInternalID().m_Data);
 
   spShaderD3D11* pFoundShader = nullptr;
 

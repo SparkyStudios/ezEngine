@@ -80,6 +80,9 @@ struct spDeviceCapabilities
 
   /// \brief Specifies whether the device supports 16 bits precision in shaders.
   bool m_bShader16BitsPrecision{false};
+
+  /// \brief Specifies whether the device supports conservative rasterization.
+  bool m_bConservaiveRasterization{false};
 };
 
 /// \brief Describes how to create a device.
@@ -379,10 +382,10 @@ protected:
   spGraphicsApiVersion m_ApiVersion;
   spDeviceCapabilities m_Capabilities;
 
-private:
   spDeviceResourceManager* m_pResourceManager{nullptr};
   spStagingMemoryPool* m_pStagingMemoryPool{nullptr};
 
+private:
   spMappedResource m_InvalidDefaultMappedResource{};
 };
 

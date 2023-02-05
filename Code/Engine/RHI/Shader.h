@@ -129,27 +129,11 @@ struct spShaderDescription : public ezHashableStruct<spShaderDescription>
 struct SP_RHI_DLL spShaderPipeline : public ezHashableStruct<spShaderPipeline>
 {
   ezDynamicArray<spResourceHandle> m_InputLayouts;
-  spResourceHandle m_hVertexShader{};
-  spResourceHandle m_hPixelShader{};
-  spResourceHandle m_hGeometryShader{};
-  spResourceHandle m_hHullShader{};
-  spResourceHandle m_hDomainShader{};
-  spResourceHandle m_hComputeShader{};
+  spResourceHandle m_hShaderProgram{};
 
   spShaderPipeline() = default;
 
-  spShaderPipeline(
-    ezDynamicArray<spResourceHandle> inputLayouts,
-    spResourceHandle hVertexShader,
-    spResourceHandle hPixelShader,
-    spResourceHandle hGeometryShader = spResourceHandle(),
-    spResourceHandle hDomainShader = spResourceHandle(),
-    spResourceHandle hHullShader = spResourceHandle());
-
-  /// \brief Constructs a \see spShaderPipeline for a \see spComputePipeline.
-  spShaderPipeline(
-    ezDynamicArray<spResourceHandle> inputLayouts,
-    spResourceHandle hComputeShader);
+  spShaderPipeline(ezDynamicArray<spResourceHandle> inputLayouts, spResourceHandle hShaderProgram);
 
   ~spShaderPipeline();
 };

@@ -4,6 +4,7 @@
 
 #include <RHI/Device.h>
 
+class spDeviceResourceManagerD3D11;
 class spDeviceResourceFactoryD3D11;
 class spSwapchainD3D11;
 class spBufferD3D11;
@@ -51,7 +52,10 @@ protected:
 public:
   explicit spDeviceD3D11(const spDeviceDescriptionD3D11& deviceDescription);
 
+  EZ_NODISCARD EZ_ALWAYS_INLINE spDeviceResourceManagerD3D11* GetD3D11ResourceManager() const { return ezStaticCast<spDeviceResourceManagerD3D11*>(m_pResourceManager); }
+
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Device* GetD3D11Device() const { return m_pD3D11Device; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Device3* GetD3D11Device3() const { return m_pD3D11Device3; }
   EZ_NODISCARD EZ_ALWAYS_INLINE IDXGIAdapter* GetDXGIAdapter() const { return m_pDXGIAdapter; }
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceContext* GetD3D11DeviceContext() const { return m_pD3D11DeviceContext; }
 
@@ -60,6 +64,7 @@ private:
   spBufferD3D11* GetFreeStagingBuffer(ezUInt32 uiSize);
 
   ID3D11Device* m_pD3D11Device{nullptr};
+  ID3D11Device3* m_pD3D11Device3{nullptr};
   IDXGIAdapter* m_pDXGIAdapter{nullptr};
   ID3D11DeviceContext* m_pD3D11DeviceContext{nullptr};
   ID3D11Debug* m_pD3D11Debug{nullptr};

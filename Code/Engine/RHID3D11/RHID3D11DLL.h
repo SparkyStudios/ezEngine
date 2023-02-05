@@ -5,12 +5,12 @@
 
 #include <RHI/RHIDLL.h>
 
-#include <d3d11.h>
+#include <d3d11_3.h>
 
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
-#include <dxgi1_3.h>
+#  include <dxgi1_3.h>
 #else
-#include <dxgi.h>
+#  include <dxgi.h>
 #endif
 
 

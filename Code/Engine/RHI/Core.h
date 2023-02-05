@@ -1052,25 +1052,45 @@ struct SP_RHI_DLL spInputElementLocationSemantic
     /// data. Use the location 0 of the \see ShaderPipeline.
     Position = 0,
 
-    /// \brief Defines an input layout element storing texture coordinates
-    /// data. Use the location 2 of the \see ShaderPipeline.
-    TextureCoordinate = 1,
-
     /// \brief Defines an input layout element vertices normal vectors
-    /// data. Use the location 3 of the \see ShaderPipeline.
-    Normal = 2,
+    /// data. Use the location 1 of the \see ShaderPipeline.
+    Normal = 1,
 
     /// \brief Defines an input layout element vertices tangent vectors
-    /// data. Use the location 4 of the \see ShaderPipeline.
-    Tangent = 3,
+    /// data. Use the location 2 of the \see ShaderPipeline.
+    Tangent = 2,
 
     /// \brief Defines an input layout element vertices bi-tangent vectors
+    /// data. Use the location 3 of the \see ShaderPipeline.
+    BiTangent = 3,
+
+    /// \brief Defines an input layout element storing texture coordinates
+    /// data. Use the location 4 of the \see ShaderPipeline.
+    TexCoord0 = 4,
+
+    /// \brief Defines an input layout element storing texture coordinates
     /// data. Use the location 5 of the \see ShaderPipeline.
-    BiTangent = 4,
+    TexCoord1 = 5,
+
+    /// \brief Defines an input layout element storing vertex color
+    /// data. Use the location 6 of the \see ShaderPipeline.
+    Color0 = 6,
+
+    /// \brief Defines an input layout element storing vertex color
+    /// data. Use the location 7 of the \see ShaderPipeline.
+    Color1 = 7,
+
+    /// \brief Defines an input layout element storing bones weights
+    /// data. Use the location 8 of the \see ShaderPipeline.
+    BoneWeights0 = 8,
+
+    /// \brief Defines an input layout element storing bones indices
+    /// data. Use the location 9 of the \see ShaderPipeline.
+    BoneIndices0 = 9,
 
     /// \brief Defines the last possible value for input layout element managed
     /// by the engine. Any value after this one is user defined.
-    Last = BiTangent,
+    Last = BoneIndices0,
 
     Default = Position
   };
@@ -1172,6 +1192,43 @@ struct SP_RHI_DLL spBlendFactor
     InverseBlendFactor,
 
     Default = SourceAlpha,
+  };
+};
+
+/// \brief A color bitmask representing the components which can be written to.
+struct SP_RHI_DLL spColorWriteMask
+{
+  typedef ezUInt8 StorageType;
+
+  enum Enum : StorageType
+  {
+    /// \brief No color component will be written.
+    None = 0,
+
+    /// \brief The red component will be written.
+    Red = EZ_BIT(0),
+
+    /// \brief The green component will be written.
+    Green = EZ_BIT(1),
+
+    /// \brief The blue component will be written.
+    Blue = EZ_BIT(2),
+
+    /// \brief The alpha component will be written.
+    Alpha = EZ_BIT(3),
+
+    /// \brief All color components will be written.
+    All = Red | Green | Blue | Alpha,
+
+    Default = All
+  };
+
+  struct Bits
+  {
+    StorageType Red : 1;
+    StorageType Green : 1;
+    StorageType Blue : 1;
+    StorageType Alpha : 1;
   };
 };
 

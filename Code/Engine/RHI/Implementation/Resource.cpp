@@ -1,6 +1,5 @@
 #include <RHI/RHIPCH.h>
 
-#include <RHI/Device.h>
 #include <RHI/Resource.h>
 
 #pragma region spDeferredDeviceResource
@@ -102,18 +101,18 @@ spDeviceResource* spDeviceResourceManager::GetResource(const spResourceHandle& h
   return pResource;
 }
 
-ezUInt32 spDeviceResourceManager::IncrementResourceRef(spResourceHandle hResource) const
+ezUInt32 spDeviceResourceManager::IncrementResourceRef(const spResourceHandle& hResource) const
 {
-  spDeviceResource* pResource = GetResource(hResource);
+  const spDeviceResource* pResource = GetResource(hResource);
   if (pResource == nullptr)
     return 0;
 
   return pResource->AddRef();
 }
 
-ezUInt32 spDeviceResourceManager::DecrementResourceRef(spResourceHandle hResource) const
+ezUInt32 spDeviceResourceManager::DecrementResourceRef(const spResourceHandle& hResource) const
 {
-  spDeviceResource* pResource = GetResource(hResource);
+  const spDeviceResource* pResource = GetResource(hResource);
   if (pResource == nullptr)
     return 0;
 
@@ -123,6 +122,11 @@ ezUInt32 spDeviceResourceManager::DecrementResourceRef(spResourceHandle hResourc
 #pragma endregion
 
 #pragma region spDefaultDeviceResourceManager
+
+spDefaultDeviceResourceManager::spDefaultDeviceResourceManager(spDevice* pDevice)
+  : spDeviceResourceManager(pDevice)
+{
+}
 
 spDefaultDeviceResourceManager::~spDefaultDeviceResourceManager()
 {
@@ -143,7 +147,7 @@ void spDefaultDeviceResourceManager::EnqueueReleaseResource(spDeviceResource* pR
   m_ResourcesQueue.PushBack(pResource);
 }
 
-void spDefaultDeviceResourceManager::ReleaseResource(spResourceHandle hResource)
+void spDefaultDeviceResourceManager::ReleaseResource(const spResourceHandle& hResource)
 {
   spDeviceResource* pResource = GetResource(hResource);
   if (pResource == nullptr)

@@ -3,7 +3,9 @@
 #include <RHID3D11/CommandList.h>
 #include <RHID3D11/Core.h>
 #include <RHID3D11/Device.h>
+#include <RHID3D11/Framebuffer.h>
 #include <RHID3D11/Swapchain.h>
+#include <RHID3D11/Texture.h>
 
 // clang-off
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderingSurfaceWin32, 1, ezRTTINoAllocator)
