@@ -2,11 +2,10 @@
 
 #include <RHID3D11/RHID3D11DLL.h>
 
-#include <d3d11.h>
-
-#include <Foundation/Threading/Mutex.h>
-
 #include <RHI/Buffer.h>
+
+#include <RHID3D11/Fence.h>
+
 
 class spDeviceD3D11;
 
@@ -76,3 +75,43 @@ private:
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spBufferD3D11);
+
+class SP_RHID3D11_DLL spBufferRangeD3D11 final : public spBufferRange
+{
+  friend class spDeviceResourceFactoryD3D11;
+
+  // spDeviceResource
+
+public:
+  void ReleaseResource() override;
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool IsReleased() const override { return m_bReleased; }
+
+  // spBufferRange
+
+public:
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual spResourceHandle GetFence() const override { return m_pFence->GetHandle(); }
+
+  // spBufferRangeD3D11
+
+public:
+  spBufferRangeD3D11(spDeviceD3D11* pDevice, const spBufferD3D11* pBuffer, const spBufferRangeDescription& description);
+
+  /// \brief Checks if the buffer range is valid.
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool IsValid() const { return m_pBuffer != nullptr; }
+
+  /// \brief Checks if the buffer range is covering the entire parent buffer.
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool IsFullRange() const { return IsValid() && GetOffset() == 0 && GetSize() == m_pBuffer->GetSize(); }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spBufferRangeD3D11& rhs) const
+  {
+    return m_pBuffer == rhs.m_pBuffer && GetOffset() == rhs.GetOffset() && GetSize() == rhs.GetSize();
+  }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spBufferRangeD3D11& rhs) const { return !(*this == rhs); }
+
+private:
+  const spBufferD3D11* m_pBuffer{nullptr};
+  spFenceD3D11* m_pFence{nullptr};
+};
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spBufferRangeD3D11);

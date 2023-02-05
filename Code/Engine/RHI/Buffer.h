@@ -116,11 +116,7 @@ public:
   EZ_NODISCARD virtual spResourceHandle GetFence() const = 0;
 
 protected:
-  spBufferRange(spBufferRangeDescription description)
-    : spDeviceResource()
-    , m_Description(std::move(description))
-  {
-  }
+  spBufferRange(spBufferRangeDescription description);
 
   spBufferRangeDescription m_Description;
 };
