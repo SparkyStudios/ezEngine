@@ -2,9 +2,13 @@
 
 #include <RHID3D11/Device.h>
 
+#include <RHID3D11/Buffer.h>
+#include <RHID3D11/Core.h>
 #include <RHID3D11/Fence.h>
+#include <RHID3D11/ResourceManager.h>
 #include <RHID3D11/Swapchain.h>
 #include <RHID3D11/Texture.h>
+
 
 static bool SdkLayersAvailable()
 {
@@ -36,6 +40,22 @@ static bool CheckDoublePrecisionSupport(ID3D11Device* pDevice)
   D3D11_FEATURE_DATA_DOUBLES data;
   pDevice->CheckFeatureSupport(D3D11_FEATURE_DOUBLES, &data, sizeof(D3D11_FEATURE_DATA_DOUBLES));
   return data.DoublePrecisionFloatShaderOps == TRUE;
+}
+
+static bool CheckConservativeRasterizationSupport(ID3D11Device3* pDevice3)
+{
+  if (pDevice3 == nullptr)
+    return false;
+
+  bool bSupported = false;
+
+  D3D11_FEATURE_DATA_D3D11_OPTIONS2 featureOpts2;
+  if (SUCCEEDED(pDevice3->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS2, &featureOpts2, sizeof(featureOpts2))))
+  {
+    bSupported = (featureOpts2.ConservativeRasterizationTier != D3D11_CONSERVATIVE_RASTERIZATION_NOT_SUPPORTED);
+  }
+
+  return bSupported;
 }
 
 spDevice::HardwareInfo spDeviceD3D11::GetHardwareInfo() const
@@ -380,6 +400,8 @@ void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, v
 spDeviceD3D11::spDeviceD3D11(const spDeviceDescriptionD3D11& deviceDescription)
   : spDevice(deviceDescription)
 {
+  m_pResourceManager = EZ_DEFAULT_NEW(spDeviceResourceManagerD3D11, this);
+
   ezUInt32 uiFlags = deviceDescription.m_uiCreationFlags;
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
@@ -464,6 +486,14 @@ spDeviceD3D11::spDeviceD3D11(const spDeviceDescriptionD3D11& deviceDescription)
   }
 
   {
+    if (FAILED(m_pD3D11Device->QueryInterface(__uuidof(ID3D11Device3), reinterpret_cast<void**>(&m_pD3D11Device3))))
+    {
+      ezLog::Warning("Failed to get ID3D11Device3 from D3D11 device, some features won't be available.");
+      m_pD3D11Device3 = nullptr;
+    }
+  }
+
+  {
     m_pD3D11Device->GetImmediateContext(&m_pD3D11DeviceContext);
 
     D3D11_FEATURE_DATA_THREADING support;
@@ -503,6 +533,7 @@ spDeviceD3D11::spDeviceD3D11(const spDeviceDescriptionD3D11& deviceDescription)
     m_Capabilities.m_bSubsetTextureView = true;
     m_Capabilities.m_bTessellationShader = true;
     m_Capabilities.m_bTexture1D = true;
+    m_Capabilities.m_bConservaiveRasterization = CheckConservativeRasterizationSupport(m_pD3D11Device3);
   }
 }
 

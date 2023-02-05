@@ -18,7 +18,7 @@ struct spComputePipelineDescription : public ezHashableStruct<spComputePipelineD
 
   spComputePipelineDescription(spResourceHandle hShader, ezDynamicArray<spResourceHandle> resourceLayouts, ezUInt32 uiThreadGroupSizeX, ezUInt32 uiThreadGroupSizeY, ezUInt32 uiThreadGroupSizeZ)
     : ezHashableStruct<spComputePipelineDescription>()
-    , m_hComputeShader(std::move(hShader))
+    , m_hComputeShader(hShader)
     , m_ResourceLayouts(std::move(resourceLayouts))
     , m_uiThreadGroupSizeX(uiThreadGroupSizeX)
     , m_uiThreadGroupSizeY(uiThreadGroupSizeY)
@@ -28,7 +28,7 @@ struct spComputePipelineDescription : public ezHashableStruct<spComputePipelineD
 
   spComputePipelineDescription(spResourceHandle hShader, const spResourceLayout* resourceLayout, ezUInt32 uiThreadGroupSizeX, ezUInt32 uiThreadGroupSizeY, ezUInt32 uiThreadGroupSizeZ)
     : ezHashableStruct<spComputePipelineDescription>()
-    , m_hComputeShader(std::move(hShader))
+    , m_hComputeShader(hShader)
     , m_ResourceLayouts()
     , m_uiThreadGroupSizeX(uiThreadGroupSizeX)
     , m_uiThreadGroupSizeY(uiThreadGroupSizeY)
@@ -76,15 +76,13 @@ struct spGraphicPipelineDescription : public ezHashableStruct<spGraphicPipelineD
 {
   spRenderingState m_RenderingState;
   ezEnum<spPrimitiveTopology> m_ePrimitiveTopology;
-  spResourceHandle m_hShaderProgram;
+  spShaderPipeline m_ShaderPipeline;
   spOutputDescription m_Output;
   ezDynamicArray<spResourceHandle> m_ResourceLayouts;
 };
 
 class SP_RHI_DLL spPipeline : public spDeviceResource
 {
-  EZ_ADD_DYNAMIC_REFLECTION(spPipeline, spDeviceResource);
-
 public:
   /// \brief Checks whether the pipeline is active.
   EZ_NODISCARD EZ_ALWAYS_INLINE bool IsActivated() const { return m_bActivated; }
@@ -93,14 +91,14 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual bool IsComputePipeline() const = 0;
 
   /// \brief Gets the shader program associated with this pipeline.
-  EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetShaderProgram() const { return m_ShaderProgram; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetShaderProgram() const { return m_hShaderProgram; }
 
   /// \brief Gets the resource layouts for this pipeline.
   EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceHandle>& GetResourceLayouts() const { return m_ResourceLayouts; }
 
 protected:
   bool m_bActivated{false};
-  spResourceHandle m_ShaderProgram;
+  spResourceHandle m_hShaderProgram;
   ezDynamicArray<spResourceHandle> m_ResourceLayouts;
 };
 
@@ -113,13 +111,8 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE bool IsComputePipeline() const override { return true; }
 
 protected:
-  spComputePipeline(spComputePipelineDescription description)
-    : spPipeline()
-    , m_Description(std::move(description))
-  {
-  }
+  explicit spComputePipeline(spComputePipelineDescription description);
 
-private:
   spComputePipelineDescription m_Description;
 };
 
@@ -135,18 +128,11 @@ public:
 
   EZ_NODISCARD EZ_ALWAYS_INLINE ezEnum<spPrimitiveTopology> GetPrimitiveTopology() const { return m_Description.m_ePrimitiveTopology; }
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetShaderProgram() const { return m_Description.m_hShaderProgram; }
-
   EZ_NODISCARD EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const { return m_Description.m_Output; }
 
 protected:
-  spGraphicPipeline(spGraphicPipelineDescription description)
-    : spPipeline()
-    , m_Description(std::move(description))
-  {
-  }
+  explicit spGraphicPipeline(spGraphicPipelineDescription description);
 
-private:
   spGraphicPipelineDescription m_Description;
 };
 

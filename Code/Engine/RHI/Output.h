@@ -2,6 +2,8 @@
 
 #include <RHI/RHIDLL.h>
 
+#include <RHI/Core.h>
+
 class spFramebuffer;
 
 /// \brief Describes an individual output attachment and its format.

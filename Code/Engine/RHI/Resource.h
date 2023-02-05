@@ -303,7 +303,7 @@ struct SP_RHI_DLL spMappedResourceCacheKey : public ezHashableStruct<spMappedRes
 
   EZ_ALWAYS_INLINE bool operator<(const spMappedResourceCacheKey& other) const
   {
-      return m_pResource < other.m_pResource || (m_pResource == other.m_pResource && m_uiSubResource < other.m_uiSubResource);
+    return m_pResource < other.m_pResource || (m_pResource == other.m_pResource && m_uiSubResource < other.m_uiSubResource);
   }
 
   spMappableResource* m_pResource{nullptr};
@@ -420,11 +420,18 @@ private:
 };
 
 /// \brief Manages resources allocation/deallocation within a graphics devices.
-class SP_RHI_DLL spDeviceResourceManager
+class SP_RHI_DLL spDeviceResourceManager : public ezReflectedClass
 {
-  friend class spDeviceResourceFactory;
+  friend class spDevice;
 
 public:
+  /// \brief Creates a new resource manager for the given device.
+  /// \param [in] pDevice The graphics device for which the resource manager will manage resources.
+  explicit spDeviceResourceManager(spDevice* pDevice)
+    : m_pDevice(pDevice)
+  {
+  }
+
   virtual ~spDeviceResourceManager();
 
   /// \brief Gets the graphics device for which resources are created.
@@ -455,12 +462,12 @@ public:
   /// \brief Increments the reference count of the given resource.
   /// \param [in] hResource The handle of the resource to increment the reference count.
   /// \return The new reference count.
-  EZ_NODISCARD ezUInt32 IncrementResourceRef(spResourceHandle hResource) const;
+  EZ_NODISCARD ezUInt32 IncrementResourceRef(const spResourceHandle& hResource) const;
 
   /// \brief Decrements the reference count of the given resource.
   /// \param [in] hResource The handle of the resource to decrement the reference count.
   /// \return The new reference count.
-  EZ_NODISCARD ezUInt32 DecrementResourceRef(spResourceHandle hResource) const;
+  EZ_NODISCARD ezUInt32 DecrementResourceRef(const spResourceHandle& hResource) const;
 
   /// \brief Enqueue a resource for deallocation at the end of the current frame.
   /// \param [in] hResource The resource to be deallocated.
@@ -472,7 +479,7 @@ public:
 
   /// \brief Deallocate a resource now.
   /// \param [in] hResource The resource to be deallocated.
-  virtual void ReleaseResource(spResourceHandle hResource) = 0;
+  virtual void ReleaseResource(const spResourceHandle& hResource) = 0;
 
   /// \brief Releases all the enqueued resources.
   virtual void ReleaseResources() = 0;
@@ -480,21 +487,17 @@ public:
 protected:
   using spResourceTable = ezIdTable<spResourceHandle::IdType, spDeviceResource*, ezLocalAllocatorWrapper>;
 
-  /// \brief Creates a new resource manager for the given device.
-  /// \param [in] pDevice The graphics device for which the resource manager will manage resources.
-  explicit spDeviceResourceManager(spDevice* pDevice)
-    : m_pDevice(pDevice)
-  {
-  }
-
   spDevice* m_pDevice;
   spResourceTable m_RegisteredResources;
 };
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDeviceResourceManager);
 
 /// \brief Default implementation of the resource manager. Use a queue to collect and dispose resources.
 class SP_RHI_DLL spDefaultDeviceResourceManager : public spDeviceResourceManager
 {
 public:
+  explicit spDefaultDeviceResourceManager(spDevice* pDevice);
   ~spDefaultDeviceResourceManager() override;
 
   /// \brief Enqueue a resource for deallocation at the end of the current frame.
@@ -507,7 +510,7 @@ public:
 
   /// \brief Deallocate a resource now.
   /// \param [in] hResource The resource to be deallocated.
-  void ReleaseResource(spResourceHandle hResource) override;
+  void ReleaseResource(const spResourceHandle& hResource) override;
 
   /// \brief Releases all the enqueued resources.
   void ReleaseResources() override;
@@ -517,3 +520,5 @@ private:
 
   ezDeque<spDeviceResource*> m_ResourcesQueue;
 };
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDefaultDeviceResourceManager);

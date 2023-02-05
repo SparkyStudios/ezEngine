@@ -494,6 +494,57 @@ public:
     }
   }
 
+  EZ_ALWAYS_INLINE static ezUInt32 GetSizeInBytes(const ezEnum<spInputElementFormat>& eFormat)
+  {
+    switch (eFormat)
+    {
+      case spInputElementFormat::Byte2:
+      case spInputElementFormat::Byte2Norm:
+      case spInputElementFormat::SByte2Norm:
+      case spInputElementFormat::SByte2:
+      case spInputElementFormat::Half1:
+        return 2;
+
+      case spInputElementFormat::Float1:
+      case spInputElementFormat::UInt1:
+      case spInputElementFormat::Int1:
+      case spInputElementFormat::Byte4:
+      case spInputElementFormat::Byte4Norm:
+      case spInputElementFormat::SByte4:
+      case spInputElementFormat::SByte4Norm:
+      case spInputElementFormat::UShort2:
+      case spInputElementFormat::UShort2Norm:
+      case spInputElementFormat::Short2:
+      case spInputElementFormat::Short2Norm:
+      case spInputElementFormat::Half2:
+        return 4;
+
+      case spInputElementFormat::Float2:
+      case spInputElementFormat::UInt2:
+      case spInputElementFormat::Int2:
+      case spInputElementFormat::UShort4:
+      case spInputElementFormat::UShort4Norm:
+      case spInputElementFormat::Short4:
+      case spInputElementFormat::Short4Norm:
+      case spInputElementFormat::Half4:
+        return 8;
+
+      case spInputElementFormat::Float3:
+      case spInputElementFormat::UInt3:
+      case spInputElementFormat::Int3:
+        return 12;
+
+      case spInputElementFormat::Float4:
+      case spInputElementFormat::UInt4:
+      case spInputElementFormat::Int4:
+        return 16;
+
+      default:
+        EZ_ASSERT_NOT_IMPLEMENTED;
+        return 0;
+    }
+  }
+
   EZ_ALWAYS_INLINE static ezUInt32 GetNumRows(ezUInt32 uiHeight, const ezEnum<spPixelFormat>& eFormat)
   {
     return IsCompressedFormat(eFormat) ? (uiHeight + 3) / 4 : uiHeight;

@@ -16,7 +16,7 @@ void spDevice::SubmitCommandListAsync(const spResourceHandle& hCommandList)
 
 void spDevice::WaitForFence(const spResourceHandle& hFence)
 {
-  WaitForFence(hFence, 0xffffffffffffffffui64);
+  WaitForFence(hFence, static_cast<double>(0xffffffffffffffffui64));
 }
 
 bool spDevice::WaitForFence(const spResourceHandle& hFence, const ezTime& timeout)
@@ -26,7 +26,7 @@ bool spDevice::WaitForFence(const spResourceHandle& hFence, const ezTime& timeou
 
 void spDevice::WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitForAll)
 {
-  WaitForFences(fences, bWaitForAll, 0xffffffffffffffffui64);
+  WaitForFences(fences, bWaitForAll, static_cast<double>(0xffffffffffffffffui64));
 }
 
 bool spDevice::WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitAll, const ezTime& timeout)
