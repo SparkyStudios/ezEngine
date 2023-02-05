@@ -25,9 +25,9 @@ public:
   /// \param [in] uiData The value of the specialization constant.
   spShaderSpecializationConstant(ezUInt32 uiId, ezEnum<spShaderSpecializationConstantType> eType, ezUInt64 uiData)
     : ezHashableStruct<spShaderSpecializationConstant>()
-      , m_uiId(uiId)
-      , m_eType(eType)
-      , m_uiValue(uiData)
+    , m_uiId(uiId)
+    , m_eType(eType)
+    , m_uiValue(uiData)
   {
   }
 
@@ -158,14 +158,29 @@ class SP_RHI_DLL spShaderProgram : public spDeviceResource
 {
 public:
   /// \brief Attaches the the given shader to the program.
+  /// \param [in] hShader The handle to the shader to attach to the program.
   virtual void Attach(const spResourceHandle& hShader) = 0;
 
   /// \brief Detaches the given shader from the program.
+  /// \param [in] hShader The handle to the shader to detach from the program.
   virtual void Detach(const spResourceHandle& hShader) = 0;
+
+  /// \brief Detaches the shader attached at the given stage, if any.
+  /// \param [in] eStage The stage to detach the shader from.
+  virtual void Detach(const ezEnum<spShaderStage>& eStage) = 0;
+
+  /// \brief Detaches all the attached shaders.
+  virtual void DetachAll() = 0;
 
   /// \brief Sets the shader program as active in the current
   /// rendering or compute pipeline.
   virtual void Use() = 0;
+
+  /// \brief Gets the handle to the shader resource associated with the program
+  /// at the given stage.
+  /// \param [in] eStage The shader stage.
+  /// \return The shader resource handle. An invalid handle is returned if the given stage does not exist.
+  EZ_NODISCARD virtual spResourceHandle Get(const ezEnum<spShaderStage>& eStage) const = 0;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spShaderProgram);
