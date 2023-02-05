@@ -3,6 +3,19 @@
 #include <RHI/Buffer.h>
 #include <RHI/Device.h>
 
+
+#pragma region spBufferRange
+
+spBufferRange::spBufferRange(spBufferRangeDescription description)
+  : spDeviceResource()
+  , m_Description(std::move(description))
+{
+}
+
+#pragma endregion
+
+#pragma region spBuffer
+
 spBuffer::spBuffer(spBufferDescription description)
   : spMappableResource()
   , m_Description(std::move(description))
@@ -10,7 +23,7 @@ spBuffer::spBuffer(spBufferDescription description)
 {
   m_uiBufferCount = m_Description.m_eUsage.IsSet(spBufferUsage::TripleBuffered)   ? 3
                     : m_Description.m_eUsage.IsSet(spBufferUsage::DoubleBuffered) ? 2
-                                                                                : 1;
+                                                                                  : 1;
 
   m_BufferRanges.SetCount(m_uiBufferCount);
 
@@ -28,9 +41,10 @@ spBuffer::spBuffer(spBufferDescription description)
     spBufferRangeDescription desc(
       i * m_uiBufferAlignedSize,
       m_Description.m_uiSize,
-      spFenceDescription(false)
-    );
+      spFenceDescription(false));
 
     m_BufferRanges[i] = m_pDevice->GetResourceFactory()->CreateBufferRange(desc);
   }
 }
+
+#pragma endregion

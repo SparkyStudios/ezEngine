@@ -5,6 +5,35 @@
 #include <RHID3D11/Buffer.h>
 #include <RHID3D11/Core.h>
 #include <RHID3D11/Device.h>
+#include <RHID3D11/Fence.h>
+
+
+#pragma region spBufferRegionD3D11
+
+void spBufferRangeD3D11::ReleaseResource()
+{
+  EZ_IGNORE_UNUSED(m_pBuffer->ReleaseRef());
+  m_pBuffer = nullptr;
+
+  m_bReleased = true;
+}
+
+spBufferRangeD3D11::spBufferRangeD3D11(spDeviceD3D11* pDevice, const spBufferD3D11* pBuffer, const spBufferRangeDescription& description)
+  : spBufferRange(description)
+{
+  m_pDevice = pDevice;
+  m_pBuffer = pBuffer;
+
+  m_pFence = m_pDevice->GetResourceManager()->GetResource<spFenceD3D11>(m_pDevice->GetResourceFactory()->CreateFence(description.m_Fence));
+
+  EZ_IGNORE_UNUSED(m_pBuffer->AddRef());
+
+  m_bReleased = false;
+}
+
+#pragma endregion
+
+#pragma region spBufferD3D11
 
 void spBufferD3D11::SetDebugName(const ezString& name)
 {
@@ -180,3 +209,5 @@ ID3D11UnorderedAccessView* spBufferD3D11::CreateUnorderedAccessView(ezUInt32 uiO
 
   return pUAV;
 }
+
+#pragma endregion
