@@ -28,10 +28,10 @@ public:
   void Raise();
   bool Wait(ezTime timeout);
 
-private:
   spFenceD3D11(spDeviceD3D11* pDevice, const spFenceDescription& description);
   ~spFenceD3D11() override = default;
 
+private:
   ezThreadSignal m_ThreadSignal;
 
   bool m_bReleased{false};

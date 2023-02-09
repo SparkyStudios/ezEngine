@@ -321,7 +321,7 @@ public:
   virtual ~spDeviceResourceFactory() = default;
 
   /// \brief Gets the graphics device for which resources are created.
-  EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetGraphicsDevice() const { return m_pDevice; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
 
   /// \brief Creates a new spShader resource.
   /// \param [in] description The description of the shader resource to create.
