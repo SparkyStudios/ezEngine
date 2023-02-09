@@ -175,7 +175,7 @@ void spDefaultDeviceResourceManager::ReleaseResource(spDeviceResource* pResource
   {
     pResource->ReleaseResource();
     m_RegisteredResources.Remove(pResource->GetHandle().GetInternalID(), nullptr);
-    EZ_DEFAULT_DELETE(pResource);
+    EZ_DELETE(m_pDevice->GetAllocator(), pResource);
   }
 }
 

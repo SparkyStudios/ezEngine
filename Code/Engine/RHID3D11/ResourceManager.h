@@ -2,6 +2,7 @@
 
 #include <RHID3D11/RHID3D11DLL.h>
 
+#include <RHI/Input.h>
 #include <RHI/Rendering.h>
 #include <RHI/Resource.h>
 

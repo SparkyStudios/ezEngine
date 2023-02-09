@@ -148,6 +148,9 @@ public:
 
   ~spDevice() override = default;
 
+  /// \brief Gets the allocator used by the device.
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezAllocatorBase* GetAllocator() const { return m_pAllocator; }
+
   /// \brief Gets the hardware info.
   EZ_NODISCARD virtual HardwareInfo GetHardwareInfo() const = 0;
 
@@ -155,7 +158,7 @@ public:
   EZ_NODISCARD virtual ezEnum<spGraphicsApi> GetAPI() const = 0;
 
   /// \brief Gets the version of the currently used graphics API.
-  EZ_NODISCARD virtual spGraphicsApiVersion GetAPIVersion() const { return m_ApiVersion; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual spGraphicsApiVersion GetAPIVersion() const { return m_ApiVersion; }
 
   /// \brief Gets the resource factory associated with this graphics device.
   EZ_NODISCARD virtual spDeviceResourceFactory* GetResourceFactory() const = 0;
@@ -372,8 +375,9 @@ public:
 protected:
   /// \brief Constructs a new instance of the \see spDevice class.
   /// \param description The resource manager for the device.
-  explicit spDevice(spDeviceDescription description)
+  spDevice(ezAllocatorBase* pAllocator, spDeviceDescription description)
     : m_Description(std::move(description))
+    , m_pAllocator(pAllocator)
   {
   }
 
@@ -390,6 +394,8 @@ protected:
 
   spDeviceResourceManager* m_pResourceManager{nullptr};
   spStagingMemoryPool* m_pStagingMemoryPool{nullptr};
+
+  ezAllocatorBase* m_pAllocator;
 
 private:
   spMappedResource m_InvalidDefaultMappedResource{};

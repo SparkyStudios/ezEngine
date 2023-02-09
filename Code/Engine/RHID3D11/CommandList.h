@@ -19,6 +19,8 @@ class spSwapchainD3D11;
 
 class spCommandListD3D11 final : public spCommandList
 {
+  friend class spDeviceD3D11;
+
   // spDeviceResource
 
 public:
