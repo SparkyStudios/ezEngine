@@ -50,7 +50,8 @@ protected:
   // spDeviceD3D11
 
 public:
-  explicit spDeviceD3D11(const spDeviceDescriptionD3D11& deviceDescription);
+  spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescriptionD3D11& deviceDescription);
+  ~spDeviceD3D11() override;
 
   EZ_NODISCARD EZ_ALWAYS_INLINE spDeviceResourceManagerD3D11* GetD3D11ResourceManager() const { return ezStaticCast<spDeviceResourceManagerD3D11*>(m_pResourceManager); }
 

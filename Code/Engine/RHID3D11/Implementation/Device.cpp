@@ -3,12 +3,13 @@
 #include <RHID3D11/Device.h>
 
 #include <RHID3D11/Buffer.h>
+#include <RHID3D11/CommandList.h>
 #include <RHID3D11/Core.h>
 #include <RHID3D11/Fence.h>
+#include <RHID3D11/ResourceFactory.h>
 #include <RHID3D11/ResourceManager.h>
 #include <RHID3D11/Swapchain.h>
 #include <RHID3D11/Texture.h>
-
 
 static bool SdkLayersAvailable()
 {
@@ -70,8 +71,7 @@ ezEnum<spGraphicsApi> spDeviceD3D11::GetAPI() const
 
 spDeviceResourceFactory* spDeviceD3D11::GetResourceFactory() const
 {
-  // TODO
-  return nullptr;
+  return m_pResourceFactory;
 }
 
 spTextureSamplerManager* spDeviceD3D11::GetTextureSamplerManager() const
@@ -102,7 +102,16 @@ const spDeviceCapabilities& spDeviceD3D11::GetCapabilities() const
 
 void spDeviceD3D11::SubmitCommandList(const spResourceHandle& hCommandList, const spResourceHandle& hFence)
 {
-  // TODO: Submit command list and wait
+  if (auto* pCommandList = GetResourceManager()->GetResource<spCommandListD3D11>(hCommandList); pCommandList != nullptr)
+  {
+    EZ_LOCK(m_ImmediateContextMutex);
+
+    if (pCommandList->GetD3D11CommandList() != nullptr) // Command list already submitted or resetted
+    {
+      m_pD3D11DeviceContext->ExecuteCommandList(pCommandList->GetD3D11CommandList(), false);
+      pCommandList->OnComplete();
+    }
+  }
 
   if (auto* pFence = GetResourceManager()->GetResource<spFenceD3D11>(hFence); pFence != nullptr)
     pFence->Raise();
@@ -397,10 +406,11 @@ void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, c
   }
 }
 
-spDeviceD3D11::spDeviceD3D11(const spDeviceDescriptionD3D11& deviceDescription)
-  : spDevice(deviceDescription)
+spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescriptionD3D11& deviceDescription)
+  : spDevice(pAllocator, deviceDescription)
 {
   m_pResourceManager = EZ_DEFAULT_NEW(spDeviceResourceManagerD3D11, this);
+  m_pResourceFactory = EZ_DEFAULT_NEW(spDeviceResourceFactoryD3D11, this);
 
   ezUInt32 uiFlags = deviceDescription.m_uiCreationFlags;
 
@@ -567,4 +577,12 @@ spBufferD3D11* spDeviceD3D11::GetFreeStagingBuffer(ezUInt32 uiSize)
 
   const spResourceHandle hStaging = GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging));
   return GetResourceManager()->GetResource<spBufferD3D11>(hStaging);
+}
+
+spDeviceD3D11::~spDeviceD3D11()
+{
+  m_pResourceManager->ReleaseResources();
+
+  EZ_DEFAULT_DELETE(m_pResourceManager);
+  EZ_DEFAULT_DELETE(m_pResourceFactory);
 }
