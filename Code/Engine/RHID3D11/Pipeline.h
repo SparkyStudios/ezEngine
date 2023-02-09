@@ -20,6 +20,9 @@ public:
 public:
   spComputePipelineD3D11(spDeviceD3D11* pDevice, const spComputePipelineDescription& description);
 
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11ComputeShader* GetComputeShader() const { return m_pComputeShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceLayoutD3D11*>& GetResourceLayouts() const { return m_ResourceLayouts; }
+
 private:
   ID3D11Device* m_pD3D11Device{nullptr};
   ID3D11ComputeShader* m_pComputeShader{nullptr};
@@ -42,6 +45,27 @@ public:
 public:
   spGraphicPipelineD3D11(spDeviceD3D11* pDevice, const spGraphicPipelineDescription& description);
 
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11VertexShader* GetVertexShader() const { return m_pVertexShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11GeometryShader* GetGeometryShader() const { return m_pGeometryShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11HullShader* GetHullShader() const { return m_pHullShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DomainShader* GetDomainShader() const { return m_pDomainShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11PixelShader* GetPixelShader() const { return m_pPixelShader; }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11BlendState* GetBlendState() const { return m_pBlendState; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezColor GetBlendFactor() const { return m_BlendFactor; }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DepthStencilState* GetDepthStencilState() const { return m_pDepthStencilState; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetStencilRef() const { return m_uiStencilRef; }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11RasterizerState* GetRasterizerState() const { return m_pRasterizerState; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const { return m_PrimitiveTopology; }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11InputLayout* GetInputLayout() const { return m_pInputLayout; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spInputLayout*> GetInputLayouts() const { return m_InputLayouts; }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceLayoutD3D11*>& GetResourceLayouts() const { return m_ResourceLayouts; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<ezUInt32>& GetVertexStrides() const { return m_VertexStrides; }
+
 private:
   ID3D11Device* m_pD3D11Device{nullptr};
 
@@ -55,7 +79,7 @@ private:
   ezColor m_BlendFactor{ezColor::Black};
 
   ID3D11DepthStencilState* m_pDepthStencilState{nullptr};
-  ezUInt32 m_StencilRef{0};
+  ezUInt32 m_uiStencilRef{0};
 
   ID3D11RasterizerState* m_pRasterizerState{nullptr};
   D3D11_PRIMITIVE_TOPOLOGY m_PrimitiveTopology{D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST};

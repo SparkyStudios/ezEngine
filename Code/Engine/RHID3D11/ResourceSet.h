@@ -21,6 +21,8 @@ public:
 
   spResourceSetD3D11(spDeviceD3D11* pDevice, const spResourceSetDescription& description);
 
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spShaderResource*> GetResources() const { return m_Resources; }
+
 private:
   spResourceLayoutD3D11* m_pLayout{nullptr};
   ezDynamicArray<spShaderResource*> m_Resources;

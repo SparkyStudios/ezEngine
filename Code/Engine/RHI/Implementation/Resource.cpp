@@ -1,5 +1,7 @@
 #include <RHI/RHIPCH.h>
 
+#include <RHI/Buffer.h>
+#include <RHI/Device.h>
 #include <RHI/Resource.h>
 
 #pragma region spDeferredDeviceResource
@@ -174,6 +176,33 @@ void spDefaultDeviceResourceManager::ReleaseResource(spDeviceResource* pResource
     pResource->ReleaseResource();
     m_RegisteredResources.Remove(pResource->GetHandle().GetInternalID(), nullptr);
   }
+}
+
+#pragma endregion
+
+#pragma region spResourceHelper
+
+spBufferRange* spResourceHelper::GetBufferRange(spDevice* pDevice, spResourceHandle hResource, ezUInt32 uiOffset)
+{
+  return GetBufferRange(
+    pDevice,
+    pDevice->GetResourceManager()->GetResource<spShaderResource>(hResource),
+    uiOffset);
+}
+
+spBufferRange* spResourceHelper::GetBufferRange(spDevice* pDevice, spShaderResource* pResource, ezUInt32 uiOffset)
+{
+  if (pResource == nullptr)
+    return nullptr;
+
+  spResourceHandle hBuffer;
+
+  if (auto* pBufferRange = ezDynamicCast<spBufferRange*>(pResource); pBufferRange != nullptr)
+    hBuffer = pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pBufferRange->GetBuffer(), pBufferRange->GetOffset() + uiOffset, pBufferRange->GetSize()));
+  else if (auto* pBuffer = ezDynamicCast<spBuffer*>(pResource); pBuffer != nullptr)
+    hBuffer = pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pBuffer->GetHandle(), uiOffset, pBuffer->GetSize()));
+
+  return pDevice->GetResourceManager()->GetResource<spBufferRange>(hBuffer);
 }
 
 #pragma endregion

@@ -4,6 +4,9 @@
 
 #include <RHI/Texture.h>
 
+
+class spDeviceD3D11;
+
 class SP_RHID3D11_DLL spTextureD3D11 final : public spTexture, public spDeferredDeviceResource
 {
   friend class spTextureViewD3D11;
@@ -27,7 +30,8 @@ public:
   spTextureD3D11(spDeviceD3D11* pDevice, const spTextureDescription& description);
   ~spTextureD3D11() override;
 
-  ID3D11Resource* GetD3D11Texture() const;
+  EZ_NODISCARD ID3D11Resource* GetD3D11Texture() const;
+  EZ_NODISCARD EZ_ALWAYS_INLINE DXGI_FORMAT GetDXGIFormat() const { return m_eFormat; }
 
 private:
   spTextureD3D11(spTextureDescription description)

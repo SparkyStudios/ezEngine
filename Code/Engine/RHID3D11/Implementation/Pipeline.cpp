@@ -145,7 +145,7 @@ spGraphicPipelineD3D11::spGraphicPipelineD3D11(spDeviceD3D11* pDevice, const spG
     m_pInputLayout);
 
   m_BlendFactor = description.m_RenderingState.m_BlendState.m_BlendColor;
-  m_StencilRef = description.m_RenderingState.m_StencilState.m_uiReference;
+  m_uiStencilRef = description.m_RenderingState.m_StencilState.m_uiReference;
   m_PrimitiveTopology = spToD3D11(description.m_ePrimitiveTopology);
 
   ezUInt32 uiResourceLayoutsCount = description.m_ResourceLayouts.GetCount();

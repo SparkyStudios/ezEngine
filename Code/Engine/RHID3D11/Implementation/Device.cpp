@@ -337,7 +337,7 @@ void spDeviceD3D11::UnMapInternal(spTexture* pTexture, ezUInt32 uiSubresource)
   EZ_ASSERT_DEV(bDone, "Unable to unmap the resource.");
 }
 
-void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, void* pData, ezUInt32 uiSize)
+void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize)
 {
   if (uiSize == 0)
     return;
@@ -369,7 +369,7 @@ void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, v
   else if (bUseMap)
   {
     const spMappedResource mappedResource = MapInternal(pBuffer, spMapAccess::Write);
-    ezMemoryUtils::Copy(static_cast<ezUInt8*>(mappedResource.GetData()) + uiOffset, static_cast<ezUInt8*>(pData), uiSize);
+    ezMemoryUtils::Copy(static_cast<ezUInt8*>(mappedResource.GetData()) + uiOffset, static_cast<const ezUInt8*>(pData), uiSize);
     UnMapInternal(pBuffer);
   }
   else
@@ -510,6 +510,9 @@ spDeviceD3D11::spDeviceD3D11(const spDeviceDescriptionD3D11& deviceDescription)
       m_bSupportsCommandLists = support.DriverCommandLists;
     }
 
+    D3D11_FEATURE_DATA_THREADING featureDataThread;
+    m_pD3D11Device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &featureDataThread, sizeof(D3D11_FEATURE_DATA_THREADING));
+
     m_Capabilities.m_bBufferRangeBinding = m_pD3D11Device->GetFeatureLevel() >= D3D_FEATURE_LEVEL_11_1;
     m_Capabilities.m_bCommandListDebugMarkers = m_pD3D11Device->GetFeatureLevel() >= D3D_FEATURE_LEVEL_11_1;
     m_Capabilities.m_bComputeShader = true;
@@ -534,6 +537,8 @@ spDeviceD3D11::spDeviceD3D11(const spDeviceDescriptionD3D11& deviceDescription)
     m_Capabilities.m_bTessellationShader = true;
     m_Capabilities.m_bTexture1D = true;
     m_Capabilities.m_bConservaiveRasterization = CheckConservativeRasterizationSupport(m_pD3D11Device3);
+    m_Capabilities.m_bSupportCommandLists = featureDataThread.DriverCommandLists;
+    m_Capabilities.m_bSupportConcurrentResources = featureDataThread.DriverConcurrentCreates;
   }
 }
 
@@ -561,5 +566,5 @@ spBufferD3D11* spDeviceD3D11::GetFreeStagingBuffer(ezUInt32 uiSize)
   }
 
   const spResourceHandle hStaging = GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging));
-  return ezStaticCast<spBufferD3D11*>(GetResourceManager()->GetResource<spBuffer>(hStaging));
+  return GetResourceManager()->GetResource<spBufferD3D11>(hStaging);
 }

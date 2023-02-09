@@ -39,6 +39,14 @@ struct spOutputAttachmentDescription : public ezHashableStruct<spOutputAttachmen
 /// \brief Describes a set of output attachments and their formats.
 struct SP_RHI_DLL spOutputDescription : public ezHashableStruct<spOutputDescription>
 {
+  /// \brief Creates an output attachment from the given spFramebuffer.
+  /// \param [in] pFramebuffer A pointer to a spFramebuffer object to copy the output description from.
+  static spOutputDescription CreateFromFramebuffer(const spFramebuffer* pFramebuffer);
+
+  /// \brief Creates an output attachment from the given spFramebuffer.
+  /// \param [in] hFramebuffer A handle to a spFramebuffer resource to copy the output description from.
+  static spOutputDescription CreateFromFramebuffer(spResourceHandle hFramebuffer);
+
   /// \brief Indicates whether to use the depth attachment.
   bool m_bUseDepthAttachment{false};
 
@@ -52,11 +60,16 @@ struct SP_RHI_DLL spOutputDescription : public ezHashableStruct<spOutputDescript
   /// \brief The number of samples to use for each output attachment.
   ezEnum<spTextureSampleCount> m_eSampleCount;
 
-  /// \brief Creates an output attachment from the given spFramebuffer.
-  /// \param [in] pFramebuffer A pointer to a spFramebuffer object to copy the output description from.
-  static spOutputDescription CreateFromFramebuffer(const spFramebuffer* pFramebuffer);
+  /// \brief Compares this \see spOutputDescription with the \a other for equality.
+  EZ_ALWAYS_INLINE bool operator==(const spOutputDescription& other) const
+  {
+    return m_bUseDepthAttachment == other.m_bUseDepthAttachment && m_DepthAttachment == other.m_DepthAttachment &&
+           m_ColorAttachments == other.m_ColorAttachments && m_eSampleCount == other.m_eSampleCount;
+  }
 
-  /// \brief Creates an output attachment from the given spFramebuffer.
-  /// \param [in] hFramebuffer A handle to a spFramebuffer resource to copy the output description from.
-  static spOutputDescription CreateFromFramebuffer(spResourceHandle hFramebuffer);
+  /// \brief Compares this \see spOutputDescription with the \a other for inequality.
+  EZ_ALWAYS_INLINE bool operator!=(const spOutputDescription& other) const
+  {
+    return !(*this == other);
+  }
 };

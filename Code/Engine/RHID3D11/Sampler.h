@@ -18,6 +18,11 @@ public:
   void ReleaseResource() override;
   bool IsReleased() const override;
 
+  // spSamplerStateD3D11
+
+public:
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11SamplerState* GetD3D11SamplerState() const { return m_pSamplerState; }
+
 private:
   spSamplerStateD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description);
 
@@ -31,17 +36,28 @@ class SP_RHID3D11_DLL spSamplerD3D11 : public spSampler, public spDeferredDevice
 {
   friend class spDeviceResourceFactoryD3D11;
 
+  // spDeviceResource
+
+public:
+  void SetDebugName(const ezString& name) override;
+  void ReleaseResource() override;
+  bool IsReleased() const override;
+
+  // spDefferredDeviceResource
+
+public:
+  void CreateResource() override;
+
+  // spSampler
+
 public:
   EZ_NODISCARD spResourceHandle GetSamplerWithMipMap() const override;
   EZ_NODISCARD spResourceHandle GetSamplerWithoutMipMap() const override;
 
-  void CreateResource() override;
+  // spSamplerD3D11
 
-  void SetDebugName(const ezString& name) override;
-
-  void ReleaseResource() override;
-
-  bool IsReleased() const override;
+public:
+  EZ_NODISCARD EZ_ALWAYS_INLINE spSamplerStateD3D11* GetSamplerState() const { return m_pSamplerState; }
 
 private:
   spSamplerD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description);

@@ -83,6 +83,12 @@ struct spDeviceCapabilities
 
   /// \brief Specifies whether the device supports conservative rasterization.
   bool m_bConservaiveRasterization{false};
+
+  /// \brief Specifies whether the device supports command lists.
+  bool m_bSupportCommandLists{false};
+
+  /// \brief Specifies whether the device supports command lists.
+  bool m_bSupportConcurrentResources{false};
 };
 
 /// \brief Describes how to create a device.
@@ -329,7 +335,7 @@ public:
   /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param pSource A pointer to the start of the data to be uploaded.
   /// \param uiSize The size in bytes of the data to be uploaded.
-  void UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, void* pSource, ezUInt32 uiSize);
+  void UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, const void* pSource, ezUInt32 uiSize);
 
   /// \brief Updates the \see spBuffer region with new data.
   /// \param hResource The handle to the \see spBuffer to update.
@@ -376,7 +382,7 @@ protected:
   virtual const spMappedResource& MapInternal(spTexture* pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource) = 0;
   virtual void UnMapInternal(spBuffer* pBuffer) = 0;
   virtual void UnMapInternal(spTexture* pTexture, ezUInt32 uiSubresource) = 0;
-  virtual void UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, void* pData, ezUInt32 uiSize) = 0;
+  virtual void UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize) = 0;
 
   spDeviceDescription m_Description;
   spGraphicsApiVersion m_ApiVersion;

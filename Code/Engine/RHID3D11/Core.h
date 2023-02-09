@@ -701,6 +701,22 @@ EZ_ALWAYS_INLINE static D3D11_PRIMITIVE_TOPOLOGY spToD3D11(const ezEnum<spPrimit
   }
 }
 
+EZ_ALWAYS_INLINE static DXGI_FORMAT spToD3D11(const ezEnum<spIndexFormat>& eFormat)
+{
+  switch (eFormat)
+  {
+    case spIndexFormat::UInt16:
+      return DXGI_FORMAT_R16_UINT;
+
+    case spIndexFormat::UInt32:
+      return DXGI_FORMAT_R32_UINT;
+
+    default:
+      EZ_ASSERT_NOT_IMPLEMENTED;
+      return DXGI_FORMAT_UNKNOWN;
+  }
+}
+
 #pragma endregion
 
 #pragma region Utility Functions

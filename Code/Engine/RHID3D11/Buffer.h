@@ -27,6 +27,16 @@ public:
   /// \brief Gets the wrapped native buffer.
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Buffer* GetD3D11Buffer() const { return m_pBuffer; }
 
+  /// \brief Gets a shader resource view of the buffer for the given offset and size.
+  /// \param uiOffset The offset of the resource to get.
+  /// \param uiSize The size of the resource to get.
+  ID3D11ShaderResourceView* GetShaderResourceView(ezUInt32 uiOffset, ezUInt32 uiSize);
+
+  /// \brief Gets an unordered access view of the buffer for the given offset and size.
+  /// \param uiOffset The offset of the resource to get.
+  /// \param uiSize The size of the resource to get.
+  ID3D11UnorderedAccessView* GetUnorderedAccessView(ezUInt32 uiOffset, ezUInt32 uiSize);
+
 private:
   spBufferD3D11(spDeviceD3D11* pDevice, const spBufferDescription& description);
 
@@ -58,9 +68,6 @@ private:
     ezUInt32 m_uiOffset{0};
     ezUInt32 m_uiSize{0};
   };
-
-  ID3D11ShaderResourceView* GetShaderResourceView(ezUInt32 uiOffset, ezUInt32 uiSize);
-  ID3D11UnorderedAccessView* GetUnorderedAccessView(ezUInt32 uiOffset, ezUInt32 uiSize);
 
   ID3D11ShaderResourceView* CreateShaderResourceView(ezUInt32 uiOffset, ezUInt32 uiSize) const;
   ID3D11UnorderedAccessView* CreateUnorderedAccessView(ezUInt32 uiOffset, ezUInt32 uiSize) const;
@@ -94,13 +101,16 @@ public:
   // spBufferRangeD3D11
 
 public:
-  spBufferRangeD3D11(spDeviceD3D11* pDevice, const spBufferD3D11* pBuffer, const spBufferRangeDescription& description);
+  spBufferRangeD3D11(spDeviceD3D11* pDevice, const spBufferRangeDescription& description);
 
   /// \brief Checks if the buffer range is valid.
   EZ_NODISCARD EZ_ALWAYS_INLINE bool IsValid() const { return m_pBuffer != nullptr; }
 
   /// \brief Checks if the buffer range is covering the entire parent buffer.
   EZ_NODISCARD EZ_ALWAYS_INLINE bool IsFullRange() const { return IsValid() && GetOffset() == 0 && GetSize() == m_pBuffer->GetSize(); }
+
+  /// \brief Gets the parent buffer.
+  EZ_NODISCARD EZ_ALWAYS_INLINE spBufferD3D11* GetBuffer() const { return m_pBuffer; }
 
   EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spBufferRangeD3D11& rhs) const
   {
@@ -110,7 +120,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spBufferRangeD3D11& rhs) const { return !(*this == rhs); }
 
 private:
-  const spBufferD3D11* m_pBuffer{nullptr};
+  spBufferD3D11* m_pBuffer{nullptr};
   spFenceD3D11* m_pFence{nullptr};
 };
 

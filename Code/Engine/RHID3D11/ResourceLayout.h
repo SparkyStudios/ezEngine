@@ -26,10 +26,15 @@ public:
     bool m_bDynamicBuffer{false};
   };
 
-  BindingInfo GetBinding(ezUInt32 uiSlot) const;
-  bool IsDynamicBuffer(ezUInt32 uiSlot) const;
-
   spResourceLayoutD3D11(spDeviceD3D11* pDevice, const spResourceLayoutDescription& description);
+
+  EZ_NODISCARD BindingInfo GetBinding(ezUInt32 uiSlot) const;
+  EZ_NODISCARD bool IsDynamicBuffer(ezUInt32 uiSlot) const;
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetConstantBufferCount() const { return m_uiConstantBufferCount; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetStorageBufferCount() const { return m_uiStorageBufferCount; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetTextureCount() const { return m_uiTextureCount; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetSamplerCount() const { return m_uiSamplerCount; }
 
 private:
   ezDynamicArray<BindingInfo> m_Bindings;

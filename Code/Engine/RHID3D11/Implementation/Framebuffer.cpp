@@ -129,10 +129,14 @@ spResourceHandle spFramebufferD3D11::GetDepthTarget() const
 ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS> spFramebufferD3D11::GetColorTargets() const
 {
   ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS> targets;
-  targets.Reserve(m_Description.m_ColorTargets.GetCount());
+  targets.EnsureCount(m_Description.m_ColorTargets.GetCount());
 
+  ezUInt32 uiColorTargetIndex = 0;
   for (const auto& target : m_Description.m_ColorTargets)
-    targets.PushBack(target.m_hTarget);
+  {
+    targets[uiColorTargetIndex] = target.m_hTarget;
+    ++uiColorTargetIndex;
+  }
 
   return targets;
 }
@@ -153,7 +157,7 @@ void spFramebufferD3D11::Snapshot(ezUInt32 uiColorTargetIndex, ezUInt32 uiArrayL
 
 spFramebufferD3D11::spFramebufferD3D11(spDeviceD3D11* pDevice, const spFramebufferDescription& description)
   : spFramebuffer(description)
-    , m_OutputDescription()
+  , m_OutputDescription()
 {
   m_pDevice = pDevice;
   m_pD3D11Device = pDevice->GetD3D11Device();
@@ -162,6 +166,14 @@ spFramebufferD3D11::spFramebufferD3D11(spDeviceD3D11* pDevice, const spFramebuff
 spFramebufferD3D11::~spFramebufferD3D11()
 {
   ReleaseResource();
+}
+
+spTextureD3D11* spFramebufferD3D11::GetColorTarget(ezUInt32 uiColorTargetIndex) const
+{
+  auto* pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11*>(m_Description.m_ColorTargets[uiColorTargetIndex].m_hTarget);
+  EZ_ASSERT_DEV(pTexture != nullptr, "Invalid color target texture.");
+
+  return pTexture;
 }
 
 void spFramebufferD3D11::ApplyColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target)
