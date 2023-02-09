@@ -22,8 +22,11 @@ class SP_RHI_DLL spResourceSet : public spDeviceResource
   friend class spDeviceResourceFactory;
 
 public:
-  EZ_NODISCARD const spResourceHandle& GetLayout() const { return m_Description.m_hResourceLayout; }
-  EZ_NODISCARD ezDynamicArray<spResourceHandle> GetElements() const { return m_Description.m_BoundResources; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetLayout() const { return m_Description.m_hResourceLayout; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceHandle>& GetResources() const { return m_Description.m_BoundResources; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetResource(ezUInt32 uiIndex) const { return m_Description.m_BoundResources[uiIndex]; }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE spResourceSetDescription GetDescription() const { return m_Description; }
 
 protected:
   explicit spResourceSet(spResourceSetDescription description);

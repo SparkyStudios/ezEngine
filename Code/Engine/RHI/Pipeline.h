@@ -96,6 +96,10 @@ public:
   /// \brief Gets the resource layouts for this pipeline.
   EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceHandle>& GetResourceLayouts() const { return m_ResourceLayouts; }
 
+  /// \brief Gets the resource layout at the given slot.
+  /// \param uiSlot The slot to get the resource layout from.
+  EZ_NODISCARD spResourceLayout* GetResourceLayout(ezUInt32 uiSlot) const;
+
 protected:
   bool m_bActivated{false};
   spResourceHandle m_hShaderProgram;

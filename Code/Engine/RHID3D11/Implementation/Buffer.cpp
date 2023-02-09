@@ -7,7 +7,6 @@
 #include <RHID3D11/Device.h>
 #include <RHID3D11/Fence.h>
 
-
 #pragma region spBufferRegionD3D11
 
 void spBufferRangeD3D11::ReleaseResource()
@@ -18,15 +17,16 @@ void spBufferRangeD3D11::ReleaseResource()
   m_bReleased = true;
 }
 
-spBufferRangeD3D11::spBufferRangeD3D11(spDeviceD3D11* pDevice, const spBufferD3D11* pBuffer, const spBufferRangeDescription& description)
+spBufferRangeD3D11::spBufferRangeD3D11(spDeviceD3D11* pDevice, const spBufferRangeDescription& description)
   : spBufferRange(description)
 {
   m_pDevice = pDevice;
-  m_pBuffer = pBuffer;
+
+  m_pBuffer = pDevice->GetResourceManager()->GetResource<spBufferD3D11>(description.m_hBuffer);
+  EZ_ASSERT_DEV(m_pBuffer != nullptr, "Buffer range creation failed. Invalid parent buffer provided.");
+  EZ_IGNORE_UNUSED(m_pBuffer->AddRef());
 
   m_pFence = m_pDevice->GetResourceManager()->GetResource<spFenceD3D11>(m_pDevice->GetResourceFactory()->CreateFence(description.m_Fence));
-
-  EZ_IGNORE_UNUSED(m_pBuffer->AddRef());
 
   m_bReleased = false;
 }
@@ -109,6 +109,8 @@ void spBufferD3D11::CreateResource()
 
   const HRESULT res = m_pD3D11Device->CreateBuffer(&desc, nullptr, &m_pBuffer);
   EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 buffer. Error Code: {}.", (ezUInt32)HRESULT_CODE(res));
+
+  InitRanges();
 
   m_bIsResourceCreated = true;
 }

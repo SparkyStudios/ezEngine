@@ -1,6 +1,17 @@
 #include <RHI/RHIPCH.h>
 
+#include <RHI/Device.h>
 #include <RHI/Pipeline.h>
+
+#pragma region spComputePipeline
+
+spResourceLayout* spPipeline::GetResourceLayout(ezUInt32 uiSlot) const
+{
+  EZ_ASSERT_DEV(uiSlot < m_ResourceLayouts.GetCount(), "Invalid slot index {0}, values are in the range [0, {1}].", uiSlot, m_ResourceLayouts.GetCount());
+  return m_pDevice->GetResourceManager()->GetResource<spResourceLayout>(m_ResourceLayouts[uiSlot]);
+}
+
+#pragma endregion
 
 #pragma region spComputePipeline
 
@@ -22,3 +33,5 @@ spGraphicPipeline::spGraphicPipeline(spGraphicPipelineDescription description)
 }
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHI, RHI_Implementation_Pipeline);

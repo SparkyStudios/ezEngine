@@ -28,10 +28,27 @@ class SP_RHI_DLL spResourceLayout : public spDeviceResource
 public:
   EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceLayoutElementDescription>& GetElements() const { return m_Description.m_Elements; }
 
+  /// \brief Gets the number of elements in the layout.
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetElementCount() const { return m_Description.m_Elements.GetCount(); }
+
+  /// \brief Gets the description used to create the layout.
+  EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceLayoutDescription& GetDescription() const { return m_Description; }
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetDynamicBufferCount() const
+  {
+    return m_uiDynamicBufferCount;
+  }
+#endif
+
 protected:
   explicit spResourceLayout(spResourceLayoutDescription description);
 
   spResourceLayoutDescription m_Description;
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+  ezUInt32 m_uiDynamicBufferCount{0};
+#endif
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spResourceLayout);

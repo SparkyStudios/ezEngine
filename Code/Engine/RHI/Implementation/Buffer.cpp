@@ -21,6 +21,10 @@ spBuffer::spBuffer(spBufferDescription description)
   , m_Description(std::move(description))
   , m_BufferRanges()
 {
+}
+
+void spBuffer::InitRanges()
+{
   m_uiBufferCount = m_Description.m_eUsage.IsSet(spBufferUsage::TripleBuffered)   ? 3
                     : m_Description.m_eUsage.IsSet(spBufferUsage::DoubleBuffered) ? 2
                                                                                   : 1;
@@ -39,6 +43,7 @@ spBuffer::spBuffer(spBufferDescription description)
   for (ezUInt32 i = 0; i < m_uiBufferCount; i++)
   {
     spBufferRangeDescription desc(
+      GetHandle(),
       i * m_uiBufferAlignedSize,
       m_Description.m_uiSize,
       spFenceDescription(false));
@@ -48,3 +53,5 @@ spBuffer::spBuffer(spBufferDescription description)
 }
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHI, RHI_Implementation_Buffer);

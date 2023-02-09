@@ -5,6 +5,7 @@
 #include <RHI/Framebuffer.h>
 
 class spDeviceD3D11;
+class spTextureD3D11;
 
 class SP_RHID3D11_DLL spFramebufferD3D11 : public spFramebuffer, public spDeferredDeviceResource
 {
@@ -35,6 +36,12 @@ public:
 
   spFramebufferD3D11(spDeviceD3D11* pDevice, const spFramebufferDescription& description);
   ~spFramebufferD3D11() override;
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<ID3D11RenderTargetView*> GetRenderTargetViews() { return m_ColorTargets.GetArrayPtr(); }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11RenderTargetView* GetRenderTargetView(ezUInt32 uiSlot) const { return m_ColorTargets[uiSlot]; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DepthStencilView* GetDepthStencilView() const { return m_pDepthTarget; }
+
+  EZ_NODISCARD spTextureD3D11* GetColorTarget(ezUInt32 uiColorTargetIndex) const;
 
 private:
   void ApplyColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target);

@@ -101,7 +101,7 @@ void spDevice::UnMap(const spResourceHandle& hResource, ezUInt32 uiSubresource)
   }
 }
 
-void spDevice::UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, void* pSource, ezUInt32 uiSize)
+void spDevice::UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, const void* pSource, ezUInt32 uiSize)
 {
   auto* pBuffer = GetResourceManager()->GetResource<spBuffer>(hResource);
   if (pBuffer == nullptr)

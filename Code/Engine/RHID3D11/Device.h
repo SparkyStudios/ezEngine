@@ -45,7 +45,7 @@ protected:
   const spMappedResource& MapInternal(spTexture* pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource) override;
   void UnMapInternal(spBuffer* pBuffer) override;
   void UnMapInternal(spTexture* pTexture, ezUInt32 uiSubresource) override;
-  void UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, void* pData, ezUInt32 uiSize) override;
+  void UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize) override;
 
   // spDeviceD3D11
 

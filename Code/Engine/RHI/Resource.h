@@ -23,6 +23,7 @@ struct spTextureDescription;
 struct spTextureViewDescription;
 
 class spDevice;
+class spBufferRange;
 
 /// \brief Abstract class for a resource on the graphics device.
 class SP_RHI_DLL spDeviceResource : public ezReflectedClass, public ezRefCounted
@@ -454,9 +455,9 @@ public:
   /// The type parameter must be a child class of spDeviceResource.
   /// \return The pointer of the found resource, or nullptr if the resource is not registered in this manager.
   template <class T>
-  EZ_ALWAYS_INLINE T* GetResource(const spResourceHandle& hResource) const
+  EZ_ALWAYS_INLINE std::remove_pointer_t<T>* GetResource(const spResourceHandle& hResource) const
   {
-    return ezStaticCast<T*>(GetResource(hResource));
+    return ezStaticCast<std::remove_pointer_t<T>*>(GetResource(hResource));
   }
 
   /// \brief Increments the reference count of the given resource.
@@ -522,3 +523,10 @@ private:
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDefaultDeviceResourceManager);
+
+class SP_RHI_DLL spResourceHelper
+{
+public:
+  static spBufferRange* GetBufferRange(spDevice* pDevice, spResourceHandle hResource, ezUInt32 uiOffset);
+  static spBufferRange* GetBufferRange(spDevice* pDevice, spShaderResource* pResource, ezUInt32 uiOffset);
+};

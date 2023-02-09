@@ -69,21 +69,35 @@ struct SP_RHI_DLL spBufferDescription : public ezHashableStruct<spBufferDescript
 struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRangeDescription>
 {
   /// \brief Constructs a new buffer range description.
+  /// \param hBuffer The parent buffer.
   /// \param uiOffset The range offset in bytes.
   /// \param uiSize The range size in bytes.
   /// \param fence The synchronization fence of this buffer range.
-  spBufferRangeDescription(ezUInt32 uiOffset, ezUInt32 uiSize, spFenceDescription fence)
+  spBufferRangeDescription(spResourceHandle hBuffer, ezUInt32 uiOffset, ezUInt32 uiSize, spFenceDescription fence)
     : ezHashableStruct<spBufferRangeDescription>()
   {
+    m_hBuffer = hBuffer;
     m_uiOffset = uiOffset;
     m_uiSize = uiSize;
     m_Fence = std::move(fence);
   }
 
+  /// \brief Constructs a new buffer range description.
+  /// \param hBuffer The parent buffer.
+  /// \param uiOffset The range offset in bytes.
+  /// \param uiSize The range size in bytes.
+  spBufferRangeDescription(spResourceHandle hBuffer, ezUInt32 uiOffset, ezUInt32 uiSize)
+    : ezHashableStruct<spBufferRangeDescription>()
+  {
+    m_hBuffer = hBuffer;
+    m_uiOffset = uiOffset;
+    m_uiSize = uiSize;
+  }
+
   /// \brief Compares this buffer range description with an \a other buffer range description for equality.
   EZ_ALWAYS_INLINE bool operator==(const spBufferRangeDescription& other) const
   {
-    return m_uiOffset == other.m_uiOffset && m_uiSize == other.m_uiSize && m_Fence == other.m_Fence;
+    return m_hBuffer == other.m_hBuffer && m_uiOffset == other.m_uiOffset && m_uiSize == other.m_uiSize && m_Fence == other.m_Fence;
   }
 
   /// \brief Compares this buffer range description with an \a other buffer range description for inequality
@@ -91,6 +105,9 @@ struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRan
   {
     return !(*this == other);
   }
+
+  /// \brief The parent buffer in which this range is created.
+  spResourceHandle m_hBuffer;
 
   /// \brief The offset in bytes, from the beginning of the buffer that this range belongs to.
   ezUInt32 m_uiOffset;
@@ -106,6 +123,9 @@ struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRan
 class SP_RHI_DLL spBufferRange : public spDeviceResource
 {
 public:
+  /// \brief Gets the handle to the parent buffer of this range.
+  EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetBuffer() const { return m_Description.m_hBuffer; }
+
   /// \brief Gets the offset in bytes from which stats this range in the parent buffer.
   EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetOffset() const { return m_Description.m_uiOffset; }
 
@@ -126,10 +146,15 @@ EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spBufferRange);
 /// \brief A set of data in the memory, readable and writable from both CPU and GPU.
 class SP_RHI_DLL spBuffer : public spMappableResource
 {
+  friend class spDeviceResourceFactory;
+
 public:
   /// \brief Gets the size in bytes of the buffer. In case of multi-buffered buffers, this
   /// is the size of a single buffer.
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetSize() const { return m_Description.m_uiSize; }
+
+  /// \brief Gets the stride of the structure in bytes.
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetStructureStride() const { return m_Description.m_uiStructureStride; }
 
   /// \brief Gets the usage of the buffer.
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezBitflags<spBufferUsage> GetUsage() const { return m_Description.m_eUsage; }
@@ -143,6 +168,9 @@ public:
   /// \brief Gets the index of the currently bound buffer in case of multi-buffered buffers.
   /// \note This always returns 0 in case of single-buffered buffers.
   EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetBufferIndex() const { return m_uiBufferIndex; }
+
+  /// \brief Gets the currently used buffer.
+  EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetCurrentBuffer() const { return m_BufferRanges[m_uiBufferIndex]; }
 
   /// \brief Gets the buffer ranges stored by this buffer.
   ///
@@ -159,6 +187,8 @@ public:
 
 protected:
   spBuffer(spBufferDescription description);
+
+  void InitRanges();
 
   spBufferDescription m_Description;
 
