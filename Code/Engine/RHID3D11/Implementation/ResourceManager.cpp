@@ -75,6 +75,7 @@ void spDeviceResourceManagerD3D11::GetPipelineResources(const spBlendState& blen
   pInputLayouts = GetInputLayout(inputLayouts, vertexShaderByteCode);
 }
 
+
 ID3D11BlendState* spDeviceResourceManagerD3D11::GetBlendState(const spBlendState& blendState)
 {
   EZ_ASSERT_DEV(m_Mutex.IsLocked(), "Invalid call to GetBlendState. The mutex must be locked first!");
@@ -88,7 +89,6 @@ ID3D11BlendState* spDeviceResourceManagerD3D11::GetBlendState(const spBlendState
     m_BlendStates.Insert(blendState.CalculateHash(), pBlendState);
   }
 
-  pBlendState = m_BlendStates.GetValue(i);
   return pBlendState;
 }
 
@@ -125,7 +125,7 @@ ID3D11RasterizerState* spDeviceResourceManagerD3D11::GetRasterizerState(const sp
   return pRasterizerState;
 }
 
-ID3D11InputLayout* spDeviceResourceManagerD3D11::GetInputLayout(ezArrayPtr<spInputLayoutDescription> inputLayouts, ezByteArrayPtr vertexShaderByteCode)
+ID3D11InputLayout* spDeviceResourceManagerD3D11::GetInputLayout(const ezArrayPtr<spInputLayoutDescription>& inputLayouts, const ezByteArrayPtr& vertexShaderByteCode)
 {
   EZ_ASSERT_DEV(m_Mutex.IsLocked(), "Invalid call to GetInputLayout. The mutex must be locked first!");
 
@@ -145,7 +145,7 @@ ID3D11InputLayout* spDeviceResourceManagerD3D11::GetInputLayout(ezArrayPtr<spInp
   return pInputLayout;
 }
 
-ID3D11BlendState* spDeviceResourceManagerD3D11::CreateBlendState(const spBlendState& blendState)
+ID3D11BlendState* spDeviceResourceManagerD3D11::CreateBlendState(const spBlendState& blendState) const
 {
   D3D11_BLEND_DESC desc;
   ezUInt32 i = 0;
@@ -164,6 +164,18 @@ ID3D11BlendState* spDeviceResourceManagerD3D11::CreateBlendState(const spBlendSt
     i++;
   }
 
+  for (; i < 8; ++i)
+  {
+    desc.RenderTarget[i].BlendEnable = false;
+    desc.RenderTarget[i].RenderTargetWriteMask = 0;
+    desc.RenderTarget[i].SrcBlend = D3D11_BLEND_ZERO;
+    desc.RenderTarget[i].DestBlend = D3D11_BLEND_ZERO;
+    desc.RenderTarget[i].BlendOp = D3D11_BLEND_OP_ADD;
+    desc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ZERO;
+    desc.RenderTarget[i].DestBlendAlpha = D3D11_BLEND_ZERO;
+    desc.RenderTarget[i].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+  }
+
   desc.AlphaToCoverageEnable = blendState.m_bAlphaToCoverage;
   desc.IndependentBlendEnable = true;
 
@@ -174,7 +186,7 @@ ID3D11BlendState* spDeviceResourceManagerD3D11::CreateBlendState(const spBlendSt
   return pBlendState;
 }
 
-ID3D11DepthStencilState* spDeviceResourceManagerD3D11::CreateDepthStencilState(const spDepthState& depthState, const spStencilState& stencilState)
+ID3D11DepthStencilState* spDeviceResourceManagerD3D11::CreateDepthStencilState(const spDepthState& depthState, const spStencilState& stencilState) const
 {
   D3D11_DEPTH_STENCIL_DESC desc;
 
@@ -200,7 +212,7 @@ ID3D11DepthStencilState* spDeviceResourceManagerD3D11::CreateDepthStencilState(c
   return pDepthStencilState;
 }
 
-ID3D11RasterizerState* spDeviceResourceManagerD3D11::CreateRasterizerState(const spRasterizerState& rasterizerState, bool bMultisample)
+ID3D11RasterizerState* spDeviceResourceManagerD3D11::CreateRasterizerState(const spRasterizerState& rasterizerState, bool bMultisample) const
 {
   if (rasterizerState.m_bConservativeRasterization)
   {
@@ -244,7 +256,7 @@ ID3D11RasterizerState* spDeviceResourceManagerD3D11::CreateRasterizerState(const
   return pRasterizerState;
 }
 
-ID3D11InputLayout* spDeviceResourceManagerD3D11::CreateInputLayout(ezArrayPtr<spInputLayoutDescription> inputLayouts, ezByteArrayPtr vertexShaderByteCode)
+ID3D11InputLayout* spDeviceResourceManagerD3D11::CreateInputLayout(ezArrayPtr<spInputLayoutDescription> inputLayouts, ezByteArrayPtr vertexShaderByteCode) const
 {
   ezUInt32 uiTotalCount = 0;
   for (ezUInt32 i = 0, l = inputLayouts.GetCount(); i < l; i++)

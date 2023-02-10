@@ -24,8 +24,8 @@ public:
 
   // spTextureD3D11
 
-  static spTextureD3D11* FromExisting(spTextureD3D11* pTexture);
-  static spTextureD3D11* FromNative(spDeviceD3D11* pDevice, ID3D11Texture2D* pTexture, const ezEnum<spTextureDimension>& eDimension, const ezEnum<spPixelFormat>& eFormat);
+  static ezSharedPtr<spTextureD3D11> FromExisting(const ezSharedPtr<spTextureD3D11>& pTexture);
+  static ezSharedPtr<spTextureD3D11> FromNative(spDeviceD3D11* pDevice, ID3D11Texture2D* pTexture, const ezEnum<spTextureDimension>& eDimension, const ezEnum<spPixelFormat>& eFormat);
 
   spTextureD3D11(spDeviceD3D11* pDevice, const spTextureDescription& description);
   ~spTextureD3D11() override;
@@ -47,7 +47,7 @@ private:
   DXGI_FORMAT m_eFormat{DXGI_FORMAT_UNKNOWN};
   DXGI_FORMAT m_eTypelessFormat{DXGI_FORMAT_UNKNOWN};
 
-  spTextureD3D11* m_pParentTexture{nullptr};
+  ezSharedPtr<spTextureD3D11> m_pParentTexture{nullptr};
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spTextureD3D11);

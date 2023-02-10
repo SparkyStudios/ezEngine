@@ -18,9 +18,11 @@ struct spInputElementDescription : ezHashableStruct<spInputElementDescription>
   ezEnum<spInputElementFormat> m_eFormat;
 
   /// \brief The input layout element offset.
-  ezUInt32 m_uiOffset;
+  ezUInt32 m_uiOffset{0};
 
-  spInputElementDescription(const char* szName, ezEnum<spInputElementLocationSemantic> eSemantic, ezEnum<spInputElementFormat> eFormat, ezUInt32 uiOffset = 0)
+  spInputElementDescription() = default;
+
+  spInputElementDescription(const char* szName, const ezEnum<spInputElementLocationSemantic>& eSemantic, const ezEnum<spInputElementFormat>& eFormat, ezUInt32 uiOffset = 0)
     : m_eSemantic(eSemantic)
     , m_eFormat(eFormat)
     , m_uiOffset(uiOffset)
@@ -28,7 +30,7 @@ struct spInputElementDescription : ezHashableStruct<spInputElementDescription>
     m_sName.Assign(szName);
   }
 
-  spInputElementDescription(const char* szName, ezUInt32 uiLocation, ezEnum<spInputElementFormat> eFormat, ezUInt32 uiOffset = 0)
+  spInputElementDescription(const char* szName, ezUInt32 uiLocation, const ezEnum<spInputElementFormat>& eFormat, ezUInt32 uiOffset = 0)
     : m_eSemantic(static_cast<spInputElementLocationSemantic::Enum>(uiLocation))
     , m_eFormat(eFormat)
     , m_uiOffset(uiOffset)
@@ -48,9 +50,57 @@ struct spInputElementDescription : ezHashableStruct<spInputElementDescription>
 
 struct spInputLayoutDescription : public ezHashableStruct<spInputLayoutDescription>
 {
-  ezUInt32 m_uiStride;
-  ezDynamicArray<spInputElementDescription> m_Elements;
-  ezUInt32 m_uiInstanceStepRate;
+  ezUInt32 m_uiStride{0};
+  ezDynamicArray<spInputElementDescription> m_Elements{};
+  ezUInt32 m_uiInstanceStepRate{0};
+
+  spInputLayoutDescription() = default;
+
+  ~spInputLayoutDescription()
+  {
+    m_Elements.Clear();
+  }
+
+  spInputLayoutDescription(const spInputLayoutDescription& copy)
+  {
+    m_uiStride = copy.m_uiStride;
+    m_uiInstanceStepRate = copy.m_uiInstanceStepRate;
+
+    m_Elements.EnsureCount(copy.m_Elements.GetCount());
+    for (ezUInt32 i = 0, l = m_Elements.GetCount(); i < l; ++i)
+    {
+      m_Elements[i].m_eFormat = copy.m_Elements[i].m_eFormat;
+      m_Elements[i].m_eSemantic = copy.m_Elements[i].m_eSemantic;
+      m_Elements[i].m_uiOffset = copy.m_Elements[i].m_uiOffset;
+      m_Elements[i].m_sName = copy.m_Elements[i].m_sName;
+    }
+  }
+
+  spInputLayoutDescription(spInputLayoutDescription&& move) noexcept
+  {
+    ezMath::Swap(m_uiStride, move.m_uiStride);
+    ezMath::Swap(m_uiInstanceStepRate, move.m_uiInstanceStepRate);
+    ezMath::Swap(m_Elements, move.m_Elements);
+  }
+
+  EZ_ALWAYS_INLINE spInputLayoutDescription operator=(const spInputLayoutDescription& copy)
+  {
+    m_uiStride = copy.m_uiStride;
+    m_uiInstanceStepRate = copy.m_uiInstanceStepRate;
+
+    m_Elements = copy.m_Elements;
+
+    return *this;
+  }
+
+  EZ_ALWAYS_INLINE spInputLayoutDescription operator=(spInputLayoutDescription&& move) noexcept
+  {
+    ezMath::Swap(m_uiStride, move.m_uiStride);
+    ezMath::Swap(m_uiInstanceStepRate, move.m_uiInstanceStepRate);
+    ezMath::Swap(m_Elements, move.m_Elements);
+
+    return *this;
+  }
 
   /// \brief Compares this \see InputLayoutDescription with the given \a other description for equality.
   EZ_ALWAYS_INLINE bool operator==(const spInputLayoutDescription& other) const

@@ -167,6 +167,15 @@ const spDepthState spDepthState::Disabled = {
 
 #pragma endregion
 
+#pragma region spStencilState
+
+const spStencilState spStencilState::Disabled = {
+  {},
+  false,
+};
+
+#pragma endregion
+
 #pragma region spRasterizerState
 
 const spRasterizerState spRasterizerState::Default = {

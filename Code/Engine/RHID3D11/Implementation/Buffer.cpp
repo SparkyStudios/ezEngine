@@ -11,6 +11,9 @@
 
 void spBufferRangeD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
   EZ_IGNORE_UNUSED(m_pBuffer->ReleaseRef());
   m_pBuffer = nullptr;
 
@@ -26,9 +29,14 @@ spBufferRangeD3D11::spBufferRangeD3D11(spDeviceD3D11* pDevice, const spBufferRan
   EZ_ASSERT_DEV(m_pBuffer != nullptr, "Buffer range creation failed. Invalid parent buffer provided.");
   EZ_IGNORE_UNUSED(m_pBuffer->AddRef());
 
-  m_pFence = ezStaticCast<spFenceD3D11*>(m_pDevice->GetResourceFactory()->CreateFence(description.m_Fence));
+  m_pFence = m_pDevice->GetResourceFactory()->CreateFence(description.m_Fence).Downcast<spFenceD3D11>();
 
   m_bReleased = false;
+}
+
+spBufferRangeD3D11::~spBufferRangeD3D11()
+{
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
 #pragma endregion
@@ -59,6 +67,12 @@ void spBufferD3D11::SetDebugName(const ezString& name)
 
 void spBufferD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
+  for (auto& range : m_BufferRanges)
+    m_pDevice->GetResourceManager()->ReleaseResource(range);
+
   for (auto& buffer : m_pShaderResourceViews)
     SP_RHI_DX11_RELEASE(buffer.Value());
 
@@ -79,6 +93,8 @@ void spBufferD3D11::CreateResource()
   desc.BindFlags = spToD3D11(m_Description.m_eUsage);
   desc.ByteWidth = m_Description.m_uiSize;
   desc.Usage = D3D11_USAGE_DEFAULT;
+  desc.CPUAccessFlags = 0;
+  desc.MiscFlags = 0;
 
   if (m_Description.m_eUsage.IsAnySet(spBufferUsage::StructuredBufferReadOnly | spBufferUsage::StructuredBufferReadWrite))
   {
@@ -96,12 +112,12 @@ void spBufferD3D11::CreateResource()
   if (m_Description.m_eUsage.IsSet(spBufferUsage::IndirectBuffer))
     desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
 
-  if (m_Description.m_eUsage.IsAnySet(spBufferUsage::Dynamic))
+  if (m_Description.m_eUsage.IsSet(spBufferUsage::Dynamic))
   {
     desc.Usage = D3D11_USAGE_DYNAMIC;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
   }
-  else if (m_Description.m_eUsage.IsAnySet(spBufferUsage::Staging))
+  else if (m_Description.m_eUsage.IsSet(spBufferUsage::Staging))
   {
     desc.Usage = D3D11_USAGE_STAGING;
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
@@ -124,8 +140,7 @@ spBufferD3D11::spBufferD3D11(spDeviceD3D11* pDevice, const spBufferDescription& 
 
 spBufferD3D11::~spBufferD3D11()
 {
-  if (!IsReleased())
-    ReleaseResource();
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
 ID3D11ShaderResourceView* spBufferD3D11::GetShaderResourceView(ezUInt32 uiOffset, ezUInt32 uiSize)

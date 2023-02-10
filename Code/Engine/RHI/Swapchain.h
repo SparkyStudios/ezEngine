@@ -61,7 +61,7 @@ class SP_RHI_DLL spSwapchain : public spDeviceResource
 
 public:
   /// \brief The \see spFramebuffer representing the render target of this swapchain.
-  EZ_NODISCARD virtual spResourceHandle GetFramebuffer() const = 0;
+  EZ_NODISCARD virtual ezSharedPtr<spFramebuffer> GetFramebuffer() const = 0;
 
   /// \brief Sets if the swapchain uses vertical synchronization with the display refresh rate.
   /// \param bVSync If true, the swapchain will (try to) synchronize with the display refresh rate.

@@ -1,3 +1,4 @@
+#include "Foundation/Threading/Lock.h"
 #include <RHID3D11/RHID3D11PCH.h>
 
 #include <RHID3D11/CommandList.h>
@@ -14,19 +15,19 @@ void spSwapchainD3D11::ReleaseResource()
 
   if (m_pDepthTexture != nullptr)
   {
-    m_pDevice->GetResourceManager()->ReleaseResource(m_pDepthTexture->GetHandle());
+    m_pDepthTexture.Clear();
     m_pDepthTexture = nullptr;
   }
 
   if (m_pBackBufferTexture != nullptr)
   {
-    m_pDevice->GetResourceManager()->ReleaseResource(m_pBackBufferTexture->GetHandle());
+    m_pBackBufferTexture.Clear();
     m_pBackBufferTexture = nullptr;
   }
 
   if (m_pFramebuffer != nullptr)
   {
-    m_pDevice->GetResourceManager()->ReleaseResource(m_pFramebuffer->GetHandle());
+    m_pFramebuffer.Clear();
     m_pFramebuffer = nullptr;
   }
 
@@ -37,6 +38,11 @@ void spSwapchainD3D11::ReleaseResource()
 #endif
 
   SP_RHI_DX11_RELEASE(m_pD3D11SwapChain);
+
+  {
+    EZ_LOCK(m_CLsLock);
+    m_DependentCommandLists.Clear();
+  }
 }
 
 bool spSwapchainD3D11::IsReleased() const
@@ -51,12 +57,9 @@ void spSwapchainD3D11::SetDebugName(const ezString& debugName)
   m_pD3D11SwapChain->SetPrivateData(WKPDID_D3DDebugObjectName, debugName.GetElementCount(), debugName.GetData());
 }
 
-spResourceHandle spSwapchainD3D11::GetFramebuffer() const
+ezSharedPtr<spFramebuffer> spSwapchainD3D11::GetFramebuffer() const
 {
-  if (m_pFramebuffer != nullptr)
-    return m_pFramebuffer->GetHandle();
-
-  return {};
+  return m_pFramebuffer;
 }
 
 void spSwapchainD3D11::SetVSync(bool bVSync)
@@ -84,11 +87,11 @@ void spSwapchainD3D11::Resize(ezUInt32 uiWidth, ezUInt32 uiHeight)
 
     if (m_pDepthTexture != nullptr)
     {
-      m_pDevice->GetResourceManager()->ReleaseResource(m_pDepthTexture->GetHandle());
+      m_pDepthTexture.Clear();
       m_pDepthTexture = nullptr;
     }
 
-    m_pDevice->GetResourceManager()->ReleaseResource(m_pFramebuffer->GetHandle());
+    m_pFramebuffer.Clear();
     m_pFramebuffer = nullptr;
   }
 
@@ -97,7 +100,7 @@ void spSwapchainD3D11::Resize(ezUInt32 uiWidth, ezUInt32 uiHeight)
 
   if (bResizeBuffers)
   {
-    m_pDevice->GetResourceManager()->ReleaseResource(m_pBackBufferTexture->GetHandle());
+    m_pBackBufferTexture.Clear();
     m_pBackBufferTexture = nullptr;
 
     const HRESULT res = m_pD3D11SwapChain->ResizeBuffers(2, uiActualWidth, uiActualHeight, m_eColorFormat, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
@@ -123,24 +126,27 @@ void spSwapchainD3D11::Resize(ezUInt32 uiWidth, ezUInt32 uiHeight)
 
       if (m_pDepthTexture != nullptr)
       {
-        m_pDevice->GetResourceManager()->ReleaseResource(m_pDepthTexture->GetHandle());
+        m_pDepthTexture.Clear();
         m_pDepthTexture = nullptr;
       }
 
-      m_pDepthTexture = ezStaticCast<spTextureD3D11*>(m_pDevice->GetResourceFactory()->CreateTexture(desc));
+      m_pDepthTexture = m_pDevice->GetResourceFactory()->CreateTexture(desc).Downcast<spTextureD3D11>();
     }
 
     if (m_pBackBufferTexture != nullptr)
     {
-      m_pDevice->GetResourceManager()->ReleaseResource(m_pBackBufferTexture->GetHandle());
+      m_pBackBufferTexture.Clear();
       m_pBackBufferTexture = nullptr;
     }
 
     m_pBackBufferTexture = spTextureD3D11::FromNative(ezStaticCast<spDeviceD3D11*>(m_pDevice), *pBackBufferTexture, spTextureDimension::Texture2D, spFromD3D11(m_eColorFormat));
 
     const spFramebufferDescription desc(m_pDepthTexture != nullptr ? m_pDepthTexture->GetHandle() : spResourceHandle(), m_pBackBufferTexture->GetHandle());
-    m_pFramebuffer = ezStaticCast<spFramebufferD3D11*>(m_pDevice->GetResourceFactory()->CreateFramebuffer(desc));
+    m_pFramebuffer = m_pDevice->GetResourceFactory()->CreateFramebuffer(desc).Downcast<spFramebufferD3D11>();
     m_pFramebuffer->m_pParentSwapchain = this;
+
+    // Need to create the frame buffer here, so the output description is available.
+    m_pFramebuffer->EnsureResourceCreated();
   }
 }
 
@@ -258,7 +264,7 @@ spSwapchainD3D11::spSwapchainD3D11(spDeviceD3D11* pDevice, const spSwapchainDesc
 
 spSwapchainD3D11::~spSwapchainD3D11()
 {
-  spSwapchainD3D11::ReleaseResource();
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
 void spSwapchainD3D11::AddCommandListReference(spCommandListD3D11* pCL)

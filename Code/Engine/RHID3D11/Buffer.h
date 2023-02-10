@@ -6,7 +6,6 @@
 
 #include <RHID3D11/Fence.h>
 
-
 class spDeviceD3D11;
 
 class SP_RHID3D11_DLL spBufferD3D11 final : public spBuffer, public spDeferredDeviceResource
@@ -96,12 +95,13 @@ public:
   // spBufferRange
 
 public:
-  EZ_NODISCARD EZ_ALWAYS_INLINE virtual spResourceHandle GetFence() const override { return m_pFence->GetHandle(); }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spFence> GetFence() const override { return m_pFence; }
 
   // spBufferRangeD3D11
 
 public:
   spBufferRangeD3D11(spDeviceD3D11* pDevice, const spBufferRangeDescription& description);
+  ~spBufferRangeD3D11() override;
 
   /// \brief Checks if the buffer range is valid.
   EZ_NODISCARD EZ_ALWAYS_INLINE bool IsValid() const { return m_pBuffer != nullptr; }
@@ -110,7 +110,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE bool IsFullRange() const { return IsValid() && GetOffset() == 0 && GetSize() == m_pBuffer->GetSize(); }
 
   /// \brief Gets the parent buffer.
-  EZ_NODISCARD EZ_ALWAYS_INLINE spBufferD3D11* GetBuffer() const { return m_pBuffer; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spBuffer> GetBuffer() const override { return m_pBuffer; }
 
   EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spBufferRangeD3D11& rhs) const
   {
@@ -120,8 +120,8 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spBufferRangeD3D11& rhs) const { return !(*this == rhs); }
 
 private:
-  spBufferD3D11* m_pBuffer{nullptr};
-  spFenceD3D11* m_pFence{nullptr};
+  ezSharedPtr<spBufferD3D11> m_pBuffer{nullptr};
+  ezSharedPtr<spFenceD3D11> m_pFence{nullptr};
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spBufferRangeD3D11);

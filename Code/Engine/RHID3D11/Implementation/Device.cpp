@@ -11,6 +11,8 @@
 #include <RHID3D11/Swapchain.h>
 #include <RHID3D11/Texture.h>
 
+EZ_IMPLEMENT_SINGLETON(spDeviceD3D11);
+
 static bool SdkLayersAvailable()
 {
   const HRESULT hr = D3D11CreateDevice(
@@ -90,9 +92,9 @@ ezUInt32 spDeviceD3D11::GetStructuredBufferMinOffsetAlignment() const
   return 16;
 }
 
-spResourceHandle spDeviceD3D11::GetMainSwapchain() const
+ezSharedPtr<spSwapchain> spDeviceD3D11::GetMainSwapchain() const
 {
-  return m_pMainSwapchain->GetHandle();
+  return m_pMainSwapchain;
 }
 
 const spDeviceCapabilities& spDeviceD3D11::GetCapabilities() const
@@ -102,7 +104,7 @@ const spDeviceCapabilities& spDeviceD3D11::GetCapabilities() const
 
 void spDeviceD3D11::SubmitCommandList(const spResourceHandle& hCommandList, const spResourceHandle& hFence)
 {
-  if (auto* pCommandList = GetResourceManager()->GetResource<spCommandListD3D11>(hCommandList); pCommandList != nullptr)
+  if (const auto pCommandList = GetResourceManager()->GetResource<spCommandListD3D11>(hCommandList); pCommandList != nullptr)
   {
     EZ_LOCK(m_ImmediateContextMutex);
 
@@ -113,7 +115,7 @@ void spDeviceD3D11::SubmitCommandList(const spResourceHandle& hCommandList, cons
     }
   }
 
-  if (auto* pFence = GetResourceManager()->GetResource<spFenceD3D11>(hFence); pFence != nullptr)
+  if (const auto pFence = GetResourceManager()->GetResource<spFenceD3D11>(hFence); pFence != nullptr)
     pFence->Raise();
 }
 
@@ -124,7 +126,7 @@ void spDeviceD3D11::SubmitCommandListAsync(const spResourceHandle& hCommandList,
 
 bool spDeviceD3D11::WaitForFence(const spResourceHandle& hFence, double uiNanosecondsTimeout)
 {
-  auto* pFence = GetResourceManager()->GetResource<spFenceD3D11>(hFence);
+  const auto pFence = GetResourceManager()->GetResource<spFenceD3D11>(hFence);
   if (pFence == nullptr)
     return false;
 
@@ -139,7 +141,7 @@ bool spDeviceD3D11::WaitForFences(const ezList<spResourceHandle>& fences, bool b
 
 void spDeviceD3D11::ResetFence(const spResourceHandle& hFence)
 {
-  auto* pFence = GetResourceManager()->GetResource<spFenceD3D11>(hFence);
+  const auto pFence = GetResourceManager()->GetResource<spFenceD3D11>(hFence);
   if (pFence == nullptr)
     return;
 
@@ -178,7 +180,7 @@ ezEnum<spTextureSampleCount> spDeviceD3D11::GetTextureSampleCountLimit(const ezE
 
 void spDeviceD3D11::UpdateTexture(const spResourceHandle& hResource, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
 {
-  if (auto* pTextureD3D11 = GetResourceManager()->GetResource<spTextureD3D11>(hResource); pTextureD3D11->GetUsage().IsSet(spTextureUsage::Staging))
+  if (auto pTextureD3D11 = GetResourceManager()->GetResource<spTextureD3D11>(hResource); pTextureD3D11->GetUsage().IsSet(spTextureUsage::Staging))
   {
     const ezUInt32 uiSubresource = spTextureHelper::CalculateSubresource(pTextureD3D11, uiMipLevel, uiArrayLayer);
     const spMappedResource& mappedResource = MapInternal(pTextureD3D11, spMapAccess::Write, uiSubresource);
@@ -218,12 +220,14 @@ void spDeviceD3D11::Destroy()
 {
   for (auto it = m_AvailableStagingBuffers.GetIterator(); it.IsValid(); it.Next())
   {
-    GetResourceManager()->ReleaseResource((*it)->GetHandle());
+    GetResourceManager()->ReleaseResource(*it);
   }
 
   m_AvailableStagingBuffers.Clear();
 
-  m_pResourceManager->ReleaseResource(m_pMainSwapchain->GetHandle());
+  // This call should release the swapchain resource... If not, the swapchain was surely still referenced somewhere.
+  // That means there are some memory leaks.
+  m_pMainSwapchain.Clear();
 
   SP_RHI_DX11_RELEASE(m_pD3D11DeviceContext);
   SP_RHI_DX11_RELEASE(m_pD3D11Device3);
@@ -357,7 +361,8 @@ void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, c
   if (uiSize == 0)
     return;
 
-  const auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pBuffer);
+  auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pBuffer);
+  pBufferD3D11->EnsureResourceCreated();
 
   const bool bIsDynamic = pBuffer->GetUsage().IsSet(spBufferUsage::Dynamic);
   const bool bIsStaging = pBuffer->GetUsage().IsSet(spBufferUsage::Staging);
@@ -368,13 +373,7 @@ void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, c
 
   if (bUseUpdateSubresource)
   {
-    D3D11_BOX box;
-    box.left = uiOffset;
-    box.right = uiSize + uiOffset;
-    box.top = 0;
-    box.bottom = 1;
-    box.front = 0;
-    box.back = 1;
+    D3D11_BOX box{uiOffset, 0, 0, uiSize + uiOffset, 1, 1};
 
     {
       EZ_LOCK(m_ImmediateContextMutex);
@@ -414,10 +413,8 @@ void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, c
 
 spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescriptionD3D11& deviceDescription)
   : spDevice(pAllocator, static_cast<spDeviceDescription>(deviceDescription))
+  , m_SingletonRegistrar(this)
 {
-  m_pResourceManager = EZ_DEFAULT_NEW(spDeviceResourceManagerD3D11, this);
-  m_pResourceFactory = EZ_DEFAULT_NEW(spDeviceResourceFactoryD3D11, this);
-
   ezUInt32 uiFlags = deviceDescription.m_uiCreationFlags;
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
@@ -499,17 +496,20 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
       break;
   }
 
-  if (deviceDescription.m_bHasMainSwapchain)
-  {
-    m_pMainSwapchain = ezStaticCast<spSwapchainD3D11*>(m_pResourceFactory->CreateSwapchain(deviceDescription.m_MainSwapchainDescription));
-  }
-
   {
     if (FAILED(m_pD3D11Device->QueryInterface(IID_ID3D11Device3, reinterpret_cast<void**>(&m_pD3D11Device3))))
     {
       ezLog::Warning("Failed to get ID3D11Device3 from D3D11 device, some features won't be available.");
       m_pD3D11Device3 = nullptr;
     }
+  }
+
+  m_pResourceManager = EZ_DEFAULT_NEW(spDeviceResourceManagerD3D11, this);
+  m_pResourceFactory = EZ_DEFAULT_NEW(spDeviceResourceFactoryD3D11, this);
+
+  if (deviceDescription.m_bHasMainSwapchain)
+  {
+    m_pMainSwapchain = m_pResourceFactory->CreateSwapchain(deviceDescription.m_MainSwapchainDescription).Downcast<spSwapchainD3D11>();
   }
 
   {

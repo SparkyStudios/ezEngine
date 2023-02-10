@@ -57,6 +57,8 @@ public:
   // spSamplerD3D11
 
 public:
+  ~spSamplerD3D11() override;
+
   EZ_NODISCARD EZ_ALWAYS_INLINE spSamplerStateD3D11* GetSamplerState() const { return m_pSamplerState; }
 
 private:

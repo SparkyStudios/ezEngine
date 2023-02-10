@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <RHID3D11/RHID3D11DLL.h>
 
@@ -43,8 +43,8 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11RenderTargetView* GetRenderTargetView(ezUInt32 uiSlot) const { return m_ColorTargets[uiSlot]; }
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DepthStencilView* GetDepthStencilView() const { return m_pDepthTarget; }
 
-  EZ_NODISCARD spTextureD3D11* GetColorTarget(ezUInt32 uiColorTargetIndex) const;
-  EZ_NODISCARD EZ_ALWAYS_INLINE spSwapchainD3D11* GetParentSwapchain() const { return m_pParentSwapchain; }
+  EZ_NODISCARD ezSharedPtr<spTextureD3D11> GetColorTarget(ezUInt32 uiColorTargetIndex) const;
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spSwapchainD3D11> GetParentSwapchain() const { return {m_pParentSwapchain, m_pDevice->GetAllocator()}; }
 
 private:
   void ApplyColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target);

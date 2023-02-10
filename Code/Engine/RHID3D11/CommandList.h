@@ -65,6 +65,7 @@ protected:
 
 public:
   spCommandListD3D11(spDeviceD3D11* pDeviceD3D11, const spCommandListDescription& description);
+  ~spCommandListD3D11() override;
 
   void Reset();
 

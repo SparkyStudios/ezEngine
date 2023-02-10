@@ -86,7 +86,7 @@ spTextureD3D11::spTextureD3D11(spDeviceD3D11* pDevice, const spTextureDescriptio
 
 spTextureD3D11::~spTextureD3D11()
 {
-  spTextureD3D11::ReleaseResource();
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
 void spTextureD3D11::SetDebugName(const ezString& debugName)
@@ -98,11 +98,11 @@ void spTextureD3D11::SetDebugName(const ezString& debugName)
 
 void spTextureD3D11::ReleaseResource()
 {
-  if (!m_bIsResourceCreated)
+  if (IsReleased())
     return;
 
   if (m_pParentTexture != nullptr)
-    EZ_IGNORE_UNUSED(m_pParentTexture->ReleaseRef());
+    m_pParentTexture.Clear();
   else if (m_bFromNative)
     m_pTexture->Release();
 
@@ -219,7 +219,7 @@ void spTextureD3D11::CreateResource()
   m_bIsResourceCreated = true;
 }
 
-spTextureD3D11* spTextureD3D11::FromExisting(spTextureD3D11* pTexture)
+ezSharedPtr<spTextureD3D11> spTextureD3D11::FromExisting(const ezSharedPtr<spTextureD3D11>& pTexture)
 {
   spTextureDescription desc;
   desc.m_uiWidth = pTexture->GetWidth();
@@ -232,7 +232,7 @@ spTextureD3D11* spTextureD3D11::FromExisting(spTextureD3D11* pTexture)
   desc.m_eDimension = pTexture->GetDimension();
   desc.m_eUsage = pTexture->GetUsage();
 
-  auto* pResult = ezStaticCast<spTextureD3D11*>(pTexture->GetDevice()->GetResourceFactory()->CreateTexture(desc));
+  auto pResult = pTexture->GetDevice()->GetResourceFactory()->CreateTexture(desc).Downcast<spTextureD3D11>();
   pResult->m_pDevice = pTexture->GetDevice();
   pResult->m_pD3D11Device = ezStaticCast<spDeviceD3D11*>(pTexture->GetDevice())->GetD3D11Device();
   pResult->m_pTexture = pTexture->GetD3D11Texture();
@@ -246,7 +246,7 @@ spTextureD3D11* spTextureD3D11::FromExisting(spTextureD3D11* pTexture)
   return pResult;
 }
 
-spTextureD3D11* spTextureD3D11::FromNative(spDeviceD3D11* pDevice, ID3D11Texture2D* pTexture, const ezEnum<spTextureDimension>& eDimension, const ezEnum<spPixelFormat>& eFormat)
+ezSharedPtr<spTextureD3D11> spTextureD3D11::FromNative(spDeviceD3D11* pDevice, ID3D11Texture2D* pTexture, const ezEnum<spTextureDimension>& eDimension, const ezEnum<spPixelFormat>& eFormat)
 {
   D3D11_TEXTURE2D_DESC nativeDesc;
   pTexture->GetDesc(&nativeDesc);
@@ -262,7 +262,7 @@ spTextureD3D11* spTextureD3D11::FromNative(spDeviceD3D11* pDevice, ID3D11Texture
   desc.m_eDimension = eDimension;
   desc.m_eUsage = spGetTextureUsage(nativeDesc.BindFlags, nativeDesc.CPUAccessFlags, nativeDesc.MiscFlags);
 
-  auto* pResult = ezStaticCast<spTextureD3D11*>(pDevice->GetResourceFactory()->CreateTexture(desc));
+  auto pResult = pDevice->GetResourceFactory()->CreateTexture(desc).Downcast<spTextureD3D11>();
   pResult->m_pDevice = pDevice;
   pResult->m_pD3D11Device = ezStaticCast<spDeviceD3D11*>(pDevice)->GetD3D11Device();
   pResult->m_pTexture = pTexture;
@@ -301,6 +301,9 @@ void spTextureViewD3D11::SetDebugName(const ezString& debugName)
 
 void spTextureViewD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
   SP_RHI_DX11_RELEASE(m_pShaderResourceView);
   SP_RHI_DX11_RELEASE(m_pUnorderedAccessView);
 
@@ -314,7 +317,7 @@ bool spTextureViewD3D11::IsReleased() const
 
 void spTextureViewD3D11::CreateResource()
 {
-  auto* pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(m_Description.m_hTarget);
+  auto pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(m_Description.m_hTarget);
   EZ_ASSERT_DEV(pTexture != nullptr, "Texture view resource using invalid texture resource as a target.");
 
   // SRV
@@ -394,7 +397,7 @@ spTextureViewD3D11::spTextureViewD3D11(spDeviceD3D11* pDevice, const spTextureVi
 
 spTextureViewD3D11::~spTextureViewD3D11()
 {
-  spTextureViewD3D11::ReleaseResource();
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
 ID3D11ShaderResourceView* spTextureViewD3D11::GetShaderResourceView() const

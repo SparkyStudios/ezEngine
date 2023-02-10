@@ -409,7 +409,7 @@ struct SP_RHI_DLL spTextureViewDescription : public ezHashableStruct<spTextureVi
   /// \note This constructor will override the pixel format of the target texture.
   /// \param pTexture The texture resource to create a new \see spTextureViewDescription from.
   /// \param eFormat The pixel format to use in the view. Should be compatible with the format of the target texture.
-  spTextureViewDescription(const spTexture* pTexture, ezEnum<spPixelFormat> eFormat);
+  spTextureViewDescription(const spTexture* pTexture, const ezEnum<spPixelFormat>& eFormat);
 
   /// \brief Compares this instance with the \a other instance for equality.
   EZ_ALWAYS_INLINE bool operator==(const spTextureViewDescription& other) const
@@ -555,7 +555,7 @@ class SP_RHI_DLL spTextureSamplerManager
   friend class spGraphicsDevice;
 
 public:
-  static spTextureView* GetTextureView(spDevice* pDevice, spShaderResource* pResource);
+  static ezSharedPtr<spTextureView> GetTextureView(const spDevice* pDevice, spShaderResource* pResource);
 
   virtual ~spTextureSamplerManager() = default;
 

@@ -5,10 +5,10 @@
 
 #pragma region spComputePipeline
 
-spResourceLayout* spPipeline::GetResourceLayout(ezUInt32 uiSlot) const
+ezSharedPtr<spResourceLayout> spPipeline::GetResourceLayout(ezUInt32 uiSlot) const
 {
   EZ_ASSERT_DEV(uiSlot < m_ResourceLayouts.GetCount(), "Invalid slot index {0}, values are in the range [0, {1}].", uiSlot, m_ResourceLayouts.GetCount());
-  return m_pDevice->GetResourceManager()->GetResource<spResourceLayout>(m_ResourceLayouts[uiSlot]);
+  return {m_ResourceLayouts[uiSlot], m_pDevice->GetAllocator()};
 }
 
 #pragma endregion

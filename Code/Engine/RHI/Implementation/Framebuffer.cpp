@@ -10,14 +10,6 @@
 spFramebufferAttachment::spFramebufferAttachment(spFramebufferAttachmentDescription description)
   : m_Description(std::move(description))
 {
-  const auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
-  EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->IncrementResourceRef(GetTarget()));
-}
-
-spFramebufferAttachment::~spFramebufferAttachment()
-{
-  const auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
-  EZ_IGNORE_UNUSED(pDevice->GetResourceManager()->DecrementResourceRef(GetTarget()));
 }
 
 spResourceHandle spFramebufferAttachment::GetTarget() const

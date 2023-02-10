@@ -134,8 +134,6 @@ struct SP_RHI_DLL spShaderPipeline : public ezHashableStruct<spShaderPipeline>
   spShaderPipeline() = default;
 
   spShaderPipeline(ezDynamicArray<spResourceHandle> inputLayouts, spResourceHandle hShaderProgram);
-
-  ~spShaderPipeline();
 };
 
 class SP_RHI_DLL spShaderProgram : public spDeviceResource

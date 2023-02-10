@@ -4,6 +4,8 @@
 #include <RHI/Device.h>
 #include <RHI/Resource.h>
 
+#include <Foundation/Logging/Log.h>
+
 #pragma region spDeferredDeviceResource
 
 void spDeferredDeviceResource::EnsureResourceCreated()
@@ -25,7 +27,7 @@ spMappedResource::spMappedResource()
 {
 }
 
-spMappedResource::spMappedResource(const spResourceHandle& hResource, ezEnum<spMapAccess> eAccess, void* pData, ezUInt32 uiSize, ezUInt32 uiSubResource, ezUInt32 uiRowPitch, ezUInt32 uiDepthPitch)
+spMappedResource::spMappedResource(const spResourceHandle& hResource, const ezEnum<spMapAccess>& eAccess, void* pData, ezUInt32 uiSize, ezUInt32 uiSubResource, ezUInt32 uiRowPitch, ezUInt32 uiDepthPitch)
   : ezRefCounted()
   , m_hResource(hResource)
   , m_eAccess(eAccess)
@@ -37,7 +39,7 @@ spMappedResource::spMappedResource(const spResourceHandle& hResource, ezEnum<spM
 {
 }
 
-spMappedResource::spMappedResource(const spResourceHandle& hResource, ezEnum<spMapAccess> eAccess, const ezByteArrayPtr& data)
+spMappedResource::spMappedResource(const spResourceHandle& hResource, const ezEnum<spMapAccess>& eAccess, const ezByteArrayPtr& data)
   : spMappedResource(hResource, eAccess, data.GetPtr(), data.GetCount(), 0, 0, 0)
 {
 }
@@ -83,6 +85,7 @@ ezUInt32 spMappedResource::GetDepthPitch() const
 
 spDeviceResourceManager::spDeviceResourceManager(spDevice* pDevice)
   : m_pDevice(pDevice)
+  , m_pAllocator(pDevice->GetAllocator())
   , m_RegisteredResources(pDevice->GetAllocator())
 {
 }
@@ -95,7 +98,6 @@ spDeviceResourceManager::~spDeviceResourceManager()
 spResourceHandle spDeviceResourceManager::RegisterResource(spDeviceResource* pResource)
 {
   // Set resource handle
-  EZ_IGNORE_UNUSED(pResource->AddRef());
   return pResource->m_Handle = spResourceHandle(m_RegisteredResources.Insert(pResource));
 }
 
@@ -141,14 +143,14 @@ spDefaultDeviceResourceManager::~spDefaultDeviceResourceManager()
 {
   ReleaseResources();
 
-  while (!m_RegisteredResources.IsEmpty())
   {
-    auto it = m_RegisteredResources.GetIterator();
-    spDeviceResource* pResource = it.Value();
-    ReleaseResource(pResource);
-  }
+    EZ_LOG_BLOCK("RHI resources leak report");
 
-  m_RegisteredResources.Clear();
+    if (m_RegisteredResources.IsEmpty())
+      ezLog::Success("All RHI resources have been cleaned-up.");
+    else
+      ezLog::Warning("{0} RHI resources have not been cleaned-up. This may lead to memory leaks.", m_RegisteredResources.GetCount());
+  }
 }
 
 void spDefaultDeviceResourceManager::EnqueueReleaseResource(const spResourceHandle& hResource)
@@ -187,12 +189,16 @@ void spDefaultDeviceResourceManager::ReleaseResources()
 
 void spDefaultDeviceResourceManager::ReleaseResource(spDeviceResource* pResource)
 {
-  if (pResource->ReleaseRef() <= 0)
+  if (pResource->IsReleased())
+    return;
+
+  if (pResource->GetRefCount() == 0)
   {
     pResource->ReleaseResource();
     m_RegisteredResources.Remove(pResource->GetHandle().GetInternalID(), nullptr);
     pResource->GetHandle().Invalidate();
-    EZ_DELETE(m_pDevice->GetAllocator(), pResource);
+    // EZ_DELETE(m_pDevice->GetAllocator(), pResource); - Should be handled by ezSharedPtr
+    pResource = nullptr;
   }
 }
 
@@ -216,7 +222,7 @@ spBufferRange* spResourceHelper::GetBufferRange(const spDevice* pDevice, spShade
   spBufferRange* pResult = nullptr;
 
   if (const auto* pBufferRange = ezDynamicCast<spBufferRange*>(pResource); pBufferRange != nullptr)
-    pResult = pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pBufferRange->GetBuffer(), pBufferRange->GetOffset() + uiOffset, pBufferRange->GetSize()));
+    pResult = pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pBufferRange->GetBuffer()->GetHandle(), pBufferRange->GetOffset() + uiOffset, pBufferRange->GetSize()));
   else if (const auto* pBuffer = ezDynamicCast<spBuffer*>(pResource); pBuffer != nullptr)
     pResult = pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pBuffer->GetHandle(), uiOffset, pBuffer->GetSize()));
 

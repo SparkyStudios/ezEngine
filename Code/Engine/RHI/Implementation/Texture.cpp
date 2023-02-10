@@ -11,7 +11,7 @@ spTextureViewDescription::spTextureViewDescription(const spTexture* pTexture)
 {
 }
 
-spTextureViewDescription::spTextureViewDescription(const spTexture* pTexture, ezEnum<spPixelFormat> eFormat)
+spTextureViewDescription::spTextureViewDescription(const spTexture* pTexture, const ezEnum<spPixelFormat>& eFormat)
   : ezHashableStruct<spTextureViewDescription>()
   , m_hTarget(pTexture->GetHandle())
   , m_bOverridePixelFormat(true)
@@ -23,10 +23,10 @@ spTextureViewDescription::spTextureViewDescription(const spTexture* pTexture, ez
 
 #pragma region spTextureSamplerManager
 
-spTextureView* spTextureSamplerManager::GetTextureView(spDevice* pDevice, spShaderResource* pResource)
+ezSharedPtr<spTextureView> spTextureSamplerManager::GetTextureView(const spDevice* pDevice, spShaderResource* pResource)
 {
   if (pResource->IsInstanceOf<spTextureView>())
-    return static_cast<spTextureView*>(pResource);
+    return {ezStaticCast<spTextureView*>(pResource), pDevice->GetAllocator()};
 
   if (pResource->IsInstanceOf<spTexture>())
     return pDevice->GetResourceManager()->GetResource<spTextureView>(pDevice->GetTextureSamplerManager()->GetFullTextureView(pResource->GetHandle()));

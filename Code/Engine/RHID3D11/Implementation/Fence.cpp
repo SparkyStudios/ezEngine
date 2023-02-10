@@ -1,10 +1,16 @@
 #include <RHID3D11/RHID3D11PCH.h>
 
+#include <RHID3D11/Device.h>
 #include <RHID3D11/Fence.h>
 
 void spFenceD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
   m_ThreadSignal.RaiseSignal();
+  m_ThreadSignal.ClearSignal();
+
   m_bReleased = true;
 }
 
@@ -21,7 +27,7 @@ bool spFenceD3D11::IsSignaled()
 void spFenceD3D11::Reset()
 {
   if (!m_bSignaled)
-    return ;
+    return;
 
   m_bSignaled = false;
   m_ThreadSignal.ClearSignal();
@@ -56,4 +62,9 @@ spFenceD3D11::spFenceD3D11(spDeviceD3D11* pDevice, const spFenceDescription& des
     m_ThreadSignal.ClearSignal();
 
   m_bSignaled = description.m_bSignaled;
+}
+
+spFenceD3D11::~spFenceD3D11()
+{
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }

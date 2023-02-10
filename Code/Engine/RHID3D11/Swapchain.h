@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RHI/Framebuffer.h"
 #include <RHID3D11/RHID3D11DLL.h>
 
 #include <RHI/Swapchain.h>
@@ -74,7 +75,7 @@ public:
 
   // spSwapchain
 
-  spResourceHandle GetFramebuffer() const override;
+  EZ_NODISCARD ezSharedPtr<spFramebuffer> GetFramebuffer() const override;
   void SetVSync(bool bVSync) override;
   EZ_NODISCARD EZ_ALWAYS_INLINE bool GetVSync() const override { return m_bVSync; }
   void Resize(ezUInt32 uiWidth, ezUInt32 uiHeight) override;
@@ -95,9 +96,9 @@ private:
   ID3D11Device* m_pD3D11Device{nullptr};
   IDXGISwapChain* m_pD3D11SwapChain{nullptr};
 
-  spTextureD3D11* m_pDepthTexture{nullptr};
-  spTextureD3D11* m_pBackBufferTexture{nullptr};
-  spFramebufferD3D11* m_pFramebuffer{nullptr};
+  ezSharedPtr<spTextureD3D11> m_pDepthTexture{nullptr};
+  ezSharedPtr<spTextureD3D11> m_pBackBufferTexture{nullptr};
+  ezSharedPtr<spFramebufferD3D11> m_pFramebuffer{nullptr};
 
   float m_fPixelScale{1.0f};
   DXGI_FORMAT m_eColorFormat{DXGI_FORMAT_UNKNOWN};
