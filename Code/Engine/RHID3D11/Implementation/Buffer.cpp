@@ -14,8 +14,7 @@ void spBufferRangeD3D11::ReleaseResource()
   if (IsReleased())
     return;
 
-  EZ_IGNORE_UNUSED(m_pBuffer->ReleaseRef());
-  m_pBuffer = nullptr;
+  m_pBuffer.Clear();
 
   m_bReleased = true;
 }
@@ -27,7 +26,6 @@ spBufferRangeD3D11::spBufferRangeD3D11(spDeviceD3D11* pDevice, const spBufferRan
 
   m_pBuffer = pDevice->GetResourceManager()->GetResource<spBufferD3D11>(description.m_hBuffer);
   EZ_ASSERT_DEV(m_pBuffer != nullptr, "Buffer range creation failed. Invalid parent buffer provided.");
-  EZ_IGNORE_UNUSED(m_pBuffer->AddRef());
 
   m_pFence = m_pDevice->GetResourceFactory()->CreateFence(description.m_Fence).Downcast<spFenceD3D11>();
 
@@ -71,7 +69,7 @@ void spBufferD3D11::ReleaseResource()
     return;
 
   for (auto& range : m_BufferRanges)
-    m_pDevice->GetResourceManager()->ReleaseResource(range);
+    range.Clear();
 
   for (auto& buffer : m_pShaderResourceViews)
     SP_RHI_DX11_RELEASE(buffer.Value());
@@ -83,6 +81,8 @@ void spBufferD3D11::ReleaseResource()
 
   m_pShaderResourceViews.Clear();
   m_pUnorderedAccessViews.Clear();
+
+  m_BufferRanges.Clear();
 
   m_bIsResourceCreated = false;
 }
