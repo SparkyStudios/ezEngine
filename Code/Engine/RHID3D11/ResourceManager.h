@@ -43,10 +43,9 @@ private:
   struct InputLayoutCacheKey
   {
     ezArrayPtr<spInputLayoutDescription> m_InputLayouts;
-    bool bOwned{false};
+    bool m_bOwned{false};
 
-
-    EZ_NODISCARD EZ_ALWAYS_INLINE static InputLayoutCacheKey GetTemporaryKey(ezArrayPtr<spInputLayoutDescription> inputLayouts)
+    EZ_NODISCARD EZ_ALWAYS_INLINE static InputLayoutCacheKey GetTemporaryKey(const ezArrayPtr<spInputLayoutDescription>& inputLayouts)
     {
       InputLayoutCacheKey key;
       key.m_InputLayouts = inputLayouts;
@@ -54,22 +53,91 @@ private:
       return key;
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE static InputLayoutCacheKey GetPermanentKey(ezArrayPtr<spInputLayoutDescription> inputLayouts)
+    EZ_NODISCARD EZ_ALWAYS_INLINE static InputLayoutCacheKey GetPermanentKey(const ezArrayPtr<spInputLayoutDescription>& inputLayouts)
     {
       InputLayoutCacheKey key;
 
       key.m_InputLayouts = EZ_DEFAULT_NEW_ARRAY(spInputLayoutDescription, inputLayouts.GetCount());
-      key.m_InputLayouts.CopyFrom(inputLayouts);
+      ezMemoryUtils::Construct(key.m_InputLayouts.GetPtr(), key.m_InputLayouts.GetCount());
 
-      key.bOwned = true;
+      for (ezUInt32 i = 0, l = key.m_InputLayouts.GetCount(); i < l; ++i)
+      {
+        key.m_InputLayouts[i].m_uiStride = inputLayouts[i].m_uiStride;
+        key.m_InputLayouts[i].m_uiInstanceStepRate = inputLayouts[i].m_uiInstanceStepRate;
+
+        key.m_InputLayouts[i].m_Elements.EnsureCount(inputLayouts[i].m_Elements.GetCount());
+        for (ezUInt32 j = 0, m = key.m_InputLayouts[i].m_Elements.GetCount(); j < m; ++j)
+        {
+          key.m_InputLayouts[i].m_Elements[j].m_eFormat = inputLayouts[i].m_Elements[j].m_eFormat;
+          key.m_InputLayouts[i].m_Elements[j].m_eSemantic = inputLayouts[i].m_Elements[j].m_eSemantic;
+          key.m_InputLayouts[i].m_Elements[j].m_uiOffset = inputLayouts[i].m_Elements[j].m_uiOffset;
+          key.m_InputLayouts[i].m_Elements[j].m_sName.Assign(inputLayouts[i].m_Elements[j].m_sName.GetData());
+        }
+      }
+
+      key.m_bOwned = true;
 
       return key;
     }
 
+    InputLayoutCacheKey() = default;
+
+    InputLayoutCacheKey(const InputLayoutCacheKey& key)
+    {
+      m_InputLayouts = EZ_DEFAULT_NEW_ARRAY(spInputLayoutDescription, key.m_InputLayouts.GetCount());
+      ezMemoryUtils::Construct(m_InputLayouts.GetPtr(), m_InputLayouts.GetCount());
+
+      for (ezUInt32 i = 0, l = key.m_InputLayouts.GetCount(); i < l; ++i)
+      {
+        m_InputLayouts[i].m_uiStride = key.m_InputLayouts[i].m_uiStride;
+        m_InputLayouts[i].m_uiInstanceStepRate = key.m_InputLayouts[i].m_uiInstanceStepRate;
+
+        m_InputLayouts[i].m_Elements.EnsureCount(key.m_InputLayouts[i].m_Elements.GetCount());
+        for (ezUInt32 j = 0, m = key.m_InputLayouts[i].m_Elements.GetCount(); j < m; ++j)
+        {
+          m_InputLayouts[i].m_Elements[j].m_eFormat = key.m_InputLayouts[i].m_Elements[j].m_eFormat;
+          m_InputLayouts[i].m_Elements[j].m_eSemantic = key.m_InputLayouts[i].m_Elements[j].m_eSemantic;
+          m_InputLayouts[i].m_Elements[j].m_uiOffset = key.m_InputLayouts[i].m_Elements[j].m_uiOffset;
+          m_InputLayouts[i].m_Elements[j].m_sName.Assign(key.m_InputLayouts[i].m_Elements[j].m_sName.GetData());
+        }
+      }
+
+      m_bOwned = true;
+    }
+
+    InputLayoutCacheKey(InputLayoutCacheKey&& key) noexcept
+    {
+      m_InputLayouts.Swap(key.m_InputLayouts);
+      m_bOwned = key.m_bOwned;
+
+      key.m_bOwned = false;
+    }
+
     ~InputLayoutCacheKey()
     {
-      if (bOwned)
+      if (m_bOwned)
         EZ_DEFAULT_DELETE_ARRAY(m_InputLayouts);
+    }
+
+    EZ_ALWAYS_INLINE InputLayoutCacheKey operator=(InputLayoutCacheKey&& rhs) noexcept
+    {
+      m_InputLayouts = rhs.m_InputLayouts;
+      m_bOwned = rhs.m_bOwned;
+
+      rhs.m_InputLayouts.Clear();
+      rhs.m_bOwned = false;
+
+      return *this;
+    }
+
+    EZ_ALWAYS_INLINE InputLayoutCacheKey operator=(const InputLayoutCacheKey& rhs)
+    {
+      m_InputLayouts = EZ_DEFAULT_NEW_ARRAY(spInputLayoutDescription, rhs.m_InputLayouts.GetCount());
+      m_InputLayouts.CopyFrom(rhs.m_InputLayouts);
+
+      m_bOwned = true;
+
+      return *this;
     }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const InputLayoutCacheKey& rhs) const
@@ -132,12 +200,12 @@ private:
   ID3D11BlendState* GetBlendState(const spBlendState& blendState);
   ID3D11DepthStencilState* GetDepthStencilState(const spDepthState& depthState, const spStencilState& stencilState);
   ID3D11RasterizerState* GetRasterizerState(const spRasterizerState& rasterizerState, bool bMultisample);
-  ID3D11InputLayout* GetInputLayout(ezArrayPtr<spInputLayoutDescription> inputLayouts, ezByteArrayPtr vertexShaderByteCode);
+  ID3D11InputLayout* GetInputLayout(const ezArrayPtr<spInputLayoutDescription>& inputLayouts, const ezByteArrayPtr& vertexShaderByteCode);
 
-  ID3D11BlendState* CreateBlendState(const spBlendState& blendState);
-  ID3D11DepthStencilState* CreateDepthStencilState(const spDepthState& depthState, const spStencilState& stencilState);
-  ID3D11RasterizerState* CreateRasterizerState(const spRasterizerState& rasterizerState, bool bMultisample);
-  ID3D11InputLayout* CreateInputLayout(ezArrayPtr<spInputLayoutDescription> inputLayouts, ezByteArrayPtr vertexShaderByteCode);
+  ID3D11BlendState* CreateBlendState(const spBlendState& blendState) const;
+  ID3D11DepthStencilState* CreateDepthStencilState(const spDepthState& depthState, const spStencilState& stencilState) const;
+  ID3D11RasterizerState* CreateRasterizerState(const spRasterizerState& rasterizerState, bool bMultisample) const;
+  ID3D11InputLayout* CreateInputLayout(ezArrayPtr<spInputLayoutDescription> inputLayouts, ezByteArrayPtr vertexShaderByteCode) const;
 
   ID3D11Device* m_pD3D11Device{nullptr};
   ID3D11Device3* m_pD3D11Device3{nullptr};

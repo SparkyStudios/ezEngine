@@ -5,6 +5,9 @@
 
 void spResourceLayoutD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
   m_Bindings.Clear();
 }
 
@@ -78,4 +81,9 @@ spResourceLayoutD3D11::spResourceLayoutD3D11(spDeviceD3D11* pDevice, const spRes
   m_uiTextureCount = uiTexIndex;
   m_uiStorageBufferCount = uiUAVIndex;
   m_uiConstantBufferCount = uiCBIndex;
+}
+
+spResourceLayoutD3D11::~spResourceLayoutD3D11()
+{
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }

@@ -126,6 +126,45 @@ struct SP_RHI_DLL spGraphicsApiVersion
   {
   }
 
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spGraphicsApiVersion& rhs) const
+  {
+    return m_uiMajor == rhs.m_uiMajor && m_uiMinor == rhs.m_uiMinor && m_uiPatch == rhs.m_uiPatch && m_uiRevision == rhs.m_uiRevision;
+  }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spGraphicsApiVersion& rhs) const
+  {
+    return !(*this == rhs);
+  }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool operator<(const spGraphicsApiVersion& rhs) const
+  {
+    if (m_uiMajor != rhs.m_uiMajor)
+      return m_uiMajor < rhs.m_uiMajor;
+    if (m_uiMinor != rhs.m_uiMinor)
+      return m_uiMinor < rhs.m_uiMinor;
+    if (m_uiPatch != rhs.m_uiPatch)
+      return m_uiPatch < rhs.m_uiPatch;
+    if (m_uiRevision != rhs.m_uiRevision)
+      return m_uiRevision < rhs.m_uiRevision;
+
+    return false;
+  }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool operator>(const spGraphicsApiVersion& rhs) const
+  {
+    return rhs != *this && rhs < *this;
+  }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool operator<=(const spGraphicsApiVersion& rhs) const
+  {
+    return !(*this > rhs);
+  }
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE bool operator>=(const spGraphicsApiVersion& rhs) const
+  {
+    return !(*this < rhs);
+  }
+
   ezUInt32 m_uiMajor{0};
   ezUInt32 m_uiMinor{0};
   ezUInt32 m_uiPatch{0};
@@ -1112,6 +1151,8 @@ struct SP_RHI_DLL spResourceLayoutElementOptions
     /// Offsets specified this way must be a multiple of \see spDevice::GetUniformBufferMinOffsetAlignment() or
     /// \see spDevice::GetStructuredBufferMinOffsetAlignment().
     DynamicBinding = EZ_BIT(0),
+
+    Default = None,
   };
 
   struct Bits

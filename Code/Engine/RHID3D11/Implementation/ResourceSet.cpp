@@ -1,4 +1,4 @@
-﻿#include <RHID3D11/RHID3D11PCH.h>
+#include <RHID3D11/RHID3D11PCH.h>
 
 #include <RHID3D11/Device.h>
 #include <RHID3D11/ResourceLayout.h>
@@ -6,6 +6,9 @@
 
 void spResourceSetD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
   if (m_pLayout != nullptr)
     EZ_IGNORE_UNUSED(m_pLayout->ReleaseRef());
 
@@ -33,10 +36,15 @@ spResourceSetD3D11::spResourceSetD3D11(spDeviceD3D11* pDevice, const spResourceS
   m_Resources.Reserve(description.m_BoundResources.GetCount());
   for (auto& hResource : description.m_BoundResources)
   {
-    auto* pResource = pDevice->GetResourceManager()->GetResource<spShaderResource>(hResource);
+    auto pResource = pDevice->GetResourceManager()->GetResource<spShaderResource>(hResource);
     EZ_ASSERT_DEV(m_pLayout != nullptr, "Unable to find a resource for the resource set.");
     EZ_IGNORE_UNUSED(pResource->AddRef());
 
     m_Resources.PushBack(pResource);
   }
+}
+
+spResourceSetD3D11::~spResourceSetD3D11()
+{
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }

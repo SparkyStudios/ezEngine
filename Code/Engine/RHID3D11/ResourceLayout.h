@@ -27,6 +27,7 @@ public:
   };
 
   spResourceLayoutD3D11(spDeviceD3D11* pDevice, const spResourceLayoutDescription& description);
+  ~spResourceLayoutD3D11() override;
 
   EZ_NODISCARD BindingInfo GetBinding(ezUInt32 uiSlot) const;
   EZ_NODISCARD bool IsDynamicBuffer(ezUInt32 uiSlot) const;

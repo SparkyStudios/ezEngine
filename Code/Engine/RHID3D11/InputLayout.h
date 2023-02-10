@@ -18,6 +18,7 @@ public:
 
 public:
   spInputLayoutD3D11(spDeviceD3D11* pDevice, const spInputLayoutDescription& desc);
+  ~spInputLayoutD3D11();
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spInputLayoutD3D11);

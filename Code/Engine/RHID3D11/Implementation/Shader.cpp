@@ -1,4 +1,6 @@
-﻿#include <RHID3D11/RHID3D11PCH.h>
+#include <RHID3D11/RHID3D11PCH.h>
+#include <d3dcommon.h>
+#include <d3dcompiler.h>
 
 #include <RHID3D11/Device.h>
 #include <RHID3D11/Shader.h>
@@ -7,6 +9,9 @@
 
 void spShaderProgramD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
   DetachAll();
   m_bReleased = true;
 }
@@ -18,7 +23,7 @@ bool spShaderProgramD3D11::IsReleased() const
 
 void spShaderProgramD3D11::Attach(const spResourceHandle& hShader)
 {
-  auto* const pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(hShader);
+  const auto pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(hShader);
   EZ_ASSERT_DEV(pShader != nullptr, "Invalid shader handle {0}", hShader.GetInternalID().m_Data);
 
   switch (pShader->GetStage())
@@ -51,62 +56,10 @@ void spShaderProgramD3D11::Attach(const spResourceHandle& hShader)
 
 void spShaderProgramD3D11::Detach(const spResourceHandle& hShader)
 {
-  const auto* const pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(hShader);
+  const auto pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(hShader);
   EZ_ASSERT_DEV(pShader != nullptr, "Invalid shader handle {0}", hShader.GetInternalID().m_Data);
 
-  spShaderD3D11* pFoundShader = nullptr;
-
-  switch (pShader->GetStage())
-  {
-    case spShaderStage::VertexShader:
-      if (m_pVertexShader == pShader)
-      {
-        pFoundShader = m_pVertexShader;
-        m_pVertexShader = nullptr;
-      }
-      break;
-    case spShaderStage::GeometryShader:
-      if (m_pGeometryShader == pShader)
-      {
-        pFoundShader = m_pGeometryShader;
-        m_pGeometryShader = nullptr;
-      }
-      break;
-    case spShaderStage::HullShader:
-      if (m_pHullShader == pShader)
-      {
-        pFoundShader = m_pHullShader;
-        m_pHullShader = nullptr;
-      }
-      break;
-    case spShaderStage::DomainShader:
-      if (m_pDomainShader == pShader)
-      {
-        pFoundShader = m_pDomainShader;
-        m_pDomainShader = nullptr;
-      }
-      break;
-    case spShaderStage::PixelShader:
-      if (m_pPixelShader == pShader)
-      {
-        pFoundShader = m_pPixelShader;
-        m_pPixelShader = nullptr;
-      }
-      break;
-    case spShaderStage::ComputeShader:
-      if (m_pComputeShader == pShader)
-      {
-        pFoundShader = m_pComputeShader;
-        m_pComputeShader = nullptr;
-      }
-      break;
-    default:
-      EZ_ASSERT_NOT_IMPLEMENTED;
-      break;
-  }
-
-  if (pFoundShader != nullptr)
-    pFoundShader->ReleaseRef();
+  Detach(pShader->GetStage());
 }
 
 void spShaderProgramD3D11::Detach(const ezEnum<spShaderStage>& eStage)
@@ -116,42 +69,42 @@ void spShaderProgramD3D11::Detach(const ezEnum<spShaderStage>& eStage)
     case spShaderStage::VertexShader:
       if (m_pVertexShader != nullptr)
       {
-        m_pVertexShader->ReleaseRef();
+        EZ_IGNORE_UNUSED(m_pVertexShader->ReleaseRef());
         m_pVertexShader = nullptr;
       }
       break;
     case spShaderStage::GeometryShader:
       if (m_pGeometryShader != nullptr)
       {
-        m_pGeometryShader->ReleaseRef();
+        EZ_IGNORE_UNUSED(m_pGeometryShader->ReleaseRef());
         m_pGeometryShader = nullptr;
       }
       break;
     case spShaderStage::HullShader:
       if (m_pHullShader != nullptr)
       {
-        m_pHullShader->ReleaseRef();
+        EZ_IGNORE_UNUSED(m_pHullShader->ReleaseRef());
         m_pHullShader = nullptr;
       }
       break;
     case spShaderStage::DomainShader:
       if (m_pDomainShader != nullptr)
       {
-        m_pDomainShader->ReleaseRef();
+        EZ_IGNORE_UNUSED(m_pDomainShader->ReleaseRef());
         m_pDomainShader = nullptr;
       }
       break;
     case spShaderStage::PixelShader:
       if (m_pPixelShader != nullptr)
       {
-        m_pPixelShader->ReleaseRef();
+        EZ_IGNORE_UNUSED(m_pPixelShader->ReleaseRef());
         m_pPixelShader = nullptr;
       }
       break;
     case spShaderStage::ComputeShader:
       if (m_pComputeShader != nullptr)
       {
-        m_pComputeShader->ReleaseRef();
+        EZ_IGNORE_UNUSED(m_pComputeShader->ReleaseRef());
         m_pComputeShader = nullptr;
       }
       break;
@@ -180,6 +133,13 @@ void spShaderProgramD3D11::DetachAll()
 
   if (m_pComputeShader != nullptr)
     m_pComputeShader->ReleaseRef();
+
+  m_pVertexShader = nullptr;
+  m_pGeometryShader = nullptr;
+  m_pHullShader = nullptr;
+  m_pDomainShader = nullptr;
+  m_pPixelShader = nullptr;
+  m_pComputeShader = nullptr;
 }
 
 void spShaderProgramD3D11::Use()
@@ -220,14 +180,7 @@ spShaderProgramD3D11::spShaderProgramD3D11(spDeviceD3D11* pDevice)
 
 spShaderProgramD3D11::~spShaderProgramD3D11()
 {
-  spShaderProgramD3D11::ReleaseResource();
-
-  m_pVertexShader = nullptr;
-  m_pGeometryShader = nullptr;
-  m_pHullShader = nullptr;
-  m_pDomainShader = nullptr;
-  m_pPixelShader = nullptr;
-  m_pComputeShader = nullptr;
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
 #pragma endregion
@@ -236,6 +189,12 @@ spShaderProgramD3D11::~spShaderProgramD3D11()
 
 void spShaderD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
+  if (!m_pByteCode.IsEmpty())
+    EZ_DEFAULT_DELETE_ARRAY(m_pByteCode);
+
   SP_RHI_DX11_RELEASE(m_pD3D11Shader);
   m_bIsResourceCreated = false;
 }
@@ -245,18 +204,79 @@ bool spShaderD3D11::IsReleased() const
   return m_pD3D11Shader == nullptr;
 }
 
-void spShaderD3D11::SetDebugName(const ezString& debugName)
+void spShaderD3D11::SetDebugName(const ezString& sDebugName)
 {
-  spShader::SetDebugName(debugName);
+  spShader::SetDebugName(sDebugName);
+
+  if (m_pD3D11Shader != nullptr)
+  {
+    m_pD3D11Shader->SetPrivateData(WKPDID_D3DDebugObjectName, sDebugName.GetElementCount(), sDebugName.GetData());
+  }
 }
 
 void spShaderD3D11::CreateResource()
 {
   // If the description contains a compiled shader binary (will be the case most of the time)
   if (m_Description.m_Buffer.GetCount() > 4 && m_Description.m_Buffer[0] == 0x44 && m_Description.m_Buffer[1] == 0x58 && m_Description.m_Buffer[2] == 0x42 && m_Description.m_Buffer[3] == 0x43)
+  {
     m_pByteCode.CopyFrom(m_Description.m_Buffer);
+  }
   else
-    EZ_ASSERT_NOT_IMPLEMENTED; // Not yet implemented shader compiling, maybe a chance to add SPSL as the default shading language ?
+  {
+    const char* szProfile = nullptr;
+
+    switch (m_Description.m_eShaderStage)
+    {
+      case spShaderStage::VertexShader:
+        szProfile = "vs_5_0";
+        break;
+      case spShaderStage::HullShader:
+        szProfile = "hs_5_0";
+        break;
+      case spShaderStage::DomainShader:
+        szProfile = "ds_5_0";
+        break;
+      case spShaderStage::GeometryShader:
+        szProfile = "gs_5_0";
+        break;
+      case spShaderStage::PixelShader:
+        szProfile = "ps_5_0";
+        break;
+      case spShaderStage::ComputeShader:
+        szProfile = "cs_5_0";
+        break;
+      case spShaderStage::None:
+        EZ_ASSERT_NOT_IMPLEMENTED;
+        break;
+    }
+
+    ID3DBlob* pResultBlob = nullptr;
+    ID3DBlob* pErrorBlob = nullptr;
+
+    if (SUCCEEDED(D3DCompile(m_Description.m_Buffer.GetPtr(), m_Description.m_Buffer.GetCount(), nullptr, nullptr, nullptr, m_Description.m_sEntryPoint.GetData(), szProfile, D3DCOMPILE_DEBUG | D3DCOMPILE_PREFER_FLOW_CONTROL | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_ENABLE_STRICTNESS, 0, &pResultBlob, &pErrorBlob)))
+    {
+      if (pResultBlob != nullptr)
+      {
+        ezDynamicArray<ezUInt8> ByteCode;
+        ByteCode.SetCountUninitialized(static_cast<ezUInt32>(pResultBlob->GetBufferSize()));
+        ezMemoryUtils::Copy(ByteCode.GetData(), static_cast<ezUInt8*>(pResultBlob->GetBufferPointer()), ByteCode.GetCount());
+        pResultBlob->Release();
+
+        m_pByteCode = EZ_DEFAULT_NEW_ARRAY(ezUInt8, ByteCode.GetCount());
+        m_pByteCode.CopyFrom(ByteCode);
+      }
+    }
+
+    if (pErrorBlob != nullptr)
+    {
+      const char* szError = static_cast<const char*>(pErrorBlob->GetBufferPointer());
+
+      EZ_LOG_BLOCK("Shader Compilation Error Message");
+      ezLog::Dev("{0}", szError);
+
+      pErrorBlob->Release();
+    }
+  } // Not yet implemented shader compiling, maybe a chance to add SPSL as the default shading language ?
 
   switch (m_Description.m_eShaderStage)
   {
@@ -313,7 +333,7 @@ spShaderD3D11::spShaderD3D11(spDeviceD3D11* pDevice, const spShaderDescription& 
 
 spShaderD3D11::~spShaderD3D11()
 {
-  spShaderD3D11::ReleaseResource();
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
 #pragma endregion

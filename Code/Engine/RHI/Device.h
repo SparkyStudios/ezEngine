@@ -179,7 +179,7 @@ public:
 
   /// \brief Gets the main swapchain used as the default swapchain for new \see spGraphicsDeviceContext
   /// create without a swapchain.
-  EZ_NODISCARD virtual spResourceHandle GetMainSwapchain() const = 0;
+  EZ_NODISCARD virtual ezSharedPtr<spSwapchain> GetMainSwapchain() const = 0;
 
   /// \brief Gets the capabilities of this graphics device.
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual const spDeviceCapabilities& GetCapabilities() const { return m_Capabilities; }

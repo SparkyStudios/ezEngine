@@ -16,7 +16,7 @@ spOutputDescription spOutputDescription::CreateFromFramebuffer(const spFramebuff
 
   if (!pFramebuffer->GetDepthTarget().IsInvalidated())
   {
-    const auto* pTexture = pDevice->GetResourceManager()->GetResource<spTexture>(pFramebuffer->GetDepthTarget());
+    const auto pTexture = pDevice->GetResourceManager()->GetResource<spTexture>(pFramebuffer->GetDepthTarget());
     EZ_ASSERT_DEV(pTexture != nullptr, "Trying to get an unregistered texture from the device.");
 
     bUseDepthAttachment = true;
@@ -31,7 +31,7 @@ spOutputDescription spOutputDescription::CreateFromFramebuffer(const spFramebuff
 
   for (ezUInt32 i = 0, l = colorTargets.GetCount(); i < l; ++i)
   {
-    const auto* pTexture = pDevice->GetResourceManager()->GetResource<spTexture>(colorTargets[i]);
+    const auto pTexture = pDevice->GetResourceManager()->GetResource<spTexture>(colorTargets[i]);
     EZ_ASSERT_DEV(pTexture != nullptr, "Trying to get an unregistered texture from the device.");
 
     colorAttachments[i] = spOutputAttachmentDescription(pTexture->GetFormat());
@@ -49,8 +49,8 @@ spOutputDescription spOutputDescription::CreateFromFramebuffer(const spFramebuff
 
 spOutputDescription spOutputDescription::CreateFromFramebuffer(spResourceHandle hFramebuffer)
 {
-  spDevice* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
-  auto* pFramebuffer = pDevice->GetResourceManager()->GetResource<spFramebuffer>(hFramebuffer);
+  const auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
+  auto pFramebuffer = pDevice->GetResourceManager()->GetResource<spFramebuffer>(hFramebuffer);
   EZ_ASSERT_DEV(pFramebuffer != nullptr, "Trying to get an unregistered framebuffer from the device.");
 
   return CreateFromFramebuffer(pFramebuffer);

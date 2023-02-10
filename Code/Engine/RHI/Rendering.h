@@ -150,8 +150,10 @@ struct SP_RHI_DLL spDepthState : public ezHashableStruct<spDepthState>
 #pragma region Stencil State
 
 /// \brief Describes how stencil tests are performed in a \see spGraphicPipeline.
-struct SP_RHI_DLL spStencilBehavior : public ezHashableStruct<spStencilBehavior>
+struct spStencilBehavior : public ezHashableStruct<spStencilBehavior>
 {
+  spStencilBehavior() = default;
+
   spStencilBehavior(ezEnum<spStencilOperation> eFail, ezEnum<spStencilOperation> ePass, ezEnum<spStencilOperation> eDepthFail, ezEnum<spDepthStencilComparison> eComparison)
     : ezHashableStruct<spStencilBehavior>()
     , m_eFail(eFail)
@@ -186,6 +188,9 @@ struct SP_RHI_DLL spStencilBehavior : public ezHashableStruct<spStencilBehavior>
 /// \brief Describes the stencil state of a depth attachment in the \see spGraphicPipeline.
 struct SP_RHI_DLL spStencilState : public ezHashableStruct<spStencilState>
 {
+  /// \brief Describes a disabled \see spStencilState.
+  const static spStencilState Disabled;
+
   /// \brief Defines whether stencil testing is enabled.
   bool m_bEnabled{false};
 

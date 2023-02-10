@@ -11,6 +11,7 @@
 #include <Foundation/Strings/HashedString.h>
 #include <Foundation/Types/Id.h>
 #include <Foundation/Types/RefCounted.h>
+#include <Foundation/Types/SharedPtr.h>
 
 
 // Configure the DLL Import/Export Define

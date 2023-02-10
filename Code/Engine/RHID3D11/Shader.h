@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <RHID3D11/RHID3D11DLL.h>
 
@@ -30,22 +30,22 @@ public:
   spShaderProgramD3D11(spDeviceD3D11* pDevice);
   ~spShaderProgramD3D11();
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE spShaderD3D11* GetVertexShader() const { return m_pVertexShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE spShaderD3D11* GetGeometryShader() const { return m_pGeometryShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE spShaderD3D11* GetHullShader() const { return m_pHullShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE spShaderD3D11* GetDomainShader() const { return m_pDomainShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE spShaderD3D11* GetPixelShader() const { return m_pPixelShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE spShaderD3D11* GetComputeShader() const { return m_pComputeShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetVertexShader() const { return m_pVertexShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetGeometryShader() const { return m_pGeometryShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetHullShader() const { return m_pHullShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetDomainShader() const { return m_pDomainShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetPixelShader() const { return m_pPixelShader; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetComputeShader() const { return m_pComputeShader; }
 
 private:
   ID3D11Device* m_pD3D11Device{nullptr};
 
-  spShaderD3D11* m_pVertexShader{nullptr};
-  spShaderD3D11* m_pGeometryShader{nullptr};
-  spShaderD3D11* m_pHullShader{nullptr};
-  spShaderD3D11* m_pDomainShader{nullptr};
-  spShaderD3D11* m_pPixelShader{nullptr};
-  spShaderD3D11* m_pComputeShader{nullptr};
+  ezSharedPtr<spShaderD3D11> m_pVertexShader{nullptr};
+  ezSharedPtr<spShaderD3D11> m_pGeometryShader{nullptr};
+  ezSharedPtr<spShaderD3D11> m_pHullShader{nullptr};
+  ezSharedPtr<spShaderD3D11> m_pDomainShader{nullptr};
+  ezSharedPtr<spShaderD3D11> m_pPixelShader{nullptr};
+  ezSharedPtr<spShaderD3D11> m_pComputeShader{nullptr};
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spShaderProgramD3D11);

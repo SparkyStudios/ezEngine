@@ -14,23 +14,23 @@ class SP_RHID3D11_DLL spDeviceResourceFactoryD3D11 final : public spDeviceResour
   // spDeviceResourceFactory
 
 public:
-  spShader* CreateShader(const spShaderDescription& description) override;
-  spShaderProgram* CreateShaderProgram() override;
-  spTexture* CreateTexture(const spTextureDescription& description) override;
-  spSampler* CreateSampler(const spSamplerDescription& description) override;
-  spInputLayout* CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader) override;
-  spBuffer* CreateBuffer(const spBufferDescription& description) override;
-  spBufferRange* CreateBufferRange(const spBufferRangeDescription& description) override;
-  spResourceLayout* CreateResourceLayout(const spResourceLayoutDescription& description) override;
-  spTextureView* CreateTextureView(const spTextureViewDescription& description) override;
-  spTextureView* CreateTextureView(const spResourceHandle& hTexture) override;
-  spSwapchain* CreateSwapchain(const spSwapchainDescription& description) override;
-  spFence* CreateFence(const spFenceDescription& description) override;
-  spFramebuffer* CreateFramebuffer(const spFramebufferDescription& description) override;
-  spCommandList* CreateCommandList(const spCommandListDescription& description) override;
-  spComputePipeline* CreateComputePipeline(const spComputePipelineDescription& description) override;
-  spGraphicPipeline* CreateGraphicPipeline(const spGraphicPipelineDescription& description) override;
-  spResourceSet* CreateResourceSet(const spResourceSetDescription& description) override;
+  ezSharedPtr<spShader> CreateShader(const spShaderDescription& description) override;
+  ezSharedPtr<spShaderProgram> CreateShaderProgram() override;
+  ezSharedPtr<spTexture> CreateTexture(const spTextureDescription& description) override;
+  ezSharedPtr<spSampler> CreateSampler(const spSamplerDescription& description) override;
+  ezSharedPtr<spInputLayout> CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader) override;
+  ezSharedPtr<spBuffer> CreateBuffer(const spBufferDescription& description) override;
+  ezSharedPtr<spBufferRange> CreateBufferRange(const spBufferRangeDescription& description) override;
+  ezSharedPtr<spResourceLayout> CreateResourceLayout(const spResourceLayoutDescription& description) override;
+  ezSharedPtr<spTextureView> CreateTextureView(const spTextureViewDescription& description) override;
+  ezSharedPtr<spTextureView> CreateTextureView(const spResourceHandle& hTexture) override;
+  ezSharedPtr<spSwapchain> CreateSwapchain(const spSwapchainDescription& description) override;
+  ezSharedPtr<spFence> CreateFence(const spFenceDescription& description) override;
+  ezSharedPtr<spFramebuffer> CreateFramebuffer(const spFramebufferDescription& description) override;
+  ezSharedPtr<spCommandList> CreateCommandList(const spCommandListDescription& description) override;
+  ezSharedPtr<spComputePipeline> CreateComputePipeline(const spComputePipelineDescription& description) override;
+  ezSharedPtr<spGraphicPipeline> CreateGraphicPipeline(const spGraphicPipelineDescription& description) override;
+  ezSharedPtr<spResourceSet> CreateResourceSet(const spResourceSetDescription& description) override;
 
   // spDeviceResourceFactoryD3D11
 

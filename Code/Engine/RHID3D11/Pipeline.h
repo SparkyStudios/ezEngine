@@ -19,15 +19,13 @@ public:
 
 public:
   spComputePipelineD3D11(spDeviceD3D11* pDevice, const spComputePipelineDescription& description);
+  ~spComputePipelineD3D11() override;
 
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11ComputeShader* GetComputeShader() const { return m_pComputeShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceLayoutD3D11*>& GetResourceLayouts() const { return m_ResourceLayouts; }
 
 private:
   ID3D11Device* m_pD3D11Device{nullptr};
   ID3D11ComputeShader* m_pComputeShader{nullptr};
-
-  ezDynamicArray<spResourceLayoutD3D11*> m_ResourceLayouts;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spComputePipelineD3D11);
@@ -44,6 +42,7 @@ public:
 
 public:
   spGraphicPipelineD3D11(spDeviceD3D11* pDevice, const spGraphicPipelineDescription& description);
+  ~spGraphicPipelineD3D11() override;
 
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11VertexShader* GetVertexShader() const { return m_pVertexShader; }
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11GeometryShader* GetGeometryShader() const { return m_pGeometryShader; }
@@ -61,9 +60,8 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const { return m_PrimitiveTopology; }
 
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11InputLayout* GetInputLayout() const { return m_pInputLayout; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spInputLayout*> GetInputLayouts() const { return m_InputLayouts; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spInputLayout*>& GetInputLayouts() const { return m_InputLayouts; }
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceLayoutD3D11*>& GetResourceLayouts() const { return m_ResourceLayouts; }
   EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<ezUInt32>& GetVertexStrides() const { return m_VertexStrides; }
 
 private:
@@ -87,7 +85,6 @@ private:
   ID3D11InputLayout* m_pInputLayout{nullptr};
   ezDynamicArray<spInputLayout*> m_InputLayouts;
 
-  ezDynamicArray<spResourceLayoutD3D11*> m_ResourceLayouts;
   ezDynamicArray<ezUInt32> m_VertexStrides;
 };
 

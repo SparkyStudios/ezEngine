@@ -124,7 +124,7 @@ class SP_RHI_DLL spBufferRange : public spDeviceResource
 {
 public:
   /// \brief Gets the handle to the parent buffer of this range.
-  EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetBuffer() const { return m_Description.m_hBuffer; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezSharedPtr<spBuffer> GetBuffer() const = 0;
 
   /// \brief Gets the offset in bytes from which stats this range in the parent buffer.
   EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetOffset() const { return m_Description.m_uiOffset; }
@@ -133,7 +133,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetSize() const { return m_Description.m_uiSize; }
 
   /// \brief Gets the handle of the \see spFence which will control synchronization on this buffer range.
-  EZ_NODISCARD virtual spResourceHandle GetFence() const = 0;
+  EZ_NODISCARD virtual ezSharedPtr<spFence> GetFence() const = 0;
 
 protected:
   spBufferRange(spBufferRangeDescription description);

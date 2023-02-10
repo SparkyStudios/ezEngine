@@ -1,3 +1,4 @@
+#include "RHI/Resource.h"
 #include <RHI/RHIPCH.h>
 
 #include <RHI/Device.h>
@@ -36,12 +37,11 @@ bool spDevice::WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitA
 
 void spDevice::ResizeSwapchain(ezUInt32 uiWidth, ezUInt32 uiHeight)
 {
-  spResourceHandle hSwapchain = GetMainSwapchain();
+  spSwapchain* pSwapchain = GetMainSwapchain();
 
-  if (hSwapchain.IsInvalidated())
+  if (pSwapchain == nullptr || pSwapchain->GetHandle().IsInvalidated())
     return;
 
-  auto* pSwapchain = GetResourceManager()->GetResource<spSwapchain>(hSwapchain);
   pSwapchain->Resize(uiWidth, uiHeight);
 }
 
@@ -103,7 +103,7 @@ void spDevice::UnMap(const spResourceHandle& hResource, ezUInt32 uiSubresource)
 
 void spDevice::UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, const void* pSource, ezUInt32 uiSize)
 {
-  auto* pBuffer = GetResourceManager()->GetResource<spBuffer>(hResource);
+  auto pBuffer = GetResourceManager()->GetResource<spBuffer>(hResource);
   if (pBuffer == nullptr)
   {
     EZ_ASSERT_DEV(pBuffer != nullptr, "Trying to update a buffer that was not registered in the resource manager of the device. If you have created this resource without the resource factory, you should register it yourself.");

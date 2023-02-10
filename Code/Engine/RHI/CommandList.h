@@ -52,7 +52,7 @@ struct SP_RHI_DLL alignas(16) spDrawIndexedIndirectCommand
 struct SP_RHI_DLL spCommandListIndexBuffer : public ezHashableStruct<spCommandListIndexBuffer>
 {
   spCommandListIndexBuffer() = default;
-  spCommandListIndexBuffer(spResourceHandle hIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset);
+  spCommandListIndexBuffer(spResourceHandle hIndexBuffer, const ezEnum<spIndexFormat>& eFormat, ezUInt32 uiOffset);
 
   /// \brief Compares this \see spCommandListIndexBuffer to an \a other instance for equality.
   EZ_ALWAYS_INLINE bool operator==(const spCommandListIndexBuffer& other) const
@@ -137,9 +137,9 @@ public:
 
   void SetFramebuffer(spResourceHandle hFramebuffer);
 
-  void SetIndexBuffer(spResourceHandle hIndexBuffer, ezEnum<spIndexFormat> eFormat);
+  void SetIndexBuffer(spResourceHandle hIndexBuffer, const ezEnum<spIndexFormat>& eFormat);
 
-  void SetIndexBuffer(spResourceHandle hIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset);
+  void SetIndexBuffer(spResourceHandle hIndexBuffer, const ezEnum<spIndexFormat>& eFormat, ezUInt32 uiOffset);
 
   virtual void SetComputePipeline(spResourceHandle hComputePipeline) = 0;
 

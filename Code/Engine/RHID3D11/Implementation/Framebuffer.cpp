@@ -1,4 +1,4 @@
-#include <RHID3D11/RHID3D11PCH.h>
+﻿#include <RHID3D11/RHID3D11PCH.h>
 
 #include <RHID3D11/Core.h>
 #include <RHID3D11/Device.h>
@@ -49,7 +49,7 @@ void spFramebufferD3D11::CreateResource()
 
   if (!m_Description.m_DepthTarget.m_hTarget.IsInvalidated())
   {
-    auto* pDepthTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(m_Description.m_DepthTarget.m_hTarget);
+    auto pDepthTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(m_Description.m_DepthTarget.m_hTarget);
     EZ_ASSERT_DEV(pDepthTexture != nullptr, "Unable to find a texture in the device resource manager. If you have created that resource yourself, make sure to register it in the manager.");
     pDepthTexture->EnsureResourceCreated();
 
@@ -58,6 +58,7 @@ void spFramebufferD3D11::CreateResource()
 
     D3D11_DEPTH_STENCIL_VIEW_DESC desc;
     desc.Format = spGetDepthFormat(pDepthTexture->GetFormat());
+    desc.Flags = 0;
 
     if (pDepthTexture->GetArrayLayerCount() == 1)
     {
@@ -101,7 +102,7 @@ void spFramebufferD3D11::CreateResource()
 
       if (i == 0)
       {
-        auto* pColorTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(target.m_hTarget);
+        auto pColorTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(target.m_hTarget);
         EZ_ASSERT_DEV(pColorTexture != nullptr, "Unable to find a texture in the device resource manager. If you have created that texture yourself, make sure to register it in the manager.");
         pColorTexture->EnsureResourceCreated();
 
@@ -168,12 +169,12 @@ spFramebufferD3D11::spFramebufferD3D11(spDeviceD3D11* pDevice, const spFramebuff
 
 spFramebufferD3D11::~spFramebufferD3D11()
 {
-  spFramebufferD3D11::ReleaseResource();
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
-spTextureD3D11* spFramebufferD3D11::GetColorTarget(ezUInt32 uiColorTargetIndex) const
+ezSharedPtr<spTextureD3D11> spFramebufferD3D11::GetColorTarget(ezUInt32 uiColorTargetIndex) const
 {
-  auto* pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11*>(m_Description.m_ColorTargets[uiColorTargetIndex].m_hTarget);
+  auto pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(m_Description.m_ColorTargets[uiColorTargetIndex].m_hTarget);
   EZ_ASSERT_DEV(pTexture != nullptr, "Invalid color target texture.");
 
   return pTexture;
@@ -181,7 +182,7 @@ spTextureD3D11* spFramebufferD3D11::GetColorTarget(ezUInt32 uiColorTargetIndex) 
 
 void spFramebufferD3D11::ApplyColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target)
 {
-  auto* pColorTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(target.m_hTarget);
+  auto pColorTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(target.m_hTarget);
   EZ_ASSERT_DEV(pColorTexture != nullptr, "Unable to find a texture in the device resource manager. If you have created that texture yourself, make sure to register it in the manager.");
   pColorTexture->EnsureResourceCreated();
 

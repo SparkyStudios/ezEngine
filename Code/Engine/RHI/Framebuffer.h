@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Foundation/Basics/Compiler/Clang/Clang.h"
 #include <RHI/RHIDLL.h>
 
 #include <RHI/Core.h>
@@ -13,7 +12,7 @@ struct spFramebufferAttachmentDescription : public ezHashableStruct<spFramebuffe
   /// \brief Constructs an empty spFramebufferAttachmentDescription.
   spFramebufferAttachmentDescription()
     : ezHashableStruct<spFramebufferAttachmentDescription>()
-      , m_hTarget()
+    , m_hTarget()
   {
   }
 
@@ -21,7 +20,7 @@ struct spFramebufferAttachmentDescription : public ezHashableStruct<spFramebuffe
   /// \param hTarget The texture to render into.
   spFramebufferAttachmentDescription(const spResourceHandle& hTarget)
     : ezHashableStruct<spFramebufferAttachmentDescription>()
-      , m_hTarget(hTarget)
+    , m_hTarget(hTarget)
   {
   }
 
@@ -31,9 +30,9 @@ struct spFramebufferAttachmentDescription : public ezHashableStruct<spFramebuffe
   /// \param uiMipLevel The mip level from the target to render into.
   spFramebufferAttachmentDescription(const spResourceHandle& hTarget, ezUInt32 uiArrayLayer, ezUInt32 uiMipLevel = 0)
     : ezHashableStruct<spFramebufferAttachmentDescription>()
-      , m_hTarget(hTarget)
-      , m_uiArrayLayer(uiArrayLayer)
-      , m_uiMipLevel(uiMipLevel)
+    , m_hTarget(hTarget)
+    , m_uiArrayLayer(uiArrayLayer)
+    , m_uiMipLevel(uiMipLevel)
   {
   }
 
@@ -119,7 +118,6 @@ class SP_RHI_DLL spFramebufferAttachment
 {
 public:
   spFramebufferAttachment(spFramebufferAttachmentDescription description);
-  ~spFramebufferAttachment();
 
   /// \brief Gets the render target texture.
   EZ_NODISCARD spResourceHandle GetTarget() const;

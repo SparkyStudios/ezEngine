@@ -17,6 +17,8 @@ struct SP_RHID3D11_DLL spDeviceDescriptionD3D11 : public spDeviceDescription
 
 class SP_RHID3D11_DLL spDeviceD3D11 final : public spDevice
 {
+  EZ_DECLARE_SINGLETON_OF_INTERFACE(spDeviceD3D11, spDevice);
+
   // spDevice
 
 public:
@@ -26,7 +28,7 @@ public:
   EZ_NODISCARD spTextureSamplerManager* GetTextureSamplerManager() const override;
   EZ_NODISCARD ezUInt32 GetConstantBufferMinOffsetAlignment() const override;
   EZ_NODISCARD ezUInt32 GetStructuredBufferMinOffsetAlignment() const override;
-  EZ_NODISCARD spResourceHandle GetMainSwapchain() const override;
+  EZ_NODISCARD ezSharedPtr<spSwapchain> GetMainSwapchain() const override;
   EZ_NODISCARD const spDeviceCapabilities& GetCapabilities() const override;
   void SubmitCommandList(const spResourceHandle& hCommandList, const spResourceHandle& hFence) override;
   void SubmitCommandListAsync(const spResourceHandle& hCommandList, const spResourceHandle& hFence) override;
@@ -74,7 +76,7 @@ private:
   D3D_FEATURE_LEVEL m_uiFeatureLevel;
 
   spDeviceResourceFactoryD3D11* m_pResourceFactory{nullptr};
-  spSwapchainD3D11* m_pMainSwapchain{nullptr};
+  ezSharedPtr<spSwapchainD3D11> m_pMainSwapchain{nullptr};
 
   bool m_bIsDebugEnabled{false};
 

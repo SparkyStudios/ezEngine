@@ -20,6 +20,7 @@ public:
   // spResourceSetD3D11
 
   spResourceSetD3D11(spDeviceD3D11* pDevice, const spResourceSetDescription& description);
+  ~spResourceSetD3D11() override;
 
   EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spShaderResource*> GetResources() const { return m_Resources; }
 

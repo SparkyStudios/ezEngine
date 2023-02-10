@@ -5,6 +5,9 @@
 
 void spInputLayoutD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
   m_bReleased = true;
 }
 
@@ -17,4 +20,9 @@ spInputLayoutD3D11::spInputLayoutD3D11(spDeviceD3D11* pDevice, const spInputLayo
   : spInputLayout(description)
 {
   m_pDevice = pDevice;
+}
+
+spInputLayoutD3D11::~spInputLayoutD3D11()
+{
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }

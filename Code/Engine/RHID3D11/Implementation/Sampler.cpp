@@ -32,7 +32,7 @@ spSamplerStateD3D11::spSamplerStateD3D11(spDeviceD3D11* pDevice, const spSampler
 
 spSamplerStateD3D11::~spSamplerStateD3D11()
 {
-  SP_RHI_DX11_RELEASE(m_pSamplerState);
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
 spSamplerDescription spSamplerStateD3D11::GetSamplerDescription() const
@@ -48,6 +48,9 @@ void spSamplerStateD3D11::SetDebugName(const ezString& sDebugName)
 
 void spSamplerStateD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
   SP_RHI_DX11_RELEASE(m_pSamplerState);
 }
 
@@ -90,7 +93,10 @@ void spSamplerD3D11::SetDebugName(const ezString& name)
 
 void spSamplerD3D11::ReleaseResource()
 {
-  m_pDevice->GetResourceManager()->ReleaseResource(m_pSamplerState->GetHandle());
+  if (IsReleased())
+    return;
+
+  m_pDevice->GetResourceManager()->ReleaseResource(m_pSamplerState);
 
   m_bIsResourceCreated = false;
 }
@@ -98,6 +104,11 @@ void spSamplerD3D11::ReleaseResource()
 bool spSamplerD3D11::IsReleased() const
 {
   return m_pSamplerState->IsReleased();
+}
+
+spSamplerD3D11::~spSamplerD3D11()
+{
+  m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
 spSamplerD3D11::spSamplerD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description)

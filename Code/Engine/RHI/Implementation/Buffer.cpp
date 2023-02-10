@@ -3,7 +3,6 @@
 #include <RHI/Buffer.h>
 #include <RHI/Device.h>
 
-
 #pragma region spBufferRange
 
 spBufferRange::spBufferRange(spBufferRangeDescription description)
