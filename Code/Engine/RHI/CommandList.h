@@ -184,13 +184,13 @@ public:
   template <typename T>
   void UpdateBuffer(spResourceHandle hBuffer, ezUInt32 uiOffset, const T* pSource, ezUInt32 uiCount)
   {
-    UpdateBuffer(hBuffer, uiOffset, reinterpret_cast<void*>(pSource), uiCount * sizeof(T));
+    UpdateBuffer(hBuffer, uiOffset, reinterpret_cast<const void*>(pSource), uiCount * sizeof(T));
   }
 
   template <typename T>
   void UpdateBuffer(spResourceHandle hBuffer, ezUInt32 uiOffset, ezArrayPtr<T> source, ezUInt32 uiCount)
   {
-    UpdateBuffer(hBuffer, uiOffset, reinterpret_cast<void*>(source.GetPtr()), uiCount * sizeof(T));
+    UpdateBuffer(hBuffer, uiOffset, reinterpret_cast<const void*>(source.GetPtr()), uiCount * sizeof(T));
   }
 
   void CopyBuffer(spResourceHandle hSourceBuffer, ezUInt32 uiSourceOffset, spResourceHandle hDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize);

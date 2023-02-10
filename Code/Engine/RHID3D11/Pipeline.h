@@ -60,7 +60,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE D3D11_PRIMITIVE_TOPOLOGY GetPrimitiveTopology() const { return m_PrimitiveTopology; }
 
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11InputLayout* GetInputLayout() const { return m_pInputLayout; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spInputLayout*>& GetInputLayouts() const { return m_InputLayouts; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<ezSharedPtr<spInputLayout>>& GetInputLayouts() const { return m_InputLayouts; }
 
   EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<ezUInt32>& GetVertexStrides() const { return m_VertexStrides; }
 
@@ -83,7 +83,7 @@ private:
   D3D11_PRIMITIVE_TOPOLOGY m_PrimitiveTopology{D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST};
 
   ID3D11InputLayout* m_pInputLayout{nullptr};
-  ezDynamicArray<spInputLayout*> m_InputLayouts;
+  ezDynamicArray<ezSharedPtr<spInputLayout>> m_InputLayouts;
 
   ezDynamicArray<ezUInt32> m_VertexStrides;
 };

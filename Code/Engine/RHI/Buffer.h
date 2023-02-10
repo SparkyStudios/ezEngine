@@ -170,7 +170,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetBufferIndex() const { return m_uiBufferIndex; }
 
   /// \brief Gets the currently used buffer.
-  EZ_NODISCARD EZ_ALWAYS_INLINE spBufferRange* GetCurrentBuffer() const { return m_BufferRanges[m_uiBufferIndex]; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spBufferRange> GetCurrentBuffer() const { return m_BufferRanges[m_uiBufferIndex]; }
 
   /// \brief Gets the buffer ranges stored by this buffer.
   ///
@@ -180,7 +180,7 @@ public:
   /// - For a triple-buffered buffer, there are three ranges.
   ///
   /// You can use the result of GetBufferIndex() to determine the range of the buffer currently being used.
-  EZ_NODISCARD EZ_ALWAYS_INLINE const ezStaticArray<spBufferRange*, SP_RHI_MAX_BUFFERING_LEVEL>& GetBufferRanges() const { return m_BufferRanges; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezStaticArray<ezSharedPtr<spBufferRange>, SP_RHI_MAX_BUFFERING_LEVEL>& GetBufferRanges() const { return m_BufferRanges; }
 
   /// \brief Swap buffers in case of multi-buffering. This method is a no-op if the buffer is single-buffered.
   EZ_ALWAYS_INLINE void SwapBuffers() { m_uiBufferIndex = (m_uiBufferIndex + 1) % m_uiBufferCount; }
@@ -196,7 +196,7 @@ protected:
   ezUInt32 m_uiBufferCount{1};
   ezUInt32 m_uiBufferAlignedSize{0};
 
-  ezStaticArray<spBufferRange*, SP_RHI_MAX_BUFFERING_LEVEL> m_BufferRanges;
+  ezStaticArray<ezSharedPtr<spBufferRange>, SP_RHI_MAX_BUFFERING_LEVEL> m_BufferRanges;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spBuffer);

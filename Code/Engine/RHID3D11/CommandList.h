@@ -93,12 +93,12 @@ private:
   ezUInt32 GetUnorderedAccessViewBase(ezUInt32 uiSlot, bool bCompute) const;
   ezUInt32 GetTextureBase(ezUInt32 uiSlot, bool bCompute) const;
   ezUInt32 GetSamplerBase(ezUInt32 uiSlot, bool bCompute) const;
-  spBufferRangeD3D11* GetBufferRange(spShaderResource* pResource, ezUInt32 uiOffset) const;
-  void BindConstantBuffer(spBufferRangeD3D11* pBufferRange, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
+  ezSharedPtr<spBufferRangeD3D11> GetBufferRange(ezSharedPtr<spShaderResource> pResource, ezUInt32 uiOffset) const;
+  void BindConstantBuffer(ezSharedPtr<spBufferRangeD3D11> pBufferRange, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
   void BindStorageBufferView(spBufferRangeD3D11* pBufferRange, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
-  void BindTextureView(spTextureViewD3D11* pTextureView, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot);
+  void BindTextureView(ezSharedPtr<spTextureViewD3D11> pTextureView, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot);
   void BindUnorderedAccessView(spTextureD3D11* pTexture, spBufferD3D11* pBuffer, ID3D11UnorderedAccessView* pUAV, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot);
-  void BindSampler(spSamplerD3D11* pSampler, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
+  void BindSampler(ezSharedPtr<spSamplerD3D11> pSampler, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
   void UnbindSRVTexture(const spTextureViewDescription& desc);
   void UnbindUAVTexture(const spTextureViewDescription& desc);
   void UnbindUAVBuffer(const spBufferD3D11* pBuffer);
@@ -167,14 +167,14 @@ private:
 
   // --- Cached Resources ---
 
-  ezStaticArray<spBufferRangeD3D11*, s_uiMaxCachedConstantBuffers> m_CachedVertexConstantBuffers;
-  ezStaticArray<spBufferRangeD3D11*, s_uiMaxCachedConstantBuffers> m_CachedPixelConstantBuffers;
+  ezStaticArray<ezSharedPtr<spBufferRangeD3D11>, s_uiMaxCachedConstantBuffers> m_CachedVertexConstantBuffers;
+  ezStaticArray<ezSharedPtr<spBufferRangeD3D11>, s_uiMaxCachedConstantBuffers> m_CachedPixelConstantBuffers;
 
-  ezStaticArray<spTextureViewD3D11*, s_uiMaxCachedTextureViews> m_CachedVertexTextureViews;
-  ezStaticArray<spTextureViewD3D11*, s_uiMaxCachedTextureViews> m_CachedPixelTextureViews;
+  ezStaticArray<ezSharedPtr<spTextureViewD3D11>, s_uiMaxCachedTextureViews> m_CachedVertexTextureViews;
+  ezStaticArray<ezSharedPtr<spTextureViewD3D11>, s_uiMaxCachedTextureViews> m_CachedPixelTextureViews;
 
-  ezStaticArray<spSamplerD3D11*, s_uiMaxCachedSamplerStates> m_CachedVertexSamplerStates;
-  ezStaticArray<spSamplerD3D11*, s_uiMaxCachedSamplerStates> m_CachedPixelSamplerStates;
+  ezStaticArray<ezSharedPtr<spSamplerD3D11>, s_uiMaxCachedSamplerStates> m_CachedVertexSamplerStates;
+  ezStaticArray<ezSharedPtr<spSamplerD3D11>, s_uiMaxCachedSamplerStates> m_CachedPixelSamplerStates;
 
   ezArrayMap<spTextureViewDescription, BoundTextureInfo> m_BoundSRVs;
   ezArrayMap<spTextureViewDescription, BoundTextureInfo> m_BoundUAVs;

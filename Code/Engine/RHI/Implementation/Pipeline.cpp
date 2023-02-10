@@ -8,7 +8,7 @@
 ezSharedPtr<spResourceLayout> spPipeline::GetResourceLayout(ezUInt32 uiSlot) const
 {
   EZ_ASSERT_DEV(uiSlot < m_ResourceLayouts.GetCount(), "Invalid slot index {0}, values are in the range [0, {1}].", uiSlot, m_ResourceLayouts.GetCount());
-  return {m_ResourceLayouts[uiSlot], m_pDevice->GetAllocator()};
+  return m_ResourceLayouts[uiSlot];
 }
 
 #pragma endregion

@@ -94,7 +94,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetShaderProgram() const { return m_hShaderProgram; }
 
   /// \brief Gets the resource layouts for this pipeline.
-  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceLayout*>& GetResourceLayouts() const { return m_ResourceLayouts; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<ezSharedPtr<spResourceLayout>>& GetResourceLayouts() const { return m_ResourceLayouts; }
 
   /// \brief Gets the resource layout at the given slot.
   /// \param uiSlot The slot to get the resource layout from.
@@ -103,7 +103,7 @@ public:
 protected:
   bool m_bActivated{false};
   spResourceHandle m_hShaderProgram;
-  ezDynamicArray<spResourceLayout*> m_ResourceLayouts;
+  ezDynamicArray<ezSharedPtr<spResourceLayout>> m_ResourceLayouts;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spPipeline);
