@@ -80,7 +80,7 @@ ID3D11BlendState* spDeviceResourceManagerD3D11::GetBlendState(const spBlendState
   EZ_ASSERT_DEV(m_Mutex.IsLocked(), "Invalid call to GetBlendState. The mutex must be locked first!");
 
   ID3D11BlendState* pBlendState = nullptr;
-  ezUInt32 i = m_BlendStates.Find(blendState.CalculateHash());
+  const ezUInt32 i = m_BlendStates.Find(blendState.CalculateHash());
 
   if (i == ezInvalidIndex)
   {
@@ -97,7 +97,7 @@ ID3D11DepthStencilState* spDeviceResourceManagerD3D11::GetDepthStencilState(cons
   EZ_ASSERT_DEV(m_Mutex.IsLocked(), "Invalid call to GetDepthStencilState. The mutex must be locked first!");
 
   ID3D11DepthStencilState* pDepthStencilState = nullptr;
-  ezUInt32 i = m_DepthStencilStates.Find(depthState.CalculateHash());
+  const ezUInt32 i = m_DepthStencilStates.Find(depthState.CalculateHash());
 
   if (i == ezInvalidIndex)
   {
@@ -114,7 +114,7 @@ ID3D11RasterizerState* spDeviceResourceManagerD3D11::GetRasterizerState(const sp
 
   ID3D11RasterizerState* pRasterizerState = nullptr;
   RasterizerStateCacheKey key{rasterizerState.CalculateHash(), bMultisample};
-  ezUInt32 i = m_RasterizerStates.Find(key);
+  const ezUInt32 i = m_RasterizerStates.Find(key);
 
   if (i == ezInvalidIndex)
   {
@@ -133,8 +133,8 @@ ID3D11InputLayout* spDeviceResourceManagerD3D11::GetInputLayout(ezArrayPtr<spInp
     return nullptr;
 
   ID3D11InputLayout* pInputLayout = nullptr;
-  InputLayoutCacheKey key = InputLayoutCacheKey::GetTemporaryKey(inputLayouts);
-  ezUInt32 i = m_InputLayouts.Find(key);
+  const InputLayoutCacheKey key = InputLayoutCacheKey::GetTemporaryKey(inputLayouts);
+  const ezUInt32 i = m_InputLayouts.Find(key);
 
   if (i == ezInvalidIndex)
   {
@@ -168,7 +168,7 @@ ID3D11BlendState* spDeviceResourceManagerD3D11::CreateBlendState(const spBlendSt
   desc.IndependentBlendEnable = true;
 
   ID3D11BlendState* pBlendState = nullptr;
-  HRESULT res = m_pD3D11Device->CreateBlendState(&desc, &pBlendState);
+  const HRESULT res = m_pD3D11Device->CreateBlendState(&desc, &pBlendState);
   EZ_HRESULT_TO_ASSERT(res);
 
   return pBlendState;
@@ -194,7 +194,7 @@ ID3D11DepthStencilState* spDeviceResourceManagerD3D11::CreateDepthStencilState(c
   desc.StencilWriteMask = stencilState.m_uiWriteMask;
 
   ID3D11DepthStencilState* pDepthStencilState = nullptr;
-  HRESULT res = m_pD3D11Device->CreateDepthStencilState(&desc, &pDepthStencilState);
+  const HRESULT res = m_pD3D11Device->CreateDepthStencilState(&desc, &pDepthStencilState);
   EZ_HRESULT_TO_ASSERT(res);
 
   return pDepthStencilState;
@@ -222,7 +222,7 @@ ID3D11RasterizerState* spDeviceResourceManagerD3D11::CreateRasterizerState(const
     desc.ForcedSampleCount = 0;
 
     ID3D11RasterizerState2* pRasterizerState = nullptr;
-    HRESULT res = m_pD3D11Device3->CreateRasterizerState2(&desc, &pRasterizerState);
+    const HRESULT res = m_pD3D11Device3->CreateRasterizerState2(&desc, &pRasterizerState);
     EZ_HRESULT_TO_ASSERT(res);
 
     return pRasterizerState;
@@ -238,7 +238,7 @@ ID3D11RasterizerState* spDeviceResourceManagerD3D11::CreateRasterizerState(const
   desc.MultisampleEnable = bMultisample;
 
   ID3D11RasterizerState* pRasterizerState = nullptr;
-  HRESULT res = m_pD3D11Device->CreateRasterizerState(&desc, &pRasterizerState);
+  const HRESULT res = m_pD3D11Device->CreateRasterizerState(&desc, &pRasterizerState);
   EZ_HRESULT_TO_ASSERT(res);
 
   return pRasterizerState;
@@ -252,7 +252,7 @@ ID3D11InputLayout* spDeviceResourceManagerD3D11::CreateInputLayout(ezArrayPtr<sp
 
   ezUInt32 uiElement = 0; // Total element index across slots
   ezHybridArray<D3D11_INPUT_ELEMENT_DESC, spInputElementLocationSemantic::Last> elements;
-  SemanticIndices semanticIndices;
+  SemanticIndices semanticIndices{};
 
   elements.SetCount(uiTotalCount);
 
@@ -260,7 +260,7 @@ ID3D11InputLayout* spDeviceResourceManagerD3D11::CreateInputLayout(ezArrayPtr<sp
   {
     const auto& inputLayout = inputLayouts[slot];
 
-    ezUInt32 uiStepRate = inputLayout.m_uiInstanceStepRate;
+    const ezUInt32 uiStepRate = inputLayout.m_uiInstanceStepRate;
     ezUInt32 uiCurrentOffset = 0;
 
     for (ezUInt32 i = 0, c = inputLayout.m_Elements.GetCount(); i < c; i++, uiElement++)
@@ -280,7 +280,7 @@ ID3D11InputLayout* spDeviceResourceManagerD3D11::CreateInputLayout(ezArrayPtr<sp
   }
 
   ID3D11InputLayout* pInputLayout = nullptr;
-  HRESULT res = m_pD3D11Device->CreateInputLayout(&elements[0], uiTotalCount, vertexShaderByteCode.GetPtr(), vertexShaderByteCode.GetCount(), &pInputLayout);
+  const HRESULT res = m_pD3D11Device->CreateInputLayout(&elements[0], uiTotalCount, vertexShaderByteCode.GetPtr(), vertexShaderByteCode.GetCount(), &pInputLayout);
   EZ_HRESULT_TO_ASSERT(res);
 
   return pInputLayout;

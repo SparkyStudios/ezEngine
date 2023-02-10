@@ -1,4 +1,4 @@
-﻿#include <RHID3D11/RHID3D11PCH.h>
+#include <RHID3D11/RHID3D11PCH.h>
 
 #include <RHID3D11/Core.h>
 #include <RHID3D11/Device.h>
@@ -24,6 +24,9 @@ void spFramebufferD3D11::SetDebugName(const ezString& debugName)
 
 void spFramebufferD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
   SP_RHI_DX11_RELEASE(m_pDepthTarget);
 
   for (auto& target : m_ColorTargets)
@@ -41,7 +44,7 @@ bool spFramebufferD3D11::IsReleased() const
 
 void spFramebufferD3D11::CreateResource()
 {
-  spTextureD3D11* pDimensionTexture = nullptr;
+  const spTextureD3D11* pDimensionTexture = nullptr;
   ezUInt32 uiDimensionMipLevel = 0;
 
   if (!m_Description.m_DepthTarget.m_hTarget.IsInvalidated())
@@ -91,7 +94,7 @@ void spFramebufferD3D11::CreateResource()
 
   if (m_Description.m_ColorTargets.GetCount() > 0)
   {
-    m_ColorTargets.Reserve(m_Description.m_ColorTargets.GetCount());
+    m_ColorTargets.EnsureCount(m_Description.m_ColorTargets.GetCount());
     for (ezUInt32 i = 0, l = m_Description.m_ColorTargets.GetCount(); i < l; ++i)
     {
       const auto& target = m_Description.m_ColorTargets[i];
@@ -165,7 +168,7 @@ spFramebufferD3D11::spFramebufferD3D11(spDeviceD3D11* pDevice, const spFramebuff
 
 spFramebufferD3D11::~spFramebufferD3D11()
 {
-  ReleaseResource();
+  spFramebufferD3D11::ReleaseResource();
 }
 
 spTextureD3D11* spFramebufferD3D11::GetColorTarget(ezUInt32 uiColorTargetIndex) const

@@ -14,23 +14,23 @@ class SP_RHID3D11_DLL spDeviceResourceFactoryD3D11 final : public spDeviceResour
   // spDeviceResourceFactory
 
 public:
-  spResourceHandle CreateShader(const spShaderDescription& description) override;
-  spResourceHandle CreateShaderProgram() override;
-  spResourceHandle CreateTexture(const spTextureDescription& description) override;
-  spResourceHandle CreateSampler(const spSamplerDescription& description) override;
-  spResourceHandle CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader) override;
-  spResourceHandle CreateBuffer(const spBufferDescription& description) override;
-  spResourceHandle CreateBufferRange(const spBufferRangeDescription& description) override;
-  spResourceHandle CreateResourceLayout(const spResourceLayoutDescription& description) override;
-  spResourceHandle CreateTextureView(const spTextureViewDescription& description) override;
-  spResourceHandle CreateTextureView(const spResourceHandle& hTexture) override;
-  spResourceHandle CreateSwapchain(const spSwapchainDescription& description) override;
-  spResourceHandle CreateFence(const spFenceDescription& description) override;
-  spResourceHandle CreateFramebuffer(const spFramebufferDescription& description) override;
-  spResourceHandle CreateCommandList(const spCommandListDescription& description) override;
-  spResourceHandle CreateComputePipeline(const spComputePipelineDescription& description) override;
-  spResourceHandle CreateGraphicPipeline(const spGraphicPipelineDescription& description) override;
-  spResourceHandle CreateResourceSet(const spResourceSetDescription& description) override;
+  spShader* CreateShader(const spShaderDescription& description) override;
+  spShaderProgram* CreateShaderProgram() override;
+  spTexture* CreateTexture(const spTextureDescription& description) override;
+  spSampler* CreateSampler(const spSamplerDescription& description) override;
+  spInputLayout* CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader) override;
+  spBuffer* CreateBuffer(const spBufferDescription& description) override;
+  spBufferRange* CreateBufferRange(const spBufferRangeDescription& description) override;
+  spResourceLayout* CreateResourceLayout(const spResourceLayoutDescription& description) override;
+  spTextureView* CreateTextureView(const spTextureViewDescription& description) override;
+  spTextureView* CreateTextureView(const spResourceHandle& hTexture) override;
+  spSwapchain* CreateSwapchain(const spSwapchainDescription& description) override;
+  spFence* CreateFence(const spFenceDescription& description) override;
+  spFramebuffer* CreateFramebuffer(const spFramebufferDescription& description) override;
+  spCommandList* CreateCommandList(const spCommandListDescription& description) override;
+  spComputePipeline* CreateComputePipeline(const spComputePipelineDescription& description) override;
+  spGraphicPipeline* CreateGraphicPipeline(const spGraphicPipelineDescription& description) override;
+  spResourceSet* CreateResourceSet(const spResourceSetDescription& description) override;
 
   // spDeviceResourceFactoryD3D11
 

@@ -22,8 +22,23 @@ struct spSwapchainDescription;
 struct spTextureDescription;
 struct spTextureViewDescription;
 
+class spShader;
+class spShaderProgram;
+class spTexture;
+class spSampler;
+class spInputLayout;
+class spBuffer;
+class spResourceLayout;
+class spTextureView;
+class spSwapchain;
+class spFence;
+class spFramebuffer;
+class spComputePipeline;
+class spGraphicPipeline;
+class spResourceSet;
 class spDevice;
 class spBufferRange;
+class spCommandList;
 
 /// \brief Abstract class for a resource on the graphics device.
 class SP_RHI_DLL spDeviceResource : public ezReflectedClass, public ezRefCounted
@@ -326,87 +341,87 @@ public:
   /// \brief Creates a new spShader resource.
   /// \param [in] description The description of the shader resource to create.
   /// @return An handle to the created shader resource.
-  virtual spResourceHandle CreateShader(const spShaderDescription& description) = 0;
+  virtual spShader* CreateShader(const spShaderDescription& description) = 0;
 
   /// \brief Creates a new spShaderProgram resource.
   /// @return An handle to the created shader program resource.
-  virtual spResourceHandle CreateShaderProgram() = 0;
+  virtual spShaderProgram* CreateShaderProgram() = 0;
 
   /// \brief Creates a new spTexture resource.
   /// \param [in] description The description of the texture resource to create.
   /// @return An handle to the created texture resource.
-  virtual spResourceHandle CreateTexture(const spTextureDescription& description) = 0;
+  virtual spTexture* CreateTexture(const spTextureDescription& description) = 0;
 
   /// \brief Creates a new spSampler resource.
   /// \param [in] description The description of the sampler resource to create.
   /// @return An handle to the created sampler resource.
-  virtual spResourceHandle CreateSampler(const spSamplerDescription& description) = 0;
+  virtual spSampler* CreateSampler(const spSamplerDescription& description) = 0;
 
   /// \brief Creates a new spInputLayout resource.
   /// \param [in] description The description of the input layout resource to create.
   /// \param [in] hShader The handle to the shader resource used by the input layout.
   /// @return An handle to the created input layout resource.
-  virtual spResourceHandle CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader) = 0;
+  virtual spInputLayout* CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader) = 0;
 
   /// \brief Creates a new spBuffer resource.
   /// \param [in] description The description of the buffer resource to create.
   /// @return An handle to the created buffer resource.
-  virtual spResourceHandle CreateBuffer(const spBufferDescription& description) = 0;
+  virtual spBuffer* CreateBuffer(const spBufferDescription& description) = 0;
 
   /// \brief Creates a new spBufferRange resource.
   /// \param [in] description The description of the buffer range resource to create.
   /// @return An handle to the created buffer range resource.
-  virtual spResourceHandle CreateBufferRange(const spBufferRangeDescription& description) = 0;
+  virtual spBufferRange* CreateBufferRange(const spBufferRangeDescription& description) = 0;
 
   /// \brief Creates a new spResourceLayout resource.
   /// \param [in] description The description of the resource layout resource to create.
   /// @return An handle to the created resource layout resource.
-  virtual spResourceHandle CreateResourceLayout(const spResourceLayoutDescription& description) = 0;
+  virtual spResourceLayout* CreateResourceLayout(const spResourceLayoutDescription& description) = 0;
 
   /// \brief Creates a new spTextureView resource.
   /// \param [in] description The description of the texture view resource to create.
   /// @return An handle to the created texture view resource.
-  virtual spResourceHandle CreateTextureView(const spTextureViewDescription& description) = 0;
+  virtual spTextureView* CreateTextureView(const spTextureViewDescription& description) = 0;
 
   /// \brief Creates a new spTextureView resource.
   /// \param [in] hTexture The handle to the texture from which create the view.
   /// @return An handle to the created texture view resource.
-  virtual spResourceHandle CreateTextureView(const spResourceHandle& hTexture) = 0;
+  virtual spTextureView* CreateTextureView(const spResourceHandle& hTexture) = 0;
 
   /// \brief Creates a new spSwapchain resource.
   /// \param [in] description The description of the swapchain resource to create.
   /// @return An handle to the created swapchain resource.
-  virtual spResourceHandle CreateSwapchain(const spSwapchainDescription& description) = 0;
+  virtual spSwapchain* CreateSwapchain(const spSwapchainDescription& description) = 0;
 
   /// \brief Creates a new spFence resource.
   /// \param [in] description The description of the fence resource to create.
   /// @return An handle to the created fence resource.
-  virtual spResourceHandle CreateFence(const spFenceDescription& description) = 0;
+  virtual spFence* CreateFence(const spFenceDescription& description) = 0;
 
   /// \brief Creates a new spFramebuffer resource.
   /// \param [in] description The description of the framebuffer resource to create.
   /// @return An handle to the created framebuffer resource.
-  virtual spResourceHandle CreateFramebuffer(const spFramebufferDescription& description) = 0;
+  virtual spFramebuffer* CreateFramebuffer(const spFramebufferDescription& description) = 0;
 
   /// \brief Creates a new spCommandList resource.
   /// \param [in] description The description of the command list resource to create.
   /// @return An handle to the created command list resource.
-  virtual spResourceHandle CreateCommandList(const spCommandListDescription& description) = 0;
+  virtual spCommandList* CreateCommandList(const spCommandListDescription& description) = 0;
 
   /// \brief Creates a new spComputePipeline resource.
   /// \param [in] description The description of the compute pipeline resource to create.
   /// @return An handle to the created compute pipeline resource.
-  virtual spResourceHandle CreateComputePipeline(const spComputePipelineDescription& description) = 0;
+  virtual spComputePipeline* CreateComputePipeline(const spComputePipelineDescription& description) = 0;
 
   /// \brief Creates a new spGraphicPipeline resource
   /// \param [in] description The description of the graphic pipeline resource to create.
   /// @return An handle to the created graphic pipeline resource.
-  virtual spResourceHandle CreateGraphicPipeline(const spGraphicPipelineDescription& description) = 0;
+  virtual spGraphicPipeline* CreateGraphicPipeline(const spGraphicPipelineDescription& description) = 0;
 
   /// \brief Creates a new spResourceSet resource.
   /// \param [in] description The description of the resource set resource to create.
   /// @return An handle to the created resource set resource.
-  virtual spResourceHandle CreateResourceSet(const spResourceSetDescription& description) = 0;
+  virtual spResourceSet* CreateResourceSet(const spResourceSetDescription& description) = 0;
 
 protected:
   /// \brief Creates a new resource factory for the given device.
@@ -428,10 +443,7 @@ class SP_RHI_DLL spDeviceResourceManager : public ezReflectedClass
 public:
   /// \brief Creates a new resource manager for the given device.
   /// \param [in] pDevice The graphics device for which the resource manager will manage resources.
-  explicit spDeviceResourceManager(spDevice* pDevice)
-    : m_pDevice(pDevice)
-  {
-  }
+  explicit spDeviceResourceManager(spDevice* pDevice);
 
   virtual ~spDeviceResourceManager();
 
@@ -527,6 +539,6 @@ EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDefaultDeviceResourceManager);
 class SP_RHI_DLL spResourceHelper
 {
 public:
-  static spBufferRange* GetBufferRange(spDevice* pDevice, spResourceHandle hResource, ezUInt32 uiOffset);
-  static spBufferRange* GetBufferRange(spDevice* pDevice, spShaderResource* pResource, ezUInt32 uiOffset);
+  static spBufferRange* GetBufferRange(const spDevice* pDevice, spResourceHandle hResource, ezUInt32 uiOffset);
+  static spBufferRange* GetBufferRange(const spDevice* pDevice, spShaderResource* pResource, ezUInt32 uiOffset);
 };

@@ -8,12 +8,12 @@
 /// \brief A platform-specific rendering surface.
 class SP_RHI_DLL spRenderingSurface : public ezReflectedClass
 {
-  EZ_ADD_DYNAMIC_REFLECTION(spRenderingSurface, ezReflectedClass);
-
 protected:
   spRenderingSurface() = default;
   ~spRenderingSurface() override = default;
 };
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spRenderingSurface);
 
 struct spSwapchainDescription : public ezHashableStruct<spSwapchainDescription>
 {
@@ -74,6 +74,9 @@ public:
   /// \param [in] uiWidth The new swapchain width.
   /// \param [in] uiHeight The new swapchain height.
   virtual void Resize(ezUInt32 uiWidth, ezUInt32 uiHeight) = 0;
+
+  /// \brief Swaps the front and back buffers.
+  virtual void Present() = 0;
 
 protected:
   spSwapchain(spSwapchainDescription description)

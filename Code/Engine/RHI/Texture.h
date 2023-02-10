@@ -567,7 +567,7 @@ public:
 protected:
   /// \brief Creates a texture/sampler manager for the given graphics device.
   /// \param [in] pDevice A pointer to the graphics device.
-  spTextureSamplerManager(spGraphicsDevice* pDevice);
+  explicit spTextureSamplerManager(spGraphicsDevice* pDevice);
 };
 
 class spTextureHelper

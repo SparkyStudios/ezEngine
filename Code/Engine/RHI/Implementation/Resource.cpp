@@ -81,6 +81,12 @@ ezUInt32 spMappedResource::GetDepthPitch() const
 
 #pragma region spDeviceResourceManager
 
+spDeviceResourceManager::spDeviceResourceManager(spDevice* pDevice)
+  : m_pDevice(pDevice)
+  , m_RegisteredResources(pDevice->GetAllocator())
+{
+}
+
 spDeviceResourceManager::~spDeviceResourceManager()
 {
   m_RegisteredResources.Clear();
@@ -89,6 +95,7 @@ spDeviceResourceManager::~spDeviceResourceManager()
 spResourceHandle spDeviceResourceManager::RegisterResource(spDeviceResource* pResource)
 {
   // Set resource handle
+  EZ_IGNORE_UNUSED(pResource->AddRef());
   return pResource->m_Handle = spResourceHandle(m_RegisteredResources.Insert(pResource));
 }
 
@@ -132,7 +139,16 @@ spDefaultDeviceResourceManager::spDefaultDeviceResourceManager(spDevice* pDevice
 
 spDefaultDeviceResourceManager::~spDefaultDeviceResourceManager()
 {
-  m_ResourcesQueue.Clear();
+  ReleaseResources();
+
+  while (!m_RegisteredResources.IsEmpty())
+  {
+    auto it = m_RegisteredResources.GetIterator();
+    spDeviceResource* pResource = it.Value();
+    ReleaseResource(pResource);
+  }
+
+  m_RegisteredResources.Clear();
 }
 
 void spDefaultDeviceResourceManager::EnqueueReleaseResource(const spResourceHandle& hResource)
@@ -171,10 +187,11 @@ void spDefaultDeviceResourceManager::ReleaseResources()
 
 void spDefaultDeviceResourceManager::ReleaseResource(spDeviceResource* pResource)
 {
-  if (pResource->ReleaseRef() == 0)
+  if (pResource->ReleaseRef() <= 0)
   {
     pResource->ReleaseResource();
     m_RegisteredResources.Remove(pResource->GetHandle().GetInternalID(), nullptr);
+    pResource->GetHandle().Invalidate();
     EZ_DELETE(m_pDevice->GetAllocator(), pResource);
   }
 }
@@ -183,7 +200,7 @@ void spDefaultDeviceResourceManager::ReleaseResource(spDeviceResource* pResource
 
 #pragma region spResourceHelper
 
-spBufferRange* spResourceHelper::GetBufferRange(spDevice* pDevice, spResourceHandle hResource, ezUInt32 uiOffset)
+spBufferRange* spResourceHelper::GetBufferRange(const spDevice* pDevice, spResourceHandle hResource, ezUInt32 uiOffset)
 {
   return GetBufferRange(
     pDevice,
@@ -191,19 +208,19 @@ spBufferRange* spResourceHelper::GetBufferRange(spDevice* pDevice, spResourceHan
     uiOffset);
 }
 
-spBufferRange* spResourceHelper::GetBufferRange(spDevice* pDevice, spShaderResource* pResource, ezUInt32 uiOffset)
+spBufferRange* spResourceHelper::GetBufferRange(const spDevice* pDevice, spShaderResource* pResource, ezUInt32 uiOffset)
 {
   if (pResource == nullptr)
     return nullptr;
 
-  spResourceHandle hBuffer;
+  spBufferRange* pResult = nullptr;
 
-  if (auto* pBufferRange = ezDynamicCast<spBufferRange*>(pResource); pBufferRange != nullptr)
-    hBuffer = pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pBufferRange->GetBuffer(), pBufferRange->GetOffset() + uiOffset, pBufferRange->GetSize()));
-  else if (auto* pBuffer = ezDynamicCast<spBuffer*>(pResource); pBuffer != nullptr)
-    hBuffer = pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pBuffer->GetHandle(), uiOffset, pBuffer->GetSize()));
+  if (const auto* pBufferRange = ezDynamicCast<spBufferRange*>(pResource); pBufferRange != nullptr)
+    pResult = pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pBufferRange->GetBuffer(), pBufferRange->GetOffset() + uiOffset, pBufferRange->GetSize()));
+  else if (const auto* pBuffer = ezDynamicCast<spBuffer*>(pResource); pBuffer != nullptr)
+    pResult = pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pBuffer->GetHandle(), uiOffset, pBuffer->GetSize()));
 
-  return pDevice->GetResourceManager()->GetResource<spBufferRange>(hBuffer);
+  return pResult;
 }
 
 #pragma endregion

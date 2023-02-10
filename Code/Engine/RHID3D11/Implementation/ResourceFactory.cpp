@@ -16,126 +16,126 @@
 #include <RHID3D11/Swapchain.h>
 #include <RHID3D11/Texture.h>
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateShader(const spShaderDescription& description)
+spShader* spDeviceResourceFactoryD3D11::CreateShader(const spShaderDescription& description)
 {
   spShaderD3D11* pShader = EZ_NEW(m_pDevice->GetAllocator(), spShaderD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pShader);
-  return pShader->GetHandle();
+  return pShader;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateShaderProgram()
+spShaderProgram* spDeviceResourceFactoryD3D11::CreateShaderProgram()
 {
   spShaderProgramD3D11* pShaderProgram = EZ_NEW(m_pDevice->GetAllocator(), spShaderProgramD3D11, m_pDevice);
   m_pDevice->GetResourceManager()->RegisterResource(pShaderProgram);
-  return pShaderProgram->GetHandle();
+  return pShaderProgram;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateTexture(const spTextureDescription& description)
+spTexture* spDeviceResourceFactoryD3D11::CreateTexture(const spTextureDescription& description)
 {
   spTextureD3D11* pTexture = EZ_NEW(m_pDevice->GetAllocator(), spTextureD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pTexture);
-  return pTexture->GetHandle();
+  return pTexture;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateSampler(const spSamplerDescription& description)
+spSampler* spDeviceResourceFactoryD3D11::CreateSampler(const spSamplerDescription& description)
 {
   spSamplerD3D11* pSampler = EZ_NEW(m_pDevice->GetAllocator(), spSamplerD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pSampler);
-  return pSampler->GetHandle();
+  return pSampler;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader)
+spInputLayout* spDeviceResourceFactoryD3D11::CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader)
 {
   spInputLayoutD3D11* pInputLayout = EZ_NEW(m_pDevice->GetAllocator(), spInputLayoutD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pInputLayout);
-  return pInputLayout->GetHandle();
+  return pInputLayout;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateBuffer(const spBufferDescription& description)
+spBuffer* spDeviceResourceFactoryD3D11::CreateBuffer(const spBufferDescription& description)
 {
   spBufferD3D11* pBuffer = EZ_NEW(m_pDevice->GetAllocator(), spBufferD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pBuffer);
-  return pBuffer->GetHandle();
+  return pBuffer;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateBufferRange(const spBufferRangeDescription& description)
+spBufferRange* spDeviceResourceFactoryD3D11::CreateBufferRange(const spBufferRangeDescription& description)
 {
   spBufferRangeD3D11* pBufferRange = EZ_NEW(m_pDevice->GetAllocator(), spBufferRangeD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pBufferRange);
-  return pBufferRange->GetHandle();
+  return pBufferRange;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateResourceLayout(const spResourceLayoutDescription& description)
+spResourceLayout* spDeviceResourceFactoryD3D11::CreateResourceLayout(const spResourceLayoutDescription& description)
 {
   spResourceLayoutD3D11* pResourceLayout = EZ_NEW(m_pDevice->GetAllocator(), spResourceLayoutD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pResourceLayout);
-  return pResourceLayout->GetHandle();
+  return pResourceLayout;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateTextureView(const spTextureViewDescription& description)
+spTextureView* spDeviceResourceFactoryD3D11::CreateTextureView(const spTextureViewDescription& description)
 {
   spTextureViewD3D11* pTextureView = EZ_NEW(m_pDevice->GetAllocator(), spTextureViewD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pTextureView);
-  return pTextureView->GetHandle();
+  return pTextureView;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateTextureView(const spResourceHandle& hTexture)
+spTextureView* spDeviceResourceFactoryD3D11::CreateTextureView(const spResourceHandle& hTexture)
 {
   auto* pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(hTexture);
   EZ_ASSERT_DEV(pTexture != nullptr, "Invalid texture handle.");
 
   spTextureViewD3D11* pTextureView = EZ_NEW(m_pDevice->GetAllocator(), spTextureViewD3D11, m_pDevice, spTextureViewDescription(pTexture));
   m_pDevice->GetResourceManager()->RegisterResource(pTextureView);
-  return pTextureView->GetHandle();
+  return pTextureView;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateSwapchain(const spSwapchainDescription& description)
+spSwapchain* spDeviceResourceFactoryD3D11::CreateSwapchain(const spSwapchainDescription& description)
 {
   spSwapchainD3D11* pSwapchain = EZ_NEW(m_pDevice->GetAllocator(), spSwapchainD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pSwapchain);
-  return pSwapchain->GetHandle();
+  return pSwapchain;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateFence(const spFenceDescription& description)
+spFence* spDeviceResourceFactoryD3D11::CreateFence(const spFenceDescription& description)
 {
   spFenceD3D11* pFence = EZ_NEW(m_pDevice->GetAllocator(), spFenceD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pFence);
-  return pFence->GetHandle();
+  return pFence;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateFramebuffer(const spFramebufferDescription& description)
+spFramebuffer* spDeviceResourceFactoryD3D11::CreateFramebuffer(const spFramebufferDescription& description)
 {
   spFramebufferD3D11* pFramebuffer = EZ_NEW(m_pDevice->GetAllocator(), spFramebufferD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pFramebuffer);
-  return pFramebuffer->GetHandle();
+  return pFramebuffer;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateCommandList(const spCommandListDescription& description)
+spCommandList* spDeviceResourceFactoryD3D11::CreateCommandList(const spCommandListDescription& description)
 {
   spCommandListD3D11* pCommandList = EZ_NEW(m_pDevice->GetAllocator(), spCommandListD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pCommandList);
-  return pCommandList->GetHandle();
+  return pCommandList;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateComputePipeline(const spComputePipelineDescription& description)
+spComputePipeline* spDeviceResourceFactoryD3D11::CreateComputePipeline(const spComputePipelineDescription& description)
 {
   spComputePipelineD3D11* pComputePipeline = EZ_NEW(m_pDevice->GetAllocator(), spComputePipelineD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pComputePipeline);
-  return pComputePipeline->GetHandle();
+  return pComputePipeline;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateGraphicPipeline(const spGraphicPipelineDescription& description)
+spGraphicPipeline* spDeviceResourceFactoryD3D11::CreateGraphicPipeline(const spGraphicPipelineDescription& description)
 {
   spGraphicPipelineD3D11* pGraphicPipeline = EZ_NEW(m_pDevice->GetAllocator(), spGraphicPipelineD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pGraphicPipeline);
-  return pGraphicPipeline->GetHandle();
+  return pGraphicPipeline;
 }
 
-spResourceHandle spDeviceResourceFactoryD3D11::CreateResourceSet(const spResourceSetDescription& description)
+spResourceSet* spDeviceResourceFactoryD3D11::CreateResourceSet(const spResourceSetDescription& description)
 {
   spResourceSetD3D11* pResourceSet = EZ_NEW(m_pDevice->GetAllocator(), spResourceSetD3D11, m_pDevice, description);
   m_pDevice->GetResourceManager()->RegisterResource(pResourceSet);
-  return pResourceSet->GetHandle();
+  return pResourceSet;
 }
 
 spDeviceResourceFactoryD3D11::spDeviceResourceFactoryD3D11(spDeviceD3D11* pDevice)

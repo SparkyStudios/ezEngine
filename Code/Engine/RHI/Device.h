@@ -135,7 +135,7 @@ struct spDeviceDescription : public ezHashableStruct<spDeviceDescription>
 
 /// \brief Wrapper around the graphics device. Implementations should override this
 /// class and provide platform-specific functionality.
-class SP_RHI_DLL spDevice : public ezReflectedClass
+class SP_RHI_DLL spDevice : public ezReflectedClass, public ezRefCounted
 {
 public:
   struct HardwareInfo
@@ -227,7 +227,7 @@ public:
 
   /// \brief Blocks the calling thread until the given \see spFence is signaled.
   /// \param [in] hFence The handle to the \see spFence to wait for.
-  /// \param [in] uiNanosecondsTimeout A timeout in nano seconds to wait for the \see spFence.
+  /// \param [in] uiNanosecondsTimeout A timeout in nanoseconds to wait for the \see spFence.
   /// \returns \c true if the \a hFence was signaled within the timeout, and \c false if the timeout was reached.
   virtual bool WaitForFence(const spResourceHandle& hFence, double uiNanosecondsTimeout) = 0;
 
@@ -245,7 +245,7 @@ public:
 
   /// \brief Blocks the calling thread until the given one or all the given \a fences are signaled.
   /// \param [in] fences The list of handles to the \see spFence instances to wait for.
-  /// \param [in] uiNanosecondsTimeout A timeout in nano seconds to wait \a fences.
+  /// \param [in] uiNanosecondsTimeout A timeout in nanoseconds to wait \a fences.
   /// \param [in] bWaitAll Specifies if the method should block until all the fences has been signaled.
   /// \returns \c true when one or all the \a fences was signaled within the timeout, and \c false if the timeout was reached.
   virtual bool WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitAll, double uiNanosecondsTimeout) = 0;
@@ -263,6 +263,9 @@ public:
 
   /// \brief A blocking method that returns when all submitted \see spCommandList have fully completed.
   void WaitForIdle();
+
+  /// \brief Swap front and back buffers of the main swapchain if created.
+  virtual void Present() = 0;
 
   /// \brief Gets the maximum samples count supported by the \a format.
   /// \param [in] eFormat The format to get the maximum samples count for.
@@ -329,8 +332,8 @@ public:
   template <typename T>
   EZ_ALWAYS_INLINE void UpdateTexture(const spResourceHandle& hResource, ezArrayPtr<T> data, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
   {
-    ezUInt32 uiSize = data.GetCount() * sizeof(T);
-    UpdateTexture(hResource, static_cast<void*>(data.GetPtr()), uiSize, uiX, uiY, uiZ, uiWidth, uiHeight, uiDepth, uiMipLevel, uiArrayLayer);
+    const ezUInt32 uiSize = data.GetCount() * sizeof(T);
+    UpdateTexture(hResource, reinterpret_cast<void*>(data.GetPtr()), uiSize, uiX, uiY, uiZ, uiWidth, uiHeight, uiDepth, uiMipLevel, uiArrayLayer);
   }
 
   /// \brief Updates the \see spBuffer region with new data.
@@ -347,7 +350,7 @@ public:
   template <typename T>
   void UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, const T& source)
   {
-    UpdateBuffer(hResource, uiOffset, static_cast<void*>(&source), sizeof(T));
+    UpdateBuffer(hResource, uiOffset, reinterpret_cast<void*>(&source), sizeof(T));
   }
 
   /// \brief Updates the \see spBuffer region with new data.
@@ -358,7 +361,7 @@ public:
   template <typename T>
   void UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, ezArrayPtr<T> source, ezUInt32 uiCount)
   {
-    UpdateBuffer(hResource, uiOffset, static_cast<void*>(source.GetPtr()), uiCount * sizeof(T));
+    UpdateBuffer(hResource, uiOffset, reinterpret_cast<void*>(source.GetPtr()), uiCount * sizeof(T));
   }
 
   /// \brief Copy a texture content from the \a hSource to the \a hDestination.

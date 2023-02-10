@@ -88,11 +88,11 @@ private:
   void ClearSets(ezDynamicArray<spCommandListResourceSet>& sets);
   void ActivateResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet, bool bCompute);
   spBufferD3D11* GetFreeStagingBuffer(ezUInt32 uiSize);
-  ezUInt32 GetConstantBufferBase(ezUInt32 uiSlot, bool bCompute);
-  ezUInt32 GetUnorderedAccessViewBase(ezUInt32 uiSlot, bool bCompute);
-  ezUInt32 GetTextureBase(ezUInt32 uiSlot, bool bCompute);
-  ezUInt32 GetSamplerBase(ezUInt32 uiSlot, bool bCompute);
-  spBufferRangeD3D11* GetBufferRange(spShaderResource* pResource, ezUInt32 uiOffset);
+  ezUInt32 GetConstantBufferBase(ezUInt32 uiSlot, bool bCompute) const;
+  ezUInt32 GetUnorderedAccessViewBase(ezUInt32 uiSlot, bool bCompute) const;
+  ezUInt32 GetTextureBase(ezUInt32 uiSlot, bool bCompute) const;
+  ezUInt32 GetSamplerBase(ezUInt32 uiSlot, bool bCompute) const;
+  spBufferRangeD3D11* GetBufferRange(spShaderResource* pResource, ezUInt32 uiOffset) const;
   void BindConstantBuffer(spBufferRangeD3D11* pBufferRange, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
   void BindStorageBufferView(spBufferRangeD3D11* pBufferRange, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
   void BindTextureView(spTextureViewD3D11* pTextureView, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot);
@@ -112,8 +112,8 @@ private:
   void OnComplete();
 
   ID3D11CommandList* m_pCommandList{nullptr};
-  ID3D11DeviceContext* m_pImmediateContext{nullptr};
-  ID3D11DeviceContext1* m_pImmediateContext1{nullptr};
+  ID3D11DeviceContext* m_pDeviceContext{nullptr};
+  ID3D11DeviceContext1* m_pDeviceContext1{nullptr};
   ID3DUserDefinedAnnotation* m_pUserDefinedAnnotation{nullptr};
 
   bool m_bHasStarted{false};

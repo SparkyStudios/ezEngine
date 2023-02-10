@@ -17,7 +17,7 @@ EZ_BEGIN_SUBSYSTEM_DECLARATION(RHID3D11, DeviceFactory)
 
   ON_CORESYSTEMS_STARTUP
   {
-    spRHIImplementationDescription desc{
+    const spRHIImplementationDescription desc{
       spGraphicsApi::Direct3D11,
       "DX11_SM50",
       "ezShaderCompilerHLSL"
@@ -34,4 +34,4 @@ EZ_BEGIN_SUBSYSTEM_DECLARATION(RHID3D11, DeviceFactory)
 EZ_END_SUBSYSTEM_DECLARATION;
 // clang-format on
 
-EZ_STATICLINK_FILE(RHI, RHI_RHID3D11);
+// EZ_STATICLINK_FILE(RHID3D11, RHID3D11_RHID3D11);
