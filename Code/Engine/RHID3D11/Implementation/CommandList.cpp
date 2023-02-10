@@ -21,12 +21,15 @@ spCommandListD3D11::spCommandListD3D11(spDeviceD3D11* pDevice, const spCommandLi
   : spCommandList(description)
 {
   m_pDevice = pDevice;
-  m_pImmediateContext = pDevice->GetD3D11DeviceContext();
+  m_pDeviceContext = pDevice->GetD3D11DeviceContext();
 
-  if (FAILED(m_pImmediateContext->QueryInterface(__uuidof(ID3D11DeviceContext1), reinterpret_cast<void**>(&m_pImmediateContext1))))
+  const HRESULT res = pDevice->GetD3D11Device()->CreateDeferredContext(0, &m_pDeviceContext);
+  EZ_HRESULT_TO_ASSERT(res);
+
+  if (FAILED(m_pDeviceContext->QueryInterface(IID_ID3D11DeviceContext1, reinterpret_cast<void**>(&m_pDeviceContext1))))
     ezLog::Warning("Could not get ID3D11DeviceContext1 interface, some features may not be available.");
 
-  if (FAILED(m_pImmediateContext->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), reinterpret_cast<void**>(&m_pUserDefinedAnnotation))))
+  if (FAILED(m_pDeviceContext->QueryInterface(IID_ID3DUserDefinedAnnotation, reinterpret_cast<void**>(&m_pUserDefinedAnnotation))))
     ezLog::Warning("Could not get ID3DUserDefinedAnnotation interface, some features may not be available.");
 
   m_bReleased = false;
@@ -37,10 +40,12 @@ void spCommandListD3D11::ReleaseResource()
   if (m_bReleased)
     return;
 
+  Reset();
+
   SP_RHI_DX11_RELEASE(m_pUserDefinedAnnotation);
   SP_RHI_DX11_RELEASE(m_pCommandList);
-  SP_RHI_DX11_RELEASE(m_pImmediateContext1);
-  SP_RHI_DX11_RELEASE(m_pImmediateContext);
+  SP_RHI_DX11_RELEASE(m_pDeviceContext1);
+  SP_RHI_DX11_RELEASE(m_pDeviceContext);
 
   for (auto& set : m_GraphicResourceSets)
     set.m_Offsets.Clear();
@@ -72,7 +77,7 @@ void spCommandListD3D11::Begin()
 void spCommandListD3D11::Dispatch(ezUInt32 uiGroupCountX, ezUInt32 uiGroupCountY, ezUInt32 uiGroupCountZ)
 {
   PreDispatch();
-  m_pImmediateContext->Dispatch(uiGroupCountX, uiGroupCountY, uiGroupCountZ);
+  m_pDeviceContext->Dispatch(uiGroupCountX, uiGroupCountY, uiGroupCountZ);
 }
 
 void spCommandListD3D11::SetComputePipeline(spResourceHandle hComputePipeline)
@@ -84,7 +89,7 @@ void spCommandListD3D11::SetComputePipeline(spResourceHandle hComputePipeline)
   m_InvalidatedComputeResourceSets.Clear();
 
   m_pComputeShader = pComputePipeline->GetComputeShader();
-  m_pImmediateContext->CSSetShader(m_pComputeShader, nullptr, 0);
+  m_pDeviceContext->CSSetShader(m_pComputeShader, nullptr, 0);
 
   m_ComputeResourceSets.EnsureCount(pComputePipeline->GetResourceLayouts().GetCount());
   m_InvalidatedComputeResourceSets.EnsureCount(pComputePipeline->GetResourceLayouts().GetCount());
@@ -101,78 +106,71 @@ void spCommandListD3D11::SetGraphicPipeline(spResourceHandle hGraphicPipeline)
   m_InvalidatedGraphicResourceSets.Clear();
 
   ID3D11BlendState* pBlendState = pGraphicPipeline->GetBlendState();
-  ezColor blendFactor = pGraphicPipeline->GetBlendFactor();
+  const ezColor blendFactor = pGraphicPipeline->GetBlendFactor();
   if (m_pBlendState != pBlendState || m_BlendFactor != blendFactor)
   {
-    FLOAT blendFactors[4] = {blendFactor.r, blendFactor.g, blendFactor.b, blendFactor.a};
+    const FLOAT blendFactors[4] = {blendFactor.r, blendFactor.g, blendFactor.b, blendFactor.a};
 
     m_pBlendState = pBlendState;
     m_BlendFactor = blendFactor;
-    m_pImmediateContext->OMSetBlendState(m_pBlendState, blendFactors, 0xFFFFFFFFu);
+    m_pDeviceContext->OMSetBlendState(m_pBlendState, blendFactors, 0xFFFFFFFFu);
   }
 
   ID3D11DepthStencilState* pDepthStencilState = pGraphicPipeline->GetDepthStencilState();
-  ezUInt32 uiStencilRef = pGraphicPipeline->GetStencilRef();
+  const ezUInt32 uiStencilRef = pGraphicPipeline->GetStencilRef();
   if (m_pDepthStencilState != pDepthStencilState || m_uiStencilRef != uiStencilRef)
   {
     m_pDepthStencilState = pDepthStencilState;
     m_uiStencilRef = uiStencilRef;
-    m_pImmediateContext->OMSetDepthStencilState(m_pDepthStencilState, uiStencilRef);
+    m_pDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, uiStencilRef);
   }
 
-  ID3D11RasterizerState* pRasterizerState = pGraphicPipeline->GetRasterizerState();
-  if (m_pRasterizerState != pRasterizerState)
+  if (ID3D11RasterizerState* pRasterizerState = pGraphicPipeline->GetRasterizerState(); m_pRasterizerState != pRasterizerState)
   {
     m_pRasterizerState = pRasterizerState;
-    m_pImmediateContext->RSSetState(m_pRasterizerState);
+    m_pDeviceContext->RSSetState(m_pRasterizerState);
   }
 
-  D3D11_PRIMITIVE_TOPOLOGY ePrimitiveTopology = pGraphicPipeline->GetPrimitiveTopology();
-  if (m_ePrimitiveTopology != ePrimitiveTopology)
+  if (const D3D11_PRIMITIVE_TOPOLOGY ePrimitiveTopology = pGraphicPipeline->GetPrimitiveTopology(); m_ePrimitiveTopology != ePrimitiveTopology)
   {
     m_ePrimitiveTopology = ePrimitiveTopology;
-    m_pImmediateContext->IASetPrimitiveTopology(m_ePrimitiveTopology);
+    m_pDeviceContext->IASetPrimitiveTopology(m_ePrimitiveTopology);
   }
 
-  ID3D11VertexShader* pVertexShader = pGraphicPipeline->GetVertexShader();
-  if (m_pVertexShader != pVertexShader)
+  if (ID3D11VertexShader* pVertexShader = pGraphicPipeline->GetVertexShader(); m_pVertexShader != pVertexShader)
   {
     m_pVertexShader = pVertexShader;
-    m_pImmediateContext->VSSetShader(m_pVertexShader, nullptr, 0);
+    m_pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
   }
 
-  ID3D11GeometryShader* pGeometryShader = pGraphicPipeline->GetGeometryShader();
-  if (m_pGeometryShader != pGeometryShader)
+  if (ID3D11GeometryShader* pGeometryShader = pGraphicPipeline->GetGeometryShader(); m_pGeometryShader != pGeometryShader)
   {
     m_pGeometryShader = pGeometryShader;
-    m_pImmediateContext->GSSetShader(m_pGeometryShader, nullptr, 0);
+    m_pDeviceContext->GSSetShader(m_pGeometryShader, nullptr, 0);
   }
 
-  ID3D11HullShader* pHullShader = pGraphicPipeline->GetHullShader();
-  if (m_pHullShader != pHullShader)
+  if (ID3D11HullShader* pHullShader = pGraphicPipeline->GetHullShader(); m_pHullShader != pHullShader)
   {
     m_pHullShader = pHullShader;
-    m_pImmediateContext->HSSetShader(m_pHullShader, nullptr, 0);
+    m_pDeviceContext->HSSetShader(m_pHullShader, nullptr, 0);
   }
 
-  ID3D11DomainShader* pDomainShader = pGraphicPipeline->GetDomainShader();
-  if (m_pDomainShader != pDomainShader)
+  if (ID3D11DomainShader* pDomainShader = pGraphicPipeline->GetDomainShader(); m_pDomainShader != pDomainShader)
   {
     m_pDomainShader = pDomainShader;
-    m_pImmediateContext->DSSetShader(m_pDomainShader, nullptr, 0);
+    m_pDeviceContext->DSSetShader(m_pDomainShader, nullptr, 0);
   }
 
-  ID3D11PixelShader* pPixelShader = pGraphicPipeline->GetPixelShader();
-  if (m_pPixelShader != pPixelShader)
+  if (ID3D11PixelShader* pPixelShader = pGraphicPipeline->GetPixelShader(); m_pPixelShader != pPixelShader)
   {
     m_pPixelShader = pPixelShader;
-    m_pImmediateContext->PSSetShader(m_pPixelShader, nullptr, 0);
+    m_pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
   }
 
   m_VertexStrides = pGraphicPipeline->GetVertexStrides();
   if (!m_VertexStrides.IsEmpty())
   {
-    ezUInt32 uiVertexStridesCount = m_VertexStrides.GetCount();
+    const ezUInt32 uiVertexStridesCount = m_VertexStrides.GetCount();
     m_VertexBuffers.EnsureCount(uiVertexStridesCount);
     m_VertexOffsets.EnsureCount(uiVertexStridesCount);
   }
@@ -188,10 +186,10 @@ void spCommandListD3D11::SetScissorRect(ezUInt32 uiSlot, ezUInt32 uiX, ezUInt32 
   m_bScissorRectsChanged = true;
   m_ScissorRects.EnsureCount(uiSlot + 1);
 
-  m_ScissorRects[uiSlot].left = uiX;
-  m_ScissorRects[uiSlot].right = uiX + uiWidth;
-  m_ScissorRects[uiSlot].top = uiY;
-  m_ScissorRects[uiSlot].bottom = uiY + uiHeight;
+  m_ScissorRects[uiSlot].left = static_cast<LONG>(uiX);
+  m_ScissorRects[uiSlot].right = static_cast<LONG>(uiX + uiWidth);
+  m_ScissorRects[uiSlot].top = static_cast<LONG>(uiY);
+  m_ScissorRects[uiSlot].bottom = static_cast<LONG>(uiY + uiHeight);
 }
 
 void spCommandListD3D11::SetViewport(ezUInt32 uiSlot, const spViewport& viewport)
@@ -199,10 +197,10 @@ void spCommandListD3D11::SetViewport(ezUInt32 uiSlot, const spViewport& viewport
   m_bViewportsChanged = true;
   m_Viewports.EnsureCount(uiSlot + 1);
 
-  m_Viewports[uiSlot].TopLeftX = viewport.m_iX;
-  m_Viewports[uiSlot].TopLeftY = viewport.m_iY;
-  m_Viewports[uiSlot].Width = viewport.m_uiWidth;
-  m_Viewports[uiSlot].Height = viewport.m_uiHeight;
+  m_Viewports[uiSlot].TopLeftX = static_cast<FLOAT>(viewport.m_iX);
+  m_Viewports[uiSlot].TopLeftY = static_cast<FLOAT>(viewport.m_iY);
+  m_Viewports[uiSlot].Width = static_cast<FLOAT>(viewport.m_uiWidth);
+  m_Viewports[uiSlot].Height = static_cast<FLOAT>(viewport.m_uiHeight);
   m_Viewports[uiSlot].MinDepth = viewport.m_fMinDepth;
   m_Viewports[uiSlot].MaxDepth = viewport.m_fMaxDepth;
 }
@@ -213,7 +211,7 @@ void spCommandListD3D11::PushDebugGroup(const ezString& sName)
   if (m_pUserDefinedAnnotation == nullptr)
     return;
 
-  ezStringWChar wsMarker(sName);
+  const ezStringWChar wsMarker(sName);
   m_pUserDefinedAnnotation->BeginEvent(wsMarker.GetData());
 #endif
 }
@@ -234,7 +232,7 @@ void spCommandListD3D11::InsertDebugMarker(const ezString& sName)
   if (m_pUserDefinedAnnotation == nullptr)
     return;
 
-  ezStringWChar wsMarker(sName);
+  const ezStringWChar wsMarker(sName);
   m_pUserDefinedAnnotation->SetMarker(wsMarker.GetData());
 #endif
 }
@@ -243,7 +241,9 @@ void spCommandListD3D11::End()
 {
   EZ_ASSERT_DEV(m_pCommandList == nullptr, "Invalid call to End");
 
-  m_pImmediateContext->FinishCommandList(false, &m_pCommandList);
+  const HRESULT res = m_pDeviceContext->FinishCommandList(false, &m_pCommandList);
+  EZ_HRESULT_TO_ASSERT(res);
+
   m_pCommandList->SetPrivateData(WKPDID_D3DDebugObjectName, m_sDebugName.GetElementCount(), m_sDebugName.GetData());
 
   ResetManagedState();
@@ -252,13 +252,12 @@ void spCommandListD3D11::End()
 
 void spCommandListD3D11::ClearColorTargetInternal(ezUInt32 uiIndex, ezColor clearColor)
 {
-  float Color[4] = {clearColor.r, clearColor.g, clearColor.b, clearColor.a};
-  m_pImmediateContext->ClearRenderTargetView(m_pFramebuffer->GetRenderTargetView(uiIndex), Color);
+  m_pDeviceContext->ClearRenderTargetView(m_pFramebuffer->GetRenderTargetView(uiIndex), clearColor.GetData());
 }
 
 void spCommandListD3D11::ClearDepthStencilTargetInternal(float fClearDepth, ezUInt8 uiClearStencil)
 {
-  m_pImmediateContext->ClearDepthStencilView(m_pFramebuffer->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, fClearDepth, uiClearStencil);
+  m_pDeviceContext->ClearDepthStencilView(m_pFramebuffer->GetDepthStencilView(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, fClearDepth, uiClearStencil);
 }
 
 void spCommandListD3D11::DrawInternal(ezUInt32 uiVertexCount, ezUInt32 uiInstanceCount, ezUInt32 uiVertexStart, ezUInt32 uiInstanceStart)
@@ -266,9 +265,9 @@ void spCommandListD3D11::DrawInternal(ezUInt32 uiVertexCount, ezUInt32 uiInstanc
   PreDraw();
 
   if (uiInstanceCount == 1 && uiInstanceStart == 0)
-    m_pImmediateContext->Draw(uiVertexCount, uiVertexStart);
+    m_pDeviceContext->Draw(uiVertexCount, uiVertexStart);
   else
-    m_pImmediateContext->DrawInstanced(uiVertexCount, uiInstanceCount, uiVertexStart, uiInstanceStart);
+    m_pDeviceContext->DrawInstanced(uiVertexCount, uiInstanceCount, uiVertexStart, uiInstanceStart);
 }
 
 void spCommandListD3D11::DrawIndexedInternal(ezUInt32 uiIndexCount, ezUInt32 uiInstanceCount, ezUInt32 uiIndexStart, ezUInt32 uiVertexOffset, ezUInt32 uiInstanceStart)
@@ -278,21 +277,21 @@ void spCommandListD3D11::DrawIndexedInternal(ezUInt32 uiIndexCount, ezUInt32 uiI
   EZ_ASSERT_DEV(m_pIndexBuffer != nullptr, "Index buffer is not set.");
 
   if (uiInstanceCount == 1 && uiInstanceStart == 0)
-    m_pImmediateContext->DrawIndexed(uiIndexCount, uiIndexStart, uiVertexOffset);
+    m_pDeviceContext->DrawIndexed(uiIndexCount, uiIndexStart, static_cast<INT>(uiVertexOffset));
   else
-    m_pImmediateContext->DrawIndexedInstanced(uiIndexCount, uiIndexStart, uiVertexOffset, uiInstanceCount, uiInstanceStart);
+    m_pDeviceContext->DrawIndexedInstanced(uiIndexCount, uiIndexStart, uiVertexOffset, static_cast<INT>(uiInstanceCount), uiInstanceStart);
 }
 
 void spCommandListD3D11::DrawIndirectInternal(spBuffer* pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride)
 {
   PreDraw();
 
-  auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pIndirectBuffer);
+  const auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pIndirectBuffer);
   ezUInt32 uiCurrentOffset = uiOffset;
 
   for (ezUInt32 i = 0; i < uiDrawCount; i++)
   {
-    m_pImmediateContext->DrawInstancedIndirect(pBufferD3D11->GetD3D11Buffer(), uiCurrentOffset);
+    m_pDeviceContext->DrawInstancedIndirect(pBufferD3D11->GetD3D11Buffer(), uiCurrentOffset);
     uiCurrentOffset += uiStride;
   }
 }
@@ -301,12 +300,12 @@ void spCommandListD3D11::DrawIndexedIndirectInternal(spBuffer* pIndirectBuffer, 
 {
   PreDraw();
 
-  auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pIndirectBuffer);
+  const auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pIndirectBuffer);
   ezUInt32 uiCurrentOffset = uiOffset;
 
   for (ezUInt32 i = 0; i < uiDrawCount; i++)
   {
-    m_pImmediateContext->DrawIndexedInstancedIndirect(pBufferD3D11->GetD3D11Buffer(), uiCurrentOffset);
+    m_pDeviceContext->DrawIndexedInstancedIndirect(pBufferD3D11->GetD3D11Buffer(), uiCurrentOffset);
     uiCurrentOffset += uiStride;
   }
 }
@@ -315,31 +314,37 @@ void spCommandListD3D11::DispatchIndirectInternal(spBuffer* pIndirectBuffer, ezU
 {
   PreDispatch();
 
-  auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pIndirectBuffer);
-  m_pImmediateContext->DispatchIndirect(pBufferD3D11->GetD3D11Buffer(), uiOffset);
+  const auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pIndirectBuffer);
+  m_pDeviceContext->DispatchIndirect(pBufferD3D11->GetD3D11Buffer(), uiOffset);
 }
 
 void spCommandListD3D11::ResolveTextureInternal(spTexture* pSource, spTexture* pDestination)
 {
-  auto* pSourceD3D11 = ezStaticCast<spTextureD3D11*>(pSource);
-  auto* pDestinationD3D11 = ezStaticCast<spTextureD3D11*>(pDestination);
+  const auto* pSourceD3D11 = ezStaticCast<spTextureD3D11*>(pSource);
+  const auto* pDestinationD3D11 = ezStaticCast<spTextureD3D11*>(pDestination);
 
-  m_pImmediateContext->ResolveSubresource(pSourceD3D11->GetD3D11Texture(), 0, pDestinationD3D11->GetD3D11Texture(), 0, pDestinationD3D11->GetDXGIFormat());
+  m_pDeviceContext->ResolveSubresource(pSourceD3D11->GetD3D11Texture(), 0, pDestinationD3D11->GetD3D11Texture(), 0, pDestinationD3D11->GetDXGIFormat());
 }
 
 void spCommandListD3D11::SetFramebufferInternal(spFramebuffer* pFramebuffer)
 {
-  auto* pFramebufferD3D11 = ezStaticCast<spFramebufferD3D11*>(pFramebuffer);
+  m_pFramebuffer = ezStaticCast<spFramebufferD3D11*>(pFramebuffer);
+  m_pFramebuffer->EnsureResourceCreated();
 
   // TODO: Swapchain references
-
-  for (ezUInt32 i = 0, l = pFramebufferD3D11->GetColorTargets().GetCount(); i < l; ++i)
+  if (spSwapchainD3D11* pSwapchain = m_pFramebuffer->GetParentSwapchain(); pSwapchain != nullptr)
   {
-    UnbindSRVTexture(spTextureViewDescription(pFramebufferD3D11->GetColorTarget(i)));
+    pSwapchain->AddCommandListReference(this);
+    m_ReferencedSwapchains.PushBack(pSwapchain);
   }
 
-  const auto& views = pFramebufferD3D11->GetRenderTargetViews();
-  m_pImmediateContext->OMSetRenderTargets(views.GetCount(), views.GetPtr(), pFramebufferD3D11->GetDepthStencilView());
+  for (ezUInt32 i = 0, l = m_pFramebuffer->GetColorTargets().GetCount(); i < l; ++i)
+  {
+    UnbindSRVTexture(spTextureViewDescription(m_pFramebuffer->GetColorTarget(i)));
+  }
+
+  const auto& views = m_pFramebuffer->GetRenderTargetViews();
+  m_pDeviceContext->OMSetRenderTargets(views.GetCount(), views.GetPtr(), m_pFramebuffer->GetDepthStencilView());
 }
 
 void spCommandListD3D11::SetIndexBufferInternal(spBuffer* pIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset)
@@ -352,7 +357,7 @@ void spCommandListD3D11::SetIndexBufferInternal(spBuffer* pIndexBuffer, ezEnum<s
     m_uiIndexBufferOffset = uiOffset;
 
     UnbindUAVBuffer(pIndexBufferD3D11);
-    m_pImmediateContext->IASetIndexBuffer(m_pIndexBuffer->GetD3D11Buffer(), spToD3D11(eFormat), uiOffset);
+    m_pDeviceContext->IASetIndexBuffer(m_pIndexBuffer->GetD3D11Buffer(), spToD3D11(eFormat), uiOffset);
   }
 }
 
@@ -382,7 +387,7 @@ void spCommandListD3D11::SetGraphicResourceSetInternal(ezUInt32 uiSlot, spResour
 
 void spCommandListD3D11::SetVertexBufferInternal(ezUInt32 uiSlot, spBuffer* pVertexBuffer, ezUInt32 uiOffset)
 {
-  auto* pBuffer = ezStaticCast<spBufferD3D11*>(pVertexBuffer);
+  const auto* pBuffer = ezStaticCast<spBufferD3D11*>(pVertexBuffer);
 
   if (m_VertexBuffers[uiSlot] != pBuffer->GetD3D11Buffer() || m_VertexOffsets[uiSlot] != uiOffset)
   {
@@ -398,46 +403,46 @@ void spCommandListD3D11::SetVertexBufferInternal(ezUInt32 uiSlot, spBuffer* pVer
 
 void spCommandListD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize)
 {
-  auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pBuffer);
+  const auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pBuffer);
 
-  bool bDynamic = pBuffer->GetUsage().IsSet(spBufferUsage::Dynamic);
-  bool bStaging = pBuffer->GetUsage().IsSet(spBufferUsage::Staging);
-  bool bConstantBuffer = pBuffer->GetUsage().IsSet(spBufferUsage::ConstantBuffer);
-  bool bUseMap = bDynamic;
-  bool bUpdateFullBuffer = uiOffset == 0 && uiSize == pBufferD3D11->GetSize();
-  bool bUseUpdateSubresource = !bDynamic && !bStaging && (!bConstantBuffer || bUpdateFullBuffer);
+  const bool bDynamic = pBuffer->GetUsage().IsSet(spBufferUsage::Dynamic);
+  const bool bStaging = pBuffer->GetUsage().IsSet(spBufferUsage::Staging);
+  const bool bConstantBuffer = pBuffer->GetUsage().IsSet(spBufferUsage::ConstantBuffer);
+  const bool bUseMap = bDynamic;
+  const bool bUpdateFullBuffer = uiOffset == 0 && uiSize == pBufferD3D11->GetSize();
+  const bool bUseUpdateSubresource = !bDynamic && !bStaging && (!bConstantBuffer || bUpdateFullBuffer);
 
   if (bUseUpdateSubresource)
   {
-    D3D11_BOX region = {uiOffset, 0, 0, uiOffset + uiSize, 1, 1};
-    bool bHasRegion = !bConstantBuffer;
+    const D3D11_BOX region = {uiOffset, 0, 0, uiOffset + uiSize, 1, 1};
+    const bool bHasRegion = !bConstantBuffer;
 
     if (uiOffset == 0)
     {
-      m_pImmediateContext->UpdateSubresource(pBufferD3D11->GetD3D11Buffer(), 0, bHasRegion ? &region : nullptr, pSourceData, 0, 0);
+      m_pDeviceContext->UpdateSubresource(pBufferD3D11->GetD3D11Buffer(), 0, bHasRegion ? &region : nullptr, pSourceData, 0, 0);
     }
     else
     {
-      bool bNeedWorkAround = !m_pDevice->GetCapabilities().m_bSupportCommandLists;
+      const bool bNeedWorkAround = !m_pDevice->GetCapabilities().m_bSupportCommandLists;
       const void* pAdjustedData = pSourceData;
 
       if (bNeedWorkAround)
       {
         EZ_ASSERT_DEV(region.top == 0 && region.front == 0, "Invalid region.");
-        pAdjustedData = reinterpret_cast<const ezUInt8*>(pSourceData) - region.left;
+        pAdjustedData = static_cast<const ezUInt8*>(pSourceData) - region.left;
       }
 
-      m_pImmediateContext->UpdateSubresource(pBufferD3D11->GetD3D11Buffer(), 0, &region, pAdjustedData, 0, 0);
+      m_pDeviceContext->UpdateSubresource(pBufferD3D11->GetD3D11Buffer(), 0, &region, pAdjustedData, 0, 0);
     }
   }
   else if (bUseMap && bUpdateFullBuffer) // Can only update full buffer with WriteDiscard
   {
     D3D11_MAPPED_SUBRESOURCE mappedResource;
-    m_pImmediateContext->Map(pBufferD3D11->GetD3D11Buffer(), 0, spToD3D11(spMapAccess::Write, bDynamic), 0, &mappedResource);
+    m_pDeviceContext->Map(pBufferD3D11->GetD3D11Buffer(), 0, spToD3D11(spMapAccess::Write, bDynamic), 0, &mappedResource);
 
     ezMemoryUtils::RawByteCopy(mappedResource.pData, pSourceData, uiSize);
 
-    m_pImmediateContext->Unmap(pBufferD3D11->GetD3D11Buffer(), 0);
+    m_pDeviceContext->Unmap(pBufferD3D11->GetD3D11Buffer(), 0);
   }
   else
   {
@@ -450,21 +455,21 @@ void spCommandListD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffs
 
 void spCommandListD3D11::CopyBufferInternal(spBuffer* pSourceBuffer, ezUInt32 uiSourceOffset, spBuffer* pDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize)
 {
-  auto* pDestBufferD3D11 = ezStaticCast<spBufferD3D11*>(pDestBuffer);
-  auto* pSourceBufferD3D11 = ezStaticCast<spBufferD3D11*>(pSourceBuffer);
+  const auto* pDestBufferD3D11 = ezStaticCast<spBufferD3D11*>(pDestBuffer);
+  const auto* pSourceBufferD3D11 = ezStaticCast<spBufferD3D11*>(pSourceBuffer);
 
-  D3D11_BOX srcBox = {uiSourceOffset, 0, 0, uiSourceOffset + uiSize, 1, 1};
-  m_pImmediateContext->CopySubresourceRegion(pDestBufferD3D11->GetD3D11Buffer(), 0, uiDestOffset, 0, 0, pSourceBufferD3D11->GetD3D11Buffer(), uiSourceOffset, &srcBox);
+  const D3D11_BOX srcBox = {uiSourceOffset, 0, 0, uiSourceOffset + uiSize, 1, 1};
+  m_pDeviceContext->CopySubresourceRegion(pDestBufferD3D11->GetD3D11Buffer(), 0, uiDestOffset, 0, 0, pSourceBufferD3D11->GetD3D11Buffer(), uiSourceOffset, &srcBox);
 }
 
 void spCommandListD3D11::CopyTextureInternal(spTexture* pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, spTexture* pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount)
 {
-  auto* pSourceTextureD3D11 = ezStaticCast<spTextureD3D11*>(pSourceTexture);
-  auto* pDestinationTextureD3D11 = ezStaticCast<spTextureD3D11*>(pDestinationTexture);
+  const auto* pSourceTextureD3D11 = ezStaticCast<spTextureD3D11*>(pSourceTexture);
+  const auto* pDestinationTextureD3D11 = ezStaticCast<spTextureD3D11*>(pDestinationTexture);
 
-  ezUInt32 uiBlockSize = spPixelFormatHelper::IsCompressedFormat(pSourceTexture->GetFormat()) ? 4u : 1u;
-  ezUInt32 uiClampedWidth = ezMath::Max(uiWidth, uiBlockSize);
-  ezUInt32 uiClampedHeight = ezMath::Max(uiHeight, uiBlockSize);
+  const ezUInt32 uiBlockSize = spPixelFormatHelper::IsCompressedFormat(pSourceTexture->GetFormat()) ? 4u : 1u;
+  const ezUInt32 uiClampedWidth = ezMath::Max(uiWidth, uiBlockSize);
+  const ezUInt32 uiClampedHeight = ezMath::Max(uiHeight, uiBlockSize);
 
   D3D11_BOX region;
   bool bHasRegion = false;
@@ -476,30 +481,28 @@ void spCommandListD3D11::CopyTextureInternal(spTexture* pSourceTexture, ezUInt32
 
   for (ezUInt32 i = 0; i < uiLayerCount; ++i)
   {
-    ezUInt32 uiSrcSubresource = spTextureHelper::CalculateSubresource(pSourceTexture, uiSourceMipLevel, uiSourceBaseArrayLayer + i);
-    ezUInt32 uiDestSubresource = spTextureHelper::CalculateSubresource(pDestinationTexture, uiDestMipLevel, uiDestBaseArrayLayer + i);
+    const ezUInt32 uiSrcSubresource = spTextureHelper::CalculateSubresource(pSourceTexture, uiSourceMipLevel, uiSourceBaseArrayLayer + i);
+    const ezUInt32 uiDestSubresource = spTextureHelper::CalculateSubresource(pDestinationTexture, uiDestMipLevel, uiDestBaseArrayLayer + i);
 
-    m_pImmediateContext->CopySubresourceRegion(pDestinationTextureD3D11->GetD3D11Texture(), uiDestSubresource, uiDestX, uiDestY, uiDestZ, pSourceTextureD3D11->GetD3D11Texture(), uiSrcSubresource, bHasRegion ? &region : nullptr);
+    m_pDeviceContext->CopySubresourceRegion(pDestinationTextureD3D11->GetD3D11Texture(), uiDestSubresource, uiDestX, uiDestY, uiDestZ, pSourceTextureD3D11->GetD3D11Texture(), uiSrcSubresource, bHasRegion ? &region : nullptr);
   }
 }
 
 void spCommandListD3D11::GenerateMipmapsInternal(spTexture* pTexture)
 {
-  auto* pTextureD3D11 = ezStaticCast<spTextureD3D11*>(pTexture);
-
-  spResourceHandle hTextureView = m_pDevice->GetTextureSamplerManager()->GetFullTextureView(pTexture->GetHandle());
-  auto* pTextureViewD3D11 = m_pDevice->GetResourceManager()->GetResource<spTextureViewD3D11*>(hTextureView);
+  const spResourceHandle hTextureView = m_pDevice->GetTextureSamplerManager()->GetFullTextureView(pTexture->GetHandle());
+  const auto* pTextureViewD3D11 = m_pDevice->GetResourceManager()->GetResource<spTextureViewD3D11*>(hTextureView);
 
   ID3D11ShaderResourceView* pSRV = pTextureViewD3D11->GetShaderResourceView();
-  m_pImmediateContext->GenerateMips(pSRV);
+  m_pDeviceContext->GenerateMips(pSRV);
 }
 
 void spCommandListD3D11::Reset()
 {
   if (m_bHasStarted)
   {
-    m_pImmediateContext->ClearState();
-    m_pImmediateContext->FinishCommandList(false, &m_pCommandList);
+    m_pDeviceContext->ClearState();
+    m_pDeviceContext->FinishCommandList(false, &m_pCommandList);
   }
 
   SP_RHI_DX11_RELEASE(m_pCommandList);
@@ -511,7 +514,7 @@ void spCommandListD3D11::Reset()
 void spCommandListD3D11::ClearState()
 {
   ClearCachedState();
-  m_pImmediateContext->ClearState();
+  m_pDeviceContext->ClearState();
   ResetManagedState();
 }
 
@@ -570,15 +573,15 @@ void spCommandListD3D11::ClearSets(ezDynamicArray<spCommandListResourceSet>& set
 
 void spCommandListD3D11::ActivateResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet, bool bCompute)
 {
-  spResourceSetD3D11* pResourceSet = m_pDevice->GetResourceManager()->GetResource<spResourceSetD3D11>(resourceSet.m_hResourceSet);
+  const spResourceSetD3D11* pResourceSet = m_pDevice->GetResourceManager()->GetResource<spResourceSetD3D11>(resourceSet.m_hResourceSet);
   EZ_ASSERT_DEV(pResourceSet != nullptr, "Invalid resource set handle");
 
-  ezUInt32 uiConstantBufferBase = GetConstantBufferBase(uiSlot, bCompute);
-  ezUInt32 uiUnorderedAccessViewBase = GetUnorderedAccessViewBase(uiSlot, bCompute);
-  ezUInt32 uiTextureBase = GetTextureBase(uiSlot, bCompute);
-  ezUInt32 uiSamplerBase = GetSamplerBase(uiSlot, bCompute);
+  const ezUInt32 uiConstantBufferBase = GetConstantBufferBase(uiSlot, bCompute);
+  const ezUInt32 uiUnorderedAccessViewBase = GetUnorderedAccessViewBase(uiSlot, bCompute);
+  const ezUInt32 uiTextureBase = GetTextureBase(uiSlot, bCompute);
+  const ezUInt32 uiSamplerBase = GetSamplerBase(uiSlot, bCompute);
 
-  spResourceLayoutD3D11* pLayout = m_pDevice->GetResourceManager()->GetResource<spResourceLayoutD3D11>(pResourceSet->GetLayout());
+  const spResourceLayoutD3D11* pLayout = m_pDevice->GetResourceManager()->GetResource<spResourceLayoutD3D11>(pResourceSet->GetLayout());
   EZ_ASSERT_DEV(pLayout != nullptr, "Invalid resource layout handle");
 
   ezDynamicArray<spShaderResource*> resources = pResourceSet->GetResources();
@@ -612,14 +615,14 @@ void spCommandListD3D11::ActivateResourceSet(ezUInt32 uiSlot, const spCommandLis
       }
       case spShaderResourceType::ReadWriteStructuredBuffer:
       {
-        spBufferRangeD3D11* pBufferRange = GetBufferRange(pResource, uiBufferOffset);
+        const spBufferRangeD3D11* pBufferRange = GetBufferRange(pResource, uiBufferOffset);
         ID3D11UnorderedAccessView* pUAV = pBufferRange->GetBuffer()->GetUnorderedAccessView(pBufferRange->GetOffset(), pBufferRange->GetSize());
         BindUnorderedAccessView(nullptr, pBufferRange->GetBuffer(), pUAV, uiUnorderedAccessViewBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
         break;
       }
       case spShaderResourceType::ReadOnlyTexture:
       {
-        spTextureViewD3D11* pTextureView = ezStaticCast<spTextureViewD3D11*>(spTextureSamplerManager::GetTextureView(m_pDevice, pResource));
+        auto* pTextureView = ezStaticCast<spTextureViewD3D11*>(spTextureSamplerManager::GetTextureView(m_pDevice, pResource));
         spTextureD3D11* pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(pResourceSet->GetLayout());
         UnbindUAVTexture(pTextureView->GetDescription());
         BindTextureView(pTextureView, uiTextureBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
@@ -627,7 +630,7 @@ void spCommandListD3D11::ActivateResourceSet(ezUInt32 uiSlot, const spCommandLis
       }
       case spShaderResourceType::ReadWriteTexture:
       {
-        spTextureViewD3D11* pTextureView = ezStaticCast<spTextureViewD3D11*>(spTextureSamplerManager::GetTextureView(m_pDevice, pResource));
+        const auto* pTextureView = ezStaticCast<spTextureViewD3D11*>(spTextureSamplerManager::GetTextureView(m_pDevice, pResource));
         spTextureD3D11* pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(pResourceSet->GetLayout());
         UnbindSRVTexture(pTextureView->GetDescription());
         BindUnorderedAccessView(pTexture, nullptr, pTextureView->GetUnorderedAccessView(), uiUnorderedAccessViewBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
@@ -659,15 +662,12 @@ spBufferD3D11* spCommandListD3D11::GetFreeStagingBuffer(ezUInt32 uiSize)
     }
   }
 
-  spResourceHandle hBuffer = m_pDevice->GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging));
-  spBufferD3D11* pBuffer = m_pDevice->GetResourceManager()->GetResource<spBufferD3D11>(hBuffer);
-
-  return pBuffer;
+  return ezStaticCast<spBufferD3D11*>(m_pDevice->GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging)));
 }
 
-ezUInt32 spCommandListD3D11::GetConstantBufferBase(ezUInt32 uiSlot, bool bCompute)
+ezUInt32 spCommandListD3D11::GetConstantBufferBase(ezUInt32 uiSlot, bool bCompute) const
 {
-  ezArrayPtr<spResourceLayoutD3D11* const> layouts = bCompute ? static_cast<spComputePipelineD3D11*>(m_pComputePipeline)->GetResourceLayouts().GetArrayPtr() : static_cast<spGraphicPipelineD3D11*>(m_pGraphicPipeline)->GetResourceLayouts().GetArrayPtr();
+  ezArrayPtr<spResourceLayoutD3D11* const> layouts = bCompute ? ezStaticCast<spComputePipelineD3D11*>(m_pComputePipeline)->GetResourceLayouts().GetArrayPtr() : ezStaticCast<spGraphicPipelineD3D11*>(m_pGraphicPipeline)->GetResourceLayouts().GetArrayPtr();
   ezUInt32 uiBase = 0;
 
   for (ezUInt32 i = 0; i < uiSlot; ++i)
@@ -679,9 +679,9 @@ ezUInt32 spCommandListD3D11::GetConstantBufferBase(ezUInt32 uiSlot, bool bComput
   return uiBase;
 }
 
-ezUInt32 spCommandListD3D11::GetUnorderedAccessViewBase(ezUInt32 uiSlot, bool bCompute)
+ezUInt32 spCommandListD3D11::GetUnorderedAccessViewBase(ezUInt32 uiSlot, bool bCompute) const
 {
-  ezArrayPtr<spResourceLayoutD3D11* const> layouts = bCompute ? static_cast<spComputePipelineD3D11*>(m_pComputePipeline)->GetResourceLayouts().GetArrayPtr() : static_cast<spGraphicPipelineD3D11*>(m_pGraphicPipeline)->GetResourceLayouts().GetArrayPtr();
+  ezArrayPtr<spResourceLayoutD3D11* const> layouts = bCompute ? ezStaticCast<spComputePipelineD3D11*>(m_pComputePipeline)->GetResourceLayouts().GetArrayPtr() : ezStaticCast<spGraphicPipelineD3D11*>(m_pGraphicPipeline)->GetResourceLayouts().GetArrayPtr();
   ezUInt32 uiBase = 0;
 
   for (ezUInt32 i = 0; i < uiSlot; ++i)
@@ -693,9 +693,9 @@ ezUInt32 spCommandListD3D11::GetUnorderedAccessViewBase(ezUInt32 uiSlot, bool bC
   return uiBase;
 }
 
-ezUInt32 spCommandListD3D11::GetTextureBase(ezUInt32 uiSlot, bool bCompute)
+ezUInt32 spCommandListD3D11::GetTextureBase(ezUInt32 uiSlot, bool bCompute) const
 {
-  ezArrayPtr<spResourceLayoutD3D11* const> layouts = bCompute ? static_cast<spComputePipelineD3D11*>(m_pComputePipeline)->GetResourceLayouts().GetArrayPtr() : static_cast<spGraphicPipelineD3D11*>(m_pGraphicPipeline)->GetResourceLayouts().GetArrayPtr();
+  ezArrayPtr<spResourceLayoutD3D11* const> layouts = bCompute ? ezStaticCast<spComputePipelineD3D11*>(m_pComputePipeline)->GetResourceLayouts().GetArrayPtr() : ezStaticCast<spGraphicPipelineD3D11*>(m_pGraphicPipeline)->GetResourceLayouts().GetArrayPtr();
   ezUInt32 uiBase = 0;
 
   for (ezUInt32 i = 0; i < uiSlot; ++i)
@@ -707,9 +707,9 @@ ezUInt32 spCommandListD3D11::GetTextureBase(ezUInt32 uiSlot, bool bCompute)
   return uiBase;
 }
 
-ezUInt32 spCommandListD3D11::GetSamplerBase(ezUInt32 uiSlot, bool bCompute)
+ezUInt32 spCommandListD3D11::GetSamplerBase(ezUInt32 uiSlot, bool bCompute) const
 {
-  ezArrayPtr<spResourceLayoutD3D11* const> layouts = bCompute ? static_cast<spComputePipelineD3D11*>(m_pComputePipeline)->GetResourceLayouts().GetArrayPtr() : static_cast<spGraphicPipelineD3D11*>(m_pGraphicPipeline)->GetResourceLayouts().GetArrayPtr();
+  ezArrayPtr<spResourceLayoutD3D11* const> layouts = bCompute ? ezStaticCast<spComputePipelineD3D11*>(m_pComputePipeline)->GetResourceLayouts().GetArrayPtr() : ezStaticCast<spGraphicPipelineD3D11*>(m_pGraphicPipeline)->GetResourceLayouts().GetArrayPtr();
   ezUInt32 uiBase = 0;
 
   for (ezUInt32 i = 0; i < uiSlot; ++i)
@@ -721,22 +721,22 @@ ezUInt32 spCommandListD3D11::GetSamplerBase(ezUInt32 uiSlot, bool bCompute)
   return uiBase;
 }
 
-spBufferRangeD3D11* spCommandListD3D11::GetBufferRange(spShaderResource* pResource, ezUInt32 uiOffset)
+spBufferRangeD3D11* spCommandListD3D11::GetBufferRange(spShaderResource* pResource, ezUInt32 uiOffset) const
 {
   spBufferRangeD3D11* pBufferRange = nullptr;
-  spBufferRangeD3D11* pBufferRangeSource = nullptr;
+  const spBufferRangeD3D11* pBufferRangeSource = nullptr;
 
   if (pResource->IsInstanceOf<spBufferD3D11>())
   {
-    auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pResource);
-    pBufferRangeSource = m_pDevice->GetResourceManager()->GetResource<spBufferRangeD3D11*>(pBufferD3D11->GetCurrentBuffer());
+    const auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pResource);
+    pBufferRangeSource = ezStaticCast<spBufferRangeD3D11*>(pBufferD3D11->GetCurrentBuffer());
   }
   else if (pResource->IsInstanceOf<spBufferRangeD3D11>())
   {
     pBufferRangeSource = ezStaticCast<spBufferRangeD3D11*>(pResource);
   }
 
-  pBufferRange = EZ_DEFAULT_NEW(spBufferRangeD3D11, static_cast<spDeviceD3D11*>(m_pDevice), spBufferRangeDescription(pBufferRangeSource->GetBuffer()->GetHandle(), uiOffset + pBufferRangeSource->GetOffset(), pBufferRangeSource->GetSize()));
+  pBufferRange = EZ_DEFAULT_NEW(spBufferRangeD3D11, ezStaticCast<spDeviceD3D11*>(m_pDevice), spBufferRangeDescription(pBufferRangeSource->GetBuffer()->GetHandle(), uiOffset + pBufferRangeSource->GetOffset(), pBufferRangeSource->GetSize()));
   m_pDevice->GetResourceManager()->RegisterResource(pBufferRange);
 
   return pBufferRange;
@@ -765,15 +765,15 @@ void spCommandListD3D11::BindConstantBuffer(spBufferRangeD3D11* pBufferRange, ez
       if (pBufferRange->IsFullRange())
       {
         ID3D11Buffer* pBuffer = pBufferRange->GetBuffer()->GetD3D11Buffer();
-        m_pImmediateContext->VSSetConstantBuffers(uiSlot, 1, &pBuffer);
+        m_pDeviceContext->VSSetConstantBuffers(uiSlot, 1, &pBuffer);
       }
       else
       {
         PackRangeParams(pBufferRange);
         if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-          m_pImmediateContext->VSSetConstantBuffers(uiSlot, 1, nullptr);
+          m_pDeviceContext->VSSetConstantBuffers(uiSlot, 1, nullptr);
 
-        m_pImmediateContext1->VSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
+        m_pDeviceContext1->VSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
       }
     }
   }
@@ -783,15 +783,15 @@ void spCommandListD3D11::BindConstantBuffer(spBufferRangeD3D11* pBufferRange, ez
     if (pBufferRange->IsFullRange())
     {
       ID3D11Buffer* pBuffer = pBufferRange->GetBuffer()->GetD3D11Buffer();
-      m_pImmediateContext->GSSetConstantBuffers(uiSlot, 1, &pBuffer);
+      m_pDeviceContext->GSSetConstantBuffers(uiSlot, 1, &pBuffer);
     }
     else
     {
       PackRangeParams(pBufferRange);
       if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-        m_pImmediateContext->GSSetConstantBuffers(uiSlot, 1, nullptr);
+        m_pDeviceContext->GSSetConstantBuffers(uiSlot, 1, nullptr);
 
-      m_pImmediateContext1->GSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
+      m_pDeviceContext1->GSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
     }
   }
 
@@ -800,15 +800,15 @@ void spCommandListD3D11::BindConstantBuffer(spBufferRangeD3D11* pBufferRange, ez
     if (pBufferRange->IsFullRange())
     {
       ID3D11Buffer* pBuffer = pBufferRange->GetBuffer()->GetD3D11Buffer();
-      m_pImmediateContext->HSSetConstantBuffers(uiSlot, 1, &pBuffer);
+      m_pDeviceContext->HSSetConstantBuffers(uiSlot, 1, &pBuffer);
     }
     else
     {
       PackRangeParams(pBufferRange);
       if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-        m_pImmediateContext->HSSetConstantBuffers(uiSlot, 1, nullptr);
+        m_pDeviceContext->HSSetConstantBuffers(uiSlot, 1, nullptr);
 
-      m_pImmediateContext1->HSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
+      m_pDeviceContext1->HSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
     }
   }
 
@@ -817,15 +817,15 @@ void spCommandListD3D11::BindConstantBuffer(spBufferRangeD3D11* pBufferRange, ez
     if (pBufferRange->IsFullRange())
     {
       ID3D11Buffer* pBuffer = pBufferRange->GetBuffer()->GetD3D11Buffer();
-      m_pImmediateContext->DSSetConstantBuffers(uiSlot, 1, &pBuffer);
+      m_pDeviceContext->DSSetConstantBuffers(uiSlot, 1, &pBuffer);
     }
     else
     {
       PackRangeParams(pBufferRange);
       if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-        m_pImmediateContext->DSSetConstantBuffers(uiSlot, 1, nullptr);
+        m_pDeviceContext->DSSetConstantBuffers(uiSlot, 1, nullptr);
 
-      m_pImmediateContext1->DSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
+      m_pDeviceContext1->DSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
     }
   }
 
@@ -850,15 +850,15 @@ void spCommandListD3D11::BindConstantBuffer(spBufferRangeD3D11* pBufferRange, ez
       if (pBufferRange->IsFullRange())
       {
         ID3D11Buffer* pBuffer = pBufferRange->GetBuffer()->GetD3D11Buffer();
-        m_pImmediateContext->PSSetConstantBuffers(uiSlot, 1, &pBuffer);
+        m_pDeviceContext->PSSetConstantBuffers(uiSlot, 1, &pBuffer);
       }
       else
       {
         PackRangeParams(pBufferRange);
         if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-          m_pImmediateContext->PSSetConstantBuffers(uiSlot, 1, nullptr);
+          m_pDeviceContext->PSSetConstantBuffers(uiSlot, 1, nullptr);
 
-        m_pImmediateContext1->PSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
+        m_pDeviceContext1->PSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
       }
     }
   }
@@ -868,15 +868,15 @@ void spCommandListD3D11::BindConstantBuffer(spBufferRangeD3D11* pBufferRange, ez
     if (pBufferRange->IsFullRange())
     {
       ID3D11Buffer* pBuffer = pBufferRange->GetBuffer()->GetD3D11Buffer();
-      m_pImmediateContext->CSSetConstantBuffers(uiSlot, 1, &pBuffer);
+      m_pDeviceContext->CSSetConstantBuffers(uiSlot, 1, &pBuffer);
     }
     else
     {
       PackRangeParams(pBufferRange);
       if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-        m_pImmediateContext->CSSetConstantBuffers(uiSlot, 1, nullptr);
+        m_pDeviceContext->CSSetConstantBuffers(uiSlot, 1, nullptr);
 
-      m_pImmediateContext1->CSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
+      m_pDeviceContext1->CSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
     }
   }
 }
@@ -888,22 +888,22 @@ void spCommandListD3D11::BindStorageBufferView(spBufferRangeD3D11* pBufferRange,
   ID3D11ShaderResourceView* pSRV = pBufferRange->GetBuffer()->GetShaderResourceView(pBufferRange->GetOffset(), pBufferRange->GetSize());
 
   if (eStages.IsSet(spShaderStage::VertexShader))
-    m_pImmediateContext->VSSetShaderResources(uiSlot, 1, &pSRV);
+    m_pDeviceContext->VSSetShaderResources(uiSlot, 1, &pSRV);
 
   if (eStages.IsSet(spShaderStage::GeometryShader))
-    m_pImmediateContext->GSSetShaderResources(uiSlot, 1, &pSRV);
+    m_pDeviceContext->GSSetShaderResources(uiSlot, 1, &pSRV);
 
   if (eStages.IsSet(spShaderStage::HullShader))
-    m_pImmediateContext->HSSetShaderResources(uiSlot, 1, &pSRV);
+    m_pDeviceContext->HSSetShaderResources(uiSlot, 1, &pSRV);
 
   if (eStages.IsSet(spShaderStage::DomainShader))
-    m_pImmediateContext->DSSetShaderResources(uiSlot, 1, &pSRV);
+    m_pDeviceContext->DSSetShaderResources(uiSlot, 1, &pSRV);
 
   if (eStages.IsSet(spShaderStage::PixelShader))
-    m_pImmediateContext->PSSetShaderResources(uiSlot, 1, &pSRV);
+    m_pDeviceContext->PSSetShaderResources(uiSlot, 1, &pSRV);
 
   if (eStages.IsSet(spShaderStage::ComputeShader))
-    m_pImmediateContext->CSSetShaderResources(uiSlot, 1, &pSRV);
+    m_pDeviceContext->CSSetShaderResources(uiSlot, 1, &pSRV);
 }
 
 void spCommandListD3D11::BindTextureView(spTextureViewD3D11* pTextureView, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot)
@@ -933,23 +933,23 @@ void spCommandListD3D11::BindTextureView(spTextureViewD3D11* pTextureView, ezUIn
 
     if (bBind)
     {
-      m_pImmediateContext->VSSetShaderResources(uiSlot, 1, &pSRV);
+      m_pDeviceContext->VSSetShaderResources(uiSlot, 1, &pSRV);
     }
   }
 
   if (eStages.IsSet(spShaderStage::GeometryShader))
   {
-    m_pImmediateContext->GSSetShaderResources(uiSlot, 1, &pSRV);
+    m_pDeviceContext->GSSetShaderResources(uiSlot, 1, &pSRV);
   }
 
   if (eStages.IsSet(spShaderStage::HullShader))
   {
-    m_pImmediateContext->HSSetShaderResources(uiSlot, 1, &pSRV);
+    m_pDeviceContext->HSSetShaderResources(uiSlot, 1, &pSRV);
   }
 
   if (eStages.IsSet(spShaderStage::DomainShader))
   {
-    m_pImmediateContext->DSSetShaderResources(uiSlot, 1, &pSRV);
+    m_pDeviceContext->DSSetShaderResources(uiSlot, 1, &pSRV);
   }
 
   if (eStages.IsSet(spShaderStage::PixelShader))
@@ -970,26 +970,26 @@ void spCommandListD3D11::BindTextureView(spTextureViewD3D11* pTextureView, ezUIn
 
     if (bBind)
     {
-      m_pImmediateContext->PSSetShaderResources(uiSlot, 1, &pSRV);
+      m_pDeviceContext->PSSetShaderResources(uiSlot, 1, &pSRV);
     }
   }
 
   if (eStages.IsSet(spShaderStage::ComputeShader))
   {
-    m_pImmediateContext->CSSetShaderResources(uiSlot, 1, &pSRV);
+    m_pDeviceContext->CSSetShaderResources(uiSlot, 1, &pSRV);
   }
 }
 
 void spCommandListD3D11::BindUnorderedAccessView(spTextureD3D11* pTexture, spBufferD3D11* pBuffer, ID3D11UnorderedAccessView* pUAV, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot)
 {
-  bool bCompute = eStages == spShaderStage::ComputeShader;
+  const bool bCompute = eStages == spShaderStage::ComputeShader;
   EZ_ASSERT_DEV(bCompute || !eStages.IsSet(spShaderStage::ComputeShader), "Unordered access views cannot be bound on compute and graphic stages at the same time.");
   EZ_ASSERT_DEV(pTexture == nullptr || pBuffer == nullptr, "Cannot bind unordered access views to textures and buffers at the same time.");
 
   if (pTexture != nullptr && pUAV != nullptr)
   {
-    BoundTextureInfo info = {uiSlot, eStages, uiSetSlot};
-    spTextureViewDescription desc = spTextureViewDescription(pTexture);
+    BoundTextureInfo info{uiSlot, eStages, uiSetSlot};
+    spTextureViewDescription desc(pTexture);
     m_BoundUAVs.Insert(desc, info);
   }
 
@@ -997,14 +997,14 @@ void spCommandListD3D11::BindUnorderedAccessView(spTextureD3D11* pTexture, spBuf
   if (!bCompute && !m_CachedPixelSamplerStates.IsEmpty())
     uiBaseSlot = m_pFramebuffer->GetColorTargets().GetCount();
 
-  ezUInt32 uiActualSlot = uiBaseSlot + uiSlot;
+  const ezUInt32 uiActualSlot = uiBaseSlot + uiSlot;
   if (pBuffer != nullptr)
     TrackBoundUAVBuffer(pBuffer, uiActualSlot, bCompute);
 
   if (bCompute)
-    m_pImmediateContext->CSSetUnorderedAccessViews(uiActualSlot, 1, &pUAV, nullptr);
+    m_pDeviceContext->CSSetUnorderedAccessViews(uiActualSlot, 1, &pUAV, nullptr);
   else
-    m_pImmediateContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, uiActualSlot, 1, &pUAV, nullptr);
+    m_pDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, uiActualSlot, 1, &pUAV, nullptr);
 }
 
 void spCommandListD3D11::BindSampler(spSamplerD3D11* pSampler, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages)
@@ -1029,23 +1029,23 @@ void spCommandListD3D11::BindSampler(spSamplerD3D11* pSampler, ezUInt32 uiSlot, 
 
     if (bBind)
     {
-      m_pImmediateContext->VSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
+      m_pDeviceContext->VSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
     }
   }
 
   if (eStages.IsSet(spShaderStage::GeometryShader))
   {
-    m_pImmediateContext->GSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
+    m_pDeviceContext->GSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
   }
 
   if (eStages.IsSet(spShaderStage::HullShader))
   {
-    m_pImmediateContext->HSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
+    m_pDeviceContext->HSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
   }
 
   if (eStages.IsSet(spShaderStage::DomainShader))
   {
-    m_pImmediateContext->DSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
+    m_pDeviceContext->DSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
   }
 
   if (eStages.IsSet(spShaderStage::PixelShader))
@@ -1066,13 +1066,13 @@ void spCommandListD3D11::BindSampler(spSamplerD3D11* pSampler, ezUInt32 uiSlot, 
 
     if (bBind)
     {
-      m_pImmediateContext->PSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
+      m_pDeviceContext->PSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
     }
   }
 
   if (eStages.IsSet(spShaderStage::ComputeShader))
   {
-    m_pImmediateContext->CSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
+    m_pDeviceContext->CSSetSamplers(uiSlot, 1, &pD3D11SamplerState);
   }
 }
 
@@ -1092,8 +1092,9 @@ void spCommandListD3D11::UnbindSRVTexture(const spTextureViewDescription& desc)
     }
   }
 
-  bool bResult = m_BoundSRVs.RemoveAndCopy(desc);
-  EZ_ASSERT_DEV(bResult, "The bound texture was not found.");
+  while (m_BoundSRVs.RemoveAndCopy(desc))
+  {
+  }
 
   m_BoundSRVs.Compact();
 }
@@ -1114,8 +1115,9 @@ void spCommandListD3D11::UnbindUAVTexture(const spTextureViewDescription& desc)
     }
   }
 
-  bool bResult = m_BoundUAVs.RemoveAndCopy(desc);
-  EZ_ASSERT_DEV(bResult, "The bound texture was not found.");
+  while (m_BoundUAVs.RemoveAndCopy(desc))
+  {
+  }
 
   m_BoundUAVs.Compact();
 }
@@ -1131,12 +1133,12 @@ void spCommandListD3D11::UnbindUAVBufferPipeline(const spBufferD3D11* pBuffer, b
   auto& list = bCompute ? m_CachedComputeUAVBuffers : m_CachedGraphicUAVBuffers;
   for (ezUInt32 i = 0; i < list.GetCount(); ++i)
   {
-    ezUInt32 uiSlot = list[i].second;
+    const ezUInt32 uiSlot = list[i].second;
 
     if (bCompute)
-      m_pImmediateContext->CSSetUnorderedAccessViews(uiSlot, 1, nullptr, nullptr);
+      m_pDeviceContext->CSSetUnorderedAccessViews(uiSlot, 1, nullptr, nullptr);
     else
-      m_pImmediateContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, uiSlot, 1, nullptr, nullptr);
+      m_pDeviceContext->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, uiSlot, 1, nullptr, nullptr);
 
     list.RemoveAtAndSwap(i);
     --i;
@@ -1149,7 +1151,7 @@ void spCommandListD3D11::PreDraw()
   FlushScissorRects();
   FlushVertexBindings();
 
-  ezUInt32 uiGraphicResourceCount = m_pGraphicPipeline->GetResourceLayouts().GetCount();
+  const ezUInt32 uiGraphicResourceCount = m_pGraphicPipeline->GetResourceLayouts().GetCount();
   for (ezUInt32 i = 0; i < uiGraphicResourceCount; ++i)
   {
     if (m_InvalidatedGraphicResourceSets[i])
@@ -1162,7 +1164,7 @@ void spCommandListD3D11::PreDraw()
 
 void spCommandListD3D11::PreDispatch()
 {
-  ezUInt32 uiComputeResourceCount = m_pComputePipeline->GetResourceLayouts().GetCount();
+  const ezUInt32 uiComputeResourceCount = m_pComputePipeline->GetResourceLayouts().GetCount();
   for (ezUInt32 i = 0; i < uiComputeResourceCount; ++i)
   {
     if (m_InvalidatedComputeResourceSets[i])
@@ -1183,7 +1185,7 @@ void spCommandListD3D11::FlushViewports()
   if (m_Viewports.IsEmpty())
     return;
 
-  m_pImmediateContext->RSSetViewports(m_Viewports.GetCount(), m_Viewports.GetData());
+  m_pDeviceContext->RSSetViewports(m_Viewports.GetCount(), m_Viewports.GetData());
 }
 
 void spCommandListD3D11::FlushScissorRects()
@@ -1196,7 +1198,7 @@ void spCommandListD3D11::FlushScissorRects()
   if (m_ScissorRects.IsEmpty())
     return;
 
-  m_pImmediateContext->RSSetScissorRects(m_ScissorRects.GetCount(), m_ScissorRects.GetData());
+  m_pDeviceContext->RSSetScissorRects(m_ScissorRects.GetCount(), m_ScissorRects.GetData());
 }
 
 void spCommandListD3D11::FlushVertexBindings()
@@ -1209,14 +1211,14 @@ void spCommandListD3D11::FlushVertexBindings()
   if (m_uiNumVertexBuffers == 0)
     return;
 
-  m_pImmediateContext->IASetVertexBuffers(0, m_uiNumVertexBuffers, m_VertexBuffers.GetData(), m_VertexStrides.GetData(), m_VertexOffsets.GetData());
+  m_pDeviceContext->IASetVertexBuffers(0, m_uiNumVertexBuffers, m_VertexBuffers.GetData(), m_VertexStrides.GetData(), m_VertexOffsets.GetData());
 }
 
 void spCommandListD3D11::PackRangeParams(spBufferRangeD3D11* pBufferRange)
 {
   m_ConstantBuffersOut[0] = pBufferRange->GetBuffer()->GetD3D11Buffer();
   m_FirstConstantBufferRef[0] = pBufferRange->GetOffset() / 16;
-  ezUInt32 uiRoundedSize = pBufferRange->GetSize() < 256 ? 256u : pBufferRange->GetSize();
+  const ezUInt32 uiRoundedSize = pBufferRange->GetSize() < 256 ? 256u : pBufferRange->GetSize();
   m_ConstantBuffersRefCounts[0] = uiRoundedSize / 16;
 }
 

@@ -4,6 +4,8 @@
 
 #include <RHI/Swapchain.h>
 
+#include <Foundation/Containers/List.h>
+
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
 #  include <Foundation/Basics/Platform/uwp/UWPUtils.h>
 #  include <windows.ui.xaml.media.dxinterop.h>
@@ -16,8 +18,6 @@ class spTextureD3D11;
 
 class SP_RHID3D11_DLL spRenderingSurfaceWin32 final : public spRenderingSurface
 {
-  EZ_ADD_DYNAMIC_REFLECTION(spRenderingSurfaceWin32, spRenderingSurface);
-
 public:
   spRenderingSurfaceWin32(HWND pHWND, HINSTANCE pInstance, bool bIsFullscreen = false)
     : m_pHWND(pHWND)
@@ -38,11 +38,11 @@ private:
   bool m_bIsFullscreen{false};
 };
 
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spRenderingSurfaceWin32);
+
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
 class SP_RHID3D11_DLL spRenderingSurfaceUWP final : public spRenderingSurface
 {
-  EZ_ADD_DYNAMIC_REFLECTION(spRenderingSurfaceUWP, spRenderingSurface);
-
 public:
   spRenderingSurfaceUWP(void* pSwapchainPanelNative, float fLogicalDpi)
     : m_pSwapchainPanelNative(pSwapchainPanelNative)
@@ -57,6 +57,8 @@ private:
   void* m_pSwapchainPanelNative;
   float m_fLogicalDpi;
 };
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spRenderingSurfaceUWP);
 #endif
 
 class SP_RHID3D11_DLL spSwapchainD3D11 final : public spSwapchain
@@ -76,6 +78,7 @@ public:
   void SetVSync(bool bVSync) override;
   EZ_NODISCARD EZ_ALWAYS_INLINE bool GetVSync() const override { return m_bVSync; }
   void Resize(ezUInt32 uiWidth, ezUInt32 uiHeight) override;
+  void Present() override;
 
   // spSwapchainD3D11
 

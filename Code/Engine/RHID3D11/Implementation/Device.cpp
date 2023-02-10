@@ -106,9 +106,9 @@ void spDeviceD3D11::SubmitCommandList(const spResourceHandle& hCommandList, cons
   {
     EZ_LOCK(m_ImmediateContextMutex);
 
-    if (pCommandList->GetD3D11CommandList() != nullptr) // Command list already submitted or resetted
+    if (pCommandList->GetD3D11CommandList() != nullptr) // Command list already submitted or has been reset
     {
-      m_pD3D11DeviceContext->ExecuteCommandList(pCommandList->GetD3D11CommandList(), false);
+      m_pD3D11DeviceContext->ExecuteCommandList(pCommandList->GetD3D11CommandList(), FALSE);
       pCommandList->OnComplete();
     }
   }
@@ -144,6 +144,14 @@ void spDeviceD3D11::ResetFence(const spResourceHandle& hFence)
     return;
 
   return pFence->Reset();
+}
+
+void spDeviceD3D11::Present()
+{
+  if (m_pMainSwapchain)
+  {
+    m_pMainSwapchain->Present();
+  }
 }
 
 ezEnum<spTextureSampleCount> spDeviceD3D11::GetTextureSampleCountLimit(const ezEnum<spPixelFormat>& eFormat, bool bIsDepthFormat)
@@ -215,32 +223,30 @@ void spDeviceD3D11::Destroy()
 
   m_AvailableStagingBuffers.Clear();
 
-  //  delete m_pResourceFactory;
-  delete m_pMainSwapchain;
+  m_pResourceManager->ReleaseResource(m_pMainSwapchain->GetHandle());
+
   SP_RHI_DX11_RELEASE(m_pD3D11DeviceContext);
+  SP_RHI_DX11_RELEASE(m_pD3D11Device3);
 
   if (IsDebugEnabled())
   {
     if (m_pD3D11Device->Release() > 0)
     {
       spD3D11ScopedResource<ID3D11Debug> pDeviceDebug;
-      const HRESULT res = m_pD3D11Device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&pDeviceDebug));
+      const HRESULT res = m_pD3D11Device->QueryInterface(IID_ID3D11Debug, reinterpret_cast<void**>(&pDeviceDebug));
       EZ_HRESULT_TO_ASSERT(res);
 
       if (*pDeviceDebug != nullptr)
-      {
         pDeviceDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY | D3D11_RLDO_DETAIL | D3D11_RLDO_IGNORE_INTERNAL);
-        pDeviceDebug->Release();
-      }
     }
-
-    SP_RHI_DX11_RELEASE(m_pDXGIAdapter);
   }
   else
   {
     SP_RHI_DX11_RELEASE(m_pD3D11Device);
-    SP_RHI_DX11_RELEASE(m_pDXGIAdapter);
   }
+
+  SP_RHI_DX11_RELEASE(m_pDXGIAdapter);
+  SP_RHI_DX11_RELEASE(m_pDXGIDevice);
 }
 
 void spDeviceD3D11::WaitForIdleInternal()
@@ -327,7 +333,7 @@ void spDeviceD3D11::UnMapInternal(spBuffer* pBuffer)
 
 void spDeviceD3D11::UnMapInternal(spTexture* pTexture, ezUInt32 uiSubresource)
 {
-  spMappedResourceCacheKey key(pTexture, uiSubresource);
+  const spMappedResourceCacheKey key(pTexture, uiSubresource);
   EZ_LOCK(m_MappedResourcesMutex);
 
   spMappedResource mappedResource;
@@ -407,7 +413,7 @@ void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, c
 }
 
 spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescriptionD3D11& deviceDescription)
-  : spDevice(pAllocator, deviceDescription)
+  : spDevice(pAllocator, static_cast<spDeviceDescription>(deviceDescription))
 {
   m_pResourceManager = EZ_DEFAULT_NEW(spDeviceResourceManagerD3D11, this);
   m_pResourceFactory = EZ_DEFAULT_NEW(spDeviceResourceFactoryD3D11, this);
@@ -426,22 +432,26 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
   m_bIsDebugEnabled = (uiFlags & D3D11_CREATE_DEVICE_DEBUG) != 0;
 
   constexpr D3D_FEATURE_LEVEL featureLevels[] = {D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0};
-  HRESULT res = D3D11CreateDevice(deviceDescription.m_pD3D11Adapter, D3D_DRIVER_TYPE_HARDWARE, nullptr, uiFlags, &featureLevels[0], 2, D3D11_SDK_VERSION, &m_pD3D11Device, (D3D_FEATURE_LEVEL*)&m_uiFeatureLevel, &m_pD3D11DeviceContext);
+  HRESULT res = D3D11CreateDevice(deviceDescription.m_pD3D11Adapter, D3D_DRIVER_TYPE_HARDWARE, nullptr, uiFlags, &featureLevels[0], 2, D3D11_SDK_VERSION, &m_pD3D11Device, (D3D_FEATURE_LEVEL*)&m_uiFeatureLevel, nullptr);
 
   if (FAILED(res))
   {
     ezLog::Error("Failed to create D3D11 device. Trying fallback device creation.");
-    res = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, uiFlags, &featureLevels[0], 2, D3D11_SDK_VERSION, &m_pD3D11Device, (D3D_FEATURE_LEVEL*)&m_uiFeatureLevel, &m_pD3D11DeviceContext);
+    res = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, uiFlags, &featureLevels[0], 2, D3D11_SDK_VERSION, &m_pD3D11Device, (D3D_FEATURE_LEVEL*)&m_uiFeatureLevel, nullptr);
     EZ_HRESULT_TO_ASSERT(res);
   }
 
   {
-    spD3D11ScopedResource<IDXGIDevice> pDXGIDevice;
-    if (SUCCEEDED(m_pD3D11Device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&pDXGIDevice))))
+    if (SUCCEEDED(m_pD3D11Device->QueryInterface(IID_IDXGIDevice1, reinterpret_cast<void**>(&m_pDXGIDevice))))
     {
+      if (FAILED(m_pDXGIDevice->SetMaximumFrameLatency(1)))
+      {
+        ezLog::Warning("Failed to set max frames latency");
+      }
+
       // Store a pointer to the adapter
       // This is for the case of no preferred adapter, or fallback to warp.
-      res = pDXGIDevice->GetAdapter(&m_pDXGIAdapter);
+      res = m_pDXGIDevice->GetAdapter(&m_pDXGIAdapter);
       EZ_HRESULT_TO_ASSERT(res);
 
       DXGI_ADAPTER_DESC desc;
@@ -491,12 +501,11 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
 
   if (deviceDescription.m_bHasMainSwapchain)
   {
-    m_pMainSwapchain = new spSwapchainD3D11(this, deviceDescription.m_MainSwapchainDescription);
-    GetResourceManager()->RegisterResource(static_cast<spDeviceResource*>(m_pMainSwapchain));
+    m_pMainSwapchain = ezStaticCast<spSwapchainD3D11*>(m_pResourceFactory->CreateSwapchain(deviceDescription.m_MainSwapchainDescription));
   }
 
   {
-    if (FAILED(m_pD3D11Device->QueryInterface(__uuidof(ID3D11Device3), reinterpret_cast<void**>(&m_pD3D11Device3))))
+    if (FAILED(m_pD3D11Device->QueryInterface(IID_ID3D11Device3, reinterpret_cast<void**>(&m_pD3D11Device3))))
     {
       ezLog::Warning("Failed to get ID3D11Device3 from D3D11 device, some features won't be available.");
       m_pD3D11Device3 = nullptr;
@@ -519,9 +528,6 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
       m_bSupportsConcurrentResources = support.DriverConcurrentCreates;
       m_bSupportsCommandLists = support.DriverCommandLists;
     }
-
-    D3D11_FEATURE_DATA_THREADING featureDataThread;
-    m_pD3D11Device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &featureDataThread, sizeof(D3D11_FEATURE_DATA_THREADING));
 
     m_Capabilities.m_bBufferRangeBinding = m_pD3D11Device->GetFeatureLevel() >= D3D_FEATURE_LEVEL_11_1;
     m_Capabilities.m_bCommandListDebugMarkers = m_pD3D11Device->GetFeatureLevel() >= D3D_FEATURE_LEVEL_11_1;
@@ -547,12 +553,12 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
     m_Capabilities.m_bTessellationShader = true;
     m_Capabilities.m_bTexture1D = true;
     m_Capabilities.m_bConservaiveRasterization = CheckConservativeRasterizationSupport(m_pD3D11Device3);
-    m_Capabilities.m_bSupportCommandLists = featureDataThread.DriverCommandLists;
-    m_Capabilities.m_bSupportConcurrentResources = featureDataThread.DriverConcurrentCreates;
+    m_Capabilities.m_bSupportCommandLists = m_bSupportsCommandLists;
+    m_Capabilities.m_bSupportConcurrentResources = m_bSupportsConcurrentResources;
   }
 }
 
-bool spDeviceD3D11::CheckFormatMultisample(DXGI_FORMAT format, ezUInt32 uiSampleCount)
+bool spDeviceD3D11::CheckFormatMultisample(DXGI_FORMAT format, ezUInt32 uiSampleCount) const
 {
   UINT uiQualityLevels = 0;
   m_pD3D11Device->CheckMultisampleQualityLevels(format, uiSampleCount, &uiQualityLevels);
@@ -575,8 +581,7 @@ spBufferD3D11* spDeviceD3D11::GetFreeStagingBuffer(ezUInt32 uiSize)
     }
   }
 
-  const spResourceHandle hStaging = GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging));
-  return GetResourceManager()->GetResource<spBufferD3D11>(hStaging);
+  return ezStaticCast<spBufferD3D11*>(GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging)));
 }
 
 spDeviceD3D11::~spDeviceD3D11()

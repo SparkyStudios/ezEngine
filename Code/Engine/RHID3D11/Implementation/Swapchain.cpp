@@ -1,4 +1,4 @@
-﻿#include <RHID3D11/RHID3D11PCH.h>
+#include <RHID3D11/RHID3D11PCH.h>
 
 #include <RHID3D11/CommandList.h>
 #include <RHID3D11/Core.h>
@@ -7,22 +7,21 @@
 #include <RHID3D11/Swapchain.h>
 #include <RHID3D11/Texture.h>
 
-// clang-off
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderingSurfaceWin32, 1, ezRTTINoAllocator)
-EZ_END_DYNAMIC_REFLECTED_TYPE;
-
-#if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderingSurfaceUWP, 1, ezRTTINoAllocator)
-EZ_END_DYNAMIC_REFLECTED_TYPE;
-#endif
-// clang-on
-
 void spSwapchainD3D11::ReleaseResource()
 {
+  if (IsReleased())
+    return;
+
   if (m_pDepthTexture != nullptr)
   {
     m_pDevice->GetResourceManager()->ReleaseResource(m_pDepthTexture->GetHandle());
     m_pDepthTexture = nullptr;
+  }
+
+  if (m_pBackBufferTexture != nullptr)
+  {
+    m_pDevice->GetResourceManager()->ReleaseResource(m_pBackBufferTexture->GetHandle());
+    m_pBackBufferTexture = nullptr;
   }
 
   if (m_pFramebuffer != nullptr)
@@ -30,6 +29,12 @@ void spSwapchainD3D11::ReleaseResource()
     m_pDevice->GetResourceManager()->ReleaseResource(m_pFramebuffer->GetHandle());
     m_pFramebuffer = nullptr;
   }
+
+#if EZ_DISABLED(EZ_PLATFORM_WINDOWS_UWP)
+  // Full screen swap chains must be switched to windowed mode before destruction.
+  // See: https://msdn.microsoft.com/en-us/library/windows/desktop/bb205075(v=vs.85).aspx#Destroying
+  m_pD3D11SwapChain->SetFullscreenState(FALSE, NULL);
+#endif
 
   SP_RHI_DX11_RELEASE(m_pD3D11SwapChain);
 }
@@ -78,9 +83,13 @@ void spSwapchainD3D11::Resize(ezUInt32 uiWidth, ezUInt32 uiHeight)
     bResizeBuffers = true;
 
     if (m_pDepthTexture != nullptr)
+    {
       m_pDevice->GetResourceManager()->ReleaseResource(m_pDepthTexture->GetHandle());
+      m_pDepthTexture = nullptr;
+    }
 
     m_pDevice->GetResourceManager()->ReleaseResource(m_pFramebuffer->GetHandle());
+    m_pFramebuffer = nullptr;
   }
 
   const auto uiActualWidth = static_cast<ezUInt32>(uiWidth * m_fPixelScale);
@@ -88,13 +97,17 @@ void spSwapchainD3D11::Resize(ezUInt32 uiWidth, ezUInt32 uiHeight)
 
   if (bResizeBuffers)
   {
-    const HRESULT res = m_pD3D11SwapChain->ResizeBuffers(2, uiActualWidth, uiActualHeight, m_eColorFormat, 0);
+    m_pDevice->GetResourceManager()->ReleaseResource(m_pBackBufferTexture->GetHandle());
+    m_pBackBufferTexture = nullptr;
+
+    const HRESULT res = m_pD3D11SwapChain->ResizeBuffers(2, uiActualWidth, uiActualHeight, m_eColorFormat, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
     EZ_HRESULT_TO_LOG(res);
   }
 
   {
     spD3D11ScopedResource<ID3D11Texture2D> pBackBufferTexture;
-    m_pD3D11SwapChain->GetBuffer(0, IID_ID3D11Texture2D, reinterpret_cast<void**>(&pBackBufferTexture));
+    const HRESULT res = m_pD3D11SwapChain->GetBuffer(0, IID_ID3D11Texture2D, reinterpret_cast<void**>(&pBackBufferTexture));
+    EZ_HRESULT_TO_ASSERT(res);
 
     if (m_Description.m_bUseDepthTexture)
     {
@@ -108,20 +121,51 @@ void spSwapchainD3D11::Resize(ezUInt32 uiWidth, ezUInt32 uiHeight)
       desc.m_eUsage = spTextureUsage::DepthStencil;
       desc.m_eDimension = spTextureDimension::Texture2D;
 
-      m_pDevice->GetResourceManager()->ReleaseResource(m_pDepthTexture->GetHandle());
-      m_pDepthTexture = new spTextureD3D11(ezStaticCast<spDeviceD3D11*>(m_pDevice), desc);
+      if (m_pDepthTexture != nullptr)
+      {
+        m_pDevice->GetResourceManager()->ReleaseResource(m_pDepthTexture->GetHandle());
+        m_pDepthTexture = nullptr;
+      }
+
+      m_pDepthTexture = ezStaticCast<spTextureD3D11*>(m_pDevice->GetResourceFactory()->CreateTexture(desc));
     }
 
     if (m_pBackBufferTexture != nullptr)
+    {
       m_pDevice->GetResourceManager()->ReleaseResource(m_pBackBufferTexture->GetHandle());
+      m_pBackBufferTexture = nullptr;
+    }
 
     m_pBackBufferTexture = spTextureD3D11::FromNative(ezStaticCast<spDeviceD3D11*>(m_pDevice), *pBackBufferTexture, spTextureDimension::Texture2D, spFromD3D11(m_eColorFormat));
 
-    const spFramebufferDescription desc(m_pDepthTexture->GetHandle(), m_pBackBufferTexture->GetHandle());
-    m_pFramebuffer = new spFramebufferD3D11(ezStaticCast<spDeviceD3D11*>(m_pDevice), desc);
-
-    m_pDevice->GetResourceManager()->RegisterResource(m_pFramebuffer);
+    const spFramebufferDescription desc(m_pDepthTexture != nullptr ? m_pDepthTexture->GetHandle() : spResourceHandle(), m_pBackBufferTexture->GetHandle());
+    m_pFramebuffer = ezStaticCast<spFramebufferD3D11*>(m_pDevice->GetResourceFactory()->CreateFramebuffer(desc));
+    m_pFramebuffer->m_pParentSwapchain = this;
   }
+}
+
+void spSwapchainD3D11::Present()
+{
+  const HRESULT res = m_pD3D11SwapChain->Present(m_Description.m_bVSync ? 1 : 0, 0);
+  EZ_HRESULT_TO_LOG(res);
+
+#if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
+  // Since the swap chain can't be in discard mode, we do the discarding ourselves.
+  ID3D11DeviceContext1* pDeviceContext1 = nullptr;
+  if (FAILED(ezStaticCast<spDeviceD3D11*>(m_pDevice)->GetD3D11DeviceContext()->QueryInterface(&pDeviceContext1)))
+  {
+    ezLog::Error("Failed to query ID3D11pDeviceContext1.");
+    return;
+  }
+
+  if (m_pFramebuffer != nullptr)
+  {
+    if (ID3D11RenderTargetView* pRenderTargetView = m_pFramebuffer->GetRenderTargetView(0); pRenderTargetView != nullptr)
+    {
+      pDeviceContext1->DiscardView(pRenderTargetView);
+    }
+  }
+#endif
 }
 
 spSwapchainD3D11::spSwapchainD3D11(spDeviceD3D11* pDevice, const spSwapchainDescription& description)
@@ -130,16 +174,22 @@ spSwapchainD3D11::spSwapchainD3D11(spDeviceD3D11* pDevice, const spSwapchainDesc
   m_pDevice = pDevice;
   m_pD3D11Device = pDevice->GetD3D11Device();
 
-  m_eColorFormat = description.m_bUseSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM_SRGB : DXGI_FORMAT_B8G8R8A8_UNORM;
+  m_eColorFormat = description.m_bUseSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM;
 
   if (const auto* pRenderingSurfaceWin32 = ezDynamicCast<spRenderingSurfaceWin32*>(description.m_pRenderingSurface); pRenderingSurfaceWin32 != nullptr)
   {
     DXGI_SWAP_CHAIN_DESC desc;
     desc.BufferCount = 2;
-    desc.Windowed = pRenderingSurfaceWin32->IsFullscreen() ? TRUE : FALSE;
+    desc.OutputWindow = pRenderingSurfaceWin32->GetMainWindowHandle();
+    desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+    desc.Windowed = pRenderingSurfaceWin32->IsFullscreen() ? FALSE : TRUE;
     desc.BufferDesc.Width = description.m_uiWidth;
     desc.BufferDesc.Height = description.m_uiHeight;
     desc.BufferDesc.Format = m_eColorFormat;
+    desc.BufferDesc.RefreshRate.Numerator = 60;
+    desc.BufferDesc.RefreshRate.Denominator = 1;
+    desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+    desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
     desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
     desc.SampleDesc.Count = 1;

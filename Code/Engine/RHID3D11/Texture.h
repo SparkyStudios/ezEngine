@@ -25,7 +25,7 @@ public:
   // spTextureD3D11
 
   static spTextureD3D11* FromExisting(spTextureD3D11* pTexture);
-  static spTextureD3D11* FromNative(spDeviceD3D11* pDevice, ID3D11Texture2D* pTexture, ezEnum<spTextureDimension> eDimension, ezEnum<spPixelFormat> eFormat);
+  static spTextureD3D11* FromNative(spDeviceD3D11* pDevice, ID3D11Texture2D* pTexture, const ezEnum<spTextureDimension>& eDimension, const ezEnum<spPixelFormat>& eFormat);
 
   spTextureD3D11(spDeviceD3D11* pDevice, const spTextureDescription& description);
   ~spTextureD3D11() override;
@@ -41,6 +41,8 @@ private:
 
   ID3D11Device* m_pD3D11Device{nullptr};
   ID3D11Resource* m_pTexture{nullptr};
+
+  bool m_bFromNative{false};
 
   DXGI_FORMAT m_eFormat{DXGI_FORMAT_UNKNOWN};
   DXGI_FORMAT m_eTypelessFormat{DXGI_FORMAT_UNKNOWN};

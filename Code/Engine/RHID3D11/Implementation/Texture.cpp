@@ -98,10 +98,16 @@ void spTextureD3D11::SetDebugName(const ezString& debugName)
 
 void spTextureD3D11::ReleaseResource()
 {
+  if (!m_bIsResourceCreated)
+    return;
+
   if (m_pParentTexture != nullptr)
     EZ_IGNORE_UNUSED(m_pParentTexture->ReleaseRef());
-  else
-    SP_RHI_DX11_RELEASE(m_pTexture);
+  else if (m_bFromNative)
+    m_pTexture->Release();
+
+  m_pTexture = nullptr;
+  m_pParentTexture = nullptr;
 
   m_bIsResourceCreated = false;
 }
@@ -226,7 +232,7 @@ spTextureD3D11* spTextureD3D11::FromExisting(spTextureD3D11* pTexture)
   desc.m_eDimension = pTexture->GetDimension();
   desc.m_eUsage = pTexture->GetUsage();
 
-  auto* pResult = new spTextureD3D11(desc);
+  auto* pResult = ezStaticCast<spTextureD3D11*>(pTexture->GetDevice()->GetResourceFactory()->CreateTexture(desc));
   pResult->m_pDevice = pTexture->GetDevice();
   pResult->m_pD3D11Device = ezStaticCast<spDeviceD3D11*>(pTexture->GetDevice())->GetD3D11Device();
   pResult->m_pTexture = pTexture->GetD3D11Texture();
@@ -236,12 +242,11 @@ spTextureD3D11* spTextureD3D11::FromExisting(spTextureD3D11* pTexture)
   pResult->m_bIsResourceCreated = true;
 
   EZ_IGNORE_UNUSED(pTexture->AddRef());
-  pTexture->GetDevice()->GetResourceManager()->RegisterResource(pResult);
 
   return pResult;
 }
 
-spTextureD3D11* spTextureD3D11::FromNative(spDeviceD3D11* pDevice, ID3D11Texture2D* pTexture, ezEnum<spTextureDimension> eDimension, ezEnum<spPixelFormat> eFormat)
+spTextureD3D11* spTextureD3D11::FromNative(spDeviceD3D11* pDevice, ID3D11Texture2D* pTexture, const ezEnum<spTextureDimension>& eDimension, const ezEnum<spPixelFormat>& eFormat)
 {
   D3D11_TEXTURE2D_DESC nativeDesc;
   pTexture->GetDesc(&nativeDesc);
@@ -257,15 +262,16 @@ spTextureD3D11* spTextureD3D11::FromNative(spDeviceD3D11* pDevice, ID3D11Texture
   desc.m_eDimension = eDimension;
   desc.m_eUsage = spGetTextureUsage(nativeDesc.BindFlags, nativeDesc.CPUAccessFlags, nativeDesc.MiscFlags);
 
-  auto* pResult = new spTextureD3D11(desc);
+  auto* pResult = ezStaticCast<spTextureD3D11*>(pDevice->GetResourceFactory()->CreateTexture(desc));
   pResult->m_pDevice = pDevice;
   pResult->m_pD3D11Device = ezStaticCast<spDeviceD3D11*>(pDevice)->GetD3D11Device();
   pResult->m_pTexture = pTexture;
   pResult->m_eFormat = spToD3D11(eFormat, desc.m_eUsage.IsSet(spTextureUsage::DepthStencil));
   pResult->m_eTypelessFormat = spGetTypelessFormat(pResult->m_eFormat);
+  pResult->m_bFromNative = true;
   pResult->m_bIsResourceCreated = true;
 
-  pDevice->GetResourceManager()->RegisterResource(pResult);
+  pTexture->AddRef();
 
   return pResult;
 }
@@ -388,8 +394,7 @@ spTextureViewD3D11::spTextureViewD3D11(spDeviceD3D11* pDevice, const spTextureVi
 
 spTextureViewD3D11::~spTextureViewD3D11()
 {
-  SP_RHI_DX11_RELEASE(m_pShaderResourceView);
-  SP_RHI_DX11_RELEASE(m_pUnorderedAccessView);
+  spTextureViewD3D11::ReleaseResource();
 }
 
 ID3D11ShaderResourceView* spTextureViewD3D11::GetShaderResourceView() const

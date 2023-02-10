@@ -33,6 +33,7 @@ public:
   bool WaitForFence(const spResourceHandle& hFence, double uiNanosecondsTimeout) override;
   bool WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitAll, double uiNanosecondsTimeout) override;
   void ResetFence(const spResourceHandle& hFence) override;
+  void Present() override;
   ezEnum<spTextureSampleCount> GetTextureSampleCountLimit(const ezEnum<spPixelFormat>& eFormat, bool bIsDepthFormat) override;
   void UpdateTexture(const spResourceHandle& hResource, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) override;
   void ResolveTexture(const spResourceHandle& hSource, const spResourceHandle& hDestination) override;
@@ -61,12 +62,13 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceContext* GetD3D11DeviceContext() const { return m_pD3D11DeviceContext; }
 
 private:
-  bool CheckFormatMultisample(DXGI_FORMAT format, ezUInt32 uiSampleCount);
+  bool CheckFormatMultisample(DXGI_FORMAT format, ezUInt32 uiSampleCount) const;
   spBufferD3D11* GetFreeStagingBuffer(ezUInt32 uiSize);
 
   ID3D11Device* m_pD3D11Device{nullptr};
   ID3D11Device3* m_pD3D11Device3{nullptr};
   IDXGIAdapter* m_pDXGIAdapter{nullptr};
+  IDXGIDevice1* m_pDXGIDevice{nullptr};
   ID3D11DeviceContext* m_pD3D11DeviceContext{nullptr};
   ID3D11Debug* m_pD3D11Debug{nullptr};
   D3D_FEATURE_LEVEL m_uiFeatureLevel;

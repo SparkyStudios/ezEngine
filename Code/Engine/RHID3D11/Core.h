@@ -484,9 +484,9 @@ EZ_ALWAYS_INLINE static D3D11_MAP spToD3D11(const ezEnum<spMapAccess>& eMapAcces
   }
 }
 
-EZ_ALWAYS_INLINE static UINT spToD3D11(const ezBitflags<spColorWriteMask>& eColorWriteMask)
+EZ_ALWAYS_INLINE static UINT8 spToD3D11(const ezBitflags<spColorWriteMask>& eColorWriteMask)
 {
-  UINT uiEnable = 0;
+  UINT8 uiEnable = 0;
 
   if (eColorWriteMask.IsSet(spColorWriteMask::Red))
     uiEnable |= D3D11_COLOR_WRITE_ENABLE_RED;

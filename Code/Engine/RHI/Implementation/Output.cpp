@@ -12,7 +12,7 @@ spOutputDescription spOutputDescription::CreateFromFramebuffer(const spFramebuff
   spOutputAttachmentDescription depthAttachment;
   bool bUseDepthAttachment = false;
 
-  const auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
+  const auto* pDevice = pFramebuffer->GetDevice();
 
   if (!pFramebuffer->GetDepthTarget().IsInvalidated())
   {
@@ -27,7 +27,7 @@ spOutputDescription spOutputDescription::CreateFromFramebuffer(const spFramebuff
   auto colorTargets = pFramebuffer->GetColorTargets();
 
   ezStaticArray<spOutputAttachmentDescription, SP_RHI_MAX_COLOR_TARGETS> colorAttachments;
-  colorAttachments.Reserve(colorTargets.GetCount());
+  colorAttachments.EnsureCount(colorTargets.GetCount());
 
   for (ezUInt32 i = 0, l = colorTargets.GetCount(); i < l; ++i)
   {
