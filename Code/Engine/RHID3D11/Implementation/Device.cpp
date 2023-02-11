@@ -591,3 +591,5 @@ spDeviceD3D11::~spDeviceD3D11()
   EZ_DEFAULT_DELETE(m_pResourceManager);
   EZ_DEFAULT_DELETE(m_pResourceFactory);
 }
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Device);

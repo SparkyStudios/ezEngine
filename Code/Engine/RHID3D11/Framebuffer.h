@@ -2,6 +2,7 @@
 
 #include <RHID3D11/RHID3D11DLL.h>
 
+#include <RHI/Device.h>
 #include <RHI/Framebuffer.h>
 
 class spDeviceD3D11;

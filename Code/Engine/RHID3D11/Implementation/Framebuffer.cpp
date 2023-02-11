@@ -224,3 +224,5 @@ void spFramebufferD3D11::ApplyColorTarget(ezUInt32 uiIndex, const spFramebufferA
   const HRESULT res = m_pD3D11Device->CreateRenderTargetView(pColorTexture->GetD3D11Texture(), &desc, &m_ColorTargets[uiIndex]);
   EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 render target view resource. Error code: {}", (ezUInt32)HRESULT_CODE(res));
 }
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Framebuffer);

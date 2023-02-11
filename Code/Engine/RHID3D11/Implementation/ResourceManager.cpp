@@ -297,3 +297,5 @@ ID3D11InputLayout* spDeviceResourceManagerD3D11::CreateInputLayout(ezArrayPtr<sp
 
   return pInputLayout;
 }
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_ResourceManager);

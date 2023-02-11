@@ -144,3 +144,5 @@ spDeviceResourceFactoryD3D11::spDeviceResourceFactoryD3D11(spDeviceD3D11* pDevic
   m_pDevice = pDevice;
   m_pD3D11Device = pDevice->GetD3D11Device();
 }
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_ResourceFactory);

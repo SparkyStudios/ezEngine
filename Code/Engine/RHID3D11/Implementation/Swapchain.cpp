@@ -286,3 +286,5 @@ void spSwapchainD3D11::RemoveCommandListReference(spCommandListD3D11* pCL)
     }
   }
 }
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Swapchain);

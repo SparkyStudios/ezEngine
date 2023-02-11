@@ -337,3 +337,5 @@ spShaderD3D11::~spShaderD3D11()
 }
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Shader);

@@ -1304,3 +1304,5 @@ void spCommandListD3D11::OnComplete()
 
   m_SubmittedStagingBuffers.Clear();
 }
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_CommandList);
