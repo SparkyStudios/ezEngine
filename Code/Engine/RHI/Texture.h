@@ -552,10 +552,10 @@ EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spTextureView);
 /// \brief Manages the state of textures resources in a graphics device.
 class SP_RHI_DLL spTextureSamplerManager
 {
-  friend class spGraphicsDevice;
+  friend class spDevice;
 
 public:
-  static ezSharedPtr<spTextureView> GetTextureView(const spDevice* pDevice, spShaderResource* pResource);
+  static ezSharedPtr<spTextureView> GetTextureView(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource);
 
   virtual ~spTextureSamplerManager() = default;
 
@@ -567,7 +567,7 @@ public:
 protected:
   /// \brief Creates a texture/sampler manager for the given graphics device.
   /// \param [in] pDevice A pointer to the graphics device.
-  explicit spTextureSamplerManager(spGraphicsDevice* pDevice);
+  explicit spTextureSamplerManager(spDevice* pDevice);
 };
 
 class spTextureHelper

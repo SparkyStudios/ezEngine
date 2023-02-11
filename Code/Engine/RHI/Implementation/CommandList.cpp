@@ -458,11 +458,11 @@ void spCommandList::GenerateMipmaps(spResourceHandle hTexture)
 
 void spCommandList::ClearCachedState()
 {
-  m_pFramebuffer = nullptr;
-  m_pGraphicPipeline = nullptr;
-  m_pComputePipeline = nullptr;
+  m_pFramebuffer.Clear();
+  m_pGraphicPipeline.Clear();
+  m_pComputePipeline.Clear();
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-  m_pIndexBuffer = nullptr;
+  m_pIndexBuffer.Clear();
 #endif
 }
 

@@ -104,7 +104,7 @@ const spDeviceCapabilities& spDeviceD3D11::GetCapabilities() const
 
 void spDeviceD3D11::SubmitCommandList(const spResourceHandle& hCommandList, const spResourceHandle& hFence)
 {
-  if (const auto pCommandList = GetResourceManager()->GetResource<spCommandListD3D11>(hCommandList); pCommandList != nullptr)
+  if (const auto pCommandList = m_pResourceManager->GetResource<spCommandListD3D11>(hCommandList); pCommandList != nullptr)
   {
     EZ_LOCK(m_ImmediateContextMutex);
 
@@ -115,7 +115,7 @@ void spDeviceD3D11::SubmitCommandList(const spResourceHandle& hCommandList, cons
     }
   }
 
-  if (const auto pFence = GetResourceManager()->GetResource<spFenceD3D11>(hFence); pFence != nullptr)
+  if (const auto pFence = m_pResourceManager->GetResource<spFenceD3D11>(hFence); pFence != nullptr)
     pFence->Raise();
 }
 
@@ -126,7 +126,7 @@ void spDeviceD3D11::SubmitCommandListAsync(const spResourceHandle& hCommandList,
 
 bool spDeviceD3D11::WaitForFence(const spResourceHandle& hFence, double uiNanosecondsTimeout)
 {
-  const auto pFence = GetResourceManager()->GetResource<spFenceD3D11>(hFence);
+  const auto pFence = m_pResourceManager->GetResource<spFenceD3D11>(hFence);
   if (pFence == nullptr)
     return false;
 
@@ -141,7 +141,7 @@ bool spDeviceD3D11::WaitForFences(const ezList<spResourceHandle>& fences, bool b
 
 void spDeviceD3D11::ResetFence(const spResourceHandle& hFence)
 {
-  const auto pFence = GetResourceManager()->GetResource<spFenceD3D11>(hFence);
+  const auto pFence = m_pResourceManager->GetResource<spFenceD3D11>(hFence);
   if (pFence == nullptr)
     return;
 
@@ -180,7 +180,7 @@ ezEnum<spTextureSampleCount> spDeviceD3D11::GetTextureSampleCountLimit(const ezE
 
 void spDeviceD3D11::UpdateTexture(const spResourceHandle& hResource, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
 {
-  if (auto pTextureD3D11 = GetResourceManager()->GetResource<spTextureD3D11>(hResource); pTextureD3D11->GetUsage().IsSet(spTextureUsage::Staging))
+  if (auto pTextureD3D11 = m_pResourceManager->GetResource<spTextureD3D11>(hResource); pTextureD3D11->GetUsage().IsSet(spTextureUsage::Staging))
   {
     const ezUInt32 uiSubresource = spTextureHelper::CalculateSubresource(pTextureD3D11, uiMipLevel, uiArrayLayer);
     const spMappedResource& mappedResource = MapInternal(pTextureD3D11, spMapAccess::Write, uiSubresource);
@@ -218,10 +218,10 @@ void spDeviceD3D11::ResolveTexture(const spResourceHandle& hSource, const spReso
 
 void spDeviceD3D11::Destroy()
 {
+  WaitForIdle();
+
   for (auto it = m_AvailableStagingBuffers.GetIterator(); it.IsValid(); it.Next())
-  {
-    GetResourceManager()->ReleaseResource(*it);
-  }
+    m_pResourceManager->ReleaseResource(*it);
 
   m_AvailableStagingBuffers.Clear();
 

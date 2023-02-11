@@ -48,12 +48,12 @@ void spDevice::ResizeSwapchain(ezUInt32 uiWidth, ezUInt32 uiHeight)
 void spDevice::WaitForIdle()
 {
   WaitForIdleInternal();
-  GetResourceManager()->ReleaseResources();
+  m_pResourceManager->ReleaseResources();
 }
 
 const spMappedResource& spDevice::Map(const spResourceHandle& hResource, const ezEnum<spMapAccess>& eAccess, ezUInt32 uiSubResource)
 {
-  spDeviceResource* pResource = GetResourceManager()->GetResource(hResource);
+  spDeviceResource* pResource = m_pResourceManager->GetResource(hResource);
   if (pResource == nullptr)
   {
     EZ_ASSERT_DEV(pResource != nullptr, "Trying to map a resource that was not registered in the resource manager of the device. If you have created this resource without the resource factory, you should register it yourself.");
@@ -81,7 +81,7 @@ const spMappedResource& spDevice::Map(const spResourceHandle& hResource, const e
 
 void spDevice::UnMap(const spResourceHandle& hResource, ezUInt32 uiSubresource)
 {
-  spDeviceResource* pResource = GetResourceManager()->GetResource(hResource);
+  spDeviceResource* pResource = m_pResourceManager->GetResource(hResource);
   if (pResource == nullptr)
   {
     EZ_ASSERT_DEV(pResource != nullptr, "Trying to unmap a resource that was not registered in the resource manager of the device. If you have created this resource without the resource factory, you should register it yourself.");
@@ -103,7 +103,7 @@ void spDevice::UnMap(const spResourceHandle& hResource, ezUInt32 uiSubresource)
 
 void spDevice::UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, const void* pSource, ezUInt32 uiSize)
 {
-  auto pBuffer = GetResourceManager()->GetResource<spBuffer>(hResource);
+  auto pBuffer = m_pResourceManager->GetResource<spBuffer>(hResource);
   if (pBuffer == nullptr)
   {
     EZ_ASSERT_DEV(pBuffer != nullptr, "Trying to update a buffer that was not registered in the resource manager of the device. If you have created this resource without the resource factory, you should register it yourself.");

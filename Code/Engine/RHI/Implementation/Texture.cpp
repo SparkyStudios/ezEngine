@@ -23,10 +23,10 @@ spTextureViewDescription::spTextureViewDescription(const spTexture* pTexture, co
 
 #pragma region spTextureSamplerManager
 
-ezSharedPtr<spTextureView> spTextureSamplerManager::GetTextureView(const spDevice* pDevice, spShaderResource* pResource)
+ezSharedPtr<spTextureView> spTextureSamplerManager::GetTextureView(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource)
 {
   if (pResource->IsInstanceOf<spTextureView>())
-    return {ezStaticCast<spTextureView*>(pResource), pDevice->GetAllocator()};
+    return pResource.Downcast<spTextureView>();
 
   if (pResource->IsInstanceOf<spTexture>())
     return pDevice->GetResourceManager()->GetResource<spTextureView>(pDevice->GetTextureSamplerManager()->GetFullTextureView(pResource->GetHandle()));

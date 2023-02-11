@@ -218,34 +218,34 @@ protected:
   virtual void ClearDepthStencilTargetInternal(float fClearDepth, ezUInt8 uiClearStencil) = 0;
   virtual void DrawInternal(ezUInt32 uiVertexCount, ezUInt32 uiInstanceCount, ezUInt32 uiVertexStart, ezUInt32 uiInstanceStart) = 0;
   virtual void DrawIndexedInternal(ezUInt32 uiIndexCount, ezUInt32 uiInstanceCount, ezUInt32 uiIndexStart, ezUInt32 uiVertexOffset, ezUInt32 uiInstanceStart) = 0;
-  virtual void DrawIndirectInternal(spBuffer* pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride) = 0;
-  virtual void DrawIndexedIndirectInternal(spBuffer* pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride) = 0;
-  virtual void DispatchIndirectInternal(spBuffer* hIndirectBuffer, ezUInt32 uiOffset) = 0;
-  virtual void ResolveTextureInternal(spTexture* pSource, spTexture* pDestination) = 0;
-  virtual void SetFramebufferInternal(spFramebuffer* pFramebuffer) = 0;
-  virtual void SetIndexBufferInternal(spBuffer* pIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset) = 0;
-  virtual void SetGraphicResourceSetInternal(ezUInt32 uiSlot, spResourceSet* pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) = 0;
-  virtual void SetComputeResourceSetInternal(ezUInt32 uiSlot, spResourceSet* pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) = 0;
-  virtual void SetVertexBufferInternal(ezUInt32 uiSlot, spBuffer* pVertexBuffer, ezUInt32 uiOffset) = 0;
-  virtual void UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize) = 0;
-  virtual void CopyBufferInternal(spBuffer* pSourceBuffer, ezUInt32 uiSourceOffset, spBuffer* pDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize) = 0;
-  virtual void CopyTextureInternal(spTexture* pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, spTexture* pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount) = 0;
-  virtual void GenerateMipmapsInternal(spTexture* pTexture) = 0;
+  virtual void DrawIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride) = 0;
+  virtual void DrawIndexedIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride) = 0;
+  virtual void DispatchIndirectInternal(ezSharedPtr<spBuffer> hIndirectBuffer, ezUInt32 uiOffset) = 0;
+  virtual void ResolveTextureInternal(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination) = 0;
+  virtual void SetFramebufferInternal(ezSharedPtr<spFramebuffer> pFramebuffer) = 0;
+  virtual void SetIndexBufferInternal(ezSharedPtr<spBuffer> pIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset) = 0;
+  virtual void SetGraphicResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) = 0;
+  virtual void SetComputeResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) = 0;
+  virtual void SetVertexBufferInternal(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer, ezUInt32 uiOffset) = 0;
+  virtual void UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize) = 0;
+  virtual void CopyBufferInternal(ezSharedPtr<spBuffer> pSourceBuffer, ezUInt32 uiSourceOffset, ezSharedPtr<spBuffer> pDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize) = 0;
+  virtual void CopyTextureInternal(ezSharedPtr<spTexture> pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, ezSharedPtr<spTexture> pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount) = 0;
+  virtual void GenerateMipmapsInternal(ezSharedPtr<spTexture> pTexture) = 0;
 
   virtual void ClearCachedState();
 
   spCommandListDescription m_Description;
 
-  spFramebuffer* m_pFramebuffer{nullptr};
-  spGraphicPipeline* m_pGraphicPipeline{nullptr};
-  spComputePipeline* m_pComputePipeline{nullptr};
+  ezSharedPtr<spFramebuffer> m_pFramebuffer{nullptr};
+  ezSharedPtr<spGraphicPipeline> m_pGraphicPipeline{nullptr};
+  ezSharedPtr<spComputePipeline> m_pComputePipeline{nullptr};
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
 private:
   void IndexBufferValidation(ezUInt32 uiIndexCount) const;
   void DrawValidation() const;
 
-  spBuffer* m_pIndexBuffer{nullptr};
+  ezSharedPtr<spBuffer> m_pIndexBuffer{nullptr};
   ezEnum<spIndexFormat> m_IndexBufferFormat;
 #endif
 };

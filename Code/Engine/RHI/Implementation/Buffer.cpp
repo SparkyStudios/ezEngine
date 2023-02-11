@@ -1,3 +1,4 @@
+#include "RHI/Resource.h"
 #include <RHI/RHIPCH.h>
 
 #include <RHI/Buffer.h>
@@ -6,7 +7,7 @@
 #pragma region spBufferRange
 
 spBufferRange::spBufferRange(spBufferRangeDescription description)
-  : spDeviceResource()
+  : spShaderResource()
   , m_Description(std::move(description))
 {
 }
