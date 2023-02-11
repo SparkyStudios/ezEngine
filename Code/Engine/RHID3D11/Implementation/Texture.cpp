@@ -411,3 +411,5 @@ ID3D11UnorderedAccessView* spTextureViewD3D11::GetUnorderedAccessView() const
 }
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Texture);

@@ -119,3 +119,5 @@ spSamplerD3D11::spSamplerD3D11(spDeviceD3D11* pDevice, const spSamplerDescriptio
 }
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Sampler);

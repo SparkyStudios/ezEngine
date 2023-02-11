@@ -87,3 +87,5 @@ spResourceLayoutD3D11::~spResourceLayoutD3D11()
 {
   m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_ResourceLayout);

@@ -1,3 +1,4 @@
+#include "Foundation/Basics/Platform/Common.h"
 #include <RHID3D11/RHID3D11PCH.h>
 
 #include <dxgiformat.h>
@@ -228,3 +229,5 @@ ID3D11UnorderedAccessView* spBufferD3D11::CreateUnorderedAccessView(ezUInt32 uiO
 }
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Buffer);
