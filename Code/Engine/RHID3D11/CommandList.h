@@ -46,19 +46,19 @@ protected:
   void ClearDepthStencilTargetInternal(float fClearDepth, ezUInt8 uiClearStencil) override;
   void DrawInternal(ezUInt32 uiVertexCount, ezUInt32 uiInstanceCount, ezUInt32 uiVertexStart, ezUInt32 uiInstanceStart) override;
   void DrawIndexedInternal(ezUInt32 uiIndexCount, ezUInt32 uiInstanceCount, ezUInt32 uiIndexStart, ezUInt32 uiVertexOffset, ezUInt32 uiInstanceStart) override;
-  void DrawIndirectInternal(spBuffer* pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride) override;
-  void DrawIndexedIndirectInternal(spBuffer* pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride) override;
-  void DispatchIndirectInternal(spBuffer* pIndirectBuffer, ezUInt32 uiOffset) override;
-  void ResolveTextureInternal(spTexture* pSource, spTexture* pDestination) override;
-  void SetFramebufferInternal(spFramebuffer* pFramebuffer) override;
-  void SetIndexBufferInternal(spBuffer* pIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset) override;
-  void SetComputeResourceSetInternal(ezUInt32 uiSlot, spResourceSet* pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) override;
-  void SetGraphicResourceSetInternal(ezUInt32 uiSlot, spResourceSet* pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) override;
-  void SetVertexBufferInternal(ezUInt32 uiSlot, spBuffer* pVertexBuffer, ezUInt32 uiOffset) override;
-  void UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize) override;
-  void CopyBufferInternal(spBuffer* pSourceBuffer, ezUInt32 uiSourceOffset, spBuffer* pDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize) override;
-  void CopyTextureInternal(spTexture* pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, spTexture* pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount) override;
-  void GenerateMipmapsInternal(spTexture* pTexture) override;
+  void DrawIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride) override;
+  void DrawIndexedIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride) override;
+  void DispatchIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset) override;
+  void ResolveTextureInternal(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination) override;
+  void SetFramebufferInternal(ezSharedPtr<spFramebuffer> pFramebuffer) override;
+  void SetIndexBufferInternal(ezSharedPtr<spBuffer> pIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset) override;
+  void SetComputeResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) override;
+  void SetGraphicResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) override;
+  void SetVertexBufferInternal(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer, ezUInt32 uiOffset) override;
+  void UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize) override;
+  void CopyBufferInternal(ezSharedPtr<spBuffer> pSourceBuffer, ezUInt32 uiSourceOffset, ezSharedPtr<spBuffer> pDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize) override;
+  void CopyTextureInternal(ezSharedPtr<spTexture> pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, ezSharedPtr<spTexture> pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount) override;
+  void GenerateMipmapsInternal(ezSharedPtr<spTexture> pTexture) override;
 
 
   // spCommandListD3D11
@@ -88,28 +88,28 @@ private:
   void ResetManagedState();
   void ClearSets(ezDynamicArray<spCommandListResourceSet>& sets);
   void ActivateResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet, bool bCompute);
-  spBufferD3D11* GetFreeStagingBuffer(ezUInt32 uiSize);
+  ezSharedPtr<spBufferD3D11> GetFreeStagingBuffer(ezUInt32 uiSize);
   ezUInt32 GetConstantBufferBase(ezUInt32 uiSlot, bool bCompute) const;
   ezUInt32 GetUnorderedAccessViewBase(ezUInt32 uiSlot, bool bCompute) const;
   ezUInt32 GetTextureBase(ezUInt32 uiSlot, bool bCompute) const;
   ezUInt32 GetSamplerBase(ezUInt32 uiSlot, bool bCompute) const;
   ezSharedPtr<spBufferRangeD3D11> GetBufferRange(ezSharedPtr<spShaderResource> pResource, ezUInt32 uiOffset) const;
   void BindConstantBuffer(ezSharedPtr<spBufferRangeD3D11> pBufferRange, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
-  void BindStorageBufferView(spBufferRangeD3D11* pBufferRange, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
+  void BindStorageBufferView(ezSharedPtr<spBufferRangeD3D11> pBufferRange, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
   void BindTextureView(ezSharedPtr<spTextureViewD3D11> pTextureView, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot);
-  void BindUnorderedAccessView(spTextureD3D11* pTexture, spBufferD3D11* pBuffer, ID3D11UnorderedAccessView* pUAV, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot);
+  void BindUnorderedAccessView(ezSharedPtr<spTextureD3D11> pTexture, ezSharedPtr<spBufferD3D11> pBuffer, ID3D11UnorderedAccessView* pUAV, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot);
   void BindSampler(ezSharedPtr<spSamplerD3D11> pSampler, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
   void UnbindSRVTexture(const spTextureViewDescription& desc);
   void UnbindUAVTexture(const spTextureViewDescription& desc);
-  void UnbindUAVBuffer(const spBufferD3D11* pBuffer);
-  void UnbindUAVBufferPipeline(const spBufferD3D11* pBuffer, bool bCompute);
+  void UnbindUAVBuffer(ezSharedPtr<spBufferD3D11> pBuffer);
+  void UnbindUAVBufferPipeline(ezSharedPtr<spBufferD3D11> pBuffer, bool bCompute);
   void PreDraw();
   void PreDispatch();
   void FlushViewports();
   void FlushScissorRects();
   void FlushVertexBindings();
-  void PackRangeParams(spBufferRangeD3D11* pBufferRange);
-  void TrackBoundUAVBuffer(spBufferD3D11* pBuffer, ezUInt32 uiSlot, bool bCompute);
+  void PackRangeParams(ezSharedPtr<spBufferRangeD3D11> pBufferRange);
+  void TrackBoundUAVBuffer(ezSharedPtr<spBufferD3D11> pBuffer, ezUInt32 uiSlot, bool bCompute);
   void OnComplete();
 
   ID3D11CommandList* m_pCommandList{nullptr};
@@ -134,7 +134,7 @@ private:
 
   // --- Cached Pipeline State ---
 
-  spBufferD3D11* m_pIndexBuffer{nullptr};
+  ezSharedPtr<spBufferD3D11> m_pIndexBuffer{nullptr};
   ezUInt32 m_uiIndexBufferOffset{0};
 
   ID3D11BlendState* m_pBlendState{nullptr};
@@ -179,13 +179,13 @@ private:
   ezArrayMap<spTextureViewDescription, BoundTextureInfo> m_BoundSRVs;
   ezArrayMap<spTextureViewDescription, BoundTextureInfo> m_BoundUAVs;
 
-  ezStaticArray<std::pair<spBufferD3D11*, ezInt32>, s_uiMaxCachedUnorderedAccessViews> m_CachedComputeUAVBuffers;
-  ezStaticArray<std::pair<spBufferD3D11*, ezInt32>, s_uiMaxCachedUnorderedAccessViews> m_CachedGraphicUAVBuffers;
+  ezStaticArray<std::pair<ezSharedPtr<spBufferD3D11>, ezInt32>, s_uiMaxCachedUnorderedAccessViews> m_CachedComputeUAVBuffers;
+  ezStaticArray<std::pair<ezSharedPtr<spBufferD3D11>, ezInt32>, s_uiMaxCachedUnorderedAccessViews> m_CachedGraphicUAVBuffers;
 
-  ezList<spBufferD3D11*> m_FreeBuffers;
-  ezList<spBufferD3D11*> m_SubmittedStagingBuffers;
+  ezList<ezSharedPtr<spBufferD3D11>> m_FreeBuffers;
+  ezList<ezSharedPtr<spBufferD3D11>> m_SubmittedStagingBuffers;
 
-  ezList<spSwapchainD3D11*> m_ReferencedSwapchains;
+  ezList<ezSharedPtr<spSwapchainD3D11>> m_ReferencedSwapchains;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spCommandListD3D11);

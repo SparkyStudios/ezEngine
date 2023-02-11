@@ -3,6 +3,7 @@
 #include <RHID3D11/RHID3D11DLL.h>
 
 #include <RHI/Buffer.h>
+#include <RHI/Device.h>
 
 #include <RHID3D11/Fence.h>
 
@@ -110,7 +111,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE bool IsFullRange() const { return IsValid() && GetOffset() == 0 && GetSize() == m_pBuffer->GetSize(); }
 
   /// \brief Gets the parent buffer.
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spBuffer> GetBuffer() const override { return m_pBuffer; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spBuffer> GetBuffer() const override { return {m_pBuffer, m_pDevice->GetAllocator()}; }
 
   EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spBufferRangeD3D11& rhs) const
   {
@@ -120,7 +121,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spBufferRangeD3D11& rhs) const { return !(*this == rhs); }
 
 private:
-  ezSharedPtr<spBufferD3D11> m_pBuffer{nullptr};
+  spBufferD3D11* m_pBuffer{nullptr};
   ezSharedPtr<spFenceD3D11> m_pFence{nullptr};
 };
 

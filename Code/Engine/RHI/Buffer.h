@@ -120,7 +120,7 @@ struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRan
 };
 
 /// \brief A range of a spBuffer.
-class SP_RHI_DLL spBufferRange : public spDeviceResource
+class SP_RHI_DLL spBufferRange : public spShaderResource
 {
 public:
   /// \brief Gets the handle to the parent buffer of this range.

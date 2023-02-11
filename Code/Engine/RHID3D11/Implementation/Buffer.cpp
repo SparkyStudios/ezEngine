@@ -15,7 +15,8 @@ void spBufferRangeD3D11::ReleaseResource()
   if (IsReleased())
     return;
 
-  m_pBuffer.Clear();
+  m_pBuffer = nullptr;
+  m_pFence.Clear();
 
   m_bReleased = true;
 }
@@ -25,6 +26,7 @@ spBufferRangeD3D11::spBufferRangeD3D11(spDeviceD3D11* pDevice, const spBufferRan
 {
   m_pDevice = pDevice;
 
+  // Need to borrow the pointer to not create a new reference
   m_pBuffer = pDevice->GetResourceManager()->GetResource<spBufferD3D11>(description.m_hBuffer);
   EZ_ASSERT_DEV(m_pBuffer != nullptr, "Buffer range creation failed. Invalid parent buffer provided.");
 

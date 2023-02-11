@@ -9,12 +9,4 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
   Core
   Foundation
-  meshoptimizer
 )
-
-if (EZ_3RDPARTY_OZZ_SUPPORT)
-  target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-    ozz
-  )
-endif()
