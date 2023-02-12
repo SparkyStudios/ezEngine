@@ -119,11 +119,6 @@ void spDeviceD3D11::SubmitCommandList(const spResourceHandle& hCommandList, cons
     pFence->Raise();
 }
 
-void spDeviceD3D11::SubmitCommandListAsync(const spResourceHandle& hCommandList, const spResourceHandle& hFence)
-{
-  // TODO: Submit command list in render thread
-}
-
 bool spDeviceD3D11::WaitForFence(const spResourceHandle& hFence, double uiNanosecondsTimeout)
 {
   const auto pFence = m_pResourceManager->GetResource<spFenceD3D11>(hFence);

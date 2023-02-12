@@ -10,11 +10,6 @@ void spDevice::SubmitCommandList(const spResourceHandle& hCommandList)
   SubmitCommandList(hCommandList, spResourceHandle());
 }
 
-void spDevice::SubmitCommandListAsync(const spResourceHandle& hCommandList)
-{
-  SubmitCommandList(hCommandList, spResourceHandle());
-}
-
 void spDevice::WaitForFence(const spResourceHandle& hFence)
 {
   WaitForFence(hFence, static_cast<double>(0xffffffffffffffffui64));

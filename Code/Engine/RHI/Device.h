@@ -196,24 +196,11 @@ public:
 
   /// \brief Submits the given \see spCommandList for execution by this device.
   /// \param [in] hCommandList The handle to the command list to execute.
-  ///
-  /// \note Commands submitted with this method may not be completed when this method returns.
-  void SubmitCommandListAsync(const spResourceHandle& hCommandList);
-
-  /// \brief Submits the given \see spCommandList for execution by this device.
-  /// \param [in] hCommandList The handle to the command list to execute.
   /// \param [in] hFence The handle to the \see spFence which will be signaled after this submission fully completes execution.
   ///
   /// \note Commands submitted with this method will block the calling thread until
   /// all commands are executed.
   virtual void SubmitCommandList(const spResourceHandle& hCommandList, const spResourceHandle& hFence) = 0;
-
-  /// \brief Submits the given \see spCommandList for execution by this device.
-  /// \param [in] hCommandList The handle to the command list to execute.
-  /// \param [in] hFence The handle to the \see spFence which will be signaled after this submission fully completes execution.
-  ///
-  /// \note Commands submitted with this method may not be completed when this method returns.
-  virtual void SubmitCommandListAsync(const spResourceHandle& hCommandList, const spResourceHandle& hFence) = 0;
 
   /// \brief Blocks the calling thread until the given \see spFence is signaled.
   /// \param [in] hFence The handle to the \see spFence to wait for.
