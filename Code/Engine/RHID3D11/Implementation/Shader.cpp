@@ -1,9 +1,10 @@
 #include <RHID3D11/RHID3D11PCH.h>
-#include <d3dcommon.h>
-#include <d3dcompiler.h>
 
 #include <RHID3D11/Device.h>
 #include <RHID3D11/Shader.h>
+
+#include <d3dcommon.h>
+#include <d3dcompiler.h>
 
 #pragma region spShaderProgramD3D11
 

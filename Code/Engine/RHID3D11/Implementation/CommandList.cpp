@@ -7,6 +7,7 @@
 #include <RHID3D11/Device.h>
 #include <RHID3D11/Framebuffer.h>
 #include <RHID3D11/Pipeline.h>
+#include <RHID3D11/Profiler.h>
 #include <RHID3D11/ResourceLayout.h>
 #include <RHID3D11/ResourceSet.h>
 #include <RHID3D11/Sampler.h>
@@ -29,9 +30,10 @@ spCommandListD3D11::spCommandListD3D11(spDeviceD3D11* pDevice, const spCommandLi
   if (FAILED(m_pDeviceContext->QueryInterface(IID_ID3D11DeviceContext1, reinterpret_cast<void**>(&m_pDeviceContext1))))
     ezLog::Warning("Could not get ID3D11DeviceContext1 interface, some features may not be available.");
 
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
   if (FAILED(m_pDeviceContext->QueryInterface(IID_ID3DUserDefinedAnnotation, reinterpret_cast<void**>(&m_pUserDefinedAnnotation))))
     ezLog::Warning("Could not get ID3DUserDefinedAnnotation interface, some features may not be available.");
-
+#endif
   m_bReleased = false;
 }
 
@@ -212,6 +214,31 @@ void spCommandListD3D11::SetViewport(ezUInt32 uiSlot, const spViewport& viewport
   m_Viewports[uiSlot].Height = static_cast<FLOAT>(viewport.m_uiHeight);
   m_Viewports[uiSlot].MinDepth = viewport.m_fMinDepth;
   m_Viewports[uiSlot].MaxDepth = viewport.m_fMaxDepth;
+}
+
+void spCommandListD3D11::PushProfileScope(const ezString& sName)
+{
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+  m_pCurrentScopeProfiler = EZ_NEW(m_pDevice->GetAllocator(), spScopeProfilerD3D11, static_cast<spDeviceD3D11*>(m_pDevice));
+  m_pCurrentScopeProfiler->Begin(sName, m_pDeviceContext);
+#endif
+
+  PushDebugGroup(sName);
+}
+
+void spCommandListD3D11::PopProfileScope(ezSharedPtr<spScopeProfiler>& scopeProfiler)
+{
+  PopDebugGroup();
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+  if (m_pCurrentScopeProfiler != nullptr)
+  {
+    m_pCurrentScopeProfiler->End(m_pDeviceContext);
+    scopeProfiler = m_pCurrentScopeProfiler;
+  }
+
+  m_pCurrentScopeProfiler.Clear();
+#endif
 }
 
 void spCommandListD3D11::PushDebugGroup(const ezString& sName)
@@ -553,6 +580,8 @@ void spCommandListD3D11::ClearState()
 
 void spCommandListD3D11::ResetManagedState()
 {
+  m_pCurrentScopeProfiler.Clear();
+
   m_uiNumVertexBuffers = 0;
   m_VertexBuffers.Clear();
   m_VertexStrides.Clear();

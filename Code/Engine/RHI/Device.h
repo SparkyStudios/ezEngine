@@ -5,6 +5,7 @@
 #include <RHI/Memory/StagingMemoryPool.h>
 
 #include <RHI/Buffer.h>
+#include <RHI/Profiler.h>
 #include <RHI/Resource.h>
 #include <RHI/Swapchain.h>
 #include <RHI/Texture.h>
@@ -362,8 +363,21 @@ public:
   /// \brief Returns whether the device has debugging enabled.
   EZ_NODISCARD virtual bool IsDebugEnabled() const = 0;
 
+  /// \brief Returns the frame profiler of this device.
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezSharedPtr<spFrameProfiler> GetFrameProfiler() const { return m_pFrameProfiler; }
+
+  /// \brief Gets the total number of processed frames.
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetFrameCount() const { return m_uiFrameCounter; };
+
+  /// \brief Begin a frame. This should be called once per frame.
+  virtual void BeginFrame();
+
+  /// \brief End a frame. This should be called once per frame.
+  virtual void EndFrame();
+
 protected:
   /// \brief Constructs a new instance of the \see spDevice class.
+  /// \param pAllocator The resources allocator.
   /// \param description The resource manager for the device.
   spDevice(ezAllocatorBase* pAllocator, spDeviceDescription description)
     : m_Description(std::move(description))
@@ -382,10 +396,14 @@ protected:
   spGraphicsApiVersion m_ApiVersion;
   spDeviceCapabilities m_Capabilities;
 
+  ezSharedPtr<spFrameProfiler> m_pFrameProfiler{nullptr};
+
   spDeviceResourceManager* m_pResourceManager{nullptr};
   spStagingMemoryPool* m_pStagingMemoryPool{nullptr};
 
   ezAllocatorBase* m_pAllocator;
+
+  ezUInt32 m_uiFrameCounter{0};
 
 private:
   spMappedResource m_InvalidDefaultMappedResource{};

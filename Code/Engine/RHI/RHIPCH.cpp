@@ -11,6 +11,7 @@ EZ_STATICLINK_LIBRARY(RHI)
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Framebuffer);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Output);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Pipeline);
+  EZ_STATICLINK_REFERENCE(RHI_Implementation_Profiler);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Rendering);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Resource);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_ResourceLayout);

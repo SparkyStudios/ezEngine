@@ -109,6 +109,26 @@ void spDevice::UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset
   UpdateBufferInternal(pBuffer, uiOffset, pSource, uiSize);
 }
 
+void spDevice::BeginFrame()
+{
+  // If debugging is enabled, start the profiler
+  if (IsDebugEnabled())
+    m_pFrameProfiler->Begin();
+}
+
+void spDevice::EndFrame()
+{
+  WaitForIdle();
+
+  // If debugging is enabled, stop the profiler
+  if (IsDebugEnabled())
+    m_pFrameProfiler->End();
+
+  Present();
+
+  m_uiFrameCounter++;
+}
+
 #pragma endregion
 
 EZ_STATICLINK_FILE(RHI, RHI_Implementation_Device);

@@ -6,6 +6,7 @@
 #include <RHID3D11/CommandList.h>
 #include <RHID3D11/Core.h>
 #include <RHID3D11/Fence.h>
+#include <RHID3D11/Profiler.h>
 #include <RHID3D11/ResourceFactory.h>
 #include <RHID3D11/ResourceManager.h>
 #include <RHID3D11/Swapchain.h>
@@ -223,6 +224,8 @@ void spDeviceD3D11::Destroy()
   // This call should release the swapchain resource... If not, the swapchain was surely still referenced somewhere.
   // That means there are some memory leaks.
   m_pMainSwapchain.Clear();
+
+  m_pFrameProfiler.Clear();
 
   SP_RHI_DX11_RELEASE(m_pD3D11DeviceContext);
   SP_RHI_DX11_RELEASE(m_pD3D11Device3);
@@ -551,6 +554,8 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
     m_Capabilities.m_bSupportCommandLists = m_bSupportsCommandLists;
     m_Capabilities.m_bSupportConcurrentResources = m_bSupportsConcurrentResources;
   }
+
+  m_pFrameProfiler = EZ_NEW(m_pAllocator, spFrameProfilerD3D11, this);
 }
 
 bool spDeviceD3D11::CheckFormatMultisample(DXGI_FORMAT format, ezUInt32 uiSampleCount) const

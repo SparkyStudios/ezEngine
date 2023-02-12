@@ -2,6 +2,7 @@
 
 #include <Foundation/Basics.h>
 #include <Foundation/Basics/Platform/Win/HResultUtils.h>
+#include <Foundation/Basics/Platform/Win/IncludeWindows.h>
 
 #include <RHI/RHIDLL.h>
 
