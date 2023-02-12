@@ -32,6 +32,9 @@ public:
 private:
   ID3D11Query* m_pDisjointQuery{nullptr};
 
+  ezTime m_SyncTimeDiff;
+  bool m_bSyncTimeNeeded{true};
+
   double m_fInvTicksPerSecond{-1.0};
 };
 

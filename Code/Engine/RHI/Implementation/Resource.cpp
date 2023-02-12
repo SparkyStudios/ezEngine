@@ -189,7 +189,7 @@ void spDefaultDeviceResourceManager::ReleaseResources()
 
 void spDefaultDeviceResourceManager::ReleaseResource(spDeviceResource* pResource)
 {
-  // ezSharedPtr handle the reference counting for us. So here we are releasing the resource
+  // ezSharedPtr handles the reference counting for us. So here we are releasing the resource
   // only if the reference count is 0.
   if (pResource->GetRefCount() == 0)
   {

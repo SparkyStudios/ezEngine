@@ -108,7 +108,7 @@ void spSwapchainD3D11::Resize(ezUInt32 uiWidth, ezUInt32 uiHeight)
   }
 
   {
-    spD3D11ScopedResource<ID3D11Texture2D> pBackBufferTexture;
+    spScopedD3D11Resource<ID3D11Texture2D> pBackBufferTexture;
     const HRESULT res = m_pD3D11SwapChain->GetBuffer(0, IID_ID3D11Texture2D, reinterpret_cast<void**>(&pBackBufferTexture));
     EZ_HRESULT_TO_ASSERT(res);
 
@@ -202,7 +202,7 @@ spSwapchainD3D11::spSwapchainD3D11(spDeviceD3D11* pDevice, const spSwapchainDesc
     desc.SampleDesc.Quality = 0;
 
     {
-      spD3D11ScopedResource<IDXGIFactory> pDXGIFactory;
+      spScopedD3D11Resource<IDXGIFactory> pDXGIFactory;
       pDevice->GetDXGIAdapter()->GetParent(IID_IDXGIFactory, reinterpret_cast<void**>(&pDXGIFactory));
 
       const HRESULT res = pDXGIFactory->CreateSwapChain(m_pD3D11Device, &desc, &m_pD3D11SwapChain);
@@ -228,11 +228,11 @@ spSwapchainD3D11::spSwapchainD3D11(spDeviceD3D11* pDevice, const spSwapchainDesc
     desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
 
     {
-      spD3D11ScopedResource<IDXGIFactory2> pDXGIFactory;
+      spScopedD3D11Resource<IDXGIFactory2> pDXGIFactory;
       pDevice->GetDXGIAdapter()->GetParent(IID_IDXGIFactory2, reinterpret_cast<void**>(&pDXGIFactory));
 
       {
-        spD3D11ScopedResource<IDXGISwapChain1> pDXGISwapChain1;
+        spScopedD3D11Resource<IDXGISwapChain1> pDXGISwapChain1;
         pDXGIFactory->CreateSwapChainForComposition(m_pD3D11Device, &desc, nullptr, &pDXGISwapChain1);
 
         pDXGISwapChain1->QueryInterface(IID_IDXGISwapChain2, reinterpret_cast<void**>(&m_pD3D11SwapChain));

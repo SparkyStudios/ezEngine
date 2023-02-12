@@ -188,7 +188,8 @@ public:
 protected:
   spBuffer(spBufferDescription description);
 
-  void InitRanges();
+  void PreCreateResource();
+  void PostCreateResource();
 
   spBufferDescription m_Description;
 
