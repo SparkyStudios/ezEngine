@@ -31,7 +31,6 @@ public:
   EZ_NODISCARD ezSharedPtr<spSwapchain> GetMainSwapchain() const override;
   EZ_NODISCARD const spDeviceCapabilities& GetCapabilities() const override;
   void SubmitCommandList(const spResourceHandle& hCommandList, const spResourceHandle& hFence) override;
-  void SubmitCommandListAsync(const spResourceHandle& hCommandList, const spResourceHandle& hFence) override;
   bool WaitForFence(const spResourceHandle& hFence, double uiNanosecondsTimeout) override;
   bool WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitAll, double uiNanosecondsTimeout) override;
   void ResetFence(const spResourceHandle& hFence) override;
