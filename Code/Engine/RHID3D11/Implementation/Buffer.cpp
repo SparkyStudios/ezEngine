@@ -91,9 +91,11 @@ void spBufferD3D11::ReleaseResource()
 
 void spBufferD3D11::CreateResource()
 {
+  PreCreateResource();
+
   D3D11_BUFFER_DESC desc;
   desc.BindFlags = spToD3D11(m_Description.m_eUsage);
-  desc.ByteWidth = m_Description.m_uiSize;
+  desc.ByteWidth = m_uiBufferAlignedSize * m_uiBufferCount;
   desc.Usage = D3D11_USAGE_DEFAULT;
   desc.CPUAccessFlags = 0;
   desc.MiscFlags = 0;
@@ -128,7 +130,9 @@ void spBufferD3D11::CreateResource()
   const HRESULT res = m_pD3D11Device->CreateBuffer(&desc, nullptr, &m_pBuffer);
   EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 buffer. Error Code: {}.", (ezUInt32)HRESULT_CODE(res));
 
-  InitRanges();
+  PostCreateResource();
+
+  SetDebugName(m_sDebugName);
 
   m_bIsResourceCreated = true;
 }

@@ -43,11 +43,11 @@ public:
 
 protected:
   void WaitForIdleInternal() override;
-  const spMappedResource& MapInternal(spBuffer* pBuffer, ezEnum<spMapAccess> eAccess) override;
-  const spMappedResource& MapInternal(spTexture* pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource) override;
-  void UnMapInternal(spBuffer* pBuffer) override;
-  void UnMapInternal(spTexture* pTexture, ezUInt32 uiSubresource) override;
-  void UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize) override;
+  const spMappedResource& MapInternal(ezSharedPtr<spBuffer> pBuffer, ezEnum<spMapAccess> eAccess) override;
+  const spMappedResource& MapInternal(ezSharedPtr<spTexture> pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource) override;
+  void UnMapInternal(ezSharedPtr<spBuffer> pBuffer) override;
+  void UnMapInternal(ezSharedPtr<spTexture> pTexture, ezUInt32 uiSubresource) override;
+  void UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize) override;
 
   // spDeviceD3D11
 
@@ -60,17 +60,17 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Device* GetD3D11Device() const { return m_pD3D11Device; }
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Device3* GetD3D11Device3() const { return m_pD3D11Device3; }
   EZ_NODISCARD EZ_ALWAYS_INLINE IDXGIAdapter* GetDXGIAdapter() const { return m_pDXGIAdapter; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceContext* GetD3D11DeviceContext() const { return m_pD3D11DeviceContext; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceContext* GetD3D11DeviceContext() const { return m_pD3D11ImmediateContext; }
 
 private:
   bool CheckFormatMultisample(DXGI_FORMAT format, ezUInt32 uiSampleCount) const;
-  spBufferD3D11* GetFreeStagingBuffer(ezUInt32 uiSize);
+  ezSharedPtr<spBufferD3D11> GetFreeStagingBuffer(ezUInt32 uiSize);
 
   ID3D11Device* m_pD3D11Device{nullptr};
   ID3D11Device3* m_pD3D11Device3{nullptr};
   IDXGIAdapter* m_pDXGIAdapter{nullptr};
   IDXGIDevice1* m_pDXGIDevice{nullptr};
-  ID3D11DeviceContext* m_pD3D11DeviceContext{nullptr};
+  ID3D11DeviceContext* m_pD3D11ImmediateContext{nullptr};
   ID3D11Debug* m_pD3D11Debug{nullptr};
   D3D_FEATURE_LEVEL m_uiFeatureLevel;
 
@@ -88,7 +88,7 @@ private:
   ezMutex m_ResetEventsMutex;
 
   ezMap<spMappedResourceCacheKey, spMappedResource> m_MappedResourcesCache;
-  ezList<spBufferD3D11*> m_AvailableStagingBuffers;
+  ezList<ezSharedPtr<spBufferD3D11>> m_AvailableStagingBuffers;
 
   HardwareInfo m_HardwareInfo;
   spDeviceCapabilities m_Capabilities;

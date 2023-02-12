@@ -2,7 +2,10 @@
 
 #include <RHID3D11/Profiler.h>
 
+#include <RHID3D11/Core.h>
 #include <RHID3D11/Device.h>
+
+#include <Foundation/Threading/ThreadUtils.h>
 
 #pragma region spFrameProfilerD3D11
 
@@ -36,9 +39,29 @@ void spFrameProfilerD3D11::End()
 
   D3D11_QUERY_DATA_TIMESTAMP_DISJOINT data;
   while (pContext->GetData(m_pDisjointQuery, &data, sizeof(data), D3D11_ASYNC_GETDATA_DONOTFLUSH) != S_OK)
-    ;
+    ezThreadUtils::YieldTimeSlice();
 
   m_fInvTicksPerSecond = 1.0 / static_cast<double>(data.Frequency);
+
+  if (m_bSyncTimeNeeded)
+  {
+    D3D11_QUERY_DESC desc;
+    desc.Query = D3D11_QUERY_TIMESTAMP;
+    desc.MiscFlags = 0;
+
+    spScopedD3D11Resource<ID3D11Query> pQuery;
+    HRESULT res = static_cast<spDeviceD3D11*>(m_pDevice)->GetD3D11Device()->CreateQuery(&desc, &pQuery);
+    EZ_HRESULT_TO_ASSERT(res);
+
+    pContext->End(*pQuery);
+
+    ezUInt64 uiTimestamp;
+    while (pContext->GetData(*pQuery, &uiTimestamp, sizeof(uiTimestamp), 0) != S_OK)
+      ezThreadUtils::YieldTimeSlice();
+
+    m_SyncTimeDiff = ezTime::Now() - ezTime::Seconds(double(uiTimestamp) * m_fInvTicksPerSecond);
+    m_bSyncTimeNeeded = false;
+  }
 }
 
 spFrameProfilerD3D11::spFrameProfilerD3D11(spDeviceD3D11* pDevice)
@@ -143,7 +166,7 @@ ezTime spScopeProfilerD3D11::GetTime(ID3D11Query* pQuery)
   if (pProfiler->m_fInvTicksPerSecond == 0.0)
     return ezTime::Zero();
 
-  return ezTime::Seconds(double(uiTimestamp) * pProfiler->m_fInvTicksPerSecond);
+  return ezTime::Seconds(double(uiTimestamp) * pProfiler->m_fInvTicksPerSecond) + pProfiler->m_SyncTimeDiff;
 }
 
 #pragma endregion

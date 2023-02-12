@@ -166,9 +166,9 @@ private:
   ezDynamicArray<bool> m_InvalidatedComputeResourceSets;
 
   bool m_bIsVertexBindingsDirty{false};
-  ezSmallArray<ID3D11Buffer*, 1> m_ConstantBuffersOut;
-  ezSmallArray<ezUInt32, 1> m_FirstConstantBufferRef;
-  ezSmallArray<ezUInt32, 1> m_ConstantBuffersRefCounts;
+  ezStaticArray<ID3D11Buffer*, 1> m_ConstantBuffersOut;
+  ezStaticArray<ezUInt32, 1> m_FirstConstantBufferRef;
+  ezStaticArray<ezUInt32, 1> m_ConstantBuffersRefCounts;
 
   // --- Cached Resources ---
 

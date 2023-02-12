@@ -23,7 +23,7 @@ spBuffer::spBuffer(spBufferDescription description)
 {
 }
 
-void spBuffer::InitRanges()
+void spBuffer::PreCreateResource()
 {
   m_uiBufferCount = m_Description.m_eUsage.IsSet(spBufferUsage::TripleBuffered)   ? 3
                     : m_Description.m_eUsage.IsSet(spBufferUsage::DoubleBuffered) ? 2
@@ -39,7 +39,10 @@ void spBuffer::InitRanges()
     uiBufferAlignmentMinOffset = m_pDevice->GetStructuredBufferMinOffsetAlignment();
 
   m_uiBufferAlignedSize = static_cast<ezUInt32>(ezMath::Ceil(static_cast<double>(m_Description.m_uiSize) / uiBufferAlignmentMinOffset)) * uiBufferAlignmentMinOffset;
+}
 
+void spBuffer::PostCreateResource()
+{
   for (ezUInt32 i = 0; i < m_uiBufferCount; i++)
   {
     spBufferRangeDescription desc(

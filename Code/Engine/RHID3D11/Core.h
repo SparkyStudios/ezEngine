@@ -9,15 +9,17 @@
 #pragma region Structs
 
 template <typename T>
-class spD3D11ScopedResource
+class spScopedD3D11Resource
 {
 public:
-  explicit spD3D11ScopedResource(T* resource = nullptr)
+  explicit spScopedD3D11Resource(T* resource = nullptr)
     : m_pResource(resource)
   {
+    if (m_pResource != nullptr)
+      m_pResource->AddRef();
   }
 
-  ~spD3D11ScopedResource()
+  ~spScopedD3D11Resource()
   {
     SP_RHI_DX11_RELEASE(m_pResource);
   }

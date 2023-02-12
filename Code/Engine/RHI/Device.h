@@ -386,11 +386,11 @@ protected:
   }
 
   virtual void WaitForIdleInternal() = 0;
-  virtual const spMappedResource& MapInternal(spBuffer* pBuffer, ezEnum<spMapAccess> eAccess) = 0;
-  virtual const spMappedResource& MapInternal(spTexture* pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource) = 0;
-  virtual void UnMapInternal(spBuffer* pBuffer) = 0;
-  virtual void UnMapInternal(spTexture* pTexture, ezUInt32 uiSubresource) = 0;
-  virtual void UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize) = 0;
+  virtual const spMappedResource& MapInternal(ezSharedPtr<spBuffer> pBuffer, ezEnum<spMapAccess> eAccess) = 0;
+  virtual const spMappedResource& MapInternal(ezSharedPtr<spTexture> pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource) = 0;
+  virtual void UnMapInternal(ezSharedPtr<spBuffer> pBuffer) = 0;
+  virtual void UnMapInternal(ezSharedPtr<spTexture> pTexture, ezUInt32 uiSubresource) = 0;
+  virtual void UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize) = 0;
 
   spDeviceDescription m_Description;
   spGraphicsApiVersion m_ApiVersion;

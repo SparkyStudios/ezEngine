@@ -19,7 +19,7 @@ static bool SdkLayersAvailable()
   const HRESULT hr = D3D11CreateDevice(
     nullptr,
     D3D_DRIVER_TYPE_NULL, // There is no need to create a real hardware device.
-    0,
+    nullptr,
     D3D11_CREATE_DEVICE_DEBUG, // Check for the SDK layers.
     nullptr,                   // Any feature level will do.
     0,
@@ -111,7 +111,7 @@ void spDeviceD3D11::SubmitCommandList(const spResourceHandle& hCommandList, cons
 
     if (pCommandList->GetD3D11CommandList() != nullptr) // Command list already submitted or has been reset
     {
-      m_pD3D11DeviceContext->ExecuteCommandList(pCommandList->GetD3D11CommandList(), FALSE);
+      m_pD3D11ImmediateContext->ExecuteCommandList(pCommandList->GetD3D11CommandList(), FALSE);
       pCommandList->OnComplete();
     }
   }
@@ -204,7 +204,7 @@ void spDeviceD3D11::UpdateTexture(const spResourceHandle& hResource, const void*
     const ezUInt32 uiSourceDepthPitch = spPixelFormatHelper::GetDepthPitch(uiSourceRowPitch, uiHeight, pTextureD3D11->GetFormat());
 
     EZ_LOCK(m_ImmediateContextMutex);
-    m_pD3D11DeviceContext->UpdateSubresource(pTextureD3D11->GetD3D11Texture(), uiSubresource, &box, pData, uiSourceRowPitch, uiSourceDepthPitch);
+    m_pD3D11ImmediateContext->UpdateSubresource(pTextureD3D11->GetD3D11Texture(), uiSubresource, &box, pData, uiSourceRowPitch, uiSourceDepthPitch);
   }
 }
 
@@ -217,7 +217,7 @@ void spDeviceD3D11::Destroy()
   WaitForIdle();
 
   for (auto it = m_AvailableStagingBuffers.GetIterator(); it.IsValid(); it.Next())
-    m_pResourceManager->ReleaseResource(*it);
+   it->Clear();
 
   m_AvailableStagingBuffers.Clear();
 
@@ -227,14 +227,14 @@ void spDeviceD3D11::Destroy()
 
   m_pFrameProfiler.Clear();
 
-  SP_RHI_DX11_RELEASE(m_pD3D11DeviceContext);
+  SP_RHI_DX11_RELEASE(m_pD3D11ImmediateContext);
   SP_RHI_DX11_RELEASE(m_pD3D11Device3);
 
   if (IsDebugEnabled())
   {
     if (m_pD3D11Device->Release() > 0)
     {
-      spD3D11ScopedResource<ID3D11Debug> pDeviceDebug;
+      spScopedD3D11Resource<ID3D11Debug> pDeviceDebug;
       const HRESULT res = m_pD3D11Device->QueryInterface(IID_ID3D11Debug, reinterpret_cast<void**>(&pDeviceDebug));
       EZ_HRESULT_TO_ASSERT(res);
 
@@ -256,7 +256,7 @@ void spDeviceD3D11::WaitForIdleInternal()
   // noop
 }
 
-const spMappedResource& spDeviceD3D11::MapInternal(spBuffer* pBuffer, ezEnum<spMapAccess> eAccess)
+const spMappedResource& spDeviceD3D11::MapInternal(ezSharedPtr<spBuffer> pBuffer, ezEnum<spMapAccess> eAccess)
 {
   const spMappedResourceCacheKey key(pBuffer, 0);
   EZ_LOCK(m_MappedResourcesMutex);
@@ -268,23 +268,23 @@ const spMappedResource& spDeviceD3D11::MapInternal(spBuffer* pBuffer, ezEnum<spM
   }
   else
   {
-    const auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pBuffer);
+    const auto pBufferD3D11 = pBuffer.Downcast<spBufferD3D11>();
     EZ_LOCK(m_ImmediateContextMutex);
 
     D3D11_MAPPED_SUBRESOURCE mappedSubresource;
-    const HRESULT res = m_pD3D11DeviceContext->Map(pBufferD3D11->GetD3D11Buffer(), 0, spToD3D11(eAccess, pBufferD3D11->GetUsage().IsSet(spBufferUsage::Dynamic)), 0, &mappedSubresource);
+    const HRESULT res = m_pD3D11ImmediateContext->Map(pBufferD3D11->GetD3D11Buffer(), 0, spToD3D11(eAccess, pBufferD3D11->GetUsage().IsSet(spBufferUsage::Dynamic)), 0, &mappedSubresource);
     EZ_HRESULT_TO_ASSERT(res);
 
     mappedResource = spMappedResource(pBufferD3D11->GetHandle(), eAccess, mappedSubresource.pData, pBufferD3D11->GetSize());
   }
 
-  EZ_IGNORE_UNUSED(mappedResource.AddRef());
-  m_MappedResourcesCache[key] = mappedResource;
+  m_MappedResourcesCache[key] = std::move(mappedResource);
+  EZ_IGNORE_UNUSED(m_MappedResourcesCache[key].AddRef());
 
   return m_MappedResourcesCache[key];
 }
 
-const spMappedResource& spDeviceD3D11::MapInternal(spTexture* pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource)
+const spMappedResource& spDeviceD3D11::MapInternal(ezSharedPtr<spTexture> pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource)
 {
   const spMappedResourceCacheKey key(pTexture, uiSubresource);
   EZ_LOCK(m_MappedResourcesMutex);
@@ -296,70 +296,68 @@ const spMappedResource& spDeviceD3D11::MapInternal(spTexture* pTexture, ezEnum<s
   }
   else
   {
-    const auto* pTextureD3D11 = ezStaticCast<spTextureD3D11*>(pTexture);
+    const auto pTextureD3D11 = pTexture.Downcast<spTextureD3D11>();
     EZ_LOCK(m_ImmediateContextMutex);
 
     D3D11_MAPPED_SUBRESOURCE mappedSubresource;
-    const HRESULT res = m_pD3D11DeviceContext->Map(pTextureD3D11->GetD3D11Texture(), uiSubresource, spToD3D11(eAccess, false), 0, &mappedSubresource);
+    const HRESULT res = m_pD3D11ImmediateContext->Map(pTextureD3D11->GetD3D11Texture(), uiSubresource, spToD3D11(eAccess, false), 0, &mappedSubresource);
     EZ_HRESULT_TO_ASSERT(res);
 
     mappedResource = spMappedResource(pTextureD3D11->GetHandle(), eAccess, mappedSubresource.pData, pTextureD3D11->GetHeight() * mappedSubresource.RowPitch, uiSubresource, mappedSubresource.RowPitch, mappedSubresource.DepthPitch);
   }
 
-  EZ_IGNORE_UNUSED(mappedResource.AddRef());
-  m_MappedResourcesCache[key] = mappedResource;
+  m_MappedResourcesCache[key] = std::move(mappedResource);
+  EZ_IGNORE_UNUSED(m_MappedResourcesCache[key].AddRef());
 
   return m_MappedResourcesCache[key];
 }
 
-void spDeviceD3D11::UnMapInternal(spBuffer* pBuffer)
+void spDeviceD3D11::UnMapInternal(ezSharedPtr<spBuffer> pBuffer)
 {
   const spMappedResourceCacheKey key(pBuffer, 0);
   EZ_LOCK(m_MappedResourcesMutex);
 
-  spMappedResource mappedResource;
-  bool bDone = m_MappedResourcesCache.TryGetValue(key, mappedResource);
+  bool bDone = m_MappedResourcesCache.Contains(key);
   EZ_ASSERT_DEV(bDone, "The given resource is not mapped.");
 
-  if (mappedResource.ReleaseRef() == 0)
+  if (m_MappedResourcesCache[key].ReleaseRef() == 0)
   {
-    const auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pBuffer);
+    const auto pBufferD3D11 = pBuffer.Downcast<spBufferD3D11>();
     EZ_LOCK(m_ImmediateContextMutex);
 
-    m_pD3D11DeviceContext->Unmap(pBufferD3D11->GetD3D11Buffer(), 0);
+    m_pD3D11ImmediateContext->Unmap(pBufferD3D11->GetD3D11Buffer(), 0);
   }
 
   bDone = m_MappedResourcesCache.Remove(key);
   EZ_ASSERT_DEV(bDone, "Unable to unmap the resource.");
 }
 
-void spDeviceD3D11::UnMapInternal(spTexture* pTexture, ezUInt32 uiSubresource)
+void spDeviceD3D11::UnMapInternal(ezSharedPtr<spTexture> pTexture, ezUInt32 uiSubresource)
 {
   const spMappedResourceCacheKey key(pTexture, uiSubresource);
   EZ_LOCK(m_MappedResourcesMutex);
 
-  spMappedResource mappedResource;
-  bool bDone = m_MappedResourcesCache.TryGetValue(key, mappedResource);
+  bool bDone = m_MappedResourcesCache.Contains(key);
   EZ_ASSERT_DEV(bDone, "The given resource is not mapped.");
 
-  if (mappedResource.ReleaseRef() == 0)
+  if (m_MappedResourcesCache[key].ReleaseRef() == 0)
   {
-    const auto* pTextureD3D11 = ezStaticCast<spTextureD3D11*>(pTexture);
+    const auto pTextureD3D11 = pTexture.Downcast<spTextureD3D11>();
     EZ_LOCK(m_ImmediateContextMutex);
 
-    m_pD3D11DeviceContext->Unmap(pTextureD3D11->GetD3D11Texture(), uiSubresource);
+    m_pD3D11ImmediateContext->Unmap(pTextureD3D11->GetD3D11Texture(), uiSubresource);
   }
 
   bDone = m_MappedResourcesCache.Remove(key);
   EZ_ASSERT_DEV(bDone, "Unable to unmap the resource.");
 }
 
-void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize)
+void spDeviceD3D11::UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize)
 {
   if (uiSize == 0)
     return;
 
-  auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pBuffer);
+  const auto pBufferD3D11 = pBuffer.Downcast<spBufferD3D11>();
   pBufferD3D11->EnsureResourceCreated();
 
   const bool bIsDynamic = pBuffer->GetUsage().IsSet(spBufferUsage::Dynamic);
@@ -371,22 +369,22 @@ void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, c
 
   if (bUseUpdateSubresource)
   {
-    D3D11_BOX box{uiOffset, 0, 0, uiSize + uiOffset, 1, 1};
+    const D3D11_BOX box{uiOffset, 0, 0, uiSize + uiOffset, 1, 1};
 
     {
       EZ_LOCK(m_ImmediateContextMutex);
-      m_pD3D11DeviceContext->UpdateSubresource(pBufferD3D11->GetD3D11Buffer(), 0, bIsConstantBuffer ? nullptr : &box, pData, 0, 0);
+      m_pD3D11ImmediateContext->UpdateSubresource(pBufferD3D11->GetD3D11Buffer(), 0, bIsConstantBuffer ? nullptr : &box, pData, 0, 0);
     }
   }
   else if (bUseMap)
   {
-    const spMappedResource mappedResource = MapInternal(pBuffer, spMapAccess::Write);
+    const spMappedResource& mappedResource = MapInternal(pBuffer, spMapAccess::Write);
     ezMemoryUtils::Copy(static_cast<ezUInt8*>(mappedResource.GetData()) + uiOffset, static_cast<const ezUInt8*>(pData), uiSize);
     UnMapInternal(pBuffer);
   }
   else
   {
-    spBufferD3D11* pStaging = GetFreeStagingBuffer(uiSize);
+    const ezSharedPtr<spBufferD3D11> pStaging = GetFreeStagingBuffer(uiSize);
     UpdateBufferInternal(pStaging, 0, pData, uiSize);
 
     D3D11_BOX box;
@@ -399,7 +397,7 @@ void spDeviceD3D11::UpdateBufferInternal(spBuffer* pBuffer, ezUInt32 uiOffset, c
 
     {
       EZ_LOCK(m_ImmediateContextMutex);
-      m_pD3D11DeviceContext->CopySubresourceRegion(pBufferD3D11->GetD3D11Buffer(), 0, uiOffset, 0, 0, pStaging->GetD3D11Buffer(), 0, &box);
+      m_pD3D11ImmediateContext->CopySubresourceRegion(pBufferD3D11->GetD3D11Buffer(), 0, uiOffset, 0, 0, pStaging->GetD3D11Buffer(), 0, &box);
     }
 
     {
@@ -511,7 +509,7 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
   }
 
   {
-    m_pD3D11Device->GetImmediateContext(&m_pD3D11DeviceContext);
+    m_pD3D11Device->GetImmediateContext(&m_pD3D11ImmediateContext);
 
     D3D11_FEATURE_DATA_THREADING support;
     res = m_pD3D11Device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &support, sizeof(D3D11_FEATURE_DATA_THREADING));
@@ -566,7 +564,7 @@ bool spDeviceD3D11::CheckFormatMultisample(DXGI_FORMAT format, ezUInt32 uiSample
   return uiQualityLevels != 0;
 }
 
-spBufferD3D11* spDeviceD3D11::GetFreeStagingBuffer(ezUInt32 uiSize)
+ezSharedPtr<spBufferD3D11> spDeviceD3D11::GetFreeStagingBuffer(ezUInt32 uiSize)
 {
   {
     EZ_LOCK(m_StagingResourcesMutex);
@@ -581,7 +579,7 @@ spBufferD3D11* spDeviceD3D11::GetFreeStagingBuffer(ezUInt32 uiSize)
     }
   }
 
-  return ezStaticCast<spBufferD3D11*>(GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging)));
+  return GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging)).Downcast<spBufferD3D11>();
 }
 
 spDeviceD3D11::~spDeviceD3D11()
