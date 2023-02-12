@@ -10,6 +10,7 @@ class spFramebuffer;
 class spGraphicPipeline;
 class spResourceSet;
 class spTexture;
+class spScopeProfiler;
 
 /// \brief Data structure holding draw arrays commands for indirect drawing.
 struct SP_RHI_DLL alignas(16) spDrawIndirectCommand
@@ -202,6 +203,10 @@ public:
   void CopyTexture(spResourceHandle hSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, spResourceHandle hDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount);
 
   void GenerateMipmaps(spResourceHandle hTexture);
+
+  virtual void PushProfileScope(const ezString& sName) = 0;
+
+  virtual void PopProfileScope(ezSharedPtr<spScopeProfiler>& scopeProfiler) = 0;
 
   virtual void PushDebugGroup(const ezString& sName) = 0;
 

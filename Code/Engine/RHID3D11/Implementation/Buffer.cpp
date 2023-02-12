@@ -1,4 +1,3 @@
-#include "Foundation/Basics/Platform/Common.h"
 #include <RHID3D11/RHID3D11PCH.h>
 
 #include <dxgiformat.h>

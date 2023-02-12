@@ -16,6 +16,7 @@ class spSamplerD3D11;
 class spTextureD3D11;
 class spTextureViewD3D11;
 class spSwapchainD3D11;
+class spScopeProfilerD3D11;
 
 class spCommandListD3D11 final : public spCommandList
 {
@@ -36,6 +37,8 @@ public:
   void SetGraphicPipeline(spResourceHandle hGraphicPipeline) override;
   void SetScissorRect(ezUInt32 uiSlot, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiWidth, ezUInt32 uiHeight) override;
   void SetViewport(ezUInt32 uiSlot, const spViewport& viewport) override;
+  void PushProfileScope(const ezString& sName) override;
+  void PopProfileScope(ezSharedPtr<spScopeProfiler>& scopeProfiler) override;
   void PushDebugGroup(const ezString& sName) override;
   void PopDebugGroup() override;
   void InsertDebugMarker(const ezString& sName) override;
@@ -118,6 +121,8 @@ private:
   ID3DUserDefinedAnnotation* m_pUserDefinedAnnotation{nullptr};
 
   bool m_bHasStarted{false};
+
+  ezSharedPtr<spScopeProfilerD3D11> m_pCurrentScopeProfiler;
 
   spFramebufferD3D11* m_pFramebuffer{nullptr};
 

@@ -3,6 +3,7 @@
 #include <Foundation/Configuration/SubSystem.h>
 
 #include <RHI/Factory.h>
+
 #include <RHID3D11/Device.h>
 #include <RHID3D11/ResourceFactory.h>
 #include <RHID3D11/ResourceManager.h>
