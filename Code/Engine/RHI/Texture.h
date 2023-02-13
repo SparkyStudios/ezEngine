@@ -560,9 +560,9 @@ public:
   virtual ~spTextureSamplerManager() = default;
 
   /// \brief Gets a texture view resource for the specified texture resource.
-  /// \param [in] hTexture A handle to the texture resource to retrieve the texture view resource from.
+  /// \param [in] pTexture A handle to the texture resource to retrieve the texture view resource from.
   /// \returns A handle to the texture view resource.
-  virtual spResourceHandle GetFullTextureView(const spResourceHandle& hTexture) = 0;
+  virtual ezSharedPtr<spTextureView> GetFullTextureView(ezSharedPtr<spTexture> pTexture) = 0;
 
 protected:
   /// \brief Creates a texture/sampler manager for the given graphics device.
@@ -617,7 +617,7 @@ public:
   }
 
   /// \brief Gets the dimension of a mipmap level from a texture given the largest dimension.
-  /// \param uiLargestDimension The largest dimension.
+  /// \param uiLargestMipDimension The largest dimension.
   /// \param uiMipLevel The mipmap level to get the dimension from.
   /// \return The dimension of the mipmap level.
   EZ_ALWAYS_INLINE static ezUInt32 GetMipDimension(ezUInt32 uiLargestMipDimension, ezUInt32 uiMipLevel)
@@ -647,18 +647,18 @@ public:
     ezUInt32 uiDepth,
     const ezEnum<spPixelFormat>& eFormat)
   {
-    ezUInt32 uiBlockSize = spPixelFormatHelper::IsCompressedFormat(eFormat) ? 4 : 1;
-    ezUInt32 uiBlockSizeInBytes = uiBlockSize > 1 ? spPixelFormatHelper::GetBlockSizeInBytes(eFormat) : spPixelFormatHelper::GetSizeInBytes(eFormat);
-    ezUInt32 uiCompressedSourceX = uiSourceX / uiBlockSize;
-    ezUInt32 uiCompressedSourceY = uiSourceY / uiBlockSize;
-    ezUInt32 uiCompressedDestinationX = uiDestinationX / uiBlockSize;
-    ezUInt32 uiCompressedDestinationY = uiDestinationY / uiBlockSize;
-    ezUInt32 uiNumRows = spPixelFormatHelper::GetNumRows(uiHeight, eFormat);
-    ezUInt32 uiRowSize = uiWidth / uiBlockSize * uiBlockSizeInBytes;
+    const ezUInt32 uiBlockSize = spPixelFormatHelper::IsCompressedFormat(eFormat) ? 4 : 1;
+    const ezUInt32 uiBlockSizeInBytes = uiBlockSize > 1 ? spPixelFormatHelper::GetBlockSizeInBytes(eFormat) : spPixelFormatHelper::GetSizeInBytes(eFormat);
+    const ezUInt32 uiCompressedSourceX = uiSourceX / uiBlockSize;
+    const ezUInt32 uiCompressedSourceY = uiSourceY / uiBlockSize;
+    const ezUInt32 uiCompressedDestinationX = uiDestinationX / uiBlockSize;
+    const ezUInt32 uiCompressedDestinationY = uiDestinationY / uiBlockSize;
+    const ezUInt32 uiNumRows = spPixelFormatHelper::GetNumRows(uiHeight, eFormat);
+    const ezUInt32 uiRowSize = uiWidth / uiBlockSize * uiBlockSizeInBytes;
 
     if (uiSourceRowPitch == uiDestinationRowPitch && uiSourceDepthPitch == uiDestinationDepthPitch)
     {
-      ezUInt32 uiTotalCopySize = uiDepth * uiSourceDepthPitch;
+      const ezUInt32 uiTotalCopySize = uiDepth * uiSourceDepthPitch;
       ezMemoryUtils::RawByteCopy(pDestination, pSource, uiTotalCopySize);
     }
     else
@@ -667,8 +667,8 @@ public:
       {
         for (ezUInt32 yy = 0; yy < uiNumRows; yy++)
         {
-          ezUInt8* pRowCopyDst = reinterpret_cast<ezUInt8*>(pDestination) + uiDestinationDepthPitch * (zz + uiDestinationZ) + uiDestinationRowPitch * (yy + uiCompressedDestinationY) + uiBlockSizeInBytes * uiCompressedSourceX;
-          const ezUInt8* pRowCopySrc = reinterpret_cast<const ezUInt8*>(pSource) + uiSourceDepthPitch * (zz + uiSourceZ) + uiSourceRowPitch * (yy + uiCompressedSourceY) + uiBlockSizeInBytes * uiCompressedDestinationX;
+          ezUInt8* pRowCopyDst = static_cast<ezUInt8*>(pDestination) + uiDestinationDepthPitch * (zz + uiDestinationZ) + uiDestinationRowPitch * (yy + uiCompressedDestinationY) + uiBlockSizeInBytes * uiCompressedSourceX;
+          const ezUInt8* pRowCopySrc = static_cast<const ezUInt8*>(pSource) + uiSourceDepthPitch * (zz + uiSourceZ) + uiSourceRowPitch * (yy + uiCompressedSourceY) + uiBlockSizeInBytes * uiCompressedDestinationX;
           ezMemoryUtils::Copy(pRowCopyDst, pRowCopySrc, uiRowSize);
         }
       }

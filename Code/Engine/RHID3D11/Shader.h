@@ -17,18 +17,18 @@ public:
   // spShaderProgram
 
 public:
-  void Attach(const spResourceHandle& hShader) override;
-  void Detach(const spResourceHandle& hShader) override;
+  void Attach(ezSharedPtr<spShader> pShader) override;
+  void Detach(ezSharedPtr<spShader> pShader) override;
   void Detach(const ezEnum<spShaderStage>& eStage) override;
   void DetachAll() override;
   void Use() override;
-  EZ_NODISCARD spResourceHandle Get(const ezEnum<spShaderStage>& eStage) const override;
+  EZ_NODISCARD ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const override;
 
   // spShaderProgramD3D11
 
 public:
   spShaderProgramD3D11(spDeviceD3D11* pDevice);
-  ~spShaderProgramD3D11();
+  ~spShaderProgramD3D11() override;
 
   EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetVertexShader() const { return m_pVertexShader; }
   EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetGeometryShader() const { return m_pGeometryShader; }

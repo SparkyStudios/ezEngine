@@ -44,8 +44,8 @@ struct SP_RHI_DLL spOutputDescription : public ezHashableStruct<spOutputDescript
   static spOutputDescription CreateFromFramebuffer(const spFramebuffer* pFramebuffer);
 
   /// \brief Creates an output attachment from the given spFramebuffer.
-  /// \param [in] hFramebuffer A handle to a spFramebuffer resource to copy the output description from.
-  static spOutputDescription CreateFromFramebuffer(spResourceHandle hFramebuffer);
+  /// \param [in] pFramebuffer A handle to a spFramebuffer resource to copy the output description from.
+  static spOutputDescription CreateFromFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer);
 
   /// \brief Indicates whether to use the depth attachment.
   bool m_bUseDepthAttachment{false};

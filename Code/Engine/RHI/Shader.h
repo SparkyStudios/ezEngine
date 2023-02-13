@@ -6,7 +6,7 @@
 
 /// \brief Describes a single shader specialization constant. Used to substitute new values into shaders when building
 /// a \see spPipeline.
-struct SP_RHI_DLL spShaderSpecializationConstant : ezHashableStruct<spShaderSpecializationConstant>
+struct spShaderSpecializationConstant : ezHashableStruct<spShaderSpecializationConstant>
 {
 public:
   /// \brief The specialization constant ID, as defined in the shader.
@@ -15,7 +15,7 @@ public:
   /// \brief The type of data stored in the specialization constant. Must be a scalar type.
   ezEnum<spShaderSpecializationConstantType> m_eType{spShaderSpecializationConstantType::Default};
 
-  /// \brief A 8-byte block containing the value of the specialization constant. This is threated as an
+  /// \brief A 8-byte block containing the value of the specialization constant. This is treated as an
   /// untyped buffer and it's interpreted according to the type.
   ezUInt64 m_uiValue{0};
 
@@ -23,7 +23,7 @@ public:
   /// \param [in] uiId The ID of the specialization constant.
   /// \param [in] eType The type of data stored in the specialization constant.
   /// \param [in] uiData The value of the specialization constant.
-  spShaderSpecializationConstant(ezUInt32 uiId, ezEnum<spShaderSpecializationConstantType> eType, ezUInt64 uiData)
+  spShaderSpecializationConstant(ezUInt32 uiId, const ezEnum<spShaderSpecializationConstantType>& eType, ezUInt64 uiData)
     : ezHashableStruct<spShaderSpecializationConstant>()
     , m_uiId(uiId)
     , m_eType(eType)
@@ -108,7 +108,7 @@ private:
   static ezUInt64 Store(T value)
   {
     ezUInt64 uiValue = 0;
-    memcpy(&uiValue, &value, sizeof(T));
+    ezMemoryUtils::RawByteCopy(&uiValue, &value, sizeof(T));
     return uiValue;
   }
 };
@@ -140,12 +140,12 @@ class SP_RHI_DLL spShaderProgram : public spDeviceResource
 {
 public:
   /// \brief Attaches the the given shader to the program.
-  /// \param [in] hShader The handle to the shader to attach to the program.
-  virtual void Attach(const spResourceHandle& hShader) = 0;
+  /// \param [in] pShader The handle to the shader to attach to the program.
+  virtual void Attach(ezSharedPtr<spShader> pShader) = 0;
 
   /// \brief Detaches the given shader from the program.
-  /// \param [in] hShader The handle to the shader to detach from the program.
-  virtual void Detach(const spResourceHandle& hShader) = 0;
+  /// \param [in] pShader The handle to the shader to detach from the program.
+  virtual void Detach(ezSharedPtr<spShader> pShader) = 0;
 
   /// \brief Detaches the shader attached at the given stage, if any.
   /// \param [in] eStage The stage to detach the shader from.
@@ -162,7 +162,7 @@ public:
   /// at the given stage.
   /// \param [in] eStage The shader stage.
   /// \return The shader resource handle. An invalid handle is returned if the given stage does not exist.
-  EZ_NODISCARD virtual spResourceHandle Get(const ezEnum<spShaderStage>& eStage) const = 0;
+  EZ_NODISCARD virtual ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const = 0;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spShaderProgram);

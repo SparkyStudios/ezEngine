@@ -104,9 +104,9 @@ EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spSamplerState);
 class SP_RHI_DLL spSampler : public spShaderResource
 {
 public:
-  EZ_NODISCARD virtual spResourceHandle GetSamplerWithMipMap() const = 0;
+  EZ_NODISCARD virtual ezSharedPtr<spSamplerState> GetSamplerWithMipMap() const = 0;
 
-  EZ_NODISCARD virtual spResourceHandle GetSamplerWithoutMipMap() const = 0;
+  EZ_NODISCARD virtual ezSharedPtr<spSamplerState> GetSamplerWithoutMipMap() const = 0;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spSampler);

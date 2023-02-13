@@ -29,7 +29,7 @@ ezSharedPtr<spTextureView> spTextureSamplerManager::GetTextureView(const spDevic
     return pResource.Downcast<spTextureView>();
 
   if (pResource->IsInstanceOf<spTexture>())
-    return pDevice->GetResourceManager()->GetResource<spTextureView>(pDevice->GetTextureSamplerManager()->GetFullTextureView(pResource->GetHandle()));
+    return pDevice->GetTextureSamplerManager()->GetFullTextureView(pResource.Downcast<spTexture>());
 
   EZ_ASSERT_NOT_IMPLEMENTED;
   return nullptr;

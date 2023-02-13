@@ -43,7 +43,7 @@ public:
   void ReleaseResource() override;
   bool IsReleased() const override;
 
-  // spDefferredDeviceResource
+  // spDeferredDeviceResource
 
 public:
   void CreateResource() override;
@@ -51,20 +51,20 @@ public:
   // spSampler
 
 public:
-  EZ_NODISCARD spResourceHandle GetSamplerWithMipMap() const override;
-  EZ_NODISCARD spResourceHandle GetSamplerWithoutMipMap() const override;
+  EZ_NODISCARD ezSharedPtr<spSamplerState> GetSamplerWithMipMap() const override;
+  EZ_NODISCARD ezSharedPtr<spSamplerState> GetSamplerWithoutMipMap() const override;
 
   // spSamplerD3D11
 
 public:
   ~spSamplerD3D11() override;
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE spSamplerStateD3D11* GetSamplerState() const { return m_pSamplerState; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spSamplerStateD3D11> GetSamplerState() const { return m_pSamplerState; }
 
 private:
   spSamplerD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description);
 
-  spSamplerStateD3D11* m_pSamplerState;
+  ezSharedPtr<spSamplerStateD3D11> m_pSamplerState;
 
   spSamplerDescription m_Description;
 };

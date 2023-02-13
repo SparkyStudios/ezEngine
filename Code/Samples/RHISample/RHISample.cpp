@@ -152,7 +152,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
     spRenderingSurfaceWin32 renderSurface(ezMinWindows::ToNative(m_pWindow->GetNativeWindowHandle()), nullptr, m_pWindow->IsFullscreenWindow());
 
     spDeviceDescriptionD3D11 description;
-    description.m_bDebug = false;
+    description.m_bDebug = true;
     description.m_bHasMainSwapchain = false;
     description.m_bSyncV = false;
     description.m_bUsSrgbFormat = true;
@@ -188,8 +188,8 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   vbo = pFactory->CreateBuffer(spBufferDescription(sizeof(ezVec3) * 3, spBufferUsage::VertexBuffer));
   vbo->SetDebugName("vbo");
 
-  device->UpdateBuffer(ibo->GetHandle(), 0, reinterpret_cast<void*>(&IndexBuffer), sizeof(IndexBuffer));
-  device->UpdateBuffer(vbo->GetHandle(), 0, reinterpret_cast<void*>(&VertexBuffer), sizeof(VertexBuffer));
+  device->UpdateBuffer<ezUInt16>(ibo, 0, &IndexBuffer[0], 3);
+  device->UpdateBuffer<ezVec3>(vbo, 0, &VertexBuffer[0], 3);
 
   char vs_content[] = R"(
 struct VS_INPUT
@@ -244,8 +244,8 @@ float4 main(VS_OUTPUT input) : SV_TARGET
   ps->SetDebugName("ps");
 
   spo = pFactory->CreateShaderProgram();
-  spo->Attach(vs->GetHandle());
-  spo->Attach(ps->GetHandle());
+  spo->Attach(vs);
+  spo->Attach(ps);
   spo->SetDebugName("spo");
 
   spInputLayoutDescription inputLayoutDescription;
@@ -360,19 +360,22 @@ ezApplication::Execution ezRHISampleApp::Run()
     {
       commandList->PushProfileScope("Test");
       {
-        commandList->SetGraphicPipeline(gpo->GetHandle());
+        commandList->SetGraphicPipeline(gpo);
 
-        commandList->SetFramebuffer(pSwapchain->GetFramebuffer()->GetHandle());
+        commandList->SetFramebuffer(pSwapchain->GetFramebuffer());
+
         commandList->SetFullViewport(0);
+        commandList->SetFullScissorRect(0);
+
         commandList->ClearColorTarget(0, ezColor::Black);
         commandList->ClearDepthStencilTarget(1.0f, 0);
 
-        commandList->SetVertexBuffer(0, vbo->GetHandle());
-        commandList->SetIndexBuffer(ibo->GetHandle(), spIndexFormat::UInt16);
+        commandList->SetVertexBuffer(0, vbo);
+        commandList->SetIndexBuffer(ibo, spIndexFormat::UInt16);
 
-        commandList->UpdateBuffer<ezColor>(cbo->GetHandle(), 0, &color, 1);
+        commandList->UpdateBuffer<ezColor>(cbo, 0, color);
 
-        commandList->SetGraphicResourceSet(0, set->GetHandle());
+        commandList->SetGraphicResourceSet(0, set);
 
         commandList->DrawIndexed(3, 1, 0, 0, 0);
       }
@@ -380,7 +383,7 @@ ezApplication::Execution ezRHISampleApp::Run()
     }
     commandList->End();
 
-    device->SubmitCommandList(commandList->GetHandle());
+    device->SubmitCommandList(commandList);
   }
   device->EndFrame();
 

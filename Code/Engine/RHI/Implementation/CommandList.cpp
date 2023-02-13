@@ -102,9 +102,8 @@ void spCommandList::DrawIndexed(ezUInt32 uiIndexCount, ezUInt32 uiInstanceCount,
   DrawIndexedInternal(uiIndexCount, uiInstanceCount, uiIndexStart, uiVertexOffset, uiInstanceStart);
 }
 
-void spCommandList::DrawIndirect(spResourceHandle hIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride)
+void spCommandList::DrawIndirect(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride)
 {
-  const auto pIndirectBuffer = m_pDevice->GetResourceManager()->GetResource<spBuffer>(hIndirectBuffer);
   EZ_ASSERT_DEV(pIndirectBuffer != nullptr, "Invalid buffer handle.");
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
@@ -118,9 +117,8 @@ void spCommandList::DrawIndirect(spResourceHandle hIndirectBuffer, ezUInt32 uiOf
   DrawIndirectInternal(pIndirectBuffer, uiOffset, uiDrawCount, uiStride);
 }
 
-void spCommandList::DrawIndexedIndirect(spResourceHandle hIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride)
+void spCommandList::DrawIndexedIndirect(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride)
 {
-  const auto pIndirectBuffer = m_pDevice->GetResourceManager()->GetResource<spBuffer>(hIndirectBuffer);
   EZ_ASSERT_DEV(pIndirectBuffer != nullptr, "Invalid buffer handle.");
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
@@ -134,9 +132,8 @@ void spCommandList::DrawIndexedIndirect(spResourceHandle hIndirectBuffer, ezUInt
   DrawIndexedIndirectInternal(pIndirectBuffer, uiOffset, uiDrawCount, uiStride);
 }
 
-void spCommandList::DispatchIndirect(spResourceHandle hIndirectBuffer, ezUInt32 uiOffset)
+void spCommandList::DispatchIndirect(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset)
 {
-  const auto pIndirectBuffer = m_pDevice->GetResourceManager()->GetResource<spBuffer>(hIndirectBuffer);
   EZ_ASSERT_DEV(pIndirectBuffer != nullptr, "Invalid buffer handle.");
 
   EZ_ASSERT_DEV(pIndirectBuffer->GetUsage().IsSet(spBufferUsage::IndirectBuffer), "The buffer must have been created with the IndirectBuffer usage flag.");
@@ -145,12 +142,9 @@ void spCommandList::DispatchIndirect(spResourceHandle hIndirectBuffer, ezUInt32 
   DispatchIndirectInternal(pIndirectBuffer, uiOffset);
 }
 
-void spCommandList::ResolveTexture(spResourceHandle hSource, spResourceHandle hDestination)
+void spCommandList::ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination)
 {
-  const auto pSource = m_pDevice->GetResourceManager()->GetResource<spTexture>(hSource);
   EZ_ASSERT_DEV(pSource != nullptr, "Invalid texture handle.");
-
-  const auto pDestination = m_pDevice->GetResourceManager()->GetResource<spTexture>(hDestination);
   EZ_ASSERT_DEV(pDestination != nullptr, "Invalid texture handle.");
 
   EZ_ASSERT_DEV(pSource->GetSampleCount() != spTextureSampleCount::None, "Source texture must be a multisample texture.");
@@ -159,10 +153,8 @@ void spCommandList::ResolveTexture(spResourceHandle hSource, spResourceHandle hD
   ResolveTextureInternal(pSource, pDestination);
 }
 
-void spCommandList::SetFramebuffer(spResourceHandle hFramebuffer)
+void spCommandList::SetFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer)
 {
-  const auto pFramebuffer = m_pDevice->GetResourceManager()->GetResource<spFramebuffer>(hFramebuffer);
-
   if (m_pFramebuffer != pFramebuffer)
   {
     m_pFramebuffer = pFramebuffer;
@@ -172,14 +164,13 @@ void spCommandList::SetFramebuffer(spResourceHandle hFramebuffer)
   }
 }
 
-void spCommandList::SetIndexBuffer(spResourceHandle hIndexBuffer, const ezEnum<spIndexFormat>& eFormat)
+void spCommandList::SetIndexBuffer(ezSharedPtr<spBuffer> pIndexBuffer, const ezEnum<spIndexFormat>& eFormat)
 {
-  SetIndexBuffer(hIndexBuffer, eFormat, 0);
+  SetIndexBuffer(pIndexBuffer, eFormat, 0);
 }
 
-void spCommandList::SetIndexBuffer(spResourceHandle hIndexBuffer, const ezEnum<spIndexFormat>& eFormat, ezUInt32 uiOffset)
+void spCommandList::SetIndexBuffer(ezSharedPtr<spBuffer> pIndexBuffer, const ezEnum<spIndexFormat>& eFormat, ezUInt32 uiOffset)
 {
-  const auto pIndexBuffer = m_pDevice->GetResourceManager()->GetResource<spBuffer>(hIndexBuffer);
   EZ_ASSERT_DEV(pIndexBuffer->GetUsage().IsSet(spBufferUsage::IndexBuffer), "Buffer is not an index buffer.");
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
@@ -190,19 +181,18 @@ void spCommandList::SetIndexBuffer(spResourceHandle hIndexBuffer, const ezEnum<s
   SetIndexBufferInternal(pIndexBuffer, eFormat, uiOffset);
 }
 
-void spCommandList::SetComputeResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet)
+void spCommandList::SetComputeResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet)
 {
-  SetComputeResourceSet(uiSlot, hResourceSet, 0, nullptr);
+  SetComputeResourceSet(uiSlot, pResourceSet, 0, nullptr);
 }
 
-void spCommandList::SetComputeResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezArrayPtr<ezUInt32> dynamicOffsets)
+void spCommandList::SetComputeResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezArrayPtr<ezUInt32> dynamicOffsets)
 {
-  SetComputeResourceSet(uiSlot, hResourceSet, dynamicOffsets.GetCount(), dynamicOffsets.GetPtr());
+  SetComputeResourceSet(uiSlot, pResourceSet, dynamicOffsets.GetCount(), dynamicOffsets.GetPtr());
 }
 
-void spCommandList::SetComputeResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets)
+void spCommandList::SetComputeResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets)
 {
-  const auto pResourceSet = m_pDevice->GetResourceManager()->GetResource<spResourceSet>(hResourceSet);
   EZ_ASSERT_DEV(pResourceSet != nullptr, "Invalid resource set handle.");
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
@@ -232,19 +222,18 @@ void spCommandList::SetComputeResourceSet(ezUInt32 uiSlot, spResourceHandle hRes
   SetComputeResourceSetInternal(uiSlot, pResourceSet, uiDynamicOffsetCount, pDynamicOffsets);
 }
 
-void spCommandList::SetGraphicResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet)
+void spCommandList::SetGraphicResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet)
 {
-  SetGraphicResourceSet(uiSlot, hResourceSet, 0, nullptr);
+  SetGraphicResourceSet(uiSlot, pResourceSet, 0, nullptr);
 }
 
-void spCommandList::SetGraphicResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezArrayPtr<ezUInt32> dynamicOffsets)
+void spCommandList::SetGraphicResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezArrayPtr<ezUInt32> dynamicOffsets)
 {
-  SetGraphicResourceSet(uiSlot, hResourceSet, dynamicOffsets.GetCount(), dynamicOffsets.GetPtr());
+  SetGraphicResourceSet(uiSlot, pResourceSet, dynamicOffsets.GetCount(), dynamicOffsets.GetPtr());
 }
 
-void spCommandList::SetGraphicResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets)
+void spCommandList::SetGraphicResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets)
 {
-  const auto pResourceSet = m_pDevice->GetResourceManager()->GetResource<spResourceSet>(hResourceSet);
   EZ_ASSERT_DEV(pResourceSet != nullptr, "Invalid resource set handle.");
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
@@ -292,14 +281,13 @@ void spCommandList::SetGraphicResourceSet(ezUInt32 uiSlot, spResourceHandle hRes
   SetGraphicResourceSetInternal(uiSlot, pResourceSet, uiDynamicOffsetCount, pDynamicOffsets);
 }
 
-void spCommandList::SetVertexBuffer(ezUInt32 uiSlot, spResourceHandle hVertexBuffer)
+void spCommandList::SetVertexBuffer(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer)
 {
-  SetVertexBuffer(uiSlot, hVertexBuffer, 0);
+  SetVertexBuffer(uiSlot, pVertexBuffer, 0);
 }
 
-void spCommandList::SetVertexBuffer(ezUInt32 uiSlot, spResourceHandle hVertexBuffer, ezUInt32 uiOffset)
+void spCommandList::SetVertexBuffer(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer, ezUInt32 uiOffset)
 {
-  const auto pVertexBuffer = m_pDevice->GetResourceManager()->GetResource<spBuffer>(hVertexBuffer);
   EZ_ASSERT_DEV(pVertexBuffer->GetUsage().IsSet(spBufferUsage::VertexBuffer), "Buffer is not a vertex buffer.");
 
   SetVertexBufferInternal(uiSlot, pVertexBuffer, uiOffset);
@@ -331,9 +319,8 @@ void spCommandList::SetFullViewport(ezUInt32 uiSlot)
   SetViewport(uiSlot, spViewport(0, 0, m_pFramebuffer->GetWidth(), m_pFramebuffer->GetHeight(), 0, 1));
 }
 
-void spCommandList::UpdateBuffer(spResourceHandle hBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize)
+void spCommandList::UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize)
 {
-  const auto pBuffer = m_pDevice->GetResourceManager()->GetResource<spBuffer>(hBuffer);
   EZ_ASSERT_DEV(pBuffer != nullptr, "Invalid buffer handle.");
 
   if (uiSize == 0)
@@ -344,12 +331,9 @@ void spCommandList::UpdateBuffer(spResourceHandle hBuffer, ezUInt32 uiOffset, co
   UpdateBufferInternal(pBuffer, uiOffset, pSourceData, uiSize);
 }
 
-void spCommandList::CopyBuffer(spResourceHandle hSourceBuffer, ezUInt32 uiSourceOffset, spResourceHandle hDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize)
+void spCommandList::CopyBuffer(ezSharedPtr<spBuffer> pSourceBuffer, ezUInt32 uiSourceOffset, ezSharedPtr<spBuffer> pDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize)
 {
-  const auto pSourceBuffer = m_pDevice->GetResourceManager()->GetResource<spBuffer>(hSourceBuffer);
   EZ_ASSERT_DEV(pSourceBuffer != nullptr, "Invalid source buffer handle.");
-
-  const auto pDestBuffer = m_pDevice->GetResourceManager()->GetResource<spBuffer>(hDestBuffer);
   EZ_ASSERT_DEV(pDestBuffer != nullptr, "Invalid destination buffer handle.");
 
   if (uiSize == 0)
@@ -358,12 +342,9 @@ void spCommandList::CopyBuffer(spResourceHandle hSourceBuffer, ezUInt32 uiSource
   CopyBufferInternal(pSourceBuffer, uiSourceOffset, pDestBuffer, uiDestOffset, uiSize);
 }
 
-void spCommandList::CopyTexture(spResourceHandle hSourceTexture, spResourceHandle hDestinationTexture)
+void spCommandList::CopyTexture(ezSharedPtr<spTexture> pSourceTexture, ezSharedPtr<spTexture> pDestinationTexture)
 {
-  auto pSourceTexture = m_pDevice->GetResourceManager()->GetResource<spTexture>(hSourceTexture);
   EZ_ASSERT_DEV(pSourceTexture != nullptr, "Invalid source texture handle.");
-
-  const auto pDestinationTexture = m_pDevice->GetResourceManager()->GetResource<spTexture>(hDestinationTexture);
   EZ_ASSERT_DEV(pDestinationTexture != nullptr, "Invalid destination texture handle.");
 
   const ezUInt32 uiEffectiveSourceArrayLayers = (pSourceTexture->GetUsage().IsSet(spTextureUsage::Cubemap)) ? pSourceTexture->GetArrayLayerCount() * 6 : pSourceTexture->GetArrayLayerCount();
@@ -382,12 +363,9 @@ void spCommandList::CopyTexture(spResourceHandle hSourceTexture, spResourceHandl
   }
 }
 
-void spCommandList::CopyTexture(spResourceHandle hSourceTexture, spResourceHandle hDestinationTexture, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
+void spCommandList::CopyTexture(ezSharedPtr<spTexture> pSourceTexture, ezSharedPtr<spTexture> pDestinationTexture, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
 {
-  auto pSourceTexture = m_pDevice->GetResourceManager()->GetResource<spTexture>(hSourceTexture);
   EZ_ASSERT_DEV(pSourceTexture != nullptr, "Invalid source texture handle.");
-
-  const auto pDestinationTexture = m_pDevice->GetResourceManager()->GetResource<spTexture>(hDestinationTexture);
   EZ_ASSERT_DEV(pDestinationTexture != nullptr, "Invalid destination texture handle.");
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
@@ -404,12 +382,9 @@ void spCommandList::CopyTexture(spResourceHandle hSourceTexture, spResourceHandl
   CopyTextureInternal(pSourceTexture, 0, 0, 0, uiMipLevel, uiArrayLayer, pDestinationTexture, 0, 0, 0, uiMipLevel, uiArrayLayer, uiWidth, uiHeight, uiDepth, 1);
 }
 
-void spCommandList::CopyTexture(spResourceHandle hSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, spResourceHandle hDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount)
+void spCommandList::CopyTexture(ezSharedPtr<spTexture> pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, ezSharedPtr<spTexture> pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount)
 {
-  auto pSourceTexture = m_pDevice->GetResourceManager()->GetResource<spTexture>(hSourceTexture);
   EZ_ASSERT_DEV(pSourceTexture != nullptr, "Invalid source texture handle.");
-
-  auto pDestinationTexture = m_pDevice->GetResourceManager()->GetResource<spTexture>(hDestinationTexture);
   EZ_ASSERT_DEV(pDestinationTexture != nullptr, "Invalid destination texture handle.");
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
@@ -443,9 +418,8 @@ void spCommandList::CopyTexture(spResourceHandle hSourceTexture, ezUInt32 uiSour
   CopyTextureInternal(pSourceTexture, uiSourceX, uiSourceY, uiSourceZ, uiSourceMipLevel, uiSourceBaseArrayLayer, pDestinationTexture, uiDestX, uiDestY, uiDestZ, uiDestMipLevel, uiDestBaseArrayLayer, uiWidth, uiHeight, uiDepth, uiLayerCount);
 }
 
-void spCommandList::GenerateMipmaps(spResourceHandle hTexture)
+void spCommandList::GenerateMipmaps(ezSharedPtr<spTexture> pTexture)
 {
-  const auto pTexture = m_pDevice->GetResourceManager()->GetResource<spTexture>(hTexture);
   EZ_ASSERT_DEV(pTexture != nullptr, "Invalid texture handle.");
 
   EZ_ASSERT_DEV(pTexture->GetUsage().IsSet(spTextureUsage::GenerateMipmaps), "The texture was not created with the GenerateMipmaps texture usage flag.");

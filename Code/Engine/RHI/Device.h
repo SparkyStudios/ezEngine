@@ -189,58 +189,58 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE spStagingMemoryPool* GetStagingMemoryPool() const { return m_pStagingMemoryPool; }
 
   /// \brief Submits the given \see spCommandList for execution by this device.
-  /// \param [in] hCommandList The handle to the command list to execute.
+  /// \param [in] pCommandList The handle to the command list to execute.
   ///
   /// \note Commands submitted with this method will block the calling thread until
   /// all commands are executed.
-  void SubmitCommandList(const spResourceHandle& hCommandList);
+  void SubmitCommandList(ezSharedPtr<spCommandList> pCommandList);
 
   /// \brief Submits the given \see spCommandList for execution by this device.
-  /// \param [in] hCommandList The handle to the command list to execute.
-  /// \param [in] hFence The handle to the \see spFence which will be signaled after this submission fully completes execution.
+  /// \param [in] pCommandList The handle to the command list to execute.
+  /// \param [in] pFence The handle to the \see spFence which will be signaled after this submission fully completes execution.
   ///
   /// \note Commands submitted with this method will block the calling thread until
   /// all commands are executed.
-  virtual void SubmitCommandList(const spResourceHandle& hCommandList, const spResourceHandle& hFence) = 0;
+  virtual void SubmitCommandList(ezSharedPtr<spCommandList> pCommandList, ezSharedPtr<spFence> pFence) = 0;
 
   /// \brief Blocks the calling thread until the given \see spFence is signaled.
-  /// \param [in] hFence The handle to the \see spFence to wait for.
-  void WaitForFence(const spResourceHandle& hFence);
+  /// \param [in] pFence The handle to the \see spFence to wait for.
+  void WaitForFence(ezSharedPtr<spFence> pFence);
 
   /// \brief Blocks the calling thread until the given \see spFence is signaled.
-  /// \param [in] hFence The handle to the \see spFence to wait for.
+  /// \param [in] pFence The handle to the \see spFence to wait for.
   /// \param [in] timeout A timeout to wait for the \see spFence to be signaled.
   /// \returns \c true if the \a hFence was signaled within the timeout, and \c false if the timeout was reached.
-  bool WaitForFence(const spResourceHandle& hFence, const ezTime& timeout);
+  bool WaitForFence(ezSharedPtr<spFence> pFence, const ezTime& timeout);
 
   /// \brief Blocks the calling thread until the given \see spFence is signaled.
-  /// \param [in] hFence The handle to the \see spFence to wait for.
+  /// \param [in] pFence The handle to the \see spFence to wait for.
   /// \param [in] uiNanosecondsTimeout A timeout in nanoseconds to wait for the \see spFence.
   /// \returns \c true if the \a hFence was signaled within the timeout, and \c false if the timeout was reached.
-  virtual bool WaitForFence(const spResourceHandle& hFence, double uiNanosecondsTimeout) = 0;
+  virtual bool WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout) = 0;
 
   /// \brief Blocks the calling thread until the given one or all the given \a fences are signaled.
   /// \param [in] fences The list of handles to the \see spFence instances to wait for.
   /// \param [in] bWaitAll Specifies if the method should block until all the fences has been signaled.
-  void WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitAll);
+  void WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll);
 
   /// \brief Blocks the calling thread until the given one or all the given \a fences are signaled.
   /// \param [in] fences The list of handles to the \see spFence instances to wait for.
   /// \param [in] timeout A timeout to wait for \a fences to be signaled.
   /// \param [in] bWaitAll Specifies if the method should block until all the fences has been signaled.
   /// \returns \c true when one or all the \a fences was signaled within the timeout, and \c false if the timeout was reached.
-  bool WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitAll, const ezTime& timeout);
+  bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, const ezTime& timeout);
 
   /// \brief Blocks the calling thread until the given one or all the given \a fences are signaled.
   /// \param [in] fences The list of handles to the \see spFence instances to wait for.
   /// \param [in] uiNanosecondsTimeout A timeout in nanoseconds to wait \a fences.
   /// \param [in] bWaitAll Specifies if the method should block until all the fences has been signaled.
   /// \returns \c true when one or all the \a fences was signaled within the timeout, and \c false if the timeout was reached.
-  virtual bool WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitAll, double uiNanosecondsTimeout) = 0;
+  virtual bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout) = 0;
 
   /// \brief Resets the given \see spFence to an unsignaled state.
-  /// \param [in] hFence The handle to the \see spFence to reset.
-  virtual void ResetFence(const spResourceHandle& hFence) = 0;
+  /// \param [in] pFence The handle to the \see spFence to reset.
+  virtual void ResetFence(ezSharedPtr<spFence> pFence) = 0;
 
   /// \brief Notifies the device to performs a resize operation on the main swap chain.
   /// \param [in] uiWidth The new width of the swap chain.
@@ -263,33 +263,33 @@ public:
   virtual ezEnum<spTextureSampleCount> GetTextureSampleCountLimit(const ezEnum<spPixelFormat>& eFormat, bool bIsDepthFormat) = 0;
 
   /// \brief Maps a \see spBuffer or a \see spTexture into a CPU-accessible data region.
-  /// \param [in] hResource A handle to the buffer or texture resource to map.
+  /// \param [in] pResource A handle to the buffer or texture resource to map.
   /// \param [in] eAccess The \see spMapAccess to use.
   /// \param [in] uiSubResource The subresource to map. Subresources are indexed first by mip level, then by array layer. For
   /// buffer resources, this parameter should be \c 0.
-  const spMappedResource& Map(const spResourceHandle& hResource, const ezEnum<spMapAccess>& eAccess, ezUInt32 uiSubResource);
+  const spMappedResource& Map(ezSharedPtr<spMappableResource> pResource, const ezEnum<spMapAccess>& eAccess, ezUInt32 uiSubResource);
 
   /// \brief Maps a \see spBuffer or a \see spTexture into a CPU-accessible data region, and returns
   /// a structured view over that region.
-  /// \param [in] hResource A handle to the buffer or texture resource to map.
+  /// \param [in] pResource A handle to the buffer or texture resource to map.
   /// \param [in] eAccess The \see spMapAccess to use.
   /// \param [in] uiSubResource The subresource to map. Subresources are indexed first by mip level, then by array layer. For
   /// buffer resources, this parameter should be \c 0.
   template <typename T>
-  EZ_ALWAYS_INLINE const spMappedResource& Map(const spResourceHandle& hResource, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubResource)
+  EZ_ALWAYS_INLINE const spMappedResource& Map(ezSharedPtr<spMappableResource> pResource, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubResource)
   {
-    spMappedResource mappedResource = Map(hResource, eAccess, uiSubResource);
+    spMappedResource mappedResource = Map(pResource, eAccess, uiSubResource);
     return spMappedResourceView<T>(mappedResource);
   }
 
   /// \brief Invalidates a previously mapped data region for the specified resource.
-  /// \param [in] hResource A handle to the buffer or texture resource to unmap.
+  /// \param [in] pResource A handle to the buffer or texture resource to unmap.
   /// \param [in] uiSubResource The subresource to unmap. Subresources are indexed first by mip level, then by array layer.
   /// For buffer resources, this parameter should be \c 0
-  void UnMap(const spResourceHandle& hResource, ezUInt32 uiSubResource);
+  void UnMap(ezSharedPtr<spMappableResource> pResource, ezUInt32 uiSubResource);
 
   /// \brief Updates the \see spTexture data with the given \a source.
-  /// \param hResource The handle to the \see spTexture to update.
+  /// \param pTexture The handle to the \see spTexture to update.
   /// \param pData The data source to upload to the texture.
   /// \param uiSize The size in bytes of data to upload in the texture.
   /// \param uiX The minimum X value of the updated region.
@@ -302,10 +302,10 @@ public:
   /// mipmap contained in the \see spTexture.
   /// \param uiArrayLayer The array layer to update. Must be less than the total array layer
   /// count contained in the \see spTexture.
-  virtual void UpdateTexture(const spResourceHandle& hResource, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) = 0;
+  virtual void UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) = 0;
 
   /// \brief Updates the \see spTexture data with the given \a source.
-  /// \param hResource The handle to the \see spTexture to update.
+  /// \param pTexture The handle to the \see spTexture to update.
   /// \param data The data source to upload to the texture.
   /// \param uiX The minimum X value of the updated region.
   /// \param uiY The minimum Y value of the updated region.
@@ -318,44 +318,55 @@ public:
   /// \param uiArrayLayer The array layer to update. Must be less than the total array layer
   /// count contained in the \see spTexture.
   template <typename T>
-  EZ_ALWAYS_INLINE void UpdateTexture(const spResourceHandle& hResource, ezArrayPtr<T> data, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
+  EZ_ALWAYS_INLINE void UpdateTexture(ezSharedPtr<spTexture> pTexture, ezArrayPtr<T> data, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
   {
     const ezUInt32 uiSize = data.GetCount() * sizeof(T);
-    UpdateTexture(hResource, reinterpret_cast<void*>(data.GetPtr()), uiSize, uiX, uiY, uiZ, uiWidth, uiHeight, uiDepth, uiMipLevel, uiArrayLayer);
+    UpdateTexture(pTexture, reinterpret_cast<void*>(data.GetPtr()), uiSize, uiX, uiY, uiZ, uiWidth, uiHeight, uiDepth, uiMipLevel, uiArrayLayer);
   }
 
   /// \brief Updates the \see spBuffer region with new data.
-  /// \param hResource The handle to the \see spBuffer to update.
+  /// \param pBuffer The handle to the \see spBuffer to update.
   /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param pSource A pointer to the start of the data to be uploaded.
   /// \param uiSize The size in bytes of the data to be uploaded.
-  void UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, const void* pSource, ezUInt32 uiSize);
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSource, ezUInt32 uiSize);
 
   /// \brief Updates the \see spBuffer region with new data.
-  /// \param hResource The handle to the \see spBuffer to update.
+  /// \param pBuffer The handle to the \see spBuffer to update.
   /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param source The data to upload in the buffer.
   template <typename T>
-  void UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, const T& source)
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const T& source)
   {
-    UpdateBuffer(hResource, uiOffset, reinterpret_cast<void*>(&source), sizeof(T));
+    UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(&source), sizeof(T));
   }
 
   /// \brief Updates the \see spBuffer region with new data.
-  /// \param hResource The handle to the \see spBuffer to update.
+  /// \param pBuffer The handle to the \see spBuffer to update.
+  /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
+  /// \param pSource The data to upload in the buffer.
+  /// \param uiCount The number of elements in the array to upload in the buffer.
+  template <typename T>
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const T* pSource, ezUInt32 uiCount)
+  {
+    UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(pSource), uiCount * sizeof(T));
+  }
+
+  /// \brief Updates the \see spBuffer region with new data.
+  /// \param pBuffer The handle to the \see spBuffer to update.
   /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param source The data array to upload in the buffer.
   /// \param uiCount The number of elements in the array to upload in the buffer.
   template <typename T>
-  void UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, ezArrayPtr<T> source, ezUInt32 uiCount)
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, ezArrayPtr<T> source, ezUInt32 uiCount)
   {
-    UpdateBuffer(hResource, uiOffset, reinterpret_cast<void*>(source.GetPtr()), uiCount * sizeof(T));
+    UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(source.GetPtr()), uiCount * sizeof(T));
   }
 
   /// \brief Copy a texture content from the \a hSource to the \a hDestination.
-  /// \param hSource The resource handle of the source texture.
-  /// \param hDestination The resource handle of the destination texture.
-  virtual void ResolveTexture(const spResourceHandle& hSource, const spResourceHandle& hDestination) = 0;
+  /// \param pSource The resource handle of the source texture.
+  /// \param pDestination The resource handle of the destination texture.
+  virtual void ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination) = 0;
 
   /// \brief Destroys the device and release all resources
   virtual void Destroy() = 0;

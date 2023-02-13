@@ -22,43 +22,39 @@ bool spShaderProgramD3D11::IsReleased() const
   return m_bReleased;
 }
 
-void spShaderProgramD3D11::Attach(const spResourceHandle& hShader)
+void spShaderProgramD3D11::Attach(ezSharedPtr<spShader> pShader)
 {
-  const auto pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(hShader);
-  EZ_ASSERT_DEV(pShader != nullptr, "Invalid shader handle {0}", hShader.GetInternalID().m_Data);
+  EZ_ASSERT_DEV(pShader != nullptr, "Invalid shader handle.");
 
   switch (pShader->GetStage())
   {
     case spShaderStage::VertexShader:
-      m_pVertexShader = pShader;
+      m_pVertexShader = pShader.Downcast<spShaderD3D11>();
       break;
     case spShaderStage::GeometryShader:
-      m_pGeometryShader = pShader;
+      m_pGeometryShader = pShader.Downcast<spShaderD3D11>();
       break;
     case spShaderStage::HullShader:
-      m_pHullShader = pShader;
+      m_pHullShader = pShader.Downcast<spShaderD3D11>();
       break;
     case spShaderStage::DomainShader:
-      m_pDomainShader = pShader;
+      m_pDomainShader = pShader.Downcast<spShaderD3D11>();
       break;
     case spShaderStage::PixelShader:
-      m_pPixelShader = pShader;
+      m_pPixelShader = pShader.Downcast<spShaderD3D11>();
       break;
     case spShaderStage::ComputeShader:
-      m_pComputeShader = pShader;
+      m_pComputeShader = pShader.Downcast<spShaderD3D11>();
       break;
+    case spShaderStage::None:
     default:
       EZ_ASSERT_NOT_IMPLEMENTED;
-      return;
   }
-
-  EZ_IGNORE_UNUSED(pShader->AddRef());
 }
 
-void spShaderProgramD3D11::Detach(const spResourceHandle& hShader)
+void spShaderProgramD3D11::Detach(ezSharedPtr<spShader> pShader)
 {
-  const auto pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(hShader);
-  EZ_ASSERT_DEV(pShader != nullptr, "Invalid shader handle {0}", hShader.GetInternalID().m_Data);
+  EZ_ASSERT_DEV(pShader != nullptr, "Invalid shader handle.");
 
   Detach(pShader->GetStage());
 }
@@ -68,46 +64,22 @@ void spShaderProgramD3D11::Detach(const ezEnum<spShaderStage>& eStage)
   switch (eStage)
   {
     case spShaderStage::VertexShader:
-      if (m_pVertexShader != nullptr)
-      {
-        EZ_IGNORE_UNUSED(m_pVertexShader->ReleaseRef());
-        m_pVertexShader = nullptr;
-      }
+      m_pVertexShader.Clear();
       break;
     case spShaderStage::GeometryShader:
-      if (m_pGeometryShader != nullptr)
-      {
-        EZ_IGNORE_UNUSED(m_pGeometryShader->ReleaseRef());
-        m_pGeometryShader = nullptr;
-      }
+      m_pGeometryShader.Clear();
       break;
     case spShaderStage::HullShader:
-      if (m_pHullShader != nullptr)
-      {
-        EZ_IGNORE_UNUSED(m_pHullShader->ReleaseRef());
-        m_pHullShader = nullptr;
-      }
+      m_pHullShader.Clear();
       break;
     case spShaderStage::DomainShader:
-      if (m_pDomainShader != nullptr)
-      {
-        EZ_IGNORE_UNUSED(m_pDomainShader->ReleaseRef());
-        m_pDomainShader = nullptr;
-      }
+      m_pDomainShader.Clear();
       break;
     case spShaderStage::PixelShader:
-      if (m_pPixelShader != nullptr)
-      {
-        EZ_IGNORE_UNUSED(m_pPixelShader->ReleaseRef());
-        m_pPixelShader = nullptr;
-      }
+      m_pPixelShader.Clear();
       break;
     case spShaderStage::ComputeShader:
-      if (m_pComputeShader != nullptr)
-      {
-        EZ_IGNORE_UNUSED(m_pComputeShader->ReleaseRef());
-        m_pComputeShader = nullptr;
-      }
+      m_pComputeShader.Clear();
       break;
     default:
       EZ_ASSERT_NOT_IMPLEMENTED;
@@ -117,56 +89,38 @@ void spShaderProgramD3D11::Detach(const ezEnum<spShaderStage>& eStage)
 
 void spShaderProgramD3D11::DetachAll()
 {
-  if (m_pVertexShader != nullptr)
-    m_pVertexShader->ReleaseRef();
-
-  if (m_pGeometryShader != nullptr)
-    m_pGeometryShader->ReleaseRef();
-
-  if (m_pHullShader != nullptr)
-    m_pHullShader->ReleaseRef();
-
-  if (m_pDomainShader != nullptr)
-    m_pDomainShader->ReleaseRef();
-
-  if (m_pPixelShader != nullptr)
-    m_pPixelShader->ReleaseRef();
-
-  if (m_pComputeShader != nullptr)
-    m_pComputeShader->ReleaseRef();
-
-  m_pVertexShader = nullptr;
-  m_pGeometryShader = nullptr;
-  m_pHullShader = nullptr;
-  m_pDomainShader = nullptr;
-  m_pPixelShader = nullptr;
-  m_pComputeShader = nullptr;
+  m_pVertexShader.Clear();
+  m_pGeometryShader.Clear();
+  m_pHullShader.Clear();
+  m_pDomainShader.Clear();
+  m_pPixelShader.Clear();
+  m_pComputeShader.Clear();
 }
 
 void spShaderProgramD3D11::Use()
 {
-  // TODO
+  // noop
 }
 
-spResourceHandle spShaderProgramD3D11::Get(const ezEnum<spShaderStage>& eStage) const
+ezSharedPtr<spShader> spShaderProgramD3D11::Get(const ezEnum<spShaderStage>& eStage) const
 {
   switch (eStage)
   {
     case spShaderStage::VertexShader:
-      return m_pVertexShader->GetHandle();
+      return m_pVertexShader;
     case spShaderStage::GeometryShader:
-      return m_pGeometryShader->GetHandle();
+      return m_pGeometryShader;
     case spShaderStage::HullShader:
-      return m_pHullShader->GetHandle();
+      return m_pHullShader;
     case spShaderStage::DomainShader:
-      return m_pDomainShader->GetHandle();
+      return m_pDomainShader;
     case spShaderStage::PixelShader:
-      return m_pPixelShader->GetHandle();
+      return m_pPixelShader;
     case spShaderStage::ComputeShader:
-      return m_pComputeShader->GetHandle();
+      return m_pComputeShader;
     default:
       EZ_ASSERT_NOT_IMPLEMENTED;
-      return {};
+      return nullptr;
   }
 }
 
@@ -247,6 +201,7 @@ void spShaderD3D11::CreateResource()
         szProfile = "cs_5_0";
         break;
       case spShaderStage::None:
+      default:
         EZ_ASSERT_NOT_IMPLEMENTED;
         break;
     }
