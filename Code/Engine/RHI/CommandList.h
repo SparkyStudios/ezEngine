@@ -126,41 +126,41 @@ public:
 
   void DrawIndexed(ezUInt32 uiIndexCount, ezUInt32 uiInstanceCount, ezUInt32 uiIndexStart, ezUInt32 uiVertexOffset, ezUInt32 uiInstanceStart);
 
-  void DrawIndirect(spResourceHandle hIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride);
+  void DrawIndirect(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride);
 
-  void DrawIndexedIndirect(spResourceHandle hIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride);
+  void DrawIndexedIndirect(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride);
 
   virtual void Dispatch(ezUInt32 uiGroupCountX, ezUInt32 uiGroupCountY, ezUInt32 uiGroupCountZ) = 0;
 
-  void DispatchIndirect(spResourceHandle hIndirectBuffer, ezUInt32 uiOffset);
+  void DispatchIndirect(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset);
 
-  void ResolveTexture(spResourceHandle hSource, spResourceHandle hDestination);
+  void ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination);
 
-  void SetFramebuffer(spResourceHandle hFramebuffer);
+  void SetFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer);
 
-  void SetIndexBuffer(spResourceHandle hIndexBuffer, const ezEnum<spIndexFormat>& eFormat);
+  void SetIndexBuffer(ezSharedPtr<spBuffer> pIndexBuffer, const ezEnum<spIndexFormat>& eFormat);
 
-  void SetIndexBuffer(spResourceHandle hIndexBuffer, const ezEnum<spIndexFormat>& eFormat, ezUInt32 uiOffset);
+  void SetIndexBuffer(ezSharedPtr<spBuffer> pIndexBuffer, const ezEnum<spIndexFormat>& eFormat, ezUInt32 uiOffset);
 
-  virtual void SetComputePipeline(spResourceHandle hComputePipeline) = 0;
+  virtual void SetComputePipeline(ezSharedPtr<spComputePipeline> pComputePipeline) = 0;
 
-  virtual void SetGraphicPipeline(spResourceHandle hGraphicPipeline) = 0;
+  virtual void SetGraphicPipeline(ezSharedPtr<spGraphicPipeline> pGraphicPipeline) = 0;
 
-  void SetComputeResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet);
+  void SetComputeResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet);
 
-  void SetComputeResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezArrayPtr<ezUInt32> dynamicOffsets);
+  void SetComputeResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezArrayPtr<ezUInt32> dynamicOffsets);
 
-  void SetComputeResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets);
+  void SetComputeResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets);
 
-  void SetGraphicResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet);
+  void SetGraphicResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet);
 
-  void SetGraphicResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezArrayPtr<ezUInt32> dynamicOffsets);
+  void SetGraphicResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezArrayPtr<ezUInt32> dynamicOffsets);
 
-  void SetGraphicResourceSet(ezUInt32 uiSlot, spResourceHandle hResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets);
+  void SetGraphicResourceSet(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets);
 
-  void SetVertexBuffer(ezUInt32 uiSlot, spResourceHandle hVertexBuffer);
+  void SetVertexBuffer(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer);
 
-  void SetVertexBuffer(ezUInt32 uiSlot, spResourceHandle hVertexBuffer, ezUInt32 uiOffset);
+  void SetVertexBuffer(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer, ezUInt32 uiOffset);
 
   virtual void SetScissorRect(ezUInt32 uiSlot, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiWidth, ezUInt32 uiHeight) = 0;
 
@@ -174,35 +174,35 @@ public:
 
   void SetFullViewport(ezUInt32 uiSlot);
 
-  void UpdateBuffer(spResourceHandle hBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize);
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize);
 
   template <typename T>
-  void UpdateBuffer(spResourceHandle hBuffer, ezUInt32 uiOffset, const T& source)
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const T& source)
   {
-    UpdateBuffer(hBuffer, uiOffset, &source, 1);
+    UpdateBuffer(pBuffer, uiOffset, &source, 1);
   }
 
   template <typename T>
-  void UpdateBuffer(spResourceHandle hBuffer, ezUInt32 uiOffset, const T* pSource, ezUInt32 uiCount)
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const T* pSource, ezUInt32 uiCount)
   {
-    UpdateBuffer(hBuffer, uiOffset, reinterpret_cast<const void*>(pSource), uiCount * sizeof(T));
+    UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(pSource), uiCount * sizeof(T));
   }
 
   template <typename T>
-  void UpdateBuffer(spResourceHandle hBuffer, ezUInt32 uiOffset, ezArrayPtr<T> source, ezUInt32 uiCount)
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, ezArrayPtr<T> source, ezUInt32 uiCount)
   {
-    UpdateBuffer(hBuffer, uiOffset, reinterpret_cast<const void*>(source.GetPtr()), uiCount * sizeof(T));
+    UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(source.GetPtr()), uiCount * sizeof(T));
   }
 
-  void CopyBuffer(spResourceHandle hSourceBuffer, ezUInt32 uiSourceOffset, spResourceHandle hDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize);
+  void CopyBuffer(ezSharedPtr<spBuffer> pSourceBuffer, ezUInt32 uiSourceOffset, ezSharedPtr<spBuffer> pDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize);
 
-  void CopyTexture(spResourceHandle hSourceTexture, spResourceHandle hDestinationTexture);
+  void CopyTexture(ezSharedPtr<spTexture> pSourceTexture, ezSharedPtr<spTexture> pDestinationTexture);
 
-  void CopyTexture(spResourceHandle hSourceTexture, spResourceHandle hDestinationTexture, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer);
+  void CopyTexture(ezSharedPtr<spTexture> pSourceTexture, ezSharedPtr<spTexture> pDestinationTexture, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer);
 
-  void CopyTexture(spResourceHandle hSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, spResourceHandle hDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount);
+  void CopyTexture(ezSharedPtr<spTexture> pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, ezSharedPtr<spTexture> pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount);
 
-  void GenerateMipmaps(spResourceHandle hTexture);
+  void GenerateMipmaps(ezSharedPtr<spTexture> pTexture);
 
   virtual void PushProfileScope(const ezString& sName) = 0;
 

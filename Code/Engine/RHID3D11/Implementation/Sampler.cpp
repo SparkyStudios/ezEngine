@@ -63,14 +63,14 @@ bool spSamplerStateD3D11::IsReleased() const
 
 #pragma region spSamplerD3D11
 
-spResourceHandle spSamplerD3D11::GetSamplerWithMipMap() const
+ezSharedPtr<spSamplerState> spSamplerD3D11::GetSamplerWithMipMap() const
 {
-  return m_pSamplerState->GetHandle();
+  return m_pSamplerState;
 }
 
-spResourceHandle spSamplerD3D11::GetSamplerWithoutMipMap() const
+ezSharedPtr<spSamplerState> spSamplerD3D11::GetSamplerWithoutMipMap() const
 {
-  return m_pSamplerState->GetHandle();
+  return m_pSamplerState;
 }
 
 void spSamplerD3D11::CreateResource()
@@ -78,7 +78,7 @@ void spSamplerD3D11::CreateResource()
   if (!IsReleased())
     return;
 
-  m_pSamplerState = new spSamplerStateD3D11(ezStaticCast<spDeviceD3D11*>(m_pDevice), m_Description);
+  m_pSamplerState = EZ_NEW(m_pDevice->GetAllocator(), spSamplerStateD3D11, ezStaticCast<spDeviceD3D11*>(m_pDevice), m_Description);
   m_pDevice->GetResourceManager()->RegisterResource(m_pSamplerState);
 
   m_bIsResourceCreated = true;

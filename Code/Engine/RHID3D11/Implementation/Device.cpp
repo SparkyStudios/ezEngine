@@ -103,41 +103,40 @@ const spDeviceCapabilities& spDeviceD3D11::GetCapabilities() const
   return m_Capabilities;
 }
 
-void spDeviceD3D11::SubmitCommandList(const spResourceHandle& hCommandList, const spResourceHandle& hFence)
+void spDeviceD3D11::SubmitCommandList(ezSharedPtr<spCommandList> pCommandList, ezSharedPtr<spFence> pFence)
 {
-  if (const auto pCommandList = m_pResourceManager->GetResource<spCommandListD3D11>(hCommandList); pCommandList != nullptr)
+  if (const auto pCommandListD3D11 = pCommandList.Downcast<spCommandListD3D11>(); pCommandListD3D11 != nullptr)
   {
     EZ_LOCK(m_ImmediateContextMutex);
 
-    if (pCommandList->GetD3D11CommandList() != nullptr) // Command list already submitted or has been reset
+    if (pCommandListD3D11->GetD3D11CommandList() != nullptr) // Command list already submitted or has been reset
     {
-      m_pD3D11ImmediateContext->ExecuteCommandList(pCommandList->GetD3D11CommandList(), FALSE);
-      pCommandList->OnComplete();
+      m_pD3D11ImmediateContext->ExecuteCommandList(pCommandListD3D11->GetD3D11CommandList(), FALSE);
+      pCommandListD3D11->OnComplete();
     }
   }
 
-  if (const auto pFence = m_pResourceManager->GetResource<spFenceD3D11>(hFence); pFence != nullptr)
-    pFence->Raise();
+  if (const auto pFenceD3D11 = pFence.Downcast<spFenceD3D11>(); pFenceD3D11 != nullptr)
+    pFenceD3D11->Raise();
 }
 
-bool spDeviceD3D11::WaitForFence(const spResourceHandle& hFence, double uiNanosecondsTimeout)
+bool spDeviceD3D11::WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout)
 {
-  const auto pFence = m_pResourceManager->GetResource<spFenceD3D11>(hFence);
   if (pFence == nullptr)
     return false;
 
-  return pFence->Wait(ezTime::Nanoseconds(uiNanosecondsTimeout));
+  const auto pFenceD3D11 = pFence.Downcast<spFenceD3D11>();
+  return pFenceD3D11->Wait(ezTime::Nanoseconds(uiNanosecondsTimeout));
 }
 
-bool spDeviceD3D11::WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitAll, double uiNanosecondsTimeout)
+bool spDeviceD3D11::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout)
 {
   EZ_ASSERT_NOT_IMPLEMENTED;
   return false;
 }
 
-void spDeviceD3D11::ResetFence(const spResourceHandle& hFence)
+void spDeviceD3D11::ResetFence(ezSharedPtr<spFence> pFence)
 {
-  const auto pFence = m_pResourceManager->GetResource<spFenceD3D11>(hFence);
   if (pFence == nullptr)
     return;
 
@@ -174,9 +173,9 @@ ezEnum<spTextureSampleCount> spDeviceD3D11::GetTextureSampleCountLimit(const ezE
   return spTextureSampleCount::None;
 }
 
-void spDeviceD3D11::UpdateTexture(const spResourceHandle& hResource, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
+void spDeviceD3D11::UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
 {
-  if (auto pTextureD3D11 = m_pResourceManager->GetResource<spTextureD3D11>(hResource); pTextureD3D11->GetUsage().IsSet(spTextureUsage::Staging))
+  if (auto pTextureD3D11 = pTexture.Downcast<spTextureD3D11>(); pTextureD3D11->GetUsage().IsSet(spTextureUsage::Staging))
   {
     const ezUInt32 uiSubresource = spTextureHelper::CalculateSubresource(pTextureD3D11, uiMipLevel, uiArrayLayer);
     const spMappedResource& mappedResource = MapInternal(pTextureD3D11, spMapAccess::Write, uiSubresource);
@@ -208,16 +207,14 @@ void spDeviceD3D11::UpdateTexture(const spResourceHandle& hResource, const void*
   }
 }
 
-void spDeviceD3D11::ResolveTexture(const spResourceHandle& hSource, const spResourceHandle& hDestination)
+void spDeviceD3D11::ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination)
 {
+  // TODO
 }
 
 void spDeviceD3D11::Destroy()
 {
   WaitForIdle();
-
-  for (auto it = m_AvailableStagingBuffers.GetIterator(); it.IsValid(); it.Next())
-   it->Clear();
 
   m_AvailableStagingBuffers.Clear();
 

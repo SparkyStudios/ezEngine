@@ -60,9 +60,6 @@ void spCommandListD3D11::ReleaseResource()
   for (auto& set : m_ComputeResourceSets)
     set.m_Offsets.Clear();
 
-  for (auto it = m_FreeBuffers.GetIterator(); it.IsValid(); it.Next())
-    m_pDevice->GetResourceManager()->ReleaseResource(*it);
-
   m_FreeBuffers.Clear();
 
   m_bReleased = true;
@@ -87,15 +84,14 @@ void spCommandListD3D11::Dispatch(ezUInt32 uiGroupCountX, ezUInt32 uiGroupCountY
   m_pDeviceContext->Dispatch(uiGroupCountX, uiGroupCountY, uiGroupCountZ);
 }
 
-void spCommandListD3D11::SetComputePipeline(spResourceHandle hComputePipeline)
+void spCommandListD3D11::SetComputePipeline(ezSharedPtr<spComputePipeline> pComputePipeline)
 {
-  const auto pComputePipeline = m_pDevice->GetResourceManager()->GetResource<spComputePipelineD3D11>(hComputePipeline);
   EZ_ASSERT_DEV(pComputePipeline != nullptr, "Invalid compute pipeline handle");
 
   ClearSets(m_ComputeResourceSets);
   m_InvalidatedComputeResourceSets.Clear();
 
-  m_pComputeShader = pComputePipeline->GetComputeShader();
+  m_pComputeShader = pComputePipeline.Downcast<spComputePipelineD3D11>()->GetComputeShader();
   m_pDeviceContext->CSSetShader(m_pComputeShader, nullptr, 0);
 
   m_ComputeResourceSets.EnsureCount(pComputePipeline->GetResourceLayouts().GetCount());
@@ -104,16 +100,17 @@ void spCommandListD3D11::SetComputePipeline(spResourceHandle hComputePipeline)
   m_pComputePipeline = pComputePipeline;
 }
 
-void spCommandListD3D11::SetGraphicPipeline(spResourceHandle hGraphicPipeline)
+void spCommandListD3D11::SetGraphicPipeline(ezSharedPtr<spGraphicPipeline> pGraphicPipeline)
 {
-  const auto pGraphicPipeline = m_pDevice->GetResourceManager()->GetResource<spGraphicPipelineD3D11>(hGraphicPipeline);
   EZ_ASSERT_DEV(pGraphicPipeline != nullptr, "Invalid graphic pipeline handle");
+
+  const auto pGraphicPipelineD3D11 = pGraphicPipeline.Downcast<spGraphicPipelineD3D11>();
 
   ClearSets(m_GraphicResourceSets);
   m_InvalidatedGraphicResourceSets.Clear();
 
-  ID3D11BlendState* pBlendState = pGraphicPipeline->GetBlendState();
-  const ezColor blendFactor = pGraphicPipeline->GetBlendFactor();
+  ID3D11BlendState* pBlendState = pGraphicPipelineD3D11->GetBlendState();
+  const ezColor blendFactor = pGraphicPipelineD3D11->GetBlendFactor();
   if (m_pBlendState != pBlendState || m_BlendFactor != blendFactor)
   {
     m_pBlendState = pBlendState;
@@ -121,8 +118,8 @@ void spCommandListD3D11::SetGraphicPipeline(spResourceHandle hGraphicPipeline)
     m_pDeviceContext->OMSetBlendState(m_pBlendState, blendFactor.GetData(), 0xFFFFFFFFu);
   }
 
-  ID3D11DepthStencilState* pDepthStencilState = pGraphicPipeline->GetDepthStencilState();
-  const ezUInt32 uiStencilRef = pGraphicPipeline->GetStencilRef();
+  ID3D11DepthStencilState* pDepthStencilState = pGraphicPipelineD3D11->GetDepthStencilState();
+  const ezUInt32 uiStencilRef = pGraphicPipelineD3D11->GetStencilRef();
   if (m_pDepthStencilState != pDepthStencilState || m_uiStencilRef != uiStencilRef)
   {
     m_pDepthStencilState = pDepthStencilState;
@@ -130,55 +127,55 @@ void spCommandListD3D11::SetGraphicPipeline(spResourceHandle hGraphicPipeline)
     m_pDeviceContext->OMSetDepthStencilState(m_pDepthStencilState, uiStencilRef);
   }
 
-  if (ID3D11RasterizerState* pRasterizerState = pGraphicPipeline->GetRasterizerState(); m_pRasterizerState != pRasterizerState)
+  if (ID3D11RasterizerState* pRasterizerState = pGraphicPipelineD3D11->GetRasterizerState(); m_pRasterizerState != pRasterizerState)
   {
     m_pRasterizerState = pRasterizerState;
     m_pDeviceContext->RSSetState(m_pRasterizerState);
   }
 
-  if (const D3D11_PRIMITIVE_TOPOLOGY ePrimitiveTopology = pGraphicPipeline->GetPrimitiveTopology(); m_ePrimitiveTopology != ePrimitiveTopology)
+  if (const D3D11_PRIMITIVE_TOPOLOGY ePrimitiveTopology = pGraphicPipelineD3D11->GetPrimitiveTopology(); m_ePrimitiveTopology != ePrimitiveTopology)
   {
     m_ePrimitiveTopology = ePrimitiveTopology;
     m_pDeviceContext->IASetPrimitiveTopology(m_ePrimitiveTopology);
   }
 
-  if (ID3D11InputLayout* pInputLayout = pGraphicPipeline->GetInputLayout(); m_pInputLayout != pInputLayout)
+  if (ID3D11InputLayout* pInputLayout = pGraphicPipelineD3D11->GetInputLayout(); m_pInputLayout != pInputLayout)
   {
     m_pInputLayout = pInputLayout;
     m_pDeviceContext->IASetInputLayout(m_pInputLayout);
   }
 
-  if (ID3D11VertexShader* pVertexShader = pGraphicPipeline->GetVertexShader(); m_pVertexShader != pVertexShader)
+  if (ID3D11VertexShader* pVertexShader = pGraphicPipelineD3D11->GetVertexShader(); m_pVertexShader != pVertexShader)
   {
     m_pVertexShader = pVertexShader;
     m_pDeviceContext->VSSetShader(m_pVertexShader, nullptr, 0);
   }
 
-  if (ID3D11GeometryShader* pGeometryShader = pGraphicPipeline->GetGeometryShader(); m_pGeometryShader != pGeometryShader)
+  if (ID3D11GeometryShader* pGeometryShader = pGraphicPipelineD3D11->GetGeometryShader(); m_pGeometryShader != pGeometryShader)
   {
     m_pGeometryShader = pGeometryShader;
     m_pDeviceContext->GSSetShader(m_pGeometryShader, nullptr, 0);
   }
 
-  if (ID3D11HullShader* pHullShader = pGraphicPipeline->GetHullShader(); m_pHullShader != pHullShader)
+  if (ID3D11HullShader* pHullShader = pGraphicPipelineD3D11->GetHullShader(); m_pHullShader != pHullShader)
   {
     m_pHullShader = pHullShader;
     m_pDeviceContext->HSSetShader(m_pHullShader, nullptr, 0);
   }
 
-  if (ID3D11DomainShader* pDomainShader = pGraphicPipeline->GetDomainShader(); m_pDomainShader != pDomainShader)
+  if (ID3D11DomainShader* pDomainShader = pGraphicPipelineD3D11->GetDomainShader(); m_pDomainShader != pDomainShader)
   {
     m_pDomainShader = pDomainShader;
     m_pDeviceContext->DSSetShader(m_pDomainShader, nullptr, 0);
   }
 
-  if (ID3D11PixelShader* pPixelShader = pGraphicPipeline->GetPixelShader(); m_pPixelShader != pPixelShader)
+  if (ID3D11PixelShader* pPixelShader = pGraphicPipelineD3D11->GetPixelShader(); m_pPixelShader != pPixelShader)
   {
     m_pPixelShader = pPixelShader;
     m_pDeviceContext->PSSetShader(m_pPixelShader, nullptr, 0);
   }
 
-  m_VertexStrides = pGraphicPipeline->GetVertexStrides();
+  m_VertexStrides = pGraphicPipelineD3D11->GetVertexStrides();
   if (!m_VertexStrides.IsEmpty())
   {
     const ezUInt32 uiVertexStridesCount = m_VertexStrides.GetCount();
@@ -500,8 +497,8 @@ void spCommandListD3D11::UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezU
     const ezSharedPtr<spBufferD3D11> pStagingBufferD3D11 = GetFreeStagingBuffer(uiSize);
     pStagingBufferD3D11->EnsureResourceCreated();
 
-    m_pDevice->UpdateBuffer(pStagingBufferD3D11->GetHandle(), 0, pSourceData, uiSize);
-    CopyBuffer(pStagingBufferD3D11->GetHandle(), 0, pBuffer->GetHandle(), uiOffset, uiSize);
+    m_pDevice->UpdateBuffer(pStagingBufferD3D11, 0, pSourceData, uiSize);
+    CopyBuffer(pStagingBufferD3D11, 0, pBuffer, uiOffset, uiSize);
     m_SubmittedStagingBuffers.PushBack(pStagingBufferD3D11);
   }
 }
@@ -549,8 +546,7 @@ void spCommandListD3D11::CopyTextureInternal(ezSharedPtr<spTexture> pSourceTextu
 
 void spCommandListD3D11::GenerateMipmapsInternal(ezSharedPtr<spTexture> pTexture)
 {
-  const spResourceHandle hTextureView = m_pDevice->GetTextureSamplerManager()->GetFullTextureView(pTexture->GetHandle());
-  const auto pTextureViewD3D11 = m_pDevice->GetResourceManager()->GetResource<spTextureViewD3D11>(hTextureView);
+  const auto pTextureViewD3D11 = m_pDevice->GetTextureSamplerManager()->GetFullTextureView(pTexture).Downcast<spTextureViewD3D11>();
 
   pTextureViewD3D11->EnsureResourceCreated();
 

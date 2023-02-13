@@ -33,8 +33,8 @@ public:
 public:
   void Begin() override;
   void Dispatch(ezUInt32 uiGroupCountX, ezUInt32 uiGroupCountY, ezUInt32 uiGroupCountZ) override;
-  void SetComputePipeline(spResourceHandle hComputePipeline) override;
-  void SetGraphicPipeline(spResourceHandle hGraphicPipeline) override;
+  void SetComputePipeline(ezSharedPtr<spComputePipeline> pComputePipeline) override;
+  void SetGraphicPipeline(ezSharedPtr<spGraphicPipeline> pGraphicPipeline) override;
   void SetScissorRect(ezUInt32 uiSlot, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiWidth, ezUInt32 uiHeight) override;
   void SetViewport(ezUInt32 uiSlot, const spViewport& viewport) override;
   void PushProfileScope(const ezString& sName) override;

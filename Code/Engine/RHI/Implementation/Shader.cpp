@@ -5,10 +5,10 @@
 
 #pragma region spShaderPipeline
 
-spShaderPipeline::spShaderPipeline(ezDynamicArray<spResourceHandle> inputLayouts, spResourceHandle hShaderPipeline)
+spShaderPipeline::spShaderPipeline(ezDynamicArray<spResourceHandle> inputLayouts, spResourceHandle hShaderProgram)
   : ezHashableStruct<spShaderPipeline>()
   , m_InputLayouts(std::move(inputLayouts))
-  , m_hShaderProgram(hShaderPipeline)
+  , m_hShaderProgram(hShaderProgram)
 {
 }
 

@@ -30,14 +30,14 @@ public:
   EZ_NODISCARD ezUInt32 GetStructuredBufferMinOffsetAlignment() const override;
   EZ_NODISCARD ezSharedPtr<spSwapchain> GetMainSwapchain() const override;
   EZ_NODISCARD const spDeviceCapabilities& GetCapabilities() const override;
-  void SubmitCommandList(const spResourceHandle& hCommandList, const spResourceHandle& hFence) override;
-  bool WaitForFence(const spResourceHandle& hFence, double uiNanosecondsTimeout) override;
-  bool WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitAll, double uiNanosecondsTimeout) override;
-  void ResetFence(const spResourceHandle& hFence) override;
+  void SubmitCommandList(ezSharedPtr<spCommandList> pCommandList, ezSharedPtr<spFence> pFence) override;
+  bool WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout) override;
+  bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout) override;
+  void ResetFence(ezSharedPtr<spFence> pFence) override;
   void Present() override;
   ezEnum<spTextureSampleCount> GetTextureSampleCountLimit(const ezEnum<spPixelFormat>& eFormat, bool bIsDepthFormat) override;
-  void UpdateTexture(const spResourceHandle& hResource, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) override;
-  void ResolveTexture(const spResourceHandle& hSource, const spResourceHandle& hDestination) override;
+  void UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) override;
+  void ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination) override;
   void Destroy() override;
   EZ_NODISCARD EZ_ALWAYS_INLINE bool IsDebugEnabled() const override { return m_bIsDebugEnabled; }
 

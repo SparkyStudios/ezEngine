@@ -4,27 +4,27 @@
 
 #pragma region spDevice
 
-void spDevice::SubmitCommandList(const spResourceHandle& hCommandList)
+void spDevice::SubmitCommandList(ezSharedPtr<spCommandList> pCommandList)
 {
-  SubmitCommandList(hCommandList, spResourceHandle());
+  SubmitCommandList(pCommandList, nullptr);
 }
 
-void spDevice::WaitForFence(const spResourceHandle& hFence)
+void spDevice::WaitForFence(ezSharedPtr<spFence> pFence)
 {
-  WaitForFence(hFence, static_cast<double>(0xffffffffffffffffui64));
+  WaitForFence(pFence, static_cast<double>(0xffffffffffffffffui64));
 }
 
-bool spDevice::WaitForFence(const spResourceHandle& hFence, const ezTime& timeout)
+bool spDevice::WaitForFence(ezSharedPtr<spFence> pFence, const ezTime& timeout)
 {
-  return WaitForFence(hFence, timeout.GetNanoseconds());
+  return WaitForFence(pFence, timeout.GetNanoseconds());
 }
 
-void spDevice::WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitForAll)
+void spDevice::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitForAll)
 {
   WaitForFences(fences, bWaitForAll, static_cast<double>(0xffffffffffffffffui64));
 }
 
-bool spDevice::WaitForFences(const ezList<spResourceHandle>& fences, bool bWaitAll, const ezTime& timeout)
+bool spDevice::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, const ezTime& timeout)
 {
   return WaitForFences(fences, bWaitAll, timeout.GetNanoseconds());
 }
@@ -45,25 +45,26 @@ void spDevice::WaitForIdle()
   m_pResourceManager->ReleaseResources();
 }
 
-const spMappedResource& spDevice::Map(const spResourceHandle& hResource, const ezEnum<spMapAccess>& eAccess, ezUInt32 uiSubResource)
+const spMappedResource& spDevice::Map(ezSharedPtr<spMappableResource> pResource, const ezEnum<spMapAccess>& eAccess, ezUInt32 uiSubResource)
 {
-  const auto pResource = m_pResourceManager->GetResource<spDeviceResource>(hResource);
   if (pResource == nullptr)
   {
     EZ_ASSERT_DEV(pResource != nullptr, "Trying to map a resource that was not registered in the resource manager of the device. If you have created this resource without the resource factory, you should register it yourself.");
     return m_InvalidDefaultMappedResource;
   }
 
-  if (const auto pBuffer = pResource.Downcast<spBuffer>(); pBuffer != nullptr)
+  if (pResource->IsInstanceOf<spBuffer>())
   {
+    const auto pBuffer = pResource.Downcast<spBuffer>();
     EZ_ASSERT_DEV(pBuffer->GetUsage().IsAnySet(spBufferUsage::Dynamic | spBufferUsage::Staging), "Buffers must have the Staging or Dynamic usage flag to be mapped.");
     EZ_ASSERT_DEV(uiSubResource == 0, "Buffers must have the Staging or Dynamic usage flag to be mapped.");
     EZ_ASSERT_DEV(!((eAccess == spMapAccess::Read || eAccess == spMapAccess::ReadWrite) && !pBuffer->GetUsage().IsSet(spBufferUsage::Staging)), "spMapAccess::Read and spMapAccess::ReadWrite can only be used on buffers created with spBufferUsage::Staging.");
     return MapInternal(pBuffer, eAccess);
   }
 
-  if (const auto pTexture = pResource.Downcast<spTexture>(); pTexture != nullptr)
+  if (pResource->IsInstanceOf<spTexture>())
   {
+    const auto pTexture = pResource.Downcast<spTexture>();
     EZ_ASSERT_DEV(pTexture->GetUsage().IsSet(spTextureUsage::Staging) == 0, "Texture must have the spTextureUsage::Staging usage flag to be mapped.");
     EZ_ASSERT_DEV(uiSubResource < pTexture->GetArrayLayerCount() * pTexture->GetMipCount(), "The subresource index must be less than the number of subresources in the Texture being mapped.");
     return MapInternal(pTexture, eAccess, uiSubResource);
@@ -73,23 +74,24 @@ const spMappedResource& spDevice::Map(const spResourceHandle& hResource, const e
   return m_InvalidDefaultMappedResource;
 }
 
-void spDevice::UnMap(const spResourceHandle& hResource, ezUInt32 uiSubresource)
+void spDevice::UnMap(ezSharedPtr<spMappableResource> pResource, ezUInt32 uiSubresource)
 {
-  const auto pResource = m_pResourceManager->GetResource<spDeviceResource>(hResource);
   if (pResource == nullptr)
   {
     EZ_ASSERT_DEV(pResource != nullptr, "Trying to unmap a resource that was not registered in the resource manager of the device. If you have created this resource without the resource factory, you should register it yourself.");
     return;
   }
 
-  if (const auto pBuffer = pResource.Downcast<spBuffer>(); pBuffer != nullptr)
+  if (pResource->IsInstanceOf<spBuffer>())
   {
+    const auto pBuffer = pResource.Downcast<spBuffer>();
     UnMapInternal(pBuffer);
     return;
   }
 
-  if (const auto pTexture = pResource.Downcast<spTexture>(); pTexture != nullptr)
+  if (pResource->IsInstanceOf<spTexture>())
   {
+    const auto pTexture = pResource.Downcast<spTexture>();
     UnMapInternal(pTexture, uiSubresource);
     return;
   }
@@ -97,9 +99,8 @@ void spDevice::UnMap(const spResourceHandle& hResource, ezUInt32 uiSubresource)
   EZ_ASSERT_NOT_IMPLEMENTED;
 }
 
-void spDevice::UpdateBuffer(const spResourceHandle& hResource, ezUInt32 uiOffset, const void* pSource, ezUInt32 uiSize)
+void spDevice::UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSource, ezUInt32 uiSize)
 {
-  const auto pBuffer = m_pResourceManager->GetResource<spBuffer>(hResource);
   if (pBuffer == nullptr)
   {
     EZ_ASSERT_DEV(pBuffer != nullptr, "Trying to update a buffer that was not registered in the resource manager of the device. If you have created this resource without the resource factory, you should register it yourself.");

@@ -47,13 +47,11 @@ spOutputDescription spOutputDescription::CreateFromFramebuffer(const spFramebuff
   };
 }
 
-spOutputDescription spOutputDescription::CreateFromFramebuffer(spResourceHandle hFramebuffer)
+spOutputDescription spOutputDescription::CreateFromFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer)
 {
-  const auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
-  auto pFramebuffer = pDevice->GetResourceManager()->GetResource<spFramebuffer>(hFramebuffer);
   EZ_ASSERT_DEV(pFramebuffer != nullptr, "Trying to get an unregistered framebuffer from the device.");
 
-  return CreateFromFramebuffer(pFramebuffer);
+  return CreateFromFramebuffer(pFramebuffer.Borrow());
 }
 
 #pragma endregion
