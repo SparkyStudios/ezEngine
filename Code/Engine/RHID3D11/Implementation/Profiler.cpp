@@ -50,7 +50,7 @@ void spFrameProfilerD3D11::End()
     desc.MiscFlags = 0;
 
     spScopedD3D11Resource<ID3D11Query> pQuery;
-    HRESULT res = static_cast<spDeviceD3D11*>(m_pDevice)->GetD3D11Device()->CreateQuery(&desc, &pQuery);
+    const HRESULT res = static_cast<spDeviceD3D11*>(m_pDevice)->GetD3D11Device()->CreateQuery(&desc, &pQuery);
     EZ_HRESULT_TO_ASSERT(res);
 
     pContext->End(*pQuery);
@@ -59,7 +59,7 @@ void spFrameProfilerD3D11::End()
     while (pContext->GetData(*pQuery, &uiTimestamp, sizeof(uiTimestamp), 0) != S_OK)
       ezThreadUtils::YieldTimeSlice();
 
-    m_SyncTimeDiff = ezTime::Now() - ezTime::Seconds(double(uiTimestamp) * m_fInvTicksPerSecond);
+    m_SyncTimeDiff = ezTime::Now() - ezTime::Seconds(static_cast<double>(uiTimestamp) * m_fInvTicksPerSecond);
     m_bSyncTimeNeeded = false;
   }
 }
@@ -143,7 +143,7 @@ spScopeProfilerD3D11::~spScopeProfilerD3D11()
   m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
-void spScopeProfilerD3D11::Begin(const ezString& sName, ID3D11DeviceContext* pContext)
+void spScopeProfilerD3D11::Begin(ezStringView sName, ID3D11DeviceContext* pContext)
 {
   m_sName = sName;
   pContext->End(m_pBeginQuery);
@@ -157,7 +157,7 @@ void spScopeProfilerD3D11::End(ID3D11DeviceContext* pContext)
 ezTime spScopeProfilerD3D11::GetTime(ID3D11Query* pQuery)
 {
   ID3D11DeviceContext* pContext = static_cast<spDeviceD3D11*>(m_pDevice)->GetD3D11DeviceContext();
-  ezSharedPtr<spFrameProfilerD3D11> pProfiler = m_pDevice->GetFrameProfiler().Downcast<spFrameProfilerD3D11>();
+  const ezSharedPtr<spFrameProfilerD3D11> pProfiler = m_pDevice->GetFrameProfiler().Downcast<spFrameProfilerD3D11>();
 
   ezUInt64 uiTimestamp;
   if (FAILED(pContext->GetData(pQuery, &uiTimestamp, sizeof(uiTimestamp), D3D11_ASYNC_GETDATA_DONOTFLUSH)))
@@ -166,7 +166,7 @@ ezTime spScopeProfilerD3D11::GetTime(ID3D11Query* pQuery)
   if (pProfiler->m_fInvTicksPerSecond == 0.0)
     return ezTime::Zero();
 
-  return ezTime::Seconds(double(uiTimestamp) * pProfiler->m_fInvTicksPerSecond) + pProfiler->m_SyncTimeDiff;
+  return ezTime::Seconds(static_cast<double>(uiTimestamp) * pProfiler->m_fInvTicksPerSecond) + pProfiler->m_SyncTimeDiff;
 }
 
 #pragma endregion

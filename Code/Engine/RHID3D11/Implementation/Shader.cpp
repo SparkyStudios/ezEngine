@@ -159,14 +159,14 @@ bool spShaderD3D11::IsReleased() const
   return m_pD3D11Shader == nullptr;
 }
 
-void spShaderD3D11::SetDebugName(const ezString& sDebugName)
+void spShaderD3D11::SetDebugName(ezStringView sDebugName)
 {
   spShader::SetDebugName(sDebugName);
 
-  if (m_pD3D11Shader != nullptr)
-  {
-    m_pD3D11Shader->SetPrivateData(WKPDID_D3DDebugObjectName, sDebugName.GetElementCount(), sDebugName.GetData());
-  }
+  if (IsReleased())
+    return;
+
+  m_pD3D11Shader->SetPrivateData(WKPDID_D3DDebugObjectName, sDebugName.GetElementCount(), sDebugName.GetStartPointer());
 }
 
 void spShaderD3D11::CreateResource()
@@ -276,6 +276,8 @@ void spShaderD3D11::CreateResource()
       EZ_ASSERT_NOT_IMPLEMENTED;
       break;
   }
+
+  SetDebugName(m_sDebugName);
 
   m_bIsResourceCreated = true;
 }

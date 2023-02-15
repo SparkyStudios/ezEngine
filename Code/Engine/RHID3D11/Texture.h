@@ -13,7 +13,7 @@ class SP_RHID3D11_DLL spTextureD3D11 final : public spTexture, public spDeferred
 public:
   // spDeviceResource
 
-  void SetDebugName(const ezString& debugName) override;
+  void SetDebugName(ezStringView sDebugName) override;
   void ReleaseResource() override;
   bool IsReleased() const override;
 
@@ -56,7 +56,7 @@ class SP_RHID3D11_DLL spTextureViewD3D11 : public spTextureView, public spDeferr
 public:
   // spDeviceResource
 
-  void SetDebugName(const ezString& debugName) override;
+  void SetDebugName(ezStringView sDebugName) override;
   void ReleaseResource() override;
   bool IsReleased() const override;
 

@@ -89,11 +89,14 @@ spTextureD3D11::~spTextureD3D11()
   m_pDevice->GetResourceManager()->ReleaseResource(this);
 }
 
-void spTextureD3D11::SetDebugName(const ezString& debugName)
+void spTextureD3D11::SetDebugName(ezStringView sDebugName)
 {
-  spDeviceResource::SetDebugName(debugName);
+  spDeviceResource::SetDebugName(sDebugName);
 
-  m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, debugName.GetElementCount(), debugName.GetData());
+  if (IsReleased())
+    return;
+
+  m_pTexture->SetPrivateData(WKPDID_D3DDebugObjectName, sDebugName.GetElementCount(), sDebugName.GetStartPointer());
 }
 
 void spTextureD3D11::ReleaseResource()
@@ -216,6 +219,8 @@ void spTextureD3D11::CreateResource()
     EZ_ASSERT_NOT_IMPLEMENTED
   }
 
+  SetDebugName(m_sDebugName);
+
   m_bIsResourceCreated = true;
 }
 
@@ -285,14 +290,14 @@ ID3D11Resource* spTextureD3D11::GetD3D11Texture() const
 
 #pragma region spTextureViewD3D11
 
-void spTextureViewD3D11::SetDebugName(const ezString& debugName)
+void spTextureViewD3D11::SetDebugName(ezStringView sDebugName)
 {
-  spTextureView::SetDebugName(debugName);
+  spTextureView::SetDebugName(sDebugName);
 
-  ezStringBuilder sSRVDebugName(debugName);
+  ezStringBuilder sSRVDebugName(sDebugName);
   sSRVDebugName.Append("_SRV");
 
-  ezStringBuilder sUAVDebugName(debugName);
+  ezStringBuilder sUAVDebugName(sDebugName);
   sUAVDebugName.Append("_UAV");
 
   m_pShaderResourceView->SetPrivateData(WKPDID_D3DDebugObjectName, sSRVDebugName.GetElementCount(), sSRVDebugName.GetData());

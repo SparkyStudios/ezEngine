@@ -1,18 +1,18 @@
-﻿#include <RHID3D11/RHID3D11PCH.h>
+#include <RHID3D11/RHID3D11PCH.h>
 
 #include <RHID3D11/Core.h>
 #include <RHID3D11/Device.h>
 #include <RHID3D11/Framebuffer.h>
 #include <RHID3D11/Texture.h>
 
-void spFramebufferD3D11::SetDebugName(const ezString& debugName)
+void spFramebufferD3D11::SetDebugName(ezStringView sDebugName)
 {
-  spFramebuffer::SetDebugName(debugName);
+  spFramebuffer::SetDebugName(sDebugName);
 
-  ezStringBuilder sDSVName(debugName);
+  ezStringBuilder sDSVName(sDebugName);
   sDSVName.Append("_DSV");
 
-  ezStringBuilder sRTVName(debugName);
+  ezStringBuilder sRTVName(sDebugName);
   sRTVName.Append("_RTV");
 
   if (m_pDepthTarget != nullptr)

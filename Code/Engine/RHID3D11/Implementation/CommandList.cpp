@@ -213,7 +213,7 @@ void spCommandListD3D11::SetViewport(ezUInt32 uiSlot, const spViewport& viewport
   m_Viewports[uiSlot].MaxDepth = viewport.m_fMaxDepth;
 }
 
-void spCommandListD3D11::PushProfileScope(const ezString& sName)
+void spCommandListD3D11::PushProfileScope(ezStringView sName)
 {
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
   m_pCurrentScopeProfiler = EZ_NEW(m_pDevice->GetAllocator(), spScopeProfilerD3D11, ezStaticCast<spDeviceD3D11*>(m_pDevice));
@@ -238,7 +238,7 @@ void spCommandListD3D11::PopProfileScope(ezSharedPtr<spScopeProfiler>& scopeProf
 #endif
 }
 
-void spCommandListD3D11::PushDebugGroup(const ezString& sName)
+void spCommandListD3D11::PushDebugGroup(ezStringView sName)
 {
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
   if (m_pUserDefinedAnnotation == nullptr)
@@ -259,7 +259,7 @@ void spCommandListD3D11::PopDebugGroup()
 #endif
 }
 
-void spCommandListD3D11::InsertDebugMarker(const ezString& sName)
+void spCommandListD3D11::InsertDebugMarker(ezStringView sName)
 {
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
   if (m_pUserDefinedAnnotation == nullptr)
@@ -277,7 +277,7 @@ void spCommandListD3D11::End()
   const HRESULT res = m_pDeviceContext->FinishCommandList(false, &m_pCommandList);
   EZ_HRESULT_TO_ASSERT(res);
 
-  m_pCommandList->SetPrivateData(WKPDID_D3DDebugObjectName, m_sDebugName.GetElementCount(), m_sDebugName.GetData());
+  m_pCommandList->SetPrivateData(WKPDID_D3DDebugObjectName, m_sDebugName.GetElementCount(), m_sDebugName.GetStartPointer());
 
   ResetManagedState();
   m_bHasStarted = false;

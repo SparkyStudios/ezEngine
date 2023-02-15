@@ -35,11 +35,14 @@ bool spSwapchainD3D11::IsReleased() const
   return m_pD3D11SwapChain == nullptr;
 }
 
-void spSwapchainD3D11::SetDebugName(const ezString& debugName)
+void spSwapchainD3D11::SetDebugName(ezStringView sDebugName)
 {
-  spSwapchain::SetDebugName(debugName);
+  spSwapchain::SetDebugName(sDebugName);
 
-  m_pD3D11SwapChain->SetPrivateData(WKPDID_D3DDebugObjectName, debugName.GetElementCount(), debugName.GetData());
+  if (IsReleased())
+    return;
+
+  m_pD3D11SwapChain->SetPrivateData(WKPDID_D3DDebugObjectName, sDebugName.GetElementCount(), sDebugName.GetStartPointer());
 }
 
 ezSharedPtr<spFramebuffer> spSwapchainD3D11::GetFramebuffer() const
