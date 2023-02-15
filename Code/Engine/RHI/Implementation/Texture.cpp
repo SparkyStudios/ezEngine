@@ -3,33 +3,20 @@
 #include <RHI/Device.h>
 #include <RHI/Texture.h>
 
-#pragma region spTextureViewDescription
-
-spTextureViewDescription::spTextureViewDescription(const spTexture* pTexture)
-  : ezHashableStruct<spTextureViewDescription>()
-  , m_hTarget(pTexture->GetHandle())
-{
-}
-
-spTextureViewDescription::spTextureViewDescription(const spTexture* pTexture, const ezEnum<spPixelFormat>& eFormat)
-  : ezHashableStruct<spTextureViewDescription>()
-  , m_hTarget(pTexture->GetHandle())
-  , m_bOverridePixelFormat(true)
-  , m_eFormat(eFormat)
-{
-}
-
-#pragma endregion
-
 #pragma region spTextureSamplerManager
+
+spTextureSamplerManager::spTextureSamplerManager(spDevice* pDevice)
+  : m_pDevice(pDevice)
+{
+}
 
 ezSharedPtr<spTextureView> spTextureSamplerManager::GetTextureView(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource)
 {
-  if (pResource->IsInstanceOf<spTextureView>())
-    return pResource.Downcast<spTextureView>();
-
   if (pResource->IsInstanceOf<spTexture>())
     return pDevice->GetTextureSamplerManager()->GetFullTextureView(pResource.Downcast<spTexture>());
+
+  if (pResource->IsInstanceOf<spTextureView>())
+    return pResource.Downcast<spTextureView>();
 
   EZ_ASSERT_NOT_IMPLEMENTED;
   return nullptr;

@@ -1,4 +1,3 @@
-#include "Foundation/Threading/Lock.h"
 #include <RHID3D11/RHID3D11PCH.h>
 
 #include <RHID3D11/CommandList.h>
@@ -13,23 +12,14 @@ void spSwapchainD3D11::ReleaseResource()
   if (IsReleased())
     return;
 
-  if (m_pDepthTexture != nullptr)
   {
-    m_pDepthTexture.Clear();
-    m_pDepthTexture = nullptr;
+    EZ_LOCK(m_CLsLock);
+    m_DependentCommandLists.Clear();
   }
 
-  if (m_pBackBufferTexture != nullptr)
-  {
-    m_pBackBufferTexture.Clear();
-    m_pBackBufferTexture = nullptr;
-  }
-
-  if (m_pFramebuffer != nullptr)
-  {
-    m_pFramebuffer.Clear();
-    m_pFramebuffer = nullptr;
-  }
+  m_pDepthTexture.Clear();
+  m_pBackBufferTexture.Clear();
+  m_pFramebuffer.Clear();
 
 #if EZ_DISABLED(EZ_PLATFORM_WINDOWS_UWP)
   // Full screen swap chains must be switched to windowed mode before destruction.
@@ -38,11 +28,6 @@ void spSwapchainD3D11::ReleaseResource()
 #endif
 
   SP_RHI_DX11_RELEASE(m_pD3D11SwapChain);
-
-  {
-    EZ_LOCK(m_CLsLock);
-    m_DependentCommandLists.Clear();
-  }
 }
 
 bool spSwapchainD3D11::IsReleased() const

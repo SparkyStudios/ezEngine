@@ -11,6 +11,8 @@
 #include <Foundation/Logging/VisualStudioWriter.h>
 #include <Foundation/Time/Clock.h>
 
+#include <Texture/Image/Image.h>
+
 #include <RHI/CommandList.h>
 #include <RHI/Core.h>
 #include <RHI/Factory.h>
@@ -161,7 +163,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
     description.m_bHasMainSwapchain = true;
     description.m_MainSwapchainDescription.m_uiWidth = g_uiWindowWidth;
     description.m_MainSwapchainDescription.m_uiHeight = g_uiWindowHeight;
-    description.m_MainSwapchainDescription.m_bUseSrgb = true;
+    description.m_MainSwapchainDescription.m_bUseSrgb = false;
     description.m_MainSwapchainDescription.m_bVSync = false;
     description.m_MainSwapchainDescription.m_bUseDepthTexture = true;
     description.m_MainSwapchainDescription.m_pRenderingSurface = &renderSurface;
@@ -177,19 +179,21 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   auto* pFactory = device->GetResourceFactory();
 
-  ezUInt16 IndexBuffer[3] = {0, 1, 2};
-  ibo = pFactory->CreateBuffer(spBufferDescription(sizeof(ezUInt16) * 3, spBufferUsage::IndexBuffer));
+  ezUInt16 IndexBuffer[4] = {0, 1, 2, 3};
+  ibo = pFactory->CreateBuffer(spBufferDescription(sizeof(IndexBuffer), spBufferUsage::IndexBuffer));
   ibo->SetDebugName("ibo");
 
-  ezVec3 VertexBuffer[3] = {
-    ezVec3(-0.5f, -0.5f, 0.0f),
-    ezVec3(0.0f, 0.5f, 0.0f),
-    ezVec3(0.5f, -0.5f, 0.0f)};
-  vbo = pFactory->CreateBuffer(spBufferDescription(sizeof(ezVec3) * 3, spBufferUsage::VertexBuffer));
+  ezVec3 VertexBuffer[4] = {
+    ezVec3(-1.0f, +1.0f, 0.0f),
+    ezVec3(+1.0f, +1.0f, 0.0f),
+    ezVec3(-1.0f, -1.0f, 0.0f),
+    ezVec3(+1.0f, -1.0f, 0.0f),
+  };
+  vbo = pFactory->CreateBuffer(spBufferDescription(sizeof(VertexBuffer), spBufferUsage::VertexBuffer));
   vbo->SetDebugName("vbo");
 
-  device->UpdateBuffer<ezUInt16>(ibo, 0, &IndexBuffer[0], 3);
-  device->UpdateBuffer<ezVec3>(vbo, 0, &VertexBuffer[0], 3);
+  device->UpdateBuffer<ezUInt16>(ibo, 0, &IndexBuffer[0], EZ_ARRAY_SIZE(IndexBuffer));
+  device->UpdateBuffer<ezVec3>(vbo, 0, &VertexBuffer[0], EZ_ARRAY_SIZE(VertexBuffer));
 
   char vs_content[] = R"(
 struct VS_INPUT
@@ -200,12 +204,14 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
   float4 pos: SV_POSITION;
+  float2 uv : TEXCOORD0;
 };
 
 VS_OUTPUT main(VS_INPUT input)
 {
   VS_OUTPUT output;
   output.pos = float4(input.pos, 1.0f);
+  output.uv = input.pos.xy * 0.5f + float2(0.5f, 0.5f);
   return output;
 }
 )";
@@ -214,6 +220,7 @@ VS_OUTPUT main(VS_INPUT input)
 struct VS_OUTPUT
 {
   float4 pos: SV_POSITION;
+  float2 uv : TEXCOORD0;
 };
 
 cbuffer Settings : register(b0)
@@ -221,9 +228,13 @@ cbuffer Settings : register(b0)
   float4 color;
 };
 
+Texture2D<float4> tex : register(t0);
+
+SamplerState linearSampler : register(s0);
+
 float4 main(VS_OUTPUT input) : SV_TARGET
 {
-  return color;
+  return tex.SampleLevel(linearSampler, input.uv, 0) * color;
 }
 )";
 
@@ -265,6 +276,20 @@ float4 main(VS_OUTPUT input) : SV_TARGET
   rl1.m_sName = ezMakeHashedString("Settings");
   resourceLayoutDescription.m_Elements.PushBack(rl1);
 
+  spResourceLayoutElementDescription rl2;
+  rl2.m_eShaderStage = spShaderStage::PixelShader;
+  rl2.m_eType = spShaderResourceType::ReadOnlyTexture;
+  rl2.m_eOptions = spResourceLayoutElementOptions::None;
+  rl2.m_sName = ezMakeHashedString("tex");
+  resourceLayoutDescription.m_Elements.PushBack(rl2);
+
+  spResourceLayoutElementDescription rl3;
+  rl3.m_eShaderStage = spShaderStage::PixelShader;
+  rl3.m_eType = spShaderResourceType::Sampler;
+  rl3.m_eOptions = spResourceLayoutElementOptions::None;
+  rl3.m_sName = ezMakeHashedString("linearSampler");
+  resourceLayoutDescription.m_Elements.PushBack(rl3);
+
   layout = pFactory->CreateResourceLayout(resourceLayoutDescription);
   layout->SetDebugName("layout");
 
@@ -272,9 +297,22 @@ float4 main(VS_OUTPUT input) : SV_TARGET
   cbo = pFactory->CreateBuffer(cboDescription);
   cbo->SetDebugName("cbo");
 
+  ezImage image;
+  image.LoadFrom(":base/Textures/Grid.png").IgnoreResult();
+
+  spTextureDescription td = spTextureDescription::Texture2D(image.GetWidth(), image.GetHeight(), image.GetNumMipLevels(), image.GetNumArrayIndices(), spPixelFormat::R8G8B8A8UNorm, spTextureUsage::Sampled);
+  tex = pFactory->CreateTexture(td);
+
+  device->UpdateTexture(tex, image.GetByteBlobPtr(), 0, 0, 0, image.GetWidth(), image.GetHeight(), 1, 0, 0);
+
+  spSamplerDescription sd = spSamplerDescription::Linear;
+  smp = pFactory->CreateSampler(sd);
+
   spResourceSetDescription setDesc;
   setDesc.m_hResourceLayout = layout->GetHandle();
   setDesc.m_BoundResources.PushBack(cbo->GetHandle());
+  setDesc.m_BoundResources.PushBack(tex->GetHandle());
+  setDesc.m_BoundResources.PushBack(smp->GetHandle());
   set = pFactory->CreateResourceSet(setDesc);
   set->SetDebugName("set");
 
@@ -282,7 +320,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 
   spGraphicPipelineDescription desc;
   desc.m_Output = pSwapchain->GetFramebuffer()->GetOutputDescription();
-  desc.m_ePrimitiveTopology = spPrimitiveTopology::Triangles;
+  desc.m_ePrimitiveTopology = spPrimitiveTopology::TriangleStrip;
   desc.m_RenderingState.m_BlendState = spBlendState::SingleDisabled;
   desc.m_RenderingState.m_DepthState = spDepthState::Disabled;
   desc.m_RenderingState.m_RasterizerState = spRasterizerState::Default;
@@ -293,6 +331,9 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 
   gpo = pFactory->CreateGraphicPipeline(desc);
   gpo->SetDebugName("gpo");
+
+  cl = device->GetResourceFactory()->CreateCommandList(spCommandListDescription());
+  cl->SetDebugName("RHI SAMPLE CMD");
 };
 
 void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
@@ -313,6 +354,9 @@ void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
   ibo.Clear();
   vbo.Clear();
   cbo.Clear();
+  tex.Clear();
+  smp.Clear();
+  cl.Clear();
 
   // destroy device
   device->Destroy();
@@ -350,48 +394,45 @@ ezApplication::Execution ezRHISampleApp::Run()
   {
     const auto pSwapchain = device->GetMainSwapchain();
 
-    const auto commandList = device->GetResourceFactory()->CreateCommandList(spCommandListDescription());
-    commandList->SetDebugName("RHI SAMPLE CMD");
-
     const auto c = ezAngle::Radian(ezTime::Now().AsFloatInSeconds());
     const auto color = ezColor(ezMath::Sin(c), ezMath::Cos(c), ezMath::Sin(-c), 1.0f);
 
-    commandList->Begin();
+    cl->Begin();
     {
-      commandList->PushProfileScope("Test");
+      cl->PushProfileScope("Test");
       {
-        commandList->SetGraphicPipeline(gpo);
+        cl->SetGraphicPipeline(gpo);
 
-        commandList->SetFramebuffer(pSwapchain->GetFramebuffer());
+        cl->SetFramebuffer(pSwapchain->GetFramebuffer());
 
-        commandList->SetFullViewport(0);
-        commandList->SetFullScissorRect(0);
+        cl->SetFullViewport(0);
+        cl->SetFullScissorRect(0);
 
-        commandList->ClearColorTarget(0, ezColor::Black);
-        commandList->ClearDepthStencilTarget(1.0f, 0);
+        cl->ClearColorTarget(0, ezColor::Black);
+        cl->ClearDepthStencilTarget(1.0f, 0);
 
-        commandList->SetVertexBuffer(0, vbo);
-        commandList->SetIndexBuffer(ibo, spIndexFormat::UInt16);
+        cl->SetVertexBuffer(0, vbo);
+        cl->SetIndexBuffer(ibo, spIndexFormat::UInt16);
 
-        commandList->UpdateBuffer<ezColor>(cbo, 0, color);
+        cl->UpdateBuffer<ezColor>(cbo, 0, color);
 
-        commandList->SetGraphicResourceSet(0, set);
+        cl->SetGraphicResourceSet(0, set);
 
-        commandList->DrawIndexed(3, 1, 0, 0, 0);
+        cl->DrawIndexed(4, 1, 0, 0, 0);
       }
-      commandList->PopProfileScope(pTestScopeProfiler);
+      cl->PopProfileScope(pTestScopeProfiler);
     }
-    commandList->End();
+    cl->End();
 
-    device->SubmitCommandList(commandList);
+    device->SubmitCommandList(cl);
   }
   device->EndFrame();
 
   // Swap buffers - This will use the next buffer range for the next rendering pass
   cbo->SwapBuffers();
 
-  if (device->IsDebugEnabled())
-    ezLog::Info("RHI Sample: Frame {0} Time: {1}ms", device->GetFrameCount(), (pTestScopeProfiler->GetEndTime() - pTestScopeProfiler->GetBeginTime()).AsFloatInSeconds() * 1000);
+  // if (device->IsDebugEnabled())
+  //   ezLog::Info("RHI Sample: Frame {0} Time: {1}ms", device->GetFrameCount(), (pTestScopeProfiler->GetEndTime() - pTestScopeProfiler->GetBeginTime()).AsFloatInSeconds() * 1000);
 
   // needs to be called once per frame
   ezResourceManager::PerFrameUpdate();

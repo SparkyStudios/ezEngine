@@ -79,8 +79,7 @@ spDeviceResourceFactory* spDeviceD3D11::GetResourceFactory() const
 
 spTextureSamplerManager* spDeviceD3D11::GetTextureSamplerManager() const
 {
-  // TODO
-  return nullptr;
+  return m_pTextureSamplerManager;
 }
 
 ezUInt32 spDeviceD3D11::GetConstantBufferMinOffsetAlignment() const
@@ -175,7 +174,10 @@ ezEnum<spTextureSampleCount> spDeviceD3D11::GetTextureSampleCountLimit(const ezE
 
 void spDeviceD3D11::UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
 {
-  if (auto pTextureD3D11 = pTexture.Downcast<spTextureD3D11>(); pTextureD3D11->GetUsage().IsSet(spTextureUsage::Staging))
+  auto pTextureD3D11 = pTexture.Downcast<spTextureD3D11>();
+  pTextureD3D11->EnsureResourceCreated();
+
+  if (pTextureD3D11->GetUsage().IsSet(spTextureUsage::Staging))
   {
     const ezUInt32 uiSubresource = spTextureHelper::CalculateSubresource(pTextureD3D11, uiMipLevel, uiArrayLayer);
     const spMappedResource& mappedResource = MapInternal(pTextureD3D11, spMapAccess::Write, uiSubresource);
@@ -499,6 +501,7 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
 
   m_pResourceManager = EZ_DEFAULT_NEW(spDeviceResourceManagerD3D11, this);
   m_pResourceFactory = EZ_DEFAULT_NEW(spDeviceResourceFactoryD3D11, this);
+  m_pTextureSamplerManager = EZ_DEFAULT_NEW(spTextureSamplerManagerD3D11, this);
 
   if (deviceDescription.m_bHasMainSwapchain)
   {
@@ -585,6 +588,7 @@ spDeviceD3D11::~spDeviceD3D11()
 
   EZ_DEFAULT_DELETE(m_pResourceManager);
   EZ_DEFAULT_DELETE(m_pResourceFactory);
+  EZ_DEFAULT_DELETE(m_pTextureSamplerManager);
 }
 
 EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Device);

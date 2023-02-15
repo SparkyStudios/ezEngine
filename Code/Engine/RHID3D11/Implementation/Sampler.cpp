@@ -88,7 +88,7 @@ void spSamplerD3D11::SetDebugName(const ezString& name)
 {
   spDeviceResource::SetDebugName(name);
 
-  m_pSamplerState->m_pSamplerState->SetPrivateData(WKPDID_D3DDebugObjectName, name.GetElementCount(), name.GetData());
+  m_pSamplerState->SetDebugName(name);
 }
 
 void spSamplerD3D11::ReleaseResource()
@@ -103,7 +103,7 @@ void spSamplerD3D11::ReleaseResource()
 
 bool spSamplerD3D11::IsReleased() const
 {
-  return m_pSamplerState->IsReleased();
+  return m_pSamplerState == nullptr || m_pSamplerState->IsReleased();
 }
 
 spSamplerD3D11::~spSamplerD3D11()

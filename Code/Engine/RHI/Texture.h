@@ -396,20 +396,30 @@ struct spTextureDescription : public ezHashableStruct<spTextureDescription>
 };
 
 /// \brief Describes a \see spTextureView resource, for creation with a \see spDeviceResourceFactory.
-struct SP_RHI_DLL spTextureViewDescription : public ezHashableStruct<spTextureViewDescription>
+struct spTextureViewDescription : public ezHashableStruct<spTextureViewDescription>
 {
   /// \brief Creates a new empty \see spTextureViewDescription.
   spTextureViewDescription() = default;
 
   /// \brief Creates a new \see spTextureViewDescription from an existing \see spTexture resource.
-  /// \param pTexture The texture resource to create a new \see spTextureViewDescription from.
-  spTextureViewDescription(const spTexture* pTexture);
+  /// \param hTexture The texture resource to create a new \see spTextureViewDescription from.
+  spTextureViewDescription(spResourceHandle hTexture)
+    : ezHashableStruct<spTextureViewDescription>()
+    , m_hTarget(hTexture)
+  {
+  }
 
   /// \brief Creates a new \see spTextureViewDescription from an existing \see spTexture resource.
   /// \note This constructor will override the pixel format of the target texture.
-  /// \param pTexture The texture resource to create a new \see spTextureViewDescription from.
+  /// \param hTexture The texture resource to create a new \see spTextureViewDescription from.
   /// \param eFormat The pixel format to use in the view. Should be compatible with the format of the target texture.
-  spTextureViewDescription(const spTexture* pTexture, const ezEnum<spPixelFormat>& eFormat);
+  spTextureViewDescription(spResourceHandle hTexture, const ezEnum<spPixelFormat>& eFormat)
+    : ezHashableStruct<spTextureViewDescription>()
+    , m_hTarget(hTexture)
+    , m_bOverridePixelFormat(true)
+    , m_eFormat(eFormat)
+  {
+  }
 
   /// \brief Compares this instance with the \a other instance for equality.
   EZ_ALWAYS_INLINE bool operator==(const spTextureViewDescription& other) const
@@ -568,6 +578,8 @@ protected:
   /// \brief Creates a texture/sampler manager for the given graphics device.
   /// \param [in] pDevice A pointer to the graphics device.
   explicit spTextureSamplerManager(spDevice* pDevice);
+
+  spDevice* m_pDevice;
 };
 
 class spTextureHelper
