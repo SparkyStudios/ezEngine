@@ -663,6 +663,8 @@ struct SP_RHI_DLL spTextureUsage
   };
 };
 
+EZ_DECLARE_FLAGS_OPERATORS(spTextureUsage);
+
 /// \brief Specifies the dimension of a \see spTexture.
 struct SP_RHI_DLL spTextureDimension
 {
@@ -1273,6 +1275,8 @@ struct SP_RHI_DLL spColorWriteMask
   };
 };
 
+EZ_DECLARE_FLAGS_OPERATORS(spColorWriteMask);
+
 /// \brief Controls how the source and destination factors are combined in a blend operation.
 struct SP_RHI_DLL spBlendFunction
 {
@@ -1388,5 +1392,20 @@ struct SP_RHI_DLL spPolygonFillMode
     Point,
 
     Default = Solid
+  };
+};
+
+/// \brief The quality of a render target. Can be either in low dynamic range or high dynamic range.
+struct SP_RHI_DLL spRenderTargetQuality
+{
+  typedef ezUInt8 StorageType;
+
+  enum Enum : StorageType
+  {
+    LDR,
+
+    HDR,
+
+    Default = LDR,
   };
 };

@@ -2,6 +2,7 @@
 
 #include <RHI/Buffer.h>
 #include <RHI/Device.h>
+#include <RHI/RenderTarget.h>
 #include <RHI/Resource.h>
 
 #include <Foundation/Logging/Log.h>
@@ -77,6 +78,34 @@ ezUInt32 spMappedResource::GetRowPitch() const
 ezUInt32 spMappedResource::GetDepthPitch() const
 {
   return m_uiDepthPitch;
+}
+
+#pragma endregion
+
+#pragma region spDeviceFactory
+
+ezSharedPtr<spRenderTarget> spDeviceResourceFactory::CreateRenderTarget(const spRenderTargetDescription& description)
+{
+  auto pRenderTarget = EZ_NEW(m_pDevice->GetAllocator(), spRenderTarget, m_pDevice, description);
+  m_pDevice->GetResourceManager()->RegisterResource(pRenderTarget);
+
+  return pRenderTarget;
+}
+
+ezSharedPtr<spRenderTarget> spDeviceResourceFactory::CreateRenderTarget(ezSharedPtr<spFramebuffer> pFramebuffer)
+{
+  auto pRenderTarget = EZ_NEW(m_pDevice->GetAllocator(), spRenderTarget, m_pDevice, pFramebuffer);
+  m_pDevice->GetResourceManager()->RegisterResource(pRenderTarget);
+
+  return pRenderTarget;
+}
+
+ezSharedPtr<spRenderTarget> spDeviceResourceFactory::CreateRenderTarget(ezSharedPtr<spTexture> pTexture)
+{
+  auto pRenderTarget = EZ_NEW(m_pDevice->GetAllocator(), spRenderTarget, m_pDevice, pTexture);
+  m_pDevice->GetResourceManager()->RegisterResource(pRenderTarget);
+
+  return pRenderTarget;
 }
 
 #pragma endregion
