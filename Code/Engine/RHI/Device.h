@@ -304,7 +304,7 @@ public:
   /// count contained in the \see spTexture.
   virtual void UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) = 0;
 
-  /// \brief Updates the \see spTexture data with the given \a source.
+  /// \brief Updates the \see spTexture data with the given source \a data.
   /// \param pTexture The handle to the \see spTexture to update.
   /// \param data The data source to upload to the texture.
   /// \param uiX The minimum X value of the updated region.
@@ -318,7 +318,27 @@ public:
   /// \param uiArrayLayer The array layer to update. Must be less than the total array layer
   /// count contained in the \see spTexture.
   template <typename T>
-  EZ_ALWAYS_INLINE void UpdateTexture(ezSharedPtr<spTexture> pTexture, ezArrayPtr<T> data, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
+  EZ_ALWAYS_INLINE void UpdateTexture(ezSharedPtr<spTexture> pTexture, const ezArrayPtr<T> data, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
+  {
+    const ezUInt32 uiSize = data.GetCount() * sizeof(T);
+    UpdateTexture(pTexture, reinterpret_cast<void*>(data.GetPtr()), uiSize, uiX, uiY, uiZ, uiWidth, uiHeight, uiDepth, uiMipLevel, uiArrayLayer);
+  }
+
+  /// \brief Updates the \see spTexture data with the given source \a data.
+  /// \param pTexture The handle to the \see spTexture to update.
+  /// \param data The data source to upload to the texture.
+  /// \param uiX The minimum X value of the updated region.
+  /// \param uiY The minimum Y value of the updated region.
+  /// \param uiZ The minimum Z value of the updated region.
+  /// \param uiWidth The width of the updated region, in texels.
+  /// \param uiHeight The height of the updated region, in texels.
+  /// \param uiDepth The depth of the updated region, in texels.
+  /// \param uiMipLevel The mipmap level to update. Must be less than the total number of
+  /// mipmap contained in the \see spTexture.
+  /// \param uiArrayLayer The array layer to update. Must be less than the total array layer
+  /// count contained in the \see spTexture.
+  template <typename T>
+  EZ_ALWAYS_INLINE void UpdateTexture(ezSharedPtr<spTexture> pTexture, const ezBlobPtr<T> data, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
   {
     const ezUInt32 uiSize = data.GetCount() * sizeof(T);
     UpdateTexture(pTexture, reinterpret_cast<void*>(data.GetPtr()), uiSize, uiX, uiY, uiZ, uiWidth, uiHeight, uiDepth, uiMipLevel, uiArrayLayer);

@@ -412,4 +412,19 @@ ID3D11UnorderedAccessView* spTextureViewD3D11::GetUnorderedAccessView() const
 
 #pragma endregion
 
+#pragma region spTextureSamplerManagerD3D11
+
+ezSharedPtr<spTextureView> spTextureSamplerManagerD3D11::GetFullTextureView(ezSharedPtr<spTexture> pTexture)
+{
+  const auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
+  return pDevice->GetResourceFactory()->CreateTextureView(pTexture->GetHandle());
+}
+
+spTextureSamplerManagerD3D11::spTextureSamplerManagerD3D11(spDeviceD3D11* pDevice)
+  : spTextureSamplerManager(pDevice)
+{
+}
+
+#pragma endregion
+
 EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Texture);

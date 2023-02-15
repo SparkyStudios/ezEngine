@@ -122,7 +122,7 @@ private:
 
   bool m_bHasStarted{false};
 
-  ezSharedPtr<spScopeProfilerD3D11> m_pCurrentScopeProfiler;
+  ezSharedPtr<spScopeProfilerD3D11> m_pCurrentScopeProfiler{nullptr};
 
   spFramebufferD3D11* m_pFramebuffer{nullptr};
 

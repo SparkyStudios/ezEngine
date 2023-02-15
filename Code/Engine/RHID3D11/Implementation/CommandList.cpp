@@ -382,7 +382,7 @@ void spCommandListD3D11::SetFramebufferInternal(ezSharedPtr<spFramebuffer> pFram
 
   for (ezUInt32 i = 0, l = m_pFramebuffer->GetColorTargets().GetCount(); i < l; ++i)
   {
-    UnbindSRVTexture(spTextureViewDescription(m_pFramebuffer->GetColorTarget(i)));
+    UnbindSRVTexture(spTextureViewDescription(m_pFramebuffer->GetColorTarget(i)->GetHandle()));
   }
 
   const auto& views = m_pFramebuffer->GetRenderTargetViews();
@@ -547,7 +547,6 @@ void spCommandListD3D11::CopyTextureInternal(ezSharedPtr<spTexture> pSourceTextu
 void spCommandListD3D11::GenerateMipmapsInternal(ezSharedPtr<spTexture> pTexture)
 {
   const auto pTextureViewD3D11 = m_pDevice->GetTextureSamplerManager()->GetFullTextureView(pTexture).Downcast<spTextureViewD3D11>();
-
   pTextureViewD3D11->EnsureResourceCreated();
 
   ID3D11ShaderResourceView* pSRV = pTextureViewD3D11->GetShaderResourceView();
@@ -687,7 +686,6 @@ void spCommandListD3D11::ActivateResourceSet(ezUInt32 uiSlot, const spCommandLis
       case spShaderResourceType::ReadOnlyTexture:
       {
         const ezSharedPtr<spTextureViewD3D11> pTextureView = spTextureSamplerManager::GetTextureView(m_pDevice, pResource).Downcast<spTextureViewD3D11>();
-        ezSharedPtr<spTextureD3D11> pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(pResourceSet->GetLayout());
         UnbindUAVTexture(pTextureView->GetDescription());
         BindTextureView(pTextureView, uiTextureBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
         break;
@@ -695,14 +693,14 @@ void spCommandListD3D11::ActivateResourceSet(ezUInt32 uiSlot, const spCommandLis
       case spShaderResourceType::ReadWriteTexture:
       {
         const ezSharedPtr<spTextureViewD3D11> pTextureView = spTextureSamplerManager::GetTextureView(m_pDevice, pResource).Downcast<spTextureViewD3D11>();
-        const ezSharedPtr<spTextureD3D11> pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(pResourceSet->GetLayout());
+        const ezSharedPtr<spTextureD3D11> pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(pTextureView->GetTexture());
         UnbindSRVTexture(pTextureView->GetDescription());
         BindUnorderedAccessView(pTexture, nullptr, pTextureView->GetUnorderedAccessView(), uiUnorderedAccessViewBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
         break;
       }
       case spShaderResourceType::Sampler:
       {
-        const ezSharedPtr<spSamplerD3D11> pSampler = m_pDevice->GetResourceManager()->GetResource<spSamplerD3D11>(pResourceSet->GetLayout());
+        const ezSharedPtr<spSamplerD3D11> pSampler = pResource.Downcast<spSamplerD3D11>();
         BindSampler(pSampler, uiSamplerBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage);
         break;
       }
@@ -721,8 +719,10 @@ ezSharedPtr<spBufferD3D11> spCommandListD3D11::GetFreeStagingBuffer(ezUInt32 uiS
   {
     if ((*it)->GetSize() >= uiSize)
     {
+      ezSharedPtr<spBufferD3D11> pBuffer = *it;
       m_FreeBuffers.Remove(it);
-      return (*it);
+
+      return pBuffer;
     }
   }
 
@@ -791,7 +791,9 @@ ezSharedPtr<spBufferRangeD3D11> spCommandListD3D11::GetBufferRange(ezSharedPtr<s
 
   if (pResource->IsInstanceOf<spBufferD3D11>())
   {
-    const auto* pBufferD3D11 = ezStaticCast<spBufferD3D11*>(pResource);
+    const auto pBufferD3D11 = pResource.Downcast<spBufferD3D11>();
+    pBufferD3D11->EnsureResourceCreated();
+
     pBufferRangeSource = pBufferD3D11->GetCurrentBuffer().Downcast<spBufferRangeD3D11>();
   }
   else if (pResource->IsInstanceOf<spBufferRangeD3D11>())
@@ -978,6 +980,8 @@ void spCommandListD3D11::BindStorageBufferView(ezSharedPtr<spBufferRangeD3D11> p
 
 void spCommandListD3D11::BindTextureView(ezSharedPtr<spTextureViewD3D11> pTextureView, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot)
 {
+  pTextureView->EnsureResourceCreated();
+
   ID3D11ShaderResourceView* pSRV = pTextureView != nullptr ? pTextureView->GetShaderResourceView() : nullptr;
   if (pSRV != nullptr)
   {
@@ -1062,6 +1066,8 @@ void spCommandListD3D11::BindTextureView(ezSharedPtr<spTextureViewD3D11> pTextur
 
 void spCommandListD3D11::BindUnorderedAccessView(ezSharedPtr<spTextureD3D11> pTexture, ezSharedPtr<spBufferD3D11> pBuffer, ID3D11UnorderedAccessView* pUAV, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot)
 {
+  pTexture->EnsureResourceCreated();
+
   const bool bCompute = eStages == spShaderStage::ComputeShader;
   EZ_ASSERT_DEV(bCompute || !eStages.IsSet(spShaderStage::ComputeShader), "Unordered access views cannot be bound on compute and graphic stages at the same time.");
   EZ_ASSERT_DEV(pTexture == nullptr || pBuffer == nullptr, "Cannot bind unordered access views to textures and buffers at the same time.");
@@ -1069,7 +1075,7 @@ void spCommandListD3D11::BindUnorderedAccessView(ezSharedPtr<spTextureD3D11> pTe
   if (pTexture != nullptr && pUAV != nullptr)
   {
     BoundTextureInfo info{uiSlot, eStages, uiSetSlot};
-    spTextureViewDescription desc(pTexture);
+    spTextureViewDescription desc(pTexture->GetHandle());
     m_BoundUAVs.Insert(desc, info);
   }
 
@@ -1089,6 +1095,8 @@ void spCommandListD3D11::BindUnorderedAccessView(ezSharedPtr<spTextureD3D11> pTe
 
 void spCommandListD3D11::BindSampler(ezSharedPtr<spSamplerD3D11> pSampler, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages)
 {
+  pSampler->EnsureResourceCreated();
+
   ID3D11SamplerState* pD3D11SamplerState = pSampler->GetSamplerState()->GetD3D11SamplerState();
 
   if (eStages.IsSet(spShaderStage::VertexShader))

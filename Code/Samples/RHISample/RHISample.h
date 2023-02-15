@@ -9,7 +9,9 @@
 #include <RHI/Device.h>
 #include <RHI/Fence.h>
 #include <RHI/Pipeline.h>
+#include <RHI/Sampler.h>
 #include <RHI/Swapchain.h>
+#include <RHI/Texture.h>
 
 #include <RPI/Core/RenderingThread.h>
 
@@ -149,10 +151,13 @@ private:
   spRenderingThread* m_pRenderingThread{nullptr};
 
   ezSharedPtr<spDevice> device;
+
   ezSharedPtr<spGraphicPipeline> gpo;
   ezSharedPtr<spBuffer> ibo;
   ezSharedPtr<spBuffer> vbo;
   ezSharedPtr<spBuffer> cbo;
+  ezSharedPtr<spTexture> tex;
+  ezSharedPtr<spSampler> smp;
 
   ezSharedPtr<spInputLayout> input;
   ezSharedPtr<spResourceLayout> layout;
@@ -161,4 +166,6 @@ private:
   ezSharedPtr<spShader> vs;
   ezSharedPtr<spShader> ps;
   ezSharedPtr<spShaderProgram> spo;
+
+  ezSharedPtr<spCommandList> cl;
 };

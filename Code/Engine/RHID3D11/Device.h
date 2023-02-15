@@ -6,6 +6,7 @@
 
 class spDeviceResourceManagerD3D11;
 class spDeviceResourceFactoryD3D11;
+class spTextureSamplerManagerD3D11;
 class spSwapchainD3D11;
 class spBufferD3D11;
 
@@ -75,6 +76,8 @@ private:
   D3D_FEATURE_LEVEL m_uiFeatureLevel;
 
   spDeviceResourceFactoryD3D11* m_pResourceFactory{nullptr};
+  spTextureSamplerManagerD3D11* m_pTextureSamplerManager{nullptr};
+
   ezSharedPtr<spSwapchainD3D11> m_pMainSwapchain{nullptr};
 
   bool m_bIsDebugEnabled{false};

@@ -81,10 +81,7 @@ ezSharedPtr<spTextureView> spDeviceResourceFactoryD3D11::CreateTextureView(const
 
 ezSharedPtr<spTextureView> spDeviceResourceFactoryD3D11::CreateTextureView(const spResourceHandle& hTexture)
 {
-  auto pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(hTexture);
-  EZ_ASSERT_DEV(pTexture != nullptr, "Invalid texture handle.");
-
-  ezSharedPtr<spTextureViewD3D11> pTextureView = EZ_NEW(m_pDevice->GetAllocator(), spTextureViewD3D11, m_pDevice, spTextureViewDescription(pTexture));
+  ezSharedPtr<spTextureViewD3D11> pTextureView = EZ_NEW(m_pDevice->GetAllocator(), spTextureViewD3D11, m_pDevice, spTextureViewDescription(hTexture));
   m_pDevice->GetResourceManager()->RegisterResource(pTextureView);
   return pTextureView;
 }

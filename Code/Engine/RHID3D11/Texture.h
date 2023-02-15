@@ -4,7 +4,6 @@
 
 #include <RHI/Texture.h>
 
-
 class spDeviceD3D11;
 
 class SP_RHID3D11_DLL spTextureD3D11 final : public spTexture, public spDeferredDeviceResource
@@ -80,3 +79,18 @@ private:
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spTextureViewD3D11);
+
+class SP_RHID3D11_DLL spTextureSamplerManagerD3D11 final : public spTextureSamplerManager
+{
+  // spTextureSamplerManager
+
+public:
+  ezSharedPtr<spTextureView> GetFullTextureView(ezSharedPtr<spTexture> pTexture) override;
+
+  // spTextureSamplerManagerD3D11
+
+public:
+  explicit spTextureSamplerManagerD3D11(spDeviceD3D11* pDevice);
+};
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spTextureSamplerManagerD3D11);

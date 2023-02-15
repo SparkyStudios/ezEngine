@@ -4,6 +4,7 @@
 #include <Foundation/Basics.h>
 #include <Foundation/Configuration/Singleton.h>
 #include <Foundation/Containers/ArrayMap.h>
+#include <Foundation/Containers/Blob.h>
 #include <Foundation/Containers/Deque.h>
 #include <Foundation/Containers/DynamicArray.h>
 #include <Foundation/Containers/StaticArray.h>

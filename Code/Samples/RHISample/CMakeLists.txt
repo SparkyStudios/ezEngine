@@ -15,6 +15,7 @@ target_link_libraries(${PROJECT_NAME}
   RHI
   RPI
   RHID3D11
+  Texture
 )
 
 ez_link_target_dx11(${PROJECT_NAME})

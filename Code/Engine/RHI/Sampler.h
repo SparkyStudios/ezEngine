@@ -110,3 +110,5 @@ public:
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spSampler);
+
+#include <RHI/Implementation/Sampler.inl>
