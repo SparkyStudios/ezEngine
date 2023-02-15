@@ -21,6 +21,7 @@ struct spShaderDescription;
 struct spSwapchainDescription;
 struct spTextureDescription;
 struct spTextureViewDescription;
+struct spRenderTargetDescription;
 
 class spShader;
 class spShaderProgram;
@@ -39,6 +40,7 @@ class spResourceSet;
 class spDevice;
 class spBufferRange;
 class spCommandList;
+class spRenderTarget;
 
 /// \brief Abstract class for a resource on the graphics device.
 class SP_RHI_DLL spDeviceResource : public ezReflectedClass, public ezRefCounted
@@ -65,7 +67,7 @@ public:
   virtual void ReleaseResource() = 0;
 
   /// \brief Check whether the resource has been released.
-  EZ_NODISCARD virtual bool IsReleased() const = 0;
+  EZ_NODISCARD EZ_ALWAYS_INLINE virtual bool IsReleased() const { return m_bReleased; }
 
 protected:
   spResourceHandle m_Handle;
@@ -346,6 +348,18 @@ public:
   /// \brief Creates a new spShaderProgram resource.
   /// @return An handle to the created shader program resource.
   virtual ezSharedPtr<spShaderProgram> CreateShaderProgram() = 0;
+
+  /// \brief Creates a new \a spRenderTarget resource.
+  /// \param [in] description The description of the render target resource to create.
+  ezSharedPtr<spRenderTarget> CreateRenderTarget(const spRenderTargetDescription& description);
+
+  /// \brief Creates a new \a spRenderTarget resource from a framebuffer.
+  /// \param pFrameBuffer The framebuffer to create the render target from.
+  ezSharedPtr<spRenderTarget> CreateRenderTarget(ezSharedPtr<spFramebuffer> pFramebuffer);
+
+  /// \brief Creates a new \a spRenderTarget resource from a texture.
+  /// \param pTexture The texture to create the render target from.
+  ezSharedPtr<spRenderTarget> CreateRenderTarget(ezSharedPtr<spTexture> pTexture);
 
   /// \brief Creates a new spTexture resource.
   /// \param [in] description The description of the texture resource to create.
