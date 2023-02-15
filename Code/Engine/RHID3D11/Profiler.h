@@ -62,12 +62,12 @@ public:
   ~spScopeProfilerD3D11() override;
 
   /// \brief Starts the profiler.
-  /// \param szName The name of the scope.
-  /// \param pContext The D3D11 device context to use. Mostly comming from a command list.
-  void Begin(const ezString& sName, ID3D11DeviceContext* pContext);
+  /// \param sName The name of the scope.
+  /// \param pContext The D3D11 device context to use. Mostly coming from a command list.
+  void Begin(ezStringView sName, ID3D11DeviceContext* pContext);
 
   /// \brief Stops the profiler.
-  /// \param pContext The D3D11 device context to use. Mostly comming from a command list.
+  /// \param pContext The D3D11 device context to use. Mostly coming from a command list.
   void End(ID3D11DeviceContext* pContext);
 
 private:

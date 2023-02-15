@@ -17,7 +17,7 @@ class SP_RHID3D11_DLL spFramebufferD3D11 : public spFramebuffer, public spDeferr
 public:
   // spDeviceResource
 
-  void SetDebugName(const ezString& debugName) override;
+  void SetDebugName(ezStringView sDebugName) override;
   void ReleaseResource() override;
   bool IsReleased() const override;
 

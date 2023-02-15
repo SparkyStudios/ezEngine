@@ -70,7 +70,7 @@ public:
   // spDeviceResource
   void ReleaseResource() override;
   bool IsReleased() const override;
-  void SetDebugName(const ezString& debugName) override;
+  void SetDebugName(ezStringView sDebugName) override;
 
   // spSwapchain
 

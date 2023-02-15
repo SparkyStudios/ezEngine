@@ -16,7 +16,7 @@ class SP_RHID3D11_DLL spBufferD3D11 final : public spBuffer, public spDeferredDe
 public:
   ~spBufferD3D11() override;
 
-  void SetDebugName(const ezString& name) override;
+  void SetDebugName(ezStringView sDebugName) override;
 
   EZ_NODISCARD EZ_ALWAYS_INLINE bool IsReleased() const override { return m_pBuffer == nullptr; }
 

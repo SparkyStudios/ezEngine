@@ -40,10 +40,14 @@ spSamplerDescription spSamplerStateD3D11::GetSamplerDescription() const
   return m_Description;
 }
 
-void spSamplerStateD3D11::SetDebugName(const ezString& sDebugName)
+void spSamplerStateD3D11::SetDebugName(ezStringView sDebugName)
 {
   spDeviceResource::SetDebugName(sDebugName);
-  m_pSamplerState->SetPrivateData(WKPDID_D3DDebugObjectName, sDebugName.GetElementCount(), sDebugName.GetData());
+
+  if (IsReleased())
+    return;
+
+  m_pSamplerState->SetPrivateData(WKPDID_D3DDebugObjectName, sDebugName.GetElementCount(), sDebugName.GetStartPointer());
 }
 
 void spSamplerStateD3D11::ReleaseResource()
@@ -81,14 +85,15 @@ void spSamplerD3D11::CreateResource()
   m_pSamplerState = EZ_NEW(m_pDevice->GetAllocator(), spSamplerStateD3D11, ezStaticCast<spDeviceD3D11*>(m_pDevice), m_Description);
   m_pDevice->GetResourceManager()->RegisterResource(m_pSamplerState);
 
+  SetDebugName(m_sDebugName);
+
   m_bIsResourceCreated = true;
 }
 
-void spSamplerD3D11::SetDebugName(const ezString& name)
+void spSamplerD3D11::SetDebugName(ezStringView sDebugName)
 {
-  spDeviceResource::SetDebugName(name);
-
-  m_pSamplerState->SetDebugName(name);
+  spDeviceResource::SetDebugName(sDebugName);
+  m_pSamplerState->SetDebugName(sDebugName);
 }
 
 void spSamplerD3D11::ReleaseResource()

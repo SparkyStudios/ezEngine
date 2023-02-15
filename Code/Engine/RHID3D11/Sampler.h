@@ -14,7 +14,7 @@ public:
   ~spSamplerStateD3D11() override;
 
   spSamplerDescription GetSamplerDescription() const override;
-  void SetDebugName(const ezString& sDebugName) override;
+  void SetDebugName(ezStringView sDebugName) override;
   void ReleaseResource() override;
   bool IsReleased() const override;
 
@@ -39,7 +39,7 @@ class SP_RHID3D11_DLL spSamplerD3D11 : public spSampler, public spDeferredDevice
   // spDeviceResource
 
 public:
-  void SetDebugName(const ezString& name) override;
+  void SetDebugName(ezStringView sDebugName) override;
   void ReleaseResource() override;
   bool IsReleased() const override;
 

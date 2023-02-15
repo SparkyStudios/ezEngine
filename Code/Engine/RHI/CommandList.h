@@ -204,15 +204,15 @@ public:
 
   void GenerateMipmaps(ezSharedPtr<spTexture> pTexture);
 
-  virtual void PushProfileScope(const ezString& sName) = 0;
+  virtual void PushProfileScope(ezStringView sName) = 0;
 
   virtual void PopProfileScope(ezSharedPtr<spScopeProfiler>& scopeProfiler) = 0;
 
-  virtual void PushDebugGroup(const ezString& sName) = 0;
+  virtual void PushDebugGroup(ezStringView sName) = 0;
 
   virtual void PopDebugGroup() = 0;
 
-  virtual void InsertDebugMarker(const ezString& sName) = 0;
+  virtual void InsertDebugMarker(ezStringView sName) = 0;
 
   virtual void End() = 0;
 

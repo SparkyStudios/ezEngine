@@ -43,15 +43,15 @@ spBufferRangeD3D11::~spBufferRangeD3D11()
 
 #pragma region spBufferD3D11
 
-void spBufferD3D11::SetDebugName(const ezString& name)
+void spBufferD3D11::SetDebugName(ezStringView sDebugName)
 {
-  spBuffer::SetDebugName(name);
+  spBuffer::SetDebugName(sDebugName);
 
   if (IsReleased())
     return;
 
-  ezStringBuilder srvName(name);
-  ezStringBuilder uavName(name);
+  ezStringBuilder srvName(sDebugName);
+  ezStringBuilder uavName(sDebugName);
 
   srvName.Append("_SRV");
   uavName.Append("_UAV");
@@ -62,7 +62,7 @@ void spBufferD3D11::SetDebugName(const ezString& name)
   for (auto& buffer : m_pUnorderedAccessViews)
     buffer.Value()->SetPrivateData(WKPDID_D3DDebugObjectName, uavName.GetElementCount(), uavName.GetData());
 
-  m_pBuffer->SetPrivateData(WKPDID_D3DDebugObjectName, name.GetElementCount(), name.GetData());
+  m_pBuffer->SetPrivateData(WKPDID_D3DDebugObjectName, sDebugName.GetElementCount(), sDebugName.GetStartPointer());
 }
 
 void spBufferD3D11::ReleaseResource()

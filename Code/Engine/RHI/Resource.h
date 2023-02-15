@@ -53,10 +53,10 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetHandle() const { return m_Handle; }
 
   /// \brief Gets the debug name of the resource.
-  EZ_NODISCARD EZ_ALWAYS_INLINE const ezString& GetDebugName() const { return m_sDebugName; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezStringView GetDebugName() const { return m_sDebugName; }
 
   /// \brief Sets the debug name of the resource.
-  EZ_ALWAYS_INLINE virtual void SetDebugName(const ezString& debugName) { m_sDebugName = debugName; }
+  EZ_ALWAYS_INLINE virtual void SetDebugName(ezStringView sDebugName) { m_sDebugName = sDebugName; }
 
   /// \brief Gets the graphics device in which this resource has been created.
   EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
@@ -70,7 +70,7 @@ public:
 protected:
   spResourceHandle m_Handle;
 
-  ezString m_sDebugName;
+  ezStringView m_sDebugName;
   spDevice* m_pDevice{nullptr};
 
   bool m_bReleased{false};

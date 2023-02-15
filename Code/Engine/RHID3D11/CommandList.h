@@ -37,11 +37,11 @@ public:
   void SetGraphicPipeline(ezSharedPtr<spGraphicPipeline> pGraphicPipeline) override;
   void SetScissorRect(ezUInt32 uiSlot, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiWidth, ezUInt32 uiHeight) override;
   void SetViewport(ezUInt32 uiSlot, const spViewport& viewport) override;
-  void PushProfileScope(const ezString& sName) override;
+  void PushProfileScope(ezStringView sName) override;
   void PopProfileScope(ezSharedPtr<spScopeProfiler>& scopeProfiler) override;
-  void PushDebugGroup(const ezString& sName) override;
+  void PushDebugGroup(ezStringView sName) override;
   void PopDebugGroup() override;
-  void InsertDebugMarker(const ezString& sName) override;
+  void InsertDebugMarker(ezStringView sName) override;
   void End() override;
 
 protected:
