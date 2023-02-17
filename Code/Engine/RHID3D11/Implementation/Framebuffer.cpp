@@ -113,8 +113,6 @@ void spFramebufferD3D11::CreateResource()
       ApplyColorTarget(i, target);
     }
 
-    m_OutputDescription = spOutputDescription::CreateFromFramebuffer(this);
-
     if (pDimensionTexture != nullptr)
     {
       ezUInt32 uiDepth;
@@ -165,6 +163,8 @@ spFramebufferD3D11::spFramebufferD3D11(spDeviceD3D11* pDevice, const spFramebuff
 {
   m_pDevice = pDevice;
   m_pD3D11Device = pDevice->GetD3D11Device();
+
+  m_OutputDescription = spOutputDescription::CreateFromFramebuffer(this);
 }
 
 spFramebufferD3D11::~spFramebufferD3D11()

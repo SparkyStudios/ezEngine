@@ -5,13 +5,16 @@
 #include <RHI/CommandList.h>
 #include <RHI/Device.h>
 
-struct alignas(16) spRenderContextData
+struct alignas(16) spRenderingContextData
 {
 };
 
 class SP_RPI_DLL spRenderingContext
 {
 public:
+  explicit spRenderingContext(spDevice* pDevice);
+  ~spRenderingContext();
+
   /// \brief Sets the current context's command list with an existing instance.
   /// \param pCommandList The new command list.
   EZ_ALWAYS_INLINE void SetCommandList(ezSharedPtr<spCommandList> pCommandList) { m_pCommandList = pCommandList; }
@@ -22,6 +25,9 @@ public:
 
   /// \brief Returns the current context's command list.
   EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spCommandList> GetCommandList() const { return m_pCommandList; }
+
+  /// \brief Gets the device used by this context.
+  EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
 
   /// \brief Marks the beginning of a render process.
   /// Render passes will be executed after this call and commands will be collected
@@ -36,9 +42,6 @@ public:
   void EndFrame();
 
 private:
-  spRenderingContext(spDevice* pDevice);
-  ~spRenderingContext();
-
-  ezSharedPtr<spDevice> m_pDevice;
+  spDevice* m_pDevice;
   ezSharedPtr<spCommandList> m_pCommandList;
 };

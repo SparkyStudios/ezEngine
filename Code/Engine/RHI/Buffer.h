@@ -7,8 +7,9 @@
 #include <RHI/Resource.h>
 
 /// \brief Describes a Buffer, for creation of buffer objects with a \see spDeviceResourceFactory.
-struct SP_RHI_DLL spBufferDescription : public ezHashableStruct<spBufferDescription>
+struct spBufferDescription : public ezHashableStruct<spBufferDescription>
 {
+  spBufferDescription() = default;
 
   /// \brief Constructs a spBufferDescription for a non-dynamic buffer.
   /// \param uiSize The size of the buffer in bytes.
@@ -49,19 +50,19 @@ struct SP_RHI_DLL spBufferDescription : public ezHashableStruct<spBufferDescript
   }
 
   /// \brief The desired capacity, in bytes, of the buffer.
-  ezUInt32 m_uiSize;
+  ezUInt32 m_uiSize{0};
 
   /// \brief Indicates how the buffer will be allocated and used.
   ezBitflags<spBufferUsage> m_eUsage;
 
   /// \brief For structured buffers, indicates the size in bytes of a single element,
   /// and must be non-zero. For all other buffers types, the size must be zero.
-  ezUInt32 m_uiStructureStride;
+  ezUInt32 m_uiStructureStride{0};
 
   /// \brief Whether this buffer is a raw buffer. This should be combined with
   /// spBufferUsage::StructuredBufferReadWrite. This affects how the buffer is bound
   /// in the D3D11 backend.
-  bool m_bRawBuffer;
+  bool m_bRawBuffer{false};
 };
 
 /// \brief Describes a section of a buffer. This can be used in place of a buffer to make only a subset of it

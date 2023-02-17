@@ -24,7 +24,7 @@ spOutputDescription spOutputDescription::CreateFromFramebuffer(const spFramebuff
     eSampleCount = pTexture->GetSampleCount();
   }
 
-  auto colorTargets = pFramebuffer->GetColorTargets();
+  const auto& colorTargets = pFramebuffer->GetColorTargets();
 
   ezStaticArray<spOutputAttachmentDescription, SP_RHI_MAX_COLOR_TARGETS> colorAttachments;
   colorAttachments.EnsureCount(colorTargets.GetCount());

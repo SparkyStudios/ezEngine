@@ -6,6 +6,7 @@
 
 #include <RHI/Buffer.h>
 #include <RHI/Profiler.h>
+#include <RHI/RenderTarget.h>
 #include <RHI/Resource.h>
 #include <RHI/Swapchain.h>
 #include <RHI/Texture.h>

@@ -2,15 +2,13 @@
 
 #include <RHI/RHIDLL.h>
 
+#include <RHI/Buffer.h>
+#include <RHI/Framebuffer.h>
+#include <RHI/Pipeline.h>
+#include <RHI/Profiler.h>
 #include <RHI/Resource.h>
-
-class spBuffer;
-class spComputePipeline;
-class spFramebuffer;
-class spGraphicPipeline;
-class spResourceSet;
-class spTexture;
-class spScopeProfiler;
+#include <RHI/ResourceSet.h>
+#include <RHI/Texture.h>
 
 /// \brief Data structure holding draw arrays commands for indirect drawing.
 struct SP_RHI_DLL alignas(16) spDrawIndirectCommand

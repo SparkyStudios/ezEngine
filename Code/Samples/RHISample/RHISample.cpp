@@ -10,6 +10,7 @@
 #include <Foundation/Logging/Log.h>
 #include <Foundation/Logging/VisualStudioWriter.h>
 #include <Foundation/Time/Clock.h>
+#include <Foundation/Types/VariantTypeRegistry.h>
 
 #include <Texture/Image/Image.h>
 
@@ -24,7 +25,18 @@
 #include <RHID3D11/ResourceManager.h>
 #include <RHID3D11/Swapchain.h>
 
+#include <RPI/Pipeline/Passes/MainSwapchainRenderGraphNode.h>
+
 #include <RHISample/RHISample.h>
+
+typedef spTriangleDemoRenderGraphNode::PassData spTriangleDemoRenderGraphNodePassData;
+
+// clang-format off
+EZ_BEGIN_STATIC_REFLECTED_TYPE(spTriangleDemoRenderGraphNodePassData, ezNoBase, 1, ezRTTIDefaultAllocator<spTriangleDemoRenderGraphNodePassData>)
+EZ_END_STATIC_REFLECTED_TYPE;
+
+EZ_DEFINE_CUSTOM_VARIANT_TYPE(spTriangleDemoRenderGraphNodePassData);
+// clang-format on
 
 static ezUInt32 g_uiWindowWidth = 640;
 static ezUInt32 g_uiWindowHeight = 480;
@@ -179,23 +191,111 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   auto* pFactory = device->GetResourceFactory();
 
-  ezUInt16 IndexBuffer[4] = {0, 1, 2, 3};
-  ibo = pFactory->CreateBuffer(spBufferDescription(sizeof(IndexBuffer), spBufferUsage::IndexBuffer));
-  ibo->SetDebugName("ibo");
+  ezImage image;
+  image.LoadFrom(":base/Textures/Grid.png").IgnoreResult();
 
-  ezVec3 VertexBuffer[4] = {
-    ezVec3(-1.0f, +1.0f, 0.0f),
-    ezVec3(+1.0f, +1.0f, 0.0f),
-    ezVec3(-1.0f, -1.0f, 0.0f),
-    ezVec3(+1.0f, -1.0f, 0.0f),
-  };
-  vbo = pFactory->CreateBuffer(spBufferDescription(sizeof(VertexBuffer), spBufferUsage::VertexBuffer));
-  vbo->SetDebugName("vbo");
+  spTextureDescription td = spTextureDescription::Texture2D(image.GetWidth(), image.GetHeight(), image.GetNumMipLevels(), image.GetNumArrayIndices(), spPixelFormat::R8G8B8A8UNorm, spTextureUsage::Sampled);
+  tex = pFactory->CreateTexture(td);
 
-  device->UpdateBuffer<ezUInt16>(ibo, 0, &IndexBuffer[0], EZ_ARRAY_SIZE(IndexBuffer));
-  device->UpdateBuffer<ezVec3>(vbo, 0, &VertexBuffer[0], EZ_ARRAY_SIZE(VertexBuffer));
+  device->UpdateTexture(tex, image.GetByteBlobPtr(), 0, 0, 0, image.GetWidth(), image.GetHeight(), 1, 0, 0);
 
-  char vs_content[] = R"(
+  cl = device->GetResourceFactory()->CreateCommandList(spCommandListDescription());
+  cl->SetDebugName("RHI SAMPLE CMD");
+
+
+
+  // --- Experimental render graph
+
+  // 1. Setup graph
+  graphBuilder = EZ_NEW(device->GetAllocator(), spRenderGraphBuilder, device);
+
+  spResourceHandle importedTexture = graphBuilder->Import(tex); // Import a resource in the graph
+
+  // 2. Setup graph nodes
+  ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(device->GetAllocator(), spTriangleDemoRenderGraphNode);
+
+  ezHashedString texName;
+  texName.Assign("tex");
+
+  ezHashTable<ezHashedString, spResourceHandle> triangleNodeResources;
+  triangleNodeResources.Insert(texName, importedTexture);
+
+  graphBuilder->AddNode("Triangle", std::move(triangleNode), triangleNodeResources);
+
+  ezUniquePtr<spMainSwapchainRenderGraphNode> swapchainNode = EZ_NEW(device->GetAllocator(), spMainSwapchainRenderGraphNode);
+  swapchainNode->SetRenderTargetSize(g_uiWindowWidth, g_uiWindowHeight);
+
+  ezHashedString inputName;
+  inputName.Assign("Input");
+
+  ezHashTable<ezHashedString, spResourceHandle> swapchainNodeResources;
+  swapchainNodeResources.Insert(inputName, static_cast<const spTriangleDemoRenderGraphNode*>(graphBuilder->GetNode("Triangle"))->GetTarget());
+
+  graphBuilder->AddNode("Swapchain", std::move(swapchainNode), swapchainNodeResources);
+
+  // 3. Compile graph
+  renderPipeline = graphBuilder->Compile();
+};
+
+void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
+{
+  // tell the engine that we are about to destroy window and graphics device,
+  // and that it therefore needs to cleanup anything that depends on that
+  ezStartup::ShutdownHighLevelSystems();
+
+  device->GetResourceManager()->ReleaseResources();
+
+  tex.Clear();
+  cl.Clear();
+
+  graphBuilder.Clear();
+  renderPipeline.Clear();
+
+  // destroy device
+  device->Destroy();
+
+  m_pRenderingThread->Stop();
+  EZ_DEFAULT_DELETE(m_pRenderingThread);
+
+  // finally destroy the window
+  m_pWindow->Destroy().IgnoreResult();
+  EZ_DEFAULT_DELETE(m_pWindow);
+}
+
+void ezRHISampleApp::OnResize(ezUInt32 width, ezUInt32 height)
+{
+  device->ResizeSwapchain(width, height);
+}
+
+ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources)
+{
+  if (!resources.TryGetValue("tex", m_PassData.m_hGridTexture))
+    return EZ_FAILURE;
+
+  spRenderTargetDescription rtDescription;
+  rtDescription.m_bGenerateMipMaps = false;
+  rtDescription.m_eQuality = spRenderTargetQuality::LDR;
+  rtDescription.m_eSampleCount = spTextureSampleCount::None;
+  rtDescription.m_uiHeight = g_uiWindowHeight;
+  rtDescription.m_uiWidth = g_uiWindowWidth;
+
+  m_PassData.m_hGridTexture = pBuilder->Read(this, m_PassData.m_hGridTexture);
+  m_PassData.m_hConstantBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezColor), spBufferUsage::ConstantBuffer | spBufferUsage::Dynamic | spBufferUsage::TripleBuffered), spRenderGraphResourceBindType::Transient);
+  m_PassData.m_hIndexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezUInt16) * 4, spBufferUsage::IndexBuffer), spRenderGraphResourceBindType::Transient);
+  m_PassData.m_hVertexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezVec3) * 4, spBufferUsage::VertexBuffer), spRenderGraphResourceBindType::Transient);
+  m_PassData.m_hSampler = pBuilder->CreateSampler(this, spSamplerDescription::Linear, spRenderGraphResourceBindType::Transient);
+  m_PassData.m_hRenderTarget = pBuilder->CreateRenderTarget(this, rtDescription, spRenderGraphResourceBindType::ReadOnly);
+
+  return EZ_SUCCESS;
+}
+
+ezUniquePtr<spRenderPass> spTriangleDemoRenderGraphNode::Compile(spRenderGraphBuilder* pBuilder)
+{
+  const spRenderPass::ExecuteCallback callback = [name = GetName()](const spRenderGraphResourcesTable& resources, spRenderingContext* context, ezVariant& passData) -> void
+  {
+    auto& data = passData.GetWritable<PassData>();
+
+    constexpr ezUInt8 szVertexShader[] = R"(
 struct VS_INPUT
 {
   float3 pos : POSITION;
@@ -216,7 +316,7 @@ VS_OUTPUT main(VS_INPUT input)
 }
 )";
 
-  char ps_content[] = R"(
+    constexpr ezUInt8 szPixelShader[] = R"(
 struct VS_OUTPUT
 {
   float4 pos: SV_POSITION;
@@ -238,140 +338,189 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 }
 )";
 
-  spShaderDescription vsDescription;
-  vsDescription.m_sEntryPoint = ezMakeHashedString("main");
-  vsDescription.m_eShaderStage = spShaderStage::VertexShader;
-  vsDescription.m_Buffer = ezMakeByteArrayPtr<char>(vs_content, static_cast<ezUInt32>(sizeof(vs_content)));
+    constexpr ezUInt16 IndexBuffer[3] = {0, 1, 2};
 
-  vs = pFactory->CreateShader(vsDescription);
-  vs->SetDebugName("vs");
+    constexpr float VertexBuffer[9] = {
+      -0.5f, -0.5f, 0.0,
+      0.0f, 0.5f, 0.0,
+      0.5f, -0.5f, 0.0f};
 
-  spShaderDescription psDescription;
-  psDescription.m_sEntryPoint = ezMakeHashedString("main");
-  psDescription.m_eShaderStage = spShaderStage::PixelShader;
-  psDescription.m_Buffer = ezMakeByteArrayPtr<char>(ps_content, static_cast<ezUInt32>(sizeof(ps_content)));
+    const auto cl = context->GetCommandList();
 
-  ps = pFactory->CreateShader(psDescription);
-  ps->SetDebugName("ps");
+    spRenderGraphResource* tex = nullptr;
+    resources.TryGetValue(data.m_hGridTexture.GetInternalID(), tex);
 
-  spo = pFactory->CreateShaderProgram();
-  spo->Attach(vs);
-  spo->Attach(ps);
-  spo->SetDebugName("spo");
+    spRenderGraphResource* cbo = nullptr;
+    resources.TryGetValue(data.m_hConstantBuffer.GetInternalID(), cbo);
 
-  spInputLayoutDescription inputLayoutDescription;
-  inputLayoutDescription.m_uiInstanceStepRate = 0;
-  inputLayoutDescription.m_uiStride = sizeof(ezVec3);
-  inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
+    spRenderGraphResource* ibo = nullptr;
+    resources.TryGetValue(data.m_hIndexBuffer.GetInternalID(), ibo);
 
-  input = pFactory->CreateInputLayout(inputLayoutDescription, vs->GetHandle());
-  input->SetDebugName("input");
+    spRenderGraphResource* vbo = nullptr;
+    resources.TryGetValue(data.m_hVertexBuffer.GetInternalID(), vbo);
 
-  spResourceLayoutDescription resourceLayoutDescription;
+    spRenderGraphResource* smp = nullptr;
+    resources.TryGetValue(data.m_hSampler.GetInternalID(), smp);
 
-  spResourceLayoutElementDescription rl1;
-  rl1.m_eShaderStage = spShaderStage::PixelShader;
-  rl1.m_eType = spShaderResourceType::ConstantBuffer;
-  rl1.m_eOptions = spResourceLayoutElementOptions::None;
-  rl1.m_sName = ezMakeHashedString("Settings");
-  resourceLayoutDescription.m_Elements.PushBack(rl1);
+    spRenderGraphResource* rtt = nullptr;
+    resources.TryGetValue(data.m_hRenderTarget.GetInternalID(), rtt);
 
-  spResourceLayoutElementDescription rl2;
-  rl2.m_eShaderStage = spShaderStage::PixelShader;
-  rl2.m_eType = spShaderResourceType::ReadOnlyTexture;
-  rl2.m_eOptions = spResourceLayoutElementOptions::None;
-  rl2.m_sName = ezMakeHashedString("tex");
-  resourceLayoutDescription.m_Elements.PushBack(rl2);
+    context->GetDevice()->UpdateBuffer<ezUInt16>(ibo->m_pResource.Downcast<spBuffer>(), 0, &IndexBuffer[0], EZ_ARRAY_SIZE(IndexBuffer));
+    context->GetDevice()->UpdateBuffer<float>(vbo->m_pResource.Downcast<spBuffer>(), 0, &VertexBuffer[0], EZ_ARRAY_SIZE(VertexBuffer));
 
-  spResourceLayoutElementDescription rl3;
-  rl3.m_eShaderStage = spShaderStage::PixelShader;
-  rl3.m_eType = spShaderResourceType::Sampler;
-  rl3.m_eOptions = spResourceLayoutElementOptions::None;
-  rl3.m_sName = ezMakeHashedString("linearSampler");
-  resourceLayoutDescription.m_Elements.PushBack(rl3);
+    if (data.m_pVertexShader == nullptr)
+    {
+      spShaderDescription vsDescription;
+      vsDescription.m_sEntryPoint = ezMakeHashedString("main");
+      vsDescription.m_eShaderStage = spShaderStage::VertexShader;
+      vsDescription.m_Buffer = ezMakeByteArrayPtr(szVertexShader, static_cast<ezUInt32>(sizeof(szVertexShader)));
 
-  layout = pFactory->CreateResourceLayout(resourceLayoutDescription);
-  layout->SetDebugName("layout");
+      data.m_pVertexShader = context->GetDevice()->GetResourceFactory()->CreateShader(vsDescription);
+      data.m_pVertexShader->SetDebugName("vs");
+    }
 
-  spBufferDescription cboDescription(sizeof(ezColor), spBufferUsage::ConstantBuffer | spBufferUsage::Dynamic | spBufferUsage::TripleBuffered);
-  cbo = pFactory->CreateBuffer(cboDescription);
-  cbo->SetDebugName("cbo");
+    if (data.m_pPixelShader == nullptr)
+    {
+      spShaderDescription psDescription;
+      psDescription.m_sEntryPoint = ezMakeHashedString("main");
+      psDescription.m_eShaderStage = spShaderStage::PixelShader;
+      psDescription.m_Buffer = ezMakeByteArrayPtr(szPixelShader, static_cast<ezUInt32>(sizeof(szPixelShader)));
 
-  ezImage image;
-  image.LoadFrom(":base/Textures/Grid.png").IgnoreResult();
+      data.m_pPixelShader = context->GetDevice()->GetResourceFactory()->CreateShader(psDescription);
+      data.m_pPixelShader->SetDebugName("ps");
+    }
 
-  spTextureDescription td = spTextureDescription::Texture2D(image.GetWidth(), image.GetHeight(), image.GetNumMipLevels(), image.GetNumArrayIndices(), spPixelFormat::R8G8B8A8UNorm, spTextureUsage::Sampled);
-  tex = pFactory->CreateTexture(td);
+    if (data.m_pShaderProgram == nullptr)
+    {
+      data.m_pShaderProgram = context->GetDevice()->GetResourceFactory()->CreateShaderProgram();
+      data.m_pShaderProgram->Attach(data.m_pVertexShader);
+      data.m_pShaderProgram->Attach(data.m_pPixelShader);
+      data.m_pShaderProgram->SetDebugName("spo");
+    }
 
-  device->UpdateTexture(tex, image.GetByteBlobPtr(), 0, 0, 0, image.GetWidth(), image.GetHeight(), 1, 0, 0);
+    if (data.m_pInputLayout == nullptr)
+    {
+      spInputLayoutDescription inputLayoutDescription;
+      inputLayoutDescription.m_uiInstanceStepRate = 0;
+      inputLayoutDescription.m_uiStride = sizeof(ezVec3);
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
 
-  spSamplerDescription sd = spSamplerDescription::Linear;
-  smp = pFactory->CreateSampler(sd);
+      data.m_pInputLayout = context->GetDevice()->GetResourceFactory()->CreateInputLayout(inputLayoutDescription, data.m_pVertexShader->GetHandle());
+      data.m_pInputLayout->SetDebugName("input");
+    }
 
-  spResourceSetDescription setDesc;
-  setDesc.m_hResourceLayout = layout->GetHandle();
-  setDesc.m_BoundResources.PushBack(cbo->GetHandle());
-  setDesc.m_BoundResources.PushBack(tex->GetHandle());
-  setDesc.m_BoundResources.PushBack(smp->GetHandle());
-  set = pFactory->CreateResourceSet(setDesc);
-  set->SetDebugName("set");
+    if (data.m_pResourceLayout == nullptr)
+    {
+      spResourceLayoutDescription resourceLayoutDescription;
 
-  const auto pSwapchain = device->GetMainSwapchain();
+      spResourceLayoutElementDescription rl1;
+      rl1.m_eShaderStage = spShaderStage::PixelShader;
+      rl1.m_eType = spShaderResourceType::ConstantBuffer;
+      rl1.m_eOptions = spResourceLayoutElementOptions::None;
+      rl1.m_sName = ezMakeHashedString("Settings");
+      resourceLayoutDescription.m_Elements.PushBack(rl1);
 
-  spGraphicPipelineDescription desc;
-  desc.m_Output = pSwapchain->GetFramebuffer()->GetOutputDescription();
-  desc.m_ePrimitiveTopology = spPrimitiveTopology::TriangleStrip;
-  desc.m_RenderingState.m_BlendState = spBlendState::SingleDisabled;
-  desc.m_RenderingState.m_DepthState = spDepthState::Disabled;
-  desc.m_RenderingState.m_RasterizerState = spRasterizerState::Default;
-  desc.m_RenderingState.m_StencilState = spStencilState::Disabled;
-  desc.m_ShaderPipeline.m_hShaderProgram = spo->GetHandle();
-  desc.m_ShaderPipeline.m_InputLayouts.PushBack(input->GetHandle());
-  desc.m_ResourceLayouts.PushBack(layout->GetHandle());
+      spResourceLayoutElementDescription rl2;
+      rl2.m_eShaderStage = spShaderStage::PixelShader;
+      rl2.m_eType = spShaderResourceType::ReadOnlyTexture;
+      rl2.m_eOptions = spResourceLayoutElementOptions::None;
+      rl2.m_sName = ezMakeHashedString("tex");
+      resourceLayoutDescription.m_Elements.PushBack(rl2);
 
-  gpo = pFactory->CreateGraphicPipeline(desc);
-  gpo->SetDebugName("gpo");
+      spResourceLayoutElementDescription rl3;
+      rl3.m_eShaderStage = spShaderStage::PixelShader;
+      rl3.m_eType = spShaderResourceType::Sampler;
+      rl3.m_eOptions = spResourceLayoutElementOptions::None;
+      rl3.m_sName = ezMakeHashedString("linearSampler");
+      resourceLayoutDescription.m_Elements.PushBack(rl3);
 
-  cl = device->GetResourceFactory()->CreateCommandList(spCommandListDescription());
-  cl->SetDebugName("RHI SAMPLE CMD");
-};
+      data.m_pResourceLayout = context->GetDevice()->GetResourceFactory()->CreateResourceLayout(resourceLayoutDescription);
+      data.m_pResourceLayout->SetDebugName("layout");
+    }
 
-void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
-{
-  // tell the engine that we are about to destroy window and graphics device,
-  // and that it therefore needs to cleanup anything that depends on that
-  ezStartup::ShutdownHighLevelSystems();
+    if (data.m_pResourceSet == nullptr)
+    {
+      spResourceSetDescription setDesc;
+      setDesc.m_hResourceLayout = data.m_pResourceLayout->GetHandle();
+      setDesc.m_BoundResources.PushBack(cbo->m_pResource->GetHandle());
+      setDesc.m_BoundResources.PushBack(tex->m_pResource->GetHandle());
+      setDesc.m_BoundResources.PushBack(smp->m_pResource->GetHandle());
+      data.m_pResourceSet = context->GetDevice()->GetResourceFactory()->CreateResourceSet(setDesc);
+      data.m_pResourceSet->SetDebugName("set");
+    }
 
-  device->GetResourceManager()->ReleaseResources();
+    if (data.m_pGraphicPipeline == nullptr)
+    {
+      spGraphicPipelineDescription desc;
+      desc.m_Output = rtt->m_pResource.Downcast<spRenderTarget>()->GetFramebuffer()->GetOutputDescription();
+      desc.m_ePrimitiveTopology = spPrimitiveTopology::TriangleStrip;
+      desc.m_RenderingState.m_BlendState = spBlendState::SingleDisabled;
+      desc.m_RenderingState.m_DepthState = spDepthState::Disabled;
+      desc.m_RenderingState.m_RasterizerState = spRasterizerState::Default;
+      desc.m_RenderingState.m_StencilState = spStencilState::Disabled;
+      desc.m_ShaderPipeline.m_hShaderProgram = data.m_pShaderProgram->GetHandle();
+      desc.m_ShaderPipeline.m_InputLayouts.PushBack(data.m_pInputLayout->GetHandle());
+      desc.m_ResourceLayouts.PushBack(data.m_pResourceLayout->GetHandle());
 
-  gpo.Clear();
-  set.Clear();
-  layout.Clear();
-  input.Clear();
-  spo.Clear();
-  ps.Clear();
-  vs.Clear();
-  ibo.Clear();
-  vbo.Clear();
-  cbo.Clear();
-  tex.Clear();
-  smp.Clear();
-  cl.Clear();
+      data.m_pGraphicPipeline = context->GetDevice()->GetResourceFactory()->CreateGraphicPipeline(desc);
+      data.m_pGraphicPipeline->SetDebugName("gpo");
+    }
 
-  // destroy device
-  device->Destroy();
 
-  m_pRenderingThread->Stop();
-  EZ_DEFAULT_DELETE(m_pRenderingThread);
+    const auto c = ezAngle::Radian(ezTime::Now().AsFloatInSeconds());
+    const auto col = ezColor(ezMath::Sin(c), ezMath::Cos(c), ezMath::Sin(-c), 1.0f);
 
-  // finally destroy the window
-  m_pWindow->Destroy().IgnoreResult();
-  EZ_DEFAULT_DELETE(m_pWindow);
+    ezSharedPtr<spScopeProfiler> pTestScopeProfiler;
+
+    cl->PushProfileScope(name);
+    {
+      cl->SetGraphicPipeline(data.m_pGraphicPipeline);
+
+      cl->SetFramebuffer(rtt->m_pResource.Downcast<spRenderTarget>()->GetFramebuffer());
+
+      cl->SetFullViewport(0);
+      cl->SetFullScissorRect(0);
+
+      cl->ClearColorTarget(0, ezColor::Black);
+      // cl->ClearDepthStencilTarget(1.0f, 0);
+
+      cl->SetVertexBuffer(0, vbo->m_pResource.Downcast<spBuffer>());
+      cl->SetIndexBuffer(ibo->m_pResource.Downcast<spBuffer>(), spIndexFormat::UInt16);
+
+      cl->UpdateBuffer<ezColor>(cbo->m_pResource.Downcast<spBuffer>(), 0, col);
+
+      cl->SetGraphicResourceSet(0, data.m_pResourceSet);
+
+      cl->DrawIndexed(3, 1, 0, 0, 0);
+    }
+    cl->PopProfileScope(pTestScopeProfiler);
+
+    // Swap buffers - This will use the next buffer range for the next rendering pass
+    cbo->m_pResource.Downcast<spBuffer>()->SwapBuffers();
+  };
+
+  ezUniquePtr<spRenderPass> pPass = EZ_NEW(pBuilder->GetAllocator(), spRenderPass, callback);
+  pPass->SetData(m_PassData);
+
+  return pPass;
 }
 
-void ezRHISampleApp::OnResize(ezUInt32 width, ezUInt32 height)
+bool spTriangleDemoRenderGraphNode::IsEnabled() const
 {
-  device->ResizeSwapchain(width, height);
+  return true;
+}
+
+void operator<<(ezStreamWriter& Stream, const spTriangleDemoRenderGraphNode::PassData& Value)
+{
+}
+
+void operator>>(ezStreamReader& Stream, spTriangleDemoRenderGraphNode::PassData& Value)
+{
+}
+
+bool operator==(const spTriangleDemoRenderGraphNode::PassData& lhs, const spTriangleDemoRenderGraphNode::PassData& rhs)
+{
+  return lhs.m_hConstantBuffer == rhs.m_hConstantBuffer && lhs.m_hIndexBuffer == rhs.m_hIndexBuffer && lhs.m_hVertexBuffer == rhs.m_hVertexBuffer && lhs.m_hRenderTarget == rhs.m_hRenderTarget && lhs.m_hGridTexture == rhs.m_hGridTexture && lhs.m_hSampler == rhs.m_hSampler;
 }
 
 ezApplication::Execution ezRHISampleApp::Run()
@@ -387,52 +536,15 @@ ezApplication::Execution ezRHISampleApp::Run()
   // update all input state
   ezInputManager::Update(ezClock::GetGlobalClock()->GetTimeDiff());
 
-  ezSharedPtr<spScopeProfiler> pTestScopeProfiler;
+  const ezUniquePtr<spRenderingContext> pC = EZ_NEW(device->GetAllocator(), spRenderingContext, device);
+  pC->SetCommandList(cl);
 
   // do the rendering
-  device->BeginFrame();
+  pC->BeginFrame();
   {
-    const auto pSwapchain = device->GetMainSwapchain();
-
-    const auto c = ezAngle::Radian(ezTime::Now().AsFloatInSeconds());
-    const auto color = ezColor(ezMath::Sin(c), ezMath::Cos(c), ezMath::Sin(-c), 1.0f);
-
-    cl->Begin();
-    {
-      cl->PushProfileScope("Test");
-      {
-        cl->SetGraphicPipeline(gpo);
-
-        cl->SetFramebuffer(pSwapchain->GetFramebuffer());
-
-        cl->SetFullViewport(0);
-        cl->SetFullScissorRect(0);
-
-        cl->ClearColorTarget(0, ezColor::Black);
-        cl->ClearDepthStencilTarget(1.0f, 0);
-
-        cl->SetVertexBuffer(0, vbo);
-        cl->SetIndexBuffer(ibo, spIndexFormat::UInt16);
-
-        cl->UpdateBuffer<ezColor>(cbo, 0, color);
-
-        cl->SetGraphicResourceSet(0, set);
-
-        cl->DrawIndexed(4, 1, 0, 0, 0);
-      }
-      cl->PopProfileScope(pTestScopeProfiler);
-    }
-    cl->End();
-
-    device->SubmitCommandList(cl);
+    renderPipeline->Execute(pC.Borrow());
   }
-  device->EndFrame();
-
-  // Swap buffers - This will use the next buffer range for the next rendering pass
-  cbo->SwapBuffers();
-
-  // if (device->IsDebugEnabled())
-  //   ezLog::Info("RHI Sample: Frame {0} Time: {1}ms", device->GetFrameCount(), (pTestScopeProfiler->GetEndTime() - pTestScopeProfiler->GetBeginTime()).AsFloatInSeconds() * 1000);
+  pC->EndFrame();
 
   // needs to be called once per frame
   ezResourceManager::PerFrameUpdate();

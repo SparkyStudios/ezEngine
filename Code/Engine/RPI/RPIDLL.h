@@ -7,6 +7,8 @@
 #include <Foundation/Containers/Deque.h>
 #include <Foundation/Containers/DynamicArray.h>
 #include <Foundation/Containers/StaticArray.h>
+#include <Foundation/Logging/Log.h>
+#include <Foundation/Math/Size.h>
 #include <Foundation/Reflection/Reflection.h>
 #include <Foundation/Strings/HashedString.h>
 #include <Foundation/Types/Id.h>
