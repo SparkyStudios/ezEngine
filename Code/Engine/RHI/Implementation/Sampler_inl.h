@@ -1,6 +1,6 @@
 #pragma region spSamplerDescription
 
-const spSamplerDescription spSamplerDescription::Point = {
+inline const spSamplerDescription spSamplerDescription::Point = {
   {},
   0,
   0xffffffff,
@@ -8,7 +8,7 @@ const spSamplerDescription spSamplerDescription::Point = {
   spSamplerAddressMode::ClampToEdge,
   spSamplerAddressMode::ClampToEdge,
   spSamplerAddressMode::ClampToEdge,
-  ezColor::Black,
+  ezColor(0, 0, 0),
   0,
   spSamplerFilter::Point,
   spSamplerFilter::Point,
@@ -16,7 +16,7 @@ const spSamplerDescription spSamplerDescription::Point = {
   spDepthStencilComparison::Default,
 };
 
-const spSamplerDescription spSamplerDescription::Linear = {
+inline const spSamplerDescription spSamplerDescription::Linear = {
   {},
   0,
   0xffffffff,
@@ -24,7 +24,7 @@ const spSamplerDescription spSamplerDescription::Linear = {
   spSamplerAddressMode::ClampToEdge,
   spSamplerAddressMode::ClampToEdge,
   spSamplerAddressMode::ClampToEdge,
-  ezColor::Black,
+  ezColor(0, 0, 0),
   0,
   spSamplerFilter::Linear,
   spSamplerFilter::Linear,
@@ -32,7 +32,7 @@ const spSamplerDescription spSamplerDescription::Linear = {
   spDepthStencilComparison::Default,
 };
 
-const spSamplerDescription spSamplerDescription::Anisotropic4x = {
+inline const spSamplerDescription spSamplerDescription::Anisotropic4x = {
   {},
   0,
   0xffffffff,
@@ -40,7 +40,7 @@ const spSamplerDescription spSamplerDescription::Anisotropic4x = {
   spSamplerAddressMode::ClampToEdge,
   spSamplerAddressMode::ClampToEdge,
   spSamplerAddressMode::ClampToEdge,
-  ezColor::Black,
+  ezColor(0, 0, 0),
   4,
   spSamplerFilter::Linear,
   spSamplerFilter::Linear,

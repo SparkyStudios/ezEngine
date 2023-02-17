@@ -44,7 +44,7 @@ spRenderTarget::spRenderTarget(spDevice* pDevice, const spRenderTargetDescriptio
 {
   m_pDevice = pDevice;
 
-  ezBitflags<spTextureUsage> eTextureUsage = spTextureUsage::RenderTarget | spTextureUsage::Sampled | spTextureUsage::Staging;
+  ezBitflags<spTextureUsage> eTextureUsage = spTextureUsage::RenderTarget | spTextureUsage::Sampled;
   if (description.m_bGenerateMipMaps)
     eTextureUsage |= spTextureUsage::GenerateMipmaps;
 
@@ -52,7 +52,7 @@ spRenderTarget::spRenderTarget(spDevice* pDevice, const spRenderTargetDescriptio
   if (description.m_eQuality == spRenderTargetQuality::HDR)
     ePixelFormat = spPixelFormat::R16G16B16A16Float;
 
-  spTextureDescription desc = spTextureDescription::Texture2D(description.m_uiWidth, description.m_uiHeight, description.m_bGenerateMipMaps ? description.m_uiMipmapsCount : 1, 1, ePixelFormat, eTextureUsage, description.m_eSampleCount);
+  const spTextureDescription desc = spTextureDescription::Texture2D(description.m_uiWidth, description.m_uiHeight, description.m_bGenerateMipMaps ? description.m_uiMipmapsCount : 1, 1, ePixelFormat, eTextureUsage, description.m_eSampleCount);
   m_pTexture = m_pDevice->GetResourceFactory()->CreateTexture(desc);
 
   GenerateFramebuffer();
@@ -62,7 +62,7 @@ spRenderTarget::spRenderTarget(spDevice* pDevice, const spRenderTargetDescriptio
 
 void spRenderTarget::GenerateFramebuffer()
 {
-  spFramebufferDescription desc({}, m_pTexture->GetHandle());
+  const spFramebufferDescription desc({}, m_pTexture->GetHandle());
   m_pFramebuffer = m_pDevice->GetResourceFactory()->CreateFramebuffer(desc);
 }
 

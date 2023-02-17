@@ -168,7 +168,7 @@ public:
 
 protected:
   spFramebuffer(spFramebufferDescription description)
-    : m_Description(description)
+    : m_Description(std::move(description))
   {
   }
 

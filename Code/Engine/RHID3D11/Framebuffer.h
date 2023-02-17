@@ -50,12 +50,12 @@ public:
 private:
   void ApplyColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target);
 
-  ID3D11Device* m_pD3D11Device;
+  ID3D11Device* m_pD3D11Device{nullptr};
 
   ezStaticArray<ID3D11RenderTargetView*, SP_RHI_MAX_COLOR_TARGETS> m_ColorTargets;
   ID3D11DepthStencilView* m_pDepthTarget{nullptr};
 
-  spSwapchainD3D11* m_pParentSwapchain;
+  spSwapchainD3D11* m_pParentSwapchain{nullptr};
 
   spOutputDescription m_OutputDescription;
   ezUInt32 m_uiWidth{0};

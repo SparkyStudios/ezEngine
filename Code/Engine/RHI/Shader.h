@@ -117,7 +117,7 @@ private:
 struct spShaderDescription : public ezHashableStruct<spShaderDescription>
 {
   /// \brief The compiled binary representation of the shader.
-  ezByteArrayPtr m_Buffer;
+  ezConstByteArrayPtr m_Buffer;
 
   /// \brief The stage of the shader to create.
   ezEnum<spShaderStage> m_eShaderStage;

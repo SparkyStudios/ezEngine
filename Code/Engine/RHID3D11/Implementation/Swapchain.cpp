@@ -168,7 +168,7 @@ spSwapchainD3D11::spSwapchainD3D11(spDeviceD3D11* pDevice, const spSwapchainDesc
   m_pDevice = pDevice;
   m_pD3D11Device = pDevice->GetD3D11Device();
 
-  m_eColorFormat = description.m_bUseSrgb ? DXGI_FORMAT_B8G8R8A8_UNORM : DXGI_FORMAT_B8G8R8A8_UNORM;
+  m_eColorFormat = description.m_bUseSrgb ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
 
   if (const auto* pRenderingSurfaceWin32 = ezDynamicCast<spRenderingSurfaceWin32*>(description.m_pRenderingSurface); pRenderingSurfaceWin32 != nullptr)
   {
