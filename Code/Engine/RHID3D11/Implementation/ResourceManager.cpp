@@ -7,7 +7,12 @@
 #include <RHID3D11/Core.h>
 #include <RHID3D11/Device.h>
 
+// clang-format off
 EZ_DEFINE_AS_POD_TYPE(D3D11_INPUT_ELEMENT_DESC);
+
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spDeviceResourceManagerD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 static LPCSTR GetSemanticName(const ezEnum<spInputElementLocationSemantic>& eSemantic)
 {

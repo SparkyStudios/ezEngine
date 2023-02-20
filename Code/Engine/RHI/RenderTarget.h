@@ -5,7 +5,7 @@
 #include <RHI/Framebuffer.h>
 #include <RHI/Texture.h>
 
-struct spRenderTargetDescription : public ezHashableStruct<spRenderTargetDescription>
+struct spRenderTargetDescription : ezHashableStruct<spRenderTargetDescription>
 {
   /// \brief The width of the render target, in pixels.
   ezUInt32 m_uiWidth{0};
@@ -37,6 +37,8 @@ struct spRenderTargetDescription : public ezHashableStruct<spRenderTargetDescrip
 
 class SP_RHI_DLL spRenderTarget : public spDeviceResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spRenderTarget, spDeviceResource);
+
   friend class spDeviceResourceFactory;
 
   // spDeviceResource

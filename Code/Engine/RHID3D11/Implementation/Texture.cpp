@@ -74,6 +74,11 @@ static D3D11_SHADER_RESOURCE_VIEW_DESC spGetShaderResourceViewDesc(spTextureD3D1
 
 #pragma region spTextureD3D11
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spTextureD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 spTextureD3D11::spTextureD3D11(spDeviceD3D11* pDevice, const spTextureDescription& description)
   : spTexture(description)
 {
@@ -290,6 +295,11 @@ ID3D11Resource* spTextureD3D11::GetD3D11Texture() const
 
 #pragma region spTextureViewD3D11
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spTextureViewD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 void spTextureViewD3D11::SetDebugName(ezStringView sDebugName)
 {
   spTextureView::SetDebugName(sDebugName);
@@ -418,6 +428,11 @@ ID3D11UnorderedAccessView* spTextureViewD3D11::GetUnorderedAccessView() const
 #pragma endregion
 
 #pragma region spTextureSamplerManagerD3D11
+
+// clang-format off
+EZ_BEGIN_STATIC_REFLECTED_TYPE(spTextureSamplerManagerD3D11, spTextureSamplerManager, 1, ezRTTINoAllocator)
+EZ_END_STATIC_REFLECTED_TYPE;
+// clang-format on
 
 ezSharedPtr<spTextureView> spTextureSamplerManagerD3D11::GetFullTextureView(ezSharedPtr<spTexture> pTexture)
 {

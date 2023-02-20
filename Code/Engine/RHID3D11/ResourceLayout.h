@@ -10,6 +10,8 @@ class SP_RHID3D11_DLL spResourceLayoutD3D11 final : public spResourceLayout
 {
   friend class spDeviceResourceFactoryD3D11;
 
+  EZ_ADD_DYNAMIC_REFLECTION(spResourceLayoutD3D11, spResourceLayout);
+
 public:
   // spDeviceResource
 
@@ -45,5 +47,3 @@ private:
   ezUInt32 m_uiTextureCount{0};
   ezUInt32 m_uiSamplerCount{0};
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spResourceLayoutD3D11);

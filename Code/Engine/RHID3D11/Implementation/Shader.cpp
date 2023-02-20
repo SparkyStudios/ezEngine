@@ -8,6 +8,11 @@
 
 #pragma region spShaderProgramD3D11
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spShaderProgramD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 void spShaderProgramD3D11::ReleaseResource()
 {
   if (IsReleased())
@@ -141,6 +146,11 @@ spShaderProgramD3D11::~spShaderProgramD3D11()
 #pragma endregion
 
 #pragma region spShaderD3D11
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spShaderD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 void spShaderD3D11::ReleaseResource()
 {

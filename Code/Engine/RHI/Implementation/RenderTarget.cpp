@@ -4,6 +4,11 @@
 
 #include <RHI/Device.h>
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderTarget, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 void spRenderTarget::ReleaseResource()
 {
   if (IsReleased())

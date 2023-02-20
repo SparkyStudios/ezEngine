@@ -5,7 +5,7 @@
 #include <Foundation/Containers/List.h>
 
 /// \brief A single block in a staging memory pool.
-struct SP_RHI_DLL spStagingMemoryBlock
+struct spStagingMemoryBlock
 {
   /// \brief The block ID.
   ezUInt32 m_uiId{0};
@@ -37,7 +37,7 @@ class SP_RHI_DLL spStagingMemoryPool
   static constexpr const ezUInt32 kMinimumCapacity = 128;
 
 public:
-  spStagingMemoryPool(ezAllocatorBase* pAllocator);
+  explicit spStagingMemoryPool(ezAllocatorBase* pAllocator);
   ~spStagingMemoryPool();
 
   spStagingMemoryBlock Stage(void* pData, ezUInt32 uiSize);

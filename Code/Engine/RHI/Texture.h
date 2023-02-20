@@ -78,8 +78,8 @@ public:
   {
     if (IsCompressedFormat(eFormat))
     {
-      ezUInt32 uiBlocksPerRow = (uiWidth + 3) / 4;
-      ezUInt32 uiBlockSizeInBytes = GetBlockSizeInBytes(eFormat);
+      const ezUInt32 uiBlocksPerRow = (uiWidth + 3) / 4;
+      const ezUInt32 uiBlockSizeInBytes = GetBlockSizeInBytes(eFormat);
       return uiBlocksPerRow * uiBlockSizeInBytes;
     }
 
@@ -265,11 +265,12 @@ public:
   }
 };
 
-/// \brief Describes a \see spTexture resource, for creation with a \see spDeviceResourceFactory.
-struct spTextureDescription : public ezHashableStruct<spTextureDescription>
+/// \brief Describes a \a spTexture resource, for creation with a \a spDeviceResourceFactory.
+struct spTextureDescription : ezHashableStruct<spTextureDescription>
 {
-  /// \brief Creates a new \see spTextureDescription for a 1D \see spTexture resource.
+  /// \brief Creates a new \a spTextureDescription for a 1D \a spTexture resource.
   /// \param uiWidth The width of the texture in pixels.
+  /// \param uiMipCount The number of mip-map levels.
   /// \param uiArrayLayers The number of layers of the texture.
   /// \param eFormat The format of the texture data.
   /// \param eUsage The usage of the texture.
@@ -278,9 +279,9 @@ struct spTextureDescription : public ezHashableStruct<spTextureDescription>
     ezUInt32 uiWidth,
     ezUInt32 uiMipCount,
     ezUInt32 uiArrayLayers,
-    ezEnum<spPixelFormat> eFormat,
+    const ezEnum<spPixelFormat>& eFormat,
     ezBitflags<spTextureUsage> eUsage,
-    ezEnum<spTextureSampleCount> eSampleCount = spTextureSampleCount::None)
+    const ezEnum<spTextureSampleCount>& eSampleCount = spTextureSampleCount::None)
   {
     return {
       {},
@@ -296,9 +297,10 @@ struct spTextureDescription : public ezHashableStruct<spTextureDescription>
     };
   }
 
-  /// \brief Creates a new \see spTextureDescription for a 2D \see spTexture resource.
+  /// \brief Creates a new \a spTextureDescription for a 2D \a spTexture resource.
   /// \param uiWidth The width of the texture in pixels.
   /// \param uiHeight The height of the texture in pixels.
+  /// \param uiMipCount The number of mip-map levels.
   /// \param uiArrayLayers The number of layers of the texture.
   /// \param eFormat The format of the texture data.
   /// \param eUsage The usage of the texture.
@@ -308,9 +310,9 @@ struct spTextureDescription : public ezHashableStruct<spTextureDescription>
     ezUInt32 uiHeight,
     ezUInt32 uiMipCount,
     ezUInt32 uiArrayLayers,
-    ezEnum<spPixelFormat> eFormat,
+    const ezEnum<spPixelFormat>& eFormat,
     ezBitflags<spTextureUsage> eUsage,
-    ezEnum<spTextureSampleCount> eSampleCount = spTextureSampleCount::None)
+    const ezEnum<spTextureSampleCount>& eSampleCount = spTextureSampleCount::None)
   {
     return {
       {},
@@ -326,10 +328,11 @@ struct spTextureDescription : public ezHashableStruct<spTextureDescription>
     };
   }
 
-  /// \brief Creates a new \see spTextureDescription for a 3D \see spTexture resource.
+  /// \brief Creates a new \a spTextureDescription for a 3D \a spTexture resource.
   /// \param uiWidth The width of the texture in pixels.
   /// \param uiHeight The height of the texture in pixels.
   /// \param uiDepth The depth of the texture in pixels.
+  /// \param uiMipCount The number of mip-map levels.
   /// \param uiArrayLayers The number of layers of the texture.
   /// \param eFormat The format of the texture data.
   /// \param eUsage The usage of the texture.
@@ -340,9 +343,9 @@ struct spTextureDescription : public ezHashableStruct<spTextureDescription>
     ezUInt32 uiDepth,
     ezUInt32 uiMipCount,
     ezUInt32 uiArrayLayers,
-    ezEnum<spPixelFormat> eFormat,
+    const ezEnum<spPixelFormat>& eFormat,
     ezBitflags<spTextureUsage> eUsage,
-    ezEnum<spTextureSampleCount> eSampleCount = spTextureSampleCount::None)
+    const ezEnum<spTextureSampleCount>& eSampleCount = spTextureSampleCount::None)
   {
     return {
       {},
@@ -368,19 +371,19 @@ struct spTextureDescription : public ezHashableStruct<spTextureDescription>
   EZ_ALWAYS_INLINE bool operator!=(const spTextureDescription& other) const { return !(*this == other); }
 
   /// \brief The width of the texture.
-  ezUInt32 m_uiWidth;
+  ezUInt32 m_uiWidth{0};
 
   /// \brief The height of the texture.
-  ezUInt32 m_uiHeight;
+  ezUInt32 m_uiHeight{0};
 
   /// \brief The depth of the texture.
-  ezUInt32 m_uiDepth;
+  ezUInt32 m_uiDepth{0};
 
   /// \brief The number of mipmaps in the texture.
-  ezUInt32 m_uiMipCount;
+  ezUInt32 m_uiMipCount{0};
 
   /// \brief The number of array layers in the texture.
-  ezUInt32 m_uiArrayLayers;
+  ezUInt32 m_uiArrayLayers{0};
 
   /// \brief The format of each individual texture element.
   ezEnum<spPixelFormat> m_eFormat;
@@ -395,26 +398,26 @@ struct spTextureDescription : public ezHashableStruct<spTextureDescription>
   ezEnum<spTextureSampleCount> m_eSampleCount;
 };
 
-/// \brief Describes a \see spTextureView resource, for creation with a \see spDeviceResourceFactory.
-struct spTextureViewDescription : public ezHashableStruct<spTextureViewDescription>
+/// \brief Describes a \a spTextureView resource, for creation with a \a spDeviceResourceFactory.
+struct spTextureViewDescription : ezHashableStruct<spTextureViewDescription>
 {
-  /// \brief Creates a new empty \see spTextureViewDescription.
+  /// \brief Creates a new empty \a spTextureViewDescription.
   spTextureViewDescription() = default;
 
-  /// \brief Creates a new \see spTextureViewDescription from an existing \see spTexture resource.
-  /// \param hTexture The texture resource to create a new \see spTextureViewDescription from.
-  spTextureViewDescription(spResourceHandle hTexture)
-    : ezHashableStruct<spTextureViewDescription>()
+  /// \brief Creates a new \a spTextureViewDescription from an existing \a spTexture resource.
+  /// \param hTexture The texture resource to create a new \a spTextureViewDescription from.
+  explicit spTextureViewDescription(spResourceHandle hTexture)
+    : ezHashableStruct()
     , m_hTarget(hTexture)
   {
   }
 
-  /// \brief Creates a new \see spTextureViewDescription from an existing \see spTexture resource.
+  /// \brief Creates a new \a spTextureViewDescription from an existing \a spTexture resource.
   /// \note This constructor will override the pixel format of the target texture.
-  /// \param hTexture The texture resource to create a new \see spTextureViewDescription from.
+  /// \param hTexture The texture resource to create a new \a spTextureViewDescription from.
   /// \param eFormat The pixel format to use in the view. Should be compatible with the format of the target texture.
   spTextureViewDescription(spResourceHandle hTexture, const ezEnum<spPixelFormat>& eFormat)
-    : ezHashableStruct<spTextureViewDescription>()
+    : ezHashableStruct()
     , m_hTarget(hTexture)
     , m_bOverridePixelFormat(true)
     , m_eFormat(eFormat)
@@ -439,7 +442,7 @@ struct spTextureViewDescription : public ezHashableStruct<spTextureViewDescripti
     return m_hTarget < other.m_hTarget;
   }
 
-  /// \brief The target \see spTexture resource.
+  /// \brief The target \a spTexture resource.
   spResourceHandle m_hTarget{};
 
   /// \brief The base mip level visible from the view. Must be less than the number of mipmaps
@@ -456,11 +459,11 @@ struct spTextureViewDescription : public ezHashableStruct<spTextureViewDescripti
   /// \brief The number of array layers in the view.
   ezUInt32 m_uiArrayLayers{0};
 
-  /// \brief Specifies if the view should use a custom pixel format specified by \see spTextureViewDescription::m_eFormat.
+  /// \brief Specifies if the view should use a custom pixel format specified by \a spTextureViewDescription::m_eFormat.
   /// \note Set this value to false to use the pixel format of the target texture.
   bool m_bOverridePixelFormat{false};
 
-  /// \brief The pixel format of the view. When \see spTextureViewDescription::m_bOverridePixelFormat is set to true,
+  /// \brief The pixel format of the view. When \a spTextureViewDescription::m_bOverridePixelFormat is set to true,
   /// this value must store a pixel format "compatible" with the one of the target texture.
   ///
   /// For uncompressed formats, the overall size and number of components in this format must be equal to the ones of
@@ -473,6 +476,8 @@ struct spTextureViewDescription : public ezHashableStruct<spTextureViewDescripti
 class SP_RHI_DLL spTexture : public spMappableResource
 {
   friend class spDeviceResourceManager;
+
+  EZ_ADD_DYNAMIC_REFLECTION(spTexture, spMappableResource);
 
 public:
   /// \brief Gets the format of individual texture elements stored in this instance.
@@ -501,30 +506,27 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spTextureDimension> GetDimension() const { return m_Description.m_eDimension; }
 
   /// \brief Gets the number os samples in this instance. If this returns any value other than
-  /// \see spTextureSampleCount::None, the instance is considered a multisampled texture.
+  /// \a spTextureSampleCount::None, the instance is considered a multisampled texture.
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spTextureSampleCount> GetSampleCount() const { return m_Description.m_eSampleCount; }
 
-  /// \brief Gets the \see spTextureDescription used to create this texture.
+  /// \brief Gets the \a spTextureDescription used to create this texture.
   EZ_NODISCARD EZ_ALWAYS_INLINE const spTextureDescription& GetDescription() const { return m_Description; }
 
 protected:
-  explicit spTexture(spTextureDescription description)
-    : m_Description(std::move(description))
-  {
-  }
+  explicit spTexture(spTextureDescription description);
 
   spTextureDescription m_Description;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spTexture);
 
 /// \brief A texture view resource.
 class SP_RHI_DLL spTextureView : public spMappableResource
 {
   friend class spDeviceResourceManager;
 
+  EZ_ADD_DYNAMIC_REFLECTION(spTextureView, spMappableResource);
+
 public:
-  /// \brief Gets the target \see spTexture resource to be sampled via this instance.
+  /// \brief Gets the target \a spTexture resource to be sampled via this instance.
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual spResourceHandle GetTexture() const { return m_Description.m_hTarget; }
 
   /// \brief Gets the base mip level visible in the view.
@@ -545,19 +547,14 @@ public:
   /// it should be of the same size.
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spPixelFormat> GetFormat() const { return m_Description.m_eFormat; }
 
-  /// \brief Gets the \see spTextureViewDescription used to create the view.
+  /// \brief Gets the \a spTextureViewDescription used to create the view.
   EZ_NODISCARD EZ_ALWAYS_INLINE const spTextureViewDescription& GetDescription() const { return m_Description; }
 
 protected:
-  explicit spTextureView(spTextureViewDescription description)
-    : m_Description(std::move(description))
-  {
-  }
+  explicit spTextureView(spTextureViewDescription description);
 
   spTextureViewDescription m_Description;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spTextureView);
 
 /// \brief Manages the state of textures resources in a graphics device.
 class SP_RHI_DLL spTextureSamplerManager
@@ -565,9 +562,9 @@ class SP_RHI_DLL spTextureSamplerManager
   friend class spDevice;
 
 public:
-  static ezSharedPtr<spTextureView> GetTextureView(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource);
-
   virtual ~spTextureSamplerManager() = default;
+
+  static ezSharedPtr<spTextureView> GetTextureView(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource);
 
   /// \brief Gets a texture view resource for the specified texture resource.
   /// \param [in] pTexture A handle to the texture resource to retrieve the texture view resource from.
@@ -581,6 +578,8 @@ protected:
 
   spDevice* m_pDevice;
 };
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spTextureSamplerManager);
 
 class spTextureHelper
 {

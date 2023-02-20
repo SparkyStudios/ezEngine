@@ -6,33 +6,33 @@
 #include <RHI/Fence.h>
 #include <RHI/Resource.h>
 
-/// \brief Describes a Buffer, for creation of buffer objects with a \see spDeviceResourceFactory.
-struct spBufferDescription : public ezHashableStruct<spBufferDescription>
+/// \brief Describes a Buffer, for creation of buffer objects with a \a spDeviceResourceFactory.
+struct spBufferDescription : ezHashableStruct<spBufferDescription>
 {
   spBufferDescription() = default;
 
-  /// \brief Constructs a spBufferDescription for a non-dynamic buffer.
+  /// \brief Constructs a \a spBufferDescription for a non-dynamic buffer.
   /// \param uiSize The size of the buffer in bytes.
-  /// \param usage The desired usage of the buffer.
-  spBufferDescription(ezUInt32 uiSize, ezBitflags<spBufferUsage> usage)
-    : ezHashableStruct<spBufferDescription>()
+  /// \param eUsage The desired usage of the buffer.
+  spBufferDescription(ezUInt32 uiSize, const ezBitflags<spBufferUsage>& eUsage)
+    : ezHashableStruct()
   {
     m_uiSize = uiSize;
-    m_eUsage = usage;
+    m_eUsage = eUsage;
     m_uiStructureStride = 0;
     m_bRawBuffer = false;
   }
 
-  /// \brief Constructs a spBufferDescription.
+  /// \brief Constructs a \a spBufferDescription.
   /// \param uiSize The size in bytes of the buffer.
-  /// \param usage The desired usage of the buffer.
+  /// \param eUsage The desired usage of the buffer.
   /// \param uiStructureStride The size in bytes of a single element in a structured buffer. 0 for non-structured buffers.
   /// \param bRawBuffer Whether the buffer is a raw buffer.
-  spBufferDescription(ezUInt32 uiSize, ezBitflags<spBufferUsage> usage, ezUInt32 uiStructureStride, bool bRawBuffer = false)
-    : ezHashableStruct<spBufferDescription>()
+  spBufferDescription(ezUInt32 uiSize, const ezBitflags<spBufferUsage>& eUsage, ezUInt32 uiStructureStride, bool bRawBuffer = false)
+    : ezHashableStruct()
   {
     m_uiSize = uiSize;
-    m_eUsage = usage;
+    m_eUsage = eUsage;
     m_uiStructureStride = uiStructureStride;
     m_bRawBuffer = bRawBuffer;
   }
@@ -60,14 +60,14 @@ struct spBufferDescription : public ezHashableStruct<spBufferDescription>
   ezUInt32 m_uiStructureStride{0};
 
   /// \brief Whether this buffer is a raw buffer. This should be combined with
-  /// spBufferUsage::StructuredBufferReadWrite. This affects how the buffer is bound
+  /// \a spBufferUsage::StructuredBufferReadWrite. This affects how the buffer is bound
   /// in the D3D11 backend.
   bool m_bRawBuffer{false};
 };
 
 /// \brief Describes a section of a buffer. This can be used in place of a buffer to make only a subset of it
 /// available to the GPU.
-struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRangeDescription>
+struct spBufferRangeDescription : ezHashableStruct<spBufferRangeDescription>
 {
   /// \brief Constructs a new buffer range description.
   /// \param hBuffer The parent buffer.
@@ -75,7 +75,7 @@ struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRan
   /// \param uiSize The range size in bytes.
   /// \param fence The synchronization fence of this buffer range.
   spBufferRangeDescription(spResourceHandle hBuffer, ezUInt32 uiOffset, ezUInt32 uiSize, spFenceDescription fence)
-    : ezHashableStruct<spBufferRangeDescription>()
+    : ezHashableStruct()
   {
     m_hBuffer = hBuffer;
     m_uiOffset = uiOffset;
@@ -88,7 +88,7 @@ struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRan
   /// \param uiOffset The range offset in bytes.
   /// \param uiSize The range size in bytes.
   spBufferRangeDescription(spResourceHandle hBuffer, ezUInt32 uiOffset, ezUInt32 uiSize)
-    : ezHashableStruct<spBufferRangeDescription>()
+    : ezHashableStruct()
   {
     m_hBuffer = hBuffer;
     m_uiOffset = uiOffset;
@@ -120,9 +120,11 @@ struct SP_RHI_DLL spBufferRangeDescription : public ezHashableStruct<spBufferRan
   spFenceDescription m_Fence;
 };
 
-/// \brief A range of a spBuffer.
+/// \brief A range in a spBuffer.
 class SP_RHI_DLL spBufferRange : public spShaderResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spBufferRange, spShaderResource);
+
 public:
   /// \brief Gets the handle to the parent buffer of this range.
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezSharedPtr<spBuffer> GetBuffer() const = 0;
@@ -137,16 +139,16 @@ public:
   EZ_NODISCARD virtual ezSharedPtr<spFence> GetFence() const = 0;
 
 protected:
-  spBufferRange(spBufferRangeDescription description);
+  explicit spBufferRange(spBufferRangeDescription description);
 
   spBufferRangeDescription m_Description;
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spBufferRange);
-
 /// \brief A set of data in the memory, readable and writable from both CPU and GPU.
 class SP_RHI_DLL spBuffer : public spMappableResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spBuffer, spMappableResource);
+
   friend class spDeviceResourceFactory;
 
 public:
@@ -187,7 +189,7 @@ public:
   EZ_ALWAYS_INLINE void SwapBuffers() { m_uiBufferIndex = (m_uiBufferIndex + 1) % m_uiBufferCount; }
 
 protected:
-  spBuffer(spBufferDescription description);
+  explicit spBuffer(spBufferDescription description);
 
   void PreCreateResource();
   void PostCreateResource();
@@ -200,5 +202,3 @@ protected:
 
   ezStaticArray<ezSharedPtr<spBufferRange>, SP_RHI_MAX_BUFFERING_LEVEL> m_BufferRanges;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spBuffer);

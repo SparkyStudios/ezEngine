@@ -15,8 +15,13 @@
 #include <RHID3D11/Swapchain.h>
 #include <RHID3D11/Texture.h>
 
+// clang-format off
 EZ_DEFINE_AS_POD_TYPE(D3D11_VIEWPORT);
 EZ_DEFINE_AS_POD_TYPE(D3D11_RECT);
+
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spCommandListD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 spCommandListD3D11::spCommandListD3D11(spDeviceD3D11* pDevice, const spCommandListDescription& description)
   : spCommandList(description)
@@ -195,9 +200,9 @@ void spCommandListD3D11::SetScissorRect(ezUInt32 uiSlot, ezUInt32 uiX, ezUInt32 
   m_ScissorRects.EnsureCount(uiSlot + 1);
 
   m_ScissorRects[uiSlot].left = static_cast<LONG>(uiX);
-  m_ScissorRects[uiSlot].right = static_cast<LONG>(uiX + uiWidth);
+  m_ScissorRects[uiSlot].right = static_cast<LONG>(uiX) + static_cast<LONG>(uiWidth);
   m_ScissorRects[uiSlot].top = static_cast<LONG>(uiY);
-  m_ScissorRects[uiSlot].bottom = static_cast<LONG>(uiY + uiHeight);
+  m_ScissorRects[uiSlot].bottom = static_cast<LONG>(uiY) + static_cast<LONG>(uiHeight);
 }
 
 void spCommandListD3D11::SetViewport(ezUInt32 uiSlot, const spViewport& viewport)
@@ -377,7 +382,7 @@ void spCommandListD3D11::SetFramebufferInternal(ezSharedPtr<spFramebuffer> pFram
   if (const auto pSwapchain = m_pFramebuffer->GetParentSwapchain(); pSwapchain != nullptr)
   {
     pSwapchain->AddCommandListReference(this);
-    m_ReferencedSwapchains.PushBack(pSwapchain);
+    m_ReferencedSwapchainList.PushBack(pSwapchain);
   }
 
   for (ezUInt32 i = 0, l = m_pFramebuffer->GetColorTargets().GetCount(); i < l; ++i)
@@ -458,9 +463,8 @@ void spCommandListD3D11::UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezU
   const bool bConstantBuffer = pBuffer->GetUsage().IsSet(spBufferUsage::ConstantBuffer);
   const bool bUseMap = bDynamic;
   const bool bUpdateFullBuffer = uiOffset == 0 && uiSize == pBufferD3D11->GetSize();
-  const bool bUseUpdateSubresource = !bDynamic && !bStaging && (!bConstantBuffer || bUpdateFullBuffer);
 
-  if (bUseUpdateSubresource)
+  if (!bDynamic && !bStaging && (!bConstantBuffer || bUpdateFullBuffer))
   {
     const D3D11_BOX region = {uiOffset, 0, 0, uiOffset + uiSize, 1, 1};
     const bool bHasRegion = !bConstantBuffer;
@@ -1339,13 +1343,13 @@ void spCommandListD3D11::OnComplete()
 {
   SP_RHI_DX11_RELEASE(m_pCommandList);
 
-  for (auto it = m_ReferencedSwapchains.GetIterator(); it.IsValid(); it.Next())
+  for (auto it = m_ReferencedSwapchainList.GetIterator(); it.IsValid(); it.Next())
   {
     (*it)->RemoveCommandListReference(this);
     (*it).Clear();
   }
 
-  m_ReferencedSwapchains.Clear();
+  m_ReferencedSwapchainList.Clear();
 
   for (auto it = m_SubmittedStagingBuffers.GetIterator(); it.IsValid(); it.Next())
     m_FreeBuffers.PushBack(*it);

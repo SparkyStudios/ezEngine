@@ -1,10 +1,14 @@
-#include "RHI/Resource.h"
 #include <RHI/RHIPCH.h>
 
 #include <RHI/Buffer.h>
 #include <RHI/Device.h>
 
 #pragma region spBufferRange
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spBufferRange, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 spBufferRange::spBufferRange(spBufferRangeDescription description)
   : spShaderResource()
@@ -15,6 +19,11 @@ spBufferRange::spBufferRange(spBufferRangeDescription description)
 #pragma endregion
 
 #pragma region spBuffer
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spBuffer, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 spBuffer::spBuffer(spBufferDescription description)
   : spMappableResource()

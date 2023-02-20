@@ -6,31 +6,31 @@
 
 #pragma region Blend State
 
-/// \brief A \see spGraphicPipeline component describing the blend behavior of an individual color attachment.
-struct SP_RHI_DLL spBlendAttachment : public ezHashableStruct<spBlendAttachment>
+/// \brief A \a spGraphicPipeline component describing the blend behavior of an individual color attachment.
+struct spBlendAttachment : ezHashableStruct<spBlendAttachment>
 {
-  /// \brief Describes a \see spBlendAttachment state in which the source completely overrides the destination.
+  /// \brief Describes a \a spBlendAttachment state in which the source completely overrides the destination.
   const static spBlendAttachment OverrideBlend;
 
-  /// \brief Describes a \see spBlendAttachment state in which the source and destination are blended in an inverse relationship.
+  /// \brief Describes a \a spBlendAttachment state in which the source and destination are blended in an inverse relationship.
   const static spBlendAttachment AlphaBlend;
 
-  /// \brief Describes a \see spBlendAttachment state in which the source is added to the destination based on its alpha channel.
+  /// \brief Describes a \a spBlendAttachment state in which the source is added to the destination based on its alpha channel.
   const static spBlendAttachment AdditiveBlend;
 
-  /// \brief Describes a \see spBlendAttachment state in which the source is multiplied with the destination.
+  /// \brief Describes a \a spBlendAttachment state in which the source is multiplied with the destination.
   const static spBlendAttachment MultiplyBlend;
 
-  /// \brief Describes a \see spBlendAttachment state in which blending is disabled.
+  /// \brief Describes a \a spBlendAttachment state in which blending is disabled.
   const static spBlendAttachment Disabled;
 
-  /// \brief Compares this \see spBlendAttachment state to an \a other instance for equality.
+  /// \brief Compares this \a spBlendAttachment state to an \a other instance for equality.
   EZ_ALWAYS_INLINE bool operator==(const spBlendAttachment& other) const
   {
     return m_bEnabled == other.m_bEnabled && m_eSourceColorBlendFactor == other.m_eSourceColorBlendFactor && m_eDestinationColorBlendFactor == other.m_eDestinationColorBlendFactor && m_eColorBlendFunction == other.m_eColorBlendFunction && m_eSourceAlphaBlendFactor == other.m_eSourceAlphaBlendFactor && m_eDestinationAlphaBlendFactor == other.m_eDestinationAlphaBlendFactor && m_eAlphaBlendFunction == other.m_eAlphaBlendFunction;
   }
 
-  /// \brief Compares this \see spBlendAttachment state to an \a other instance for inequality.
+  /// \brief Compares this \a spBlendAttachment state to an \a other instance for inequality.
   EZ_ALWAYS_INLINE bool operator!=(const spBlendAttachment& other) const
   {
     return !(*this == other);
@@ -61,31 +61,31 @@ struct SP_RHI_DLL spBlendAttachment : public ezHashableStruct<spBlendAttachment>
   ezEnum<spBlendFunction> m_eAlphaBlendFunction;
 };
 
-/// \brief Describes the blend state of each color attachment in the \see spRenderingState.
-struct SP_RHI_DLL spBlendState : public ezHashableStruct<spBlendState>
+/// \brief Describes the blend state of each color attachment in the \a spRenderingState.
+struct spBlendState : public ezHashableStruct<spBlendState>
 {
-  /// \brief Describes an empty \see spBlendState.
+  /// \brief Describes an empty \a spBlendState.
   const static spBlendState Empty;
 
-  /// \brief Describes a \see spBlendState in which a single color target is blended with \see spBlendAttachment::OverrideBlend.
+  /// \brief Describes a \a spBlendState in which a single color target is blended with \a spBlendAttachment::OverrideBlend.
   const static spBlendState SingleOverrideBlend;
 
-  /// \brief Describes a \see spBlendState in which a single color target is blended with \see spBlendAttachment::AlphaBlend.
+  /// \brief Describes a \a spBlendState in which a single color target is blended with \a spBlendAttachment::AlphaBlend.
   const static spBlendState SingleAlphaBlend;
 
-  /// \brief Describes a \see spBlendState in which a single color target is blended with \see spBlendAttachment::AdditiveBlend.
+  /// \brief Describes a \a spBlendState in which a single color target is blended with \a spBlendAttachment::AdditiveBlend.
   const static spBlendState SingleAdditiveBlend;
 
-  /// \brief Describes a \see spBlendState in which a single color target is blended with \see spBlendAttachment::MultiplyBlend.
+  /// \brief Describes a \a spBlendState in which a single color target is blended with \a spBlendAttachment::MultiplyBlend.
   const static spBlendState SingleMultiplyBlend;
 
-  /// \brief Describes a \see spBlendState in which a single color target is blended with \see spBlendAttachment::Disabled.
+  /// \brief Describes a \a spBlendState in which a single color target is blended with \a spBlendAttachment::Disabled.
   const static spBlendState SingleDisabled;
 
   /// \brief The blend color.
   ezColor m_BlendColor;
 
-  /// \brief An array of \see spBlendAttachment for each color attachment in the \see spGraphicPipeline.
+  /// \brief An array of \a spBlendAttachment for each color attachment in the \a spGraphicPipeline.
   ezStaticArray<spBlendAttachment, SP_RHI_MAX_COLOR_TARGETS> m_AttachmentStates;
 
   /// \brief Enables alpha to coverage, which causes a fragment's alpha value to be used when determining multi-sample coverage.
@@ -96,42 +96,42 @@ struct SP_RHI_DLL spBlendState : public ezHashableStruct<spBlendState>
 
 #pragma endregion Depth State
 
-/// \brief Describes the depth state of a depth attachment in the \see spGraphicPipeline.
-struct SP_RHI_DLL spDepthState : public ezHashableStruct<spDepthState>
+/// \brief Describes the depth state of a depth attachment in the \a spGraphicPipeline.
+struct spDepthState : ezHashableStruct<spDepthState>
 {
-  /// \brief Describes a \see spDepthState which uses a \see spDepthStencilComparison::Less comparison.
+  /// \brief Describes a \a spDepthState which uses a \a spDepthStencilComparison::Less comparison.
   /// The stencil test is disabled.
   const static spDepthState Less;
 
-  /// \brief Describes a \see spDepthState which uses a \see spDepthStencilComparison::LessEqual comparison.
+  /// \brief Describes a \a spDepthState which uses a \a spDepthStencilComparison::LessEqual comparison.
   /// The stencil test is disabled.
   const static spDepthState LessEqual;
 
-  /// \brief Describes a \see spDepthState which uses a \see spDepthStencilComparison::Less comparison.
+  /// \brief Describes a \a spDepthState which uses a \a spDepthStencilComparison::Less comparison.
   /// The stencil test is disabled.
   const static spDepthState LessRead;
 
-  /// \brief Describes a \see spDepthState which uses a \see spDepthStencilComparison::LessEqual comparison.
+  /// \brief Describes a \a spDepthState which uses a \a spDepthStencilComparison::LessEqual comparison.
   /// The stencil test is disabled.
   const static spDepthState LessEqualRead;
 
-  /// \brief Describes a \see spDepthState which uses a \see spDepthStencilComparison::Greater comparison.
+  /// \brief Describes a \a spDepthState which uses a \a spDepthStencilComparison::Greater comparison.
   /// The stencil test is disabled.
   const static spDepthState Greater;
 
-  /// \brief Describes a \see spDepthState which uses a \see spDepthStencilComparison::GreaterEqual comparison.
+  /// \brief Describes a \a spDepthState which uses a \a spDepthStencilComparison::GreaterEqual comparison.
   /// The stencil test is disabled.
   const static spDepthState GreaterEqual;
 
-  /// \brief Describes a \see spDepthState which uses a \see spDepthStencilComparison::GreaterRead comparison.
+  /// \brief Describes a \a spDepthState which uses a \a spDepthStencilComparison::GreaterRead comparison.
   /// The stencil test is disabled.
   const static spDepthState GreaterRead;
 
-  /// \brief Describes a \see spDepthState which uses a \see spDepthStencilComparison::GreaterEqualRead comparison.
+  /// \brief Describes a \a spDepthState which uses a \a spDepthStencilComparison::GreaterEqualRead comparison.
   /// The stencil test is disabled.
   const static spDepthState GreaterEqualRead;
 
-  /// \brief Describes a \see spDepthState which uses a \see spDepthStencilComparison::Disabled comparison.
+  /// \brief Describes a \a spDepthState which uses a \a spDepthStencilComparison::Disabled comparison.
   /// The stencil test is disabled.
   const static spDepthState Disabled;
 
@@ -149,13 +149,13 @@ struct SP_RHI_DLL spDepthState : public ezHashableStruct<spDepthState>
 
 #pragma region Stencil State
 
-/// \brief Describes how stencil tests are performed in a \see spGraphicPipeline.
-struct spStencilBehavior : public ezHashableStruct<spStencilBehavior>
+/// \brief Describes how stencil tests are performed in a \a spGraphicPipeline.
+struct spStencilBehavior : ezHashableStruct<spStencilBehavior>
 {
   spStencilBehavior() = default;
 
-  spStencilBehavior(ezEnum<spStencilOperation> eFail, ezEnum<spStencilOperation> ePass, ezEnum<spStencilOperation> eDepthFail, ezEnum<spDepthStencilComparison> eComparison)
-    : ezHashableStruct<spStencilBehavior>()
+  spStencilBehavior(const ezEnum<spStencilOperation>& eFail, const ezEnum<spStencilOperation>& ePass, const ezEnum<spStencilOperation>& eDepthFail, const ezEnum<spDepthStencilComparison>& eComparison)
+    : ezHashableStruct()
     , m_eFail(eFail)
     , m_ePass(ePass)
     , m_eDepthFail(eDepthFail)
@@ -163,13 +163,13 @@ struct spStencilBehavior : public ezHashableStruct<spStencilBehavior>
   {
   }
 
-  /// \brief Compares this \see spStencilBehavior to an \a other instance for equality.
+  /// \brief Compares this \a spStencilBehavior to an \a other instance for equality.
   EZ_ALWAYS_INLINE bool operator==(const spStencilBehavior& other) const
   {
     return m_eFail == other.m_eFail && m_ePass == other.m_ePass && m_eDepthFail == other.m_eDepthFail && m_eComparison == other.m_eComparison;
   }
 
-  /// \brief Compares this \see spStencilBehavior to an \a other instance for inequality.
+  /// \brief Compares this \a spStencilBehavior to an \a other instance for inequality.
   EZ_ALWAYS_INLINE bool operator!=(const spStencilBehavior& other) const { return !(*this == other); }
 
   /// \brief The operation performed on samples that fails the stencil test.
@@ -185,10 +185,10 @@ struct spStencilBehavior : public ezHashableStruct<spStencilBehavior>
   ezEnum<spDepthStencilComparison> m_eComparison;
 };
 
-/// \brief Describes the stencil state of a depth attachment in the \see spGraphicPipeline.
-struct SP_RHI_DLL spStencilState : public ezHashableStruct<spStencilState>
+/// \brief Describes the stencil state of a depth attachment in the \a spGraphicPipeline.
+struct spStencilState : ezHashableStruct<spStencilState>
 {
-  /// \brief Describes a disabled \see spStencilState.
+  /// \brief Describes a disabled \a spStencilState.
   const static spStencilState Disabled;
 
   /// \brief Defines whether stencil testing is enabled.
@@ -201,21 +201,21 @@ struct SP_RHI_DLL spStencilState : public ezHashableStruct<spStencilState>
   spStencilBehavior m_Back;
 
   /// \brief Controls the portion of the stencil buffer used for reading.
-  ezUInt8 m_uiReadMask;
+  ezUInt8 m_uiReadMask{0};
 
   /// \brief Controls the portion of the stencil buffer used for writing.
-  ezUInt8 m_uiWriteMask;
+  ezUInt8 m_uiWriteMask{0};
 
   /// \brief The reference value to use when doing a stencil test.
-  ezUInt32 m_uiReference;
+  ezUInt32 m_uiReference{0};
 };
 
 #pragma endregion
 
 #pragma region Rasterizer State
 
-/// \brief Describes how rasterization is performed in a \see spGraphicPipeline.
-struct SP_RHI_DLL spRasterizerState : public ezHashableStruct<spRasterizerState>
+/// \brief Describes how rasterization is performed in a \a spGraphicPipeline.
+struct spRasterizerState : ezHashableStruct<spRasterizerState>
 {
   /// \brief Describes the default rasterizer state, with clockwise backface culling, solid polygon filling
   /// and both depth clipping and scissor stencil tests enabled.
@@ -248,19 +248,21 @@ struct SP_RHI_DLL spRasterizerState : public ezHashableStruct<spRasterizerState>
 
 #pragma region Rendering State
 
-struct SP_RHI_DLL spRenderingState : public ezHashableStruct<spRenderingState>
+struct spRenderingState : ezHashableStruct<spRenderingState>
 {
-  /// \brief The \see spBlendState of the rendering state.
+  /// \brief The \a spBlendState of the rendering state.
   spBlendState m_BlendState;
 
-  /// \brief The \see spDepthState of the rendering state.
+  /// \brief The \a spDepthState of the rendering state.
   spDepthState m_DepthState;
 
-  /// \brief The \see spStencilState of the rendering state.
+  /// \brief The \a spStencilState of the rendering state.
   spStencilState m_StencilState;
 
-  /// \brief The \see spRasterizerState of the rendering state.
+  /// \brief The \a spRasterizerState of the rendering state.
   spRasterizerState m_RasterizerState;
 };
 
 #pragma endregion
+
+#include <RHI/Implementation/Rendering_inl.h>

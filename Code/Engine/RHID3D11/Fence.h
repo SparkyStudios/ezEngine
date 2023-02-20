@@ -12,6 +12,8 @@ class SP_RHID3D11_DLL spFenceD3D11 final : public spFence
 {
   friend class spDeviceResourceFactoryD3D11;
 
+  EZ_ADD_DYNAMIC_REFLECTION(spFenceD3D11, spFence);
+
 public:
   // spDeviceResource
 
@@ -34,8 +36,5 @@ public:
 private:
   ezThreadSignal m_ThreadSignal;
 
-  bool m_bReleased{false};
   bool m_bSignaled{false};
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spFenceD3D11);

@@ -5,10 +5,9 @@
 #include <RHI/Input.h>
 
 /// \brief Describes a single shader specialization constant. Used to substitute new values into shaders when building
-/// a \see spPipeline.
+/// a \a spPipeline.
 struct spShaderSpecializationConstant : ezHashableStruct<spShaderSpecializationConstant>
 {
-public:
   /// \brief The specialization constant ID, as defined in the shader.
   ezUInt32 m_uiId{0};
 
@@ -113,8 +112,8 @@ private:
   }
 };
 
-/// \brief Describes a \see spShader, for creation using a \see spDeviceResourceFactory.
-struct spShaderDescription : public ezHashableStruct<spShaderDescription>
+/// \brief Describes a \a spShader, for creation using a \a spDeviceResourceFactory.
+struct spShaderDescription : ezHashableStruct<spShaderDescription>
 {
   /// \brief The compiled binary representation of the shader.
   ezConstByteArrayPtr m_Buffer;
@@ -126,18 +125,25 @@ struct spShaderDescription : public ezHashableStruct<spShaderDescription>
   ezHashedString m_sEntryPoint;
 };
 
-struct SP_RHI_DLL spShaderPipeline : public ezHashableStruct<spShaderPipeline>
+struct spShaderPipeline : ezHashableStruct<spShaderPipeline>
 {
   ezDynamicArray<spResourceHandle> m_InputLayouts;
   spResourceHandle m_hShaderProgram{};
 
   spShaderPipeline() = default;
 
-  spShaderPipeline(ezDynamicArray<spResourceHandle> inputLayouts, spResourceHandle hShaderProgram);
+  spShaderPipeline(ezDynamicArray<spResourceHandle> inputLayouts, spResourceHandle hShaderProgram)
+    : ezHashableStruct<spShaderPipeline>()
+    , m_InputLayouts(std::move(inputLayouts))
+    , m_hShaderProgram(hShaderProgram)
+  {
+  }
 };
 
 class SP_RHI_DLL spShaderProgram : public spDeviceResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spShaderProgram, spDeviceResource);
+
 public:
   /// \brief Attaches the the given shader to the program.
   /// \param [in] pShader The handle to the shader to attach to the program.
@@ -165,11 +171,11 @@ public:
   EZ_NODISCARD virtual ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const = 0;
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spShaderProgram);
-
 class SP_RHI_DLL spShader : public spDeviceResource
 {
   friend class spDeviceResourceFactory;
+
+  EZ_ADD_DYNAMIC_REFLECTION(spShader, spDeviceResource);
 
 public:
   /// \brief Gets the stage of this shader.
@@ -179,12 +185,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE const ezHashedString& GetEntryPoint() const { return m_Description.m_sEntryPoint; }
 
 protected:
-  spShader(spShaderDescription description)
-    : m_Description(std::move(description))
-  {
-  }
+  explicit spShader(spShaderDescription description);
 
   spShaderDescription m_Description;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spShader);

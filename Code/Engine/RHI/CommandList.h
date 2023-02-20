@@ -11,7 +11,7 @@
 #include <RHI/Texture.h>
 
 /// \brief Data structure holding draw arrays commands for indirect drawing.
-struct SP_RHI_DLL alignas(16) spDrawIndirectCommand
+struct alignas(16) spDrawIndirectCommand
 {
   EZ_DECLARE_POD_TYPE();
 
@@ -28,7 +28,7 @@ struct SP_RHI_DLL alignas(16) spDrawIndirectCommand
   ezUInt32 m_uiBaseInstance;
 };
 
-struct SP_RHI_DLL alignas(16) spDrawIndexedIndirectCommand
+struct alignas(16) spDrawIndexedIndirectCommand
 {
   EZ_DECLARE_POD_TYPE();
 
@@ -48,7 +48,8 @@ struct SP_RHI_DLL alignas(16) spDrawIndexedIndirectCommand
   ezUInt32 m_uiBaseInstance;
 };
 
-struct SP_RHI_DLL spCommandListIndexBuffer : public ezHashableStruct<spCommandListIndexBuffer>
+/// \brief Holds data for a \a spBuffer bound as an index buffer in a \a spCommandList.
+struct SP_RHI_DLL spCommandListIndexBuffer : ezHashableStruct<spCommandListIndexBuffer>
 {
   spCommandListIndexBuffer() = default;
   spCommandListIndexBuffer(spResourceHandle hIndexBuffer, const ezEnum<spIndexFormat>& eFormat, ezUInt32 uiOffset);
@@ -70,11 +71,45 @@ struct SP_RHI_DLL spCommandListIndexBuffer : public ezHashableStruct<spCommandLi
   ezUInt32 m_uiOffset{0};
 };
 
-struct SP_RHI_DLL spCommandListResourceSet : public ezHashableStruct<spCommandListResourceSet>
+/// \brief Holds data for a \a spResourceSet bound in a \a spCommandList.
+struct SP_RHI_DLL spCommandListResourceSet : ezHashableStruct<spCommandListResourceSet>
 {
+  /// \brief Default constructor.
   spCommandListResourceSet() = default;
+
+  /// \brief Creates a new command list resource set from a \a spResourceHandle.
+  /// \param [in] hResource The handle to a \a spResourceSet resource.
+  /// \param [in] uiOffsetCount The number of offsets in the \a pOffsets array.
+  /// \param [in] pOffsets The offsets in the \a hResource.
   spCommandListResourceSet(spResourceHandle hResource, ezUInt32 uiOffsetCount, const ezUInt32* pOffsets);
+
+  /// \brief Copy constructor.
+  /// \param [in] copy The object to copy from.
+  spCommandListResourceSet(const spCommandListResourceSet& copy);
+
+  /// \brief Move constructor.
+  /// \param [in] move The object to move from.
+  spCommandListResourceSet(spCommandListResourceSet&& move) noexcept;
+
+  /// \brief Destructor.
   ~spCommandListResourceSet();
+
+  /// \brief Copy assignment operator.
+  /// \param [in] rhs The object to copy from.
+  EZ_ALWAYS_INLINE void operator=(const spCommandListResourceSet& rhs)
+  {
+    m_hResourceSet = rhs.m_hResourceSet;
+    m_Offsets = EZ_DEFAULT_NEW_ARRAY(ezUInt32, rhs.m_Offsets.GetCount());
+    m_Offsets.CopyFrom(rhs.m_Offsets);
+  }
+
+  /// \brief Move assignment operator.
+  /// \param [in] rhs The object to move from.
+  EZ_ALWAYS_INLINE void operator=(spCommandListResourceSet&& rhs) noexcept
+  {
+    std::swap(m_hResourceSet, rhs.m_hResourceSet);
+    std::swap(m_Offsets, rhs.m_Offsets);
+  }
 
   /// \brief Compares this \see spCommandListResourceSet to an \a other instance for equality.
   EZ_ALWAYS_INLINE bool operator==(const spCommandListResourceSet& other) const
@@ -92,7 +127,8 @@ struct SP_RHI_DLL spCommandListResourceSet : public ezHashableStruct<spCommandLi
   ezArrayPtr<ezUInt32> m_Offsets;
 };
 
-struct SP_RHI_DLL spCommandListDescription : public ezHashableStruct<spCommandListDescription>
+/// \brief Describes a \a spCommandList for creation through a \a spDeviceResourceFactory.
+struct spCommandListDescription : ezHashableStruct<spCommandListDescription>
 {
 };
 
@@ -105,6 +141,8 @@ struct SP_RHI_DLL spCommandListDescription : public ezHashableStruct<spCommandLi
 /// \a spDevice, they must be reset and commands must be issued again.
 class SP_RHI_DLL spCommandList : public spDeviceResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spCommandList, spDeviceResource);
+
   friend class spDeviceResourceManager;
 
 public:
@@ -214,8 +252,10 @@ public:
 
   virtual void End() = 0;
 
+  virtual void Reset() = 0;
+
 protected:
-  spCommandList(spCommandListDescription description);
+  explicit spCommandList(spCommandListDescription description);
 
   virtual void ClearColorTargetInternal(ezUInt32 uiIndex, ezColor clearColor) = 0;
   virtual void ClearDepthStencilTargetInternal(float fClearDepth, ezUInt8 uiClearStencil) = 0;
@@ -252,5 +292,3 @@ private:
   ezEnum<spIndexFormat> m_IndexBufferFormat;
 #endif
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spCommandList);

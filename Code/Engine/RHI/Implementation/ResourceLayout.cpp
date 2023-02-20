@@ -2,6 +2,11 @@
 
 #include <RHI/ResourceLayout.h>
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spResourceLayout, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 spResourceLayout::spResourceLayout(spResourceLayoutDescription description)
   : m_Description(std::move(description))
 {

@@ -5,7 +5,7 @@
 #include <RHI/Resource.h>
 
 /// \brief Describes a single element in a resource layout.
-struct spResourceLayoutElementDescription : public ezHashableStruct<spResourceLayoutElementDescription>
+struct spResourceLayoutElementDescription : ezHashableStruct<spResourceLayoutElementDescription>
 {
   ezHashedString m_sName;
   ezEnum<spShaderResourceType> m_eType;
@@ -13,16 +13,18 @@ struct spResourceLayoutElementDescription : public ezHashableStruct<spResourceLa
   ezBitflags<spResourceLayoutElementOptions> m_eOptions;
 };
 
-/// \brief Describes the layout of \see spShaderResource objects for a \see spRenderingPipeline.
-struct spResourceLayoutDescription : public ezHashableStruct<spResourceLayoutDescription>
+/// \brief Describes the layout of \a spShaderResource objects for a \a spRenderingPipeline.
+struct spResourceLayoutDescription : ezHashableStruct<spResourceLayoutDescription>
 {
-  /// \brief An array of \see spResourceLayoutElementDescription objects, describing the properties of each resource
-  /// element in the \see spResourceLayout.
+  /// \brief An array of \a spResourceLayoutElementDescription objects, describing the properties of each resource
+  /// element in the \a spResourceLayout.
   ezDynamicArray<spResourceLayoutElementDescription> m_Elements;
 };
 
 class SP_RHI_DLL spResourceLayout : public spDeviceResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spResourceLayout, spDeviceResource);
+
   friend class spDeviceResourceFactory;
 
 public:
@@ -50,5 +52,3 @@ protected:
   ezUInt32 m_uiDynamicBufferCount{0};
 #endif
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spResourceLayout);

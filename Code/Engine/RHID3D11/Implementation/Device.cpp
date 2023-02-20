@@ -12,7 +12,12 @@
 #include <RHID3D11/Swapchain.h>
 #include <RHID3D11/Texture.h>
 
+// clang-format off
 EZ_IMPLEMENT_SINGLETON(spDeviceD3D11);
+
+EZ_BEGIN_STATIC_REFLECTED_TYPE(spDeviceD3D11, spDevice, 1, ezRTTINoAllocator)
+EZ_END_STATIC_REFLECTED_TYPE;
+// clang-format on
 
 static bool SdkLayersAvailable()
 {

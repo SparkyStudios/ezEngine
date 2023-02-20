@@ -7,7 +7,12 @@
 #include <RHID3D11/Device.h>
 #include <RHID3D11/Fence.h>
 
-#pragma region spBufferRegionD3D11
+#pragma region spBufferRangeD3D11
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spBufferRangeD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 void spBufferRangeD3D11::ReleaseResource()
 {
@@ -42,6 +47,11 @@ spBufferRangeD3D11::~spBufferRangeD3D11()
 #pragma endregion
 
 #pragma region spBufferD3D11
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spBufferD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 void spBufferD3D11::SetDebugName(ezStringView sDebugName)
 {

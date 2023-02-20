@@ -7,26 +7,23 @@
 class spFramebuffer;
 
 /// \brief Describes an individual output attachment and its format.
-struct spOutputAttachmentDescription : public ezHashableStruct<spOutputAttachmentDescription>
+struct spOutputAttachmentDescription : ezHashableStruct<spOutputAttachmentDescription>
 {
-  spOutputAttachmentDescription()
-    : ezHashableStruct<spOutputAttachmentDescription>()
-  {
-  }
+  spOutputAttachmentDescription() = default;
 
   spOutputAttachmentDescription(ezEnum<spPixelFormat> eFormat)
-    : ezHashableStruct<spOutputAttachmentDescription>()
+    : ezHashableStruct()
     , m_eFormat(eFormat)
   {
   }
 
-  /// \brief Compares this \see spOutputAttachmentDescription with the \a other description for equality.
+  /// \brief Compares this \a spOutputAttachmentDescription with the \a other description for equality.
   EZ_ALWAYS_INLINE bool operator==(const spOutputAttachmentDescription& other) const
   {
     return m_eFormat == other.m_eFormat;
   }
 
-  /// \brief Compares this \see spOutputAttachmentDescription with the \a other description for inequality.
+  /// \brief Compares this \a spOutputAttachmentDescription with the \a other description for inequality.
   EZ_ALWAYS_INLINE bool operator!=(const spOutputAttachmentDescription& other) const
   {
     return !(*this == other);
@@ -37,7 +34,7 @@ struct spOutputAttachmentDescription : public ezHashableStruct<spOutputAttachmen
 };
 
 /// \brief Describes a set of output attachments and their formats.
-struct SP_RHI_DLL spOutputDescription : public ezHashableStruct<spOutputDescription>
+struct SP_RHI_DLL spOutputDescription : ezHashableStruct<spOutputDescription>
 {
   /// \brief Creates an output attachment from the given spFramebuffer.
   /// \param [in] pFramebuffer A pointer to a spFramebuffer object to copy the output description from.
@@ -60,14 +57,14 @@ struct SP_RHI_DLL spOutputDescription : public ezHashableStruct<spOutputDescript
   /// \brief The number of samples to use for each output attachment.
   ezEnum<spTextureSampleCount> m_eSampleCount;
 
-  /// \brief Compares this \see spOutputDescription with the \a other for equality.
+  /// \brief Compares this \a spOutputDescription with the \a other for equality.
   EZ_ALWAYS_INLINE bool operator==(const spOutputDescription& other) const
   {
     return m_bUseDepthAttachment == other.m_bUseDepthAttachment && m_DepthAttachment == other.m_DepthAttachment &&
            m_ColorAttachments == other.m_ColorAttachments && m_eSampleCount == other.m_eSampleCount;
   }
 
-  /// \brief Compares this \see spOutputDescription with the \a other for inequality.
+  /// \brief Compares this \a spOutputDescription with the \a other for inequality.
   EZ_ALWAYS_INLINE bool operator!=(const spOutputDescription& other) const
   {
     return !(*this == other);

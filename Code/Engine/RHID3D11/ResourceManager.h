@@ -10,6 +10,8 @@ class spDeviceD3D11;
 
 class SP_RHID3D11_DLL spDeviceResourceManagerD3D11 final : public spDefaultDeviceResourceManager
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spDeviceResourceManagerD3D11, spDefaultDeviceResourceManager);
+
   // spDeviceResourceManagerD3D11
 
 public:
@@ -217,5 +219,3 @@ private:
 
   ezMutex m_Mutex;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spDeviceResourceManagerD3D11);

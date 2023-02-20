@@ -3,7 +3,12 @@
 #include <RHI/Device.h>
 #include <RHI/Pipeline.h>
 
-#pragma region spComputePipeline
+#pragma region spPipeline
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spPipeline, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 ezSharedPtr<spResourceLayout> spPipeline::GetResourceLayout(ezUInt32 uiSlot) const
 {
@@ -15,6 +20,11 @@ ezSharedPtr<spResourceLayout> spPipeline::GetResourceLayout(ezUInt32 uiSlot) con
 
 #pragma region spComputePipeline
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spComputePipeline, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 spComputePipeline::spComputePipeline(spComputePipelineDescription description)
   : spPipeline()
   , m_Description(std::move(description))
@@ -24,6 +34,11 @@ spComputePipeline::spComputePipeline(spComputePipelineDescription description)
 #pragma endregion
 
 #pragma region spGraphicPipeline
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spGraphicPipeline, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 spGraphicPipeline::spGraphicPipeline(spGraphicPipelineDescription description)
   : spPipeline()

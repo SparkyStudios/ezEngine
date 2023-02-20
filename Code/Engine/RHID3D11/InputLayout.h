@@ -8,6 +8,8 @@ class spDeviceD3D11;
 
 class SP_RHID3D11_DLL spInputLayoutD3D11 final : public spInputLayout
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spInputLayoutD3D11, spInputLayout);
+
   // spDeviceResource
 
 public:
@@ -17,8 +19,6 @@ public:
   // spInputLayoutD3D11
 
 public:
-  spInputLayoutD3D11(spDeviceD3D11* pDevice, const spInputLayoutDescription& desc);
-  ~spInputLayoutD3D11();
+  spInputLayoutD3D11(spDeviceD3D11* pDevice, const spInputLayoutDescription& description);
+  ~spInputLayoutD3D11() override;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spInputLayoutD3D11);

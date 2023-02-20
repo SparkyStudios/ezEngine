@@ -3,12 +3,24 @@
 #include <RHI/Device.h>
 #include <RHI/Shader.h>
 
-#pragma region spShaderPipeline
+#pragma region spShaderProgram
 
-spShaderPipeline::spShaderPipeline(ezDynamicArray<spResourceHandle> inputLayouts, spResourceHandle hShaderProgram)
-  : ezHashableStruct<spShaderPipeline>()
-  , m_InputLayouts(std::move(inputLayouts))
-  , m_hShaderProgram(hShaderProgram)
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spShaderProgram, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
+#pragma endregion
+
+#pragma region spShader
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spShader, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
+spShader::spShader(spShaderDescription description)
+  : m_Description(std::move(description))
 {
 }
 

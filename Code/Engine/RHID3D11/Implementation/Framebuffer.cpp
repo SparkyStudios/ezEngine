@@ -5,6 +5,11 @@
 #include <RHID3D11/Framebuffer.h>
 #include <RHID3D11/Texture.h>
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spFramebufferD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 void spFramebufferD3D11::SetDebugName(ezStringView sDebugName)
 {
   spFramebuffer::SetDebugName(sDebugName);

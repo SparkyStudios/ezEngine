@@ -5,7 +5,7 @@
 #include <RHI/Core.h>
 #include <RHI/Resource.h>
 
-/// \brief Describes a sampler resource, for creation with a \see spDeviceResourceFactory.
+/// \brief Describes a sampler resource, for creation with a \a spDeviceResourceFactory.
 struct spSamplerDescription : ezHashableStruct<spSamplerDescription>
 {
   /// \brief Describes a common point filter sampler, with wrapping address mode.
@@ -74,7 +74,7 @@ struct spSamplerDescription : ezHashableStruct<spSamplerDescription>
   /// \brief The wrapping mode over the Z axis.
   ezEnum<spSamplerAddressMode> m_eAddressModeR{spSamplerAddressMode::Default};
 
-  /// \brief The border color when the wrapping mode is set to \see spSamplerWrapMode::BorderColor
+  /// \brief The border color when the wrapping mode is set to \a spSamplerWrapMode::BorderColor
   ezColor m_BorderColor{ezColor::Black};
 
   /// \brief The maximum anisotropy.
@@ -95,20 +95,21 @@ struct spSamplerDescription : ezHashableStruct<spSamplerDescription>
 
 class SP_RHI_DLL spSamplerState : public spDeviceResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spSamplerState, spDeviceResource);
+
 public:
   EZ_NODISCARD virtual spSamplerDescription GetSamplerDescription() const = 0;
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spSamplerState);
 
 class SP_RHI_DLL spSampler : public spShaderResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spSampler, spShaderResource);
+
 public:
   EZ_NODISCARD virtual ezSharedPtr<spSamplerState> GetSamplerWithMipMap() const = 0;
 
   EZ_NODISCARD virtual ezSharedPtr<spSamplerState> GetSamplerWithoutMipMap() const = 0;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spSampler);
 
 #include <RHI/Implementation/Sampler_inl.h>

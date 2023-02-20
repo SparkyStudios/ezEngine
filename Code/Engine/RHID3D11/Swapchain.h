@@ -18,6 +18,8 @@ class spTextureD3D11;
 
 class SP_RHID3D11_DLL spRenderingSurfaceWin32 final : public spRenderingSurface
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spRenderingSurfaceWin32, spRenderingSurface);
+
 public:
   spRenderingSurfaceWin32(HWND pHWND, HINSTANCE pInstance, bool bIsFullscreen = false)
     : m_pHWND(pHWND)
@@ -38,11 +40,11 @@ private:
   bool m_bIsFullscreen{false};
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spRenderingSurfaceWin32);
-
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
 class SP_RHID3D11_DLL spRenderingSurfaceUWP final : public spRenderingSurface
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spRenderingSurfaceUWP, spRenderingSurface);
+
 public:
   spRenderingSurfaceUWP(void* pSwapchainPanelNative, float fLogicalDpi)
     : m_pSwapchainPanelNative(pSwapchainPanelNative)
@@ -57,14 +59,14 @@ private:
   void* m_pSwapchainPanelNative;
   float m_fLogicalDpi;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spRenderingSurfaceUWP);
 #endif
 
 class SP_RHID3D11_DLL spSwapchainD3D11 final : public spSwapchain
 {
   friend class spDeviceResourceFactoryD3D11;
   friend class spCommandListD3D11;
+
+  EZ_ADD_DYNAMIC_REFLECTION(spSwapchainD3D11, spSwapchain);
 
 public:
   // spDeviceResource
@@ -108,5 +110,3 @@ private:
   ezMutex m_CLsLock;
   ezList<spCommandListD3D11*> m_DependentCommandLists;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spSwapchainD3D11);
