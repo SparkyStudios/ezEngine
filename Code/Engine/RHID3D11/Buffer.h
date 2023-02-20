@@ -13,6 +13,8 @@ class SP_RHID3D11_DLL spBufferD3D11 final : public spBuffer, public spDeferredDe
 {
   friend class spDeviceResourceFactoryD3D11;
 
+  EZ_ADD_DYNAMIC_REFLECTION(spBufferD3D11, spBuffer);
+
 public:
   ~spBufferD3D11() override;
 
@@ -81,11 +83,11 @@ private:
   ezMutex m_AccessViewLock;
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spBufferD3D11);
-
 class SP_RHID3D11_DLL spBufferRangeD3D11 final : public spBufferRange
 {
   friend class spDeviceResourceFactoryD3D11;
+
+  EZ_ADD_DYNAMIC_REFLECTION(spBufferRangeD3D11, spBufferRange);
 
   // spDeviceResource
 
@@ -124,5 +126,3 @@ private:
   spBufferD3D11* m_pBuffer{nullptr};
   ezSharedPtr<spFenceD3D11> m_pFence{nullptr};
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spBufferRangeD3D11);

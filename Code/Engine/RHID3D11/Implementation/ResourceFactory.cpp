@@ -16,6 +16,11 @@
 #include <RHID3D11/Swapchain.h>
 #include <RHID3D11/Texture.h>
 
+// clang-format off
+EZ_BEGIN_STATIC_REFLECTED_TYPE(spDeviceResourceFactoryD3D11, spDeviceResourceFactory, 1, ezRTTINoAllocator)
+EZ_END_STATIC_REFLECTED_TYPE;
+// clang-format on
+
 ezSharedPtr<spShader> spDeviceResourceFactoryD3D11::CreateShader(const spShaderDescription& description)
 {
   ezSharedPtr<spShader> pShader = EZ_NEW(m_pDevice->GetAllocator(), spShaderD3D11, m_pDevice, description);

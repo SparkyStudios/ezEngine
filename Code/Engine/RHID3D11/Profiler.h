@@ -11,6 +11,8 @@ class SP_RHID3D11_DLL spFrameProfilerD3D11 final : public spFrameProfiler
 {
   friend class spScopeProfilerD3D11;
 
+  EZ_ADD_DYNAMIC_REFLECTION(spFrameProfilerD3D11, spFrameProfiler);
+
   // spDeviceResource
 
 public:
@@ -38,11 +40,11 @@ private:
   double m_fInvTicksPerSecond{-1.0};
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spFrameProfilerD3D11);
-
 /// \brief A profiler used for scope.
 class SP_RHID3D11_DLL spScopeProfilerD3D11 final : public spScopeProfiler
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spScopeProfilerD3D11, spScopeProfiler);
+
   // spDeviceResource
 
 public:
@@ -76,5 +78,3 @@ private:
   ID3D11Query* m_pBeginQuery{nullptr};
   ID3D11Query* m_pEndQuery{nullptr};
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spScopeProfilerD3D11);

@@ -38,17 +38,17 @@ struct spInputElementDescription : ezHashableStruct<spInputElementDescription>
     m_sName.Assign(szName);
   }
 
-  /// \brief Compares this \see InputElementDescription with the given \a other description for equality.
+  /// \brief Compares this \a spInputElementDescription with the given \a other description for equality.
   EZ_ALWAYS_INLINE bool operator==(const spInputElementDescription& other) const
   {
     return other.m_sName == m_sName && other.m_eSemantic == m_eSemantic && other.m_eFormat == m_eFormat && other.m_uiOffset == m_uiOffset;
   }
 
-  /// \brief Compares this \see InputElementDescription with the given \a other description for inequality.
+  /// \brief Compares this \a spInputElementDescription with the given \a other description for inequality.
   EZ_ALWAYS_INLINE bool operator!=(const spInputElementDescription& other) const { return !(*this == other); }
 };
 
-struct spInputLayoutDescription : public ezHashableStruct<spInputLayoutDescription>
+struct spInputLayoutDescription : ezHashableStruct<spInputLayoutDescription>
 {
   ezUInt32 m_uiStride{0};
   ezDynamicArray<spInputElementDescription> m_Elements{};
@@ -102,7 +102,7 @@ struct spInputLayoutDescription : public ezHashableStruct<spInputLayoutDescripti
     return *this;
   }
 
-  /// \brief Compares this \see InputLayoutDescription with the given \a other description for equality.
+  /// \brief Compares this \a spInputLayoutDescription with the given \a other description for equality.
   EZ_ALWAYS_INLINE bool operator==(const spInputLayoutDescription& other) const
   {
     bool bElementsAreEquals = true;
@@ -118,23 +118,20 @@ struct spInputLayoutDescription : public ezHashableStruct<spInputLayoutDescripti
     return bElementsAreEquals && m_uiStride == other.m_uiStride && m_uiInstanceStepRate == other.m_uiInstanceStepRate;
   }
 
-  /// \brief Compares this \see InputLayoutDescription with the given \a other description for inequality.
+  /// \brief Compares this \a spInputLayoutDescription with the given \a other description for inequality.
   EZ_ALWAYS_INLINE bool operator!=(const spInputLayoutDescription& other) const { return !(*this == other); }
 };
 
 /// \brief Base class for an input layout.
 class SP_RHI_DLL spInputLayout : public spMappableResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spInputLayout, spMappableResource);
+
 public:
   EZ_NODISCARD EZ_ALWAYS_INLINE const spInputLayoutDescription& GetDescription() const { return m_Description; }
 
 protected:
-  spInputLayout(spInputLayoutDescription description)
-    : m_Description(std::move(description))
-  {
-  }
+  explicit spInputLayout(spInputLayoutDescription description);
 
   spInputLayoutDescription m_Description;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spInputLayout);

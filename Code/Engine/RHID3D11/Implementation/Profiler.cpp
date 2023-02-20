@@ -9,6 +9,11 @@
 
 #pragma region spFrameProfilerD3D11
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spFrameProfilerD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 void spFrameProfilerD3D11::ReleaseResource()
 {
   if (IsReleased())
@@ -88,6 +93,11 @@ spFrameProfilerD3D11::~spFrameProfilerD3D11()
 #pragma endregion
 
 #pragma region spScopeProfilerD3D11
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spScopeProfilerD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 void spScopeProfilerD3D11::ReleaseResource()
 {
@@ -170,3 +180,5 @@ ezTime spScopeProfilerD3D11::GetTime(ID3D11Query* pQuery)
 }
 
 #pragma endregion
+
+EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Profiler);

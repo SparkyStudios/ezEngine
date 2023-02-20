@@ -8,7 +8,10 @@ EZ_STATICLINK_LIBRARY(RHI)
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Buffer);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_CommandList);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Device);
+  EZ_STATICLINK_REFERENCE(RHI_Implementation_Factory);
+  EZ_STATICLINK_REFERENCE(RHI_Implementation_Fence);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Framebuffer);
+  EZ_STATICLINK_REFERENCE(RHI_Implementation_Input);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Output);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Pipeline);
   EZ_STATICLINK_REFERENCE(RHI_Implementation_Profiler);

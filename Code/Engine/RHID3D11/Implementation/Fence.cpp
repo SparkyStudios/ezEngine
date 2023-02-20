@@ -3,6 +3,11 @@
 #include <RHID3D11/Device.h>
 #include <RHID3D11/Fence.h>
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spFenceD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 void spFenceD3D11::ReleaseResource()
 {
   if (IsReleased())
@@ -51,7 +56,7 @@ bool spFenceD3D11::Wait(ezTime timeout)
 }
 
 spFenceD3D11::spFenceD3D11(spDeviceD3D11* pDevice, const spFenceDescription& description)
-  : spFence()
+  : spFence(description)
   , m_ThreadSignal(ezThreadSignal::Mode::ManualReset)
 {
   m_pDevice = pDevice;

@@ -10,6 +10,8 @@ class SP_RHID3D11_DLL spTextureD3D11 final : public spTexture, public spDeferred
 {
   friend class spTextureViewD3D11;
 
+  EZ_ADD_DYNAMIC_REFLECTION(spTextureD3D11, spTexture);
+
 public:
   // spDeviceResource
 
@@ -33,11 +35,6 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE DXGI_FORMAT GetDXGIFormat() const { return m_eFormat; }
 
 private:
-  spTextureD3D11(spTextureDescription description)
-    : spTexture(std::move(description))
-  {
-  }
-
   ID3D11Device* m_pD3D11Device{nullptr};
   ID3D11Resource* m_pTexture{nullptr};
 
@@ -49,10 +46,10 @@ private:
   ezSharedPtr<spTextureD3D11> m_pParentTexture{nullptr};
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spTextureD3D11);
-
 class SP_RHID3D11_DLL spTextureViewD3D11 : public spTextureView, public spDeferredDeviceResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spTextureViewD3D11, spTextureView);
+
 public:
   // spDeviceResource
 
@@ -77,8 +74,6 @@ private:
   ID3D11ShaderResourceView* m_pShaderResourceView{nullptr};
   ID3D11UnorderedAccessView* m_pUnorderedAccessView{nullptr};
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spTextureViewD3D11);
 
 class SP_RHID3D11_DLL spTextureSamplerManagerD3D11 final : public spTextureSamplerManager
 {

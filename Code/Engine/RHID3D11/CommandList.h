@@ -18,9 +18,11 @@ class spTextureViewD3D11;
 class spSwapchainD3D11;
 class spScopeProfilerD3D11;
 
-class spCommandListD3D11 final : public spCommandList
+class SP_RHID3D11_DLL spCommandListD3D11 final : public spCommandList
 {
   friend class spDeviceD3D11;
+
+  EZ_ADD_DYNAMIC_REFLECTION(spCommandListD3D11, spCommandList);
 
   // spDeviceResource
 
@@ -43,6 +45,7 @@ public:
   void PopDebugGroup() override;
   void InsertDebugMarker(ezStringView sName) override;
   void End() override;
+  void Reset() override;
 
 protected:
   void ClearColorTargetInternal(ezUInt32 uiIndex, ezColor clearColor) override;
@@ -63,14 +66,11 @@ protected:
   void CopyTextureInternal(ezSharedPtr<spTexture> pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, ezSharedPtr<spTexture> pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount) override;
   void GenerateMipmapsInternal(ezSharedPtr<spTexture> pTexture) override;
 
-
   // spCommandListD3D11
 
 public:
   spCommandListD3D11(spDeviceD3D11* pDeviceD3D11, const spCommandListDescription& description);
   ~spCommandListD3D11() override;
-
-  void Reset();
 
   EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11CommandList* GetD3D11CommandList() const { return m_pCommandList; }
 
@@ -82,9 +82,9 @@ private:
 
   struct BoundTextureInfo
   {
-    ezUInt32 m_uiSlot;
+    ezUInt32 m_uiSlot{0};
     ezBitflags<spShaderStage> m_eStages;
-    ezUInt32 m_uiResourceSet;
+    ezUInt32 m_uiResourceSet{0};
   };
 
   void ClearState();
@@ -190,7 +190,5 @@ private:
   ezList<ezSharedPtr<spBufferD3D11>> m_FreeBuffers;
   ezList<ezSharedPtr<spBufferD3D11>> m_SubmittedStagingBuffers;
 
-  ezList<ezSharedPtr<spSwapchainD3D11>> m_ReferencedSwapchains;
+  ezList<ezSharedPtr<spSwapchainD3D11>> m_ReferencedSwapchainList;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spCommandListD3D11);

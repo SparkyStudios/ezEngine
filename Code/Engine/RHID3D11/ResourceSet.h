@@ -11,6 +11,8 @@ class SP_RHID3D11_DLL spResourceSetD3D11 final : public spResourceSet
 {
   friend class spDeviceResourceFactoryD3D11;
 
+  EZ_ADD_DYNAMIC_REFLECTION(spResourceSetD3D11, spResourceSet);
+
 public:
   // spDeviceResource
 
@@ -28,5 +30,3 @@ private:
   ezSharedPtr<spResourceLayoutD3D11> m_pLayout{nullptr};
   ezDynamicArray<ezSharedPtr<spShaderResource>> m_Resources;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spResourceSetD3D11);

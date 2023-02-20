@@ -29,4 +29,18 @@ ezUInt32 spFramebufferAttachment::GetMipLevel() const
 
 #pragma endregion
 
+#pragma region spFramebuffer
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spFramebuffer, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
+spFramebuffer::spFramebuffer(spFramebufferDescription description)
+  : m_Description(std::move(description))
+{
+}
+
+#pragma endregion
+
 EZ_STATICLINK_FILE(RHI, RHI_Implementation_Framebuffer);

@@ -7,6 +7,19 @@
 #include <RHID3D11/Swapchain.h>
 #include <RHID3D11/Texture.h>
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderingSurfaceWin32, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+
+#if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderingSurfaceWin32, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+#endif
+
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSwapchainD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 void spSwapchainD3D11::ReleaseResource()
 {
   if (IsReleased())
@@ -145,7 +158,7 @@ void spSwapchainD3D11::Present()
 
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
   // Since the swap chain can't be in discard mode, we do the discarding ourselves.
-  ID3D11DeviceContext1* pDeviceContext1 = nullptr;
+  spScopedD3D11Resource<ID3D11DeviceContext1> pDeviceContext1 = nullptr;
   if (FAILED(ezStaticCast<spDeviceD3D11*>(m_pDevice)->GetD3D11DeviceContext()->QueryInterface(&pDeviceContext1)))
   {
     ezLog::Error("Failed to query ID3D11pDeviceContext1.");

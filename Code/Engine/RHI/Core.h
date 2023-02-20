@@ -33,16 +33,16 @@ struct SP_RHI_DLL spViewport : ezHashableStruct<spViewport>
 {
   EZ_ALWAYS_INLINE static spViewport From(ezRectI32 viewport)
   {
-    return spViewport(
+    return {
       viewport.x,
       viewport.y,
       static_cast<ezUInt32>(viewport.width),
       static_cast<ezUInt32>(viewport.height),
       0.0f,
-      1.0f);
+      1.0f};
   }
 
-  /// \brief Creates a new \see Viewport instance.
+  /// \brief Creates a new \a spViewport instance.
   /// \param iX The position over the X-axis of the viewport origin.
   /// \param iY The position over the Y-axis of the viewport origin.
   /// \param uiWidth The viewport width.
@@ -50,7 +50,7 @@ struct SP_RHI_DLL spViewport : ezHashableStruct<spViewport>
   /// \param fMinDepth The viewport minimum depth.
   /// \param fMaxDepth The viewport maximum depth.
   spViewport(ezInt32 iX, ezInt32 iY, ezUInt32 uiWidth, ezUInt32 uiHeight, float fMinDepth, float fMaxDepth)
-    : ezHashableStruct<spViewport>()
+    : ezHashableStruct()
     , m_iX(iX)
     , m_iY(iY)
     , m_uiWidth(uiWidth)
@@ -63,13 +63,13 @@ struct SP_RHI_DLL spViewport : ezHashableStruct<spViewport>
   /// \brief Gets the aspect ratio of this viewport.
   EZ_NODISCARD EZ_ALWAYS_INLINE float GetAspectRatio() const { return static_cast<float>(m_uiWidth) / m_uiHeight; }
 
-  /// \brief Compares this \see spViewport to an \a other instance for equality.
+  /// \brief Compares this \a spViewport to an \a other instance for equality.
   EZ_ALWAYS_INLINE bool operator==(const spViewport& other) const
   {
     return m_iX == other.m_iX && m_iY == other.m_iY && m_uiWidth == other.m_uiWidth && m_uiHeight == other.m_uiHeight && ezMath::IsEqual(m_fMinDepth, other.m_fMinDepth, ezMath::FloatEpsilon<float>()) && ezMath::IsEqual(m_fMaxDepth, other.m_fMaxDepth, ezMath::FloatEpsilon<float>());
   }
 
-  /// \brief Compares this \see spViewport to an \a other instance for inequality.
+  /// \brief Compares this \a spViewport to an \a other instance for inequality.
   EZ_ALWAYS_INLINE bool operator!=(const spViewport& other) const
   {
     return !(*this == other);
@@ -113,7 +113,7 @@ struct SP_RHI_DLL spGraphicsApi
 };
 
 /// \brief Stores the version of the currently loaded graphics API.
-/// This value should be accessed from the \see spDevice instance.
+/// This value should be accessed from the \a spDevice instance.
 struct SP_RHI_DLL spGraphicsApiVersion
 {
   spGraphicsApiVersion() = default;
@@ -480,7 +480,7 @@ struct SP_RHI_DLL spTextureSampleCount
   }
 };
 
-/// \brief Identifies how a \see spMappedResource will be mapped into CPU address space.
+/// \brief Identifies how a \a spMappedResource will be mapped into CPU address space.
 struct SP_RHI_DLL spMapAccess
 {
   typedef ezUInt8 StorageType;
@@ -493,7 +493,7 @@ struct SP_RHI_DLL spMapAccess
     Read,
 
     /// \brief A write-only resource mapping. The mapped data region is writable, and will be transferred into the graphics resource
-    /// when \see spDevice::UnMap() is called.
+    /// when \a spDevice::UnMap() is called.
     /// \note Upon mapping a buffer with this mode, the previous contents of the resource will be erased.
     /// This mode can only be used to entirely replace the contents of a resource.
     Write,
@@ -506,36 +506,36 @@ struct SP_RHI_DLL spMapAccess
   };
 };
 
-/// \brief Specifies the type of \see spShaderResource bound to a resource layout.
+/// \brief Specifies the type of \a spShaderResource bound to a resource layout.
 struct SP_RHI_DLL spShaderResourceType
 {
   typedef ezUInt8 StorageType;
 
   enum Enum : StorageType
   {
-    /// \brief A \see spBuffer accessed as a constant buffer. Uploads are synced between CPU and GPU.
+    /// \brief A \a spBuffer accessed as a constant buffer. Uploads are synced between CPU and GPU.
     ConstantBuffer,
 
-    /// \brief A \see spBuffer accessed as a read-only structured buffer.
+    /// \brief A \a spBuffer accessed as a read-only structured buffer.
     ReadOnlyStructuredBuffer,
 
-    /// \brief A \see spBuffer accessed as a read-write structured buffer.
+    /// \brief A \a spBuffer accessed as a read-write structured buffer.
     ReadWriteStructuredBuffer,
 
-    /// \brief A \see spTexture accessed as a texture or texture view with read-only capabilities.
+    /// \brief A \a spTexture accessed as a texture or texture view with read-only capabilities.
     ReadOnlyTexture,
 
-    /// \brief A \see spTexture accessed as a texture or texture view with read-write capabilities.
+    /// \brief A \a spTexture accessed as a texture or texture view with read-write capabilities.
     ReadWriteTexture,
 
-    /// \brief A \see spSampler.
+    /// \brief A \a spSampler.
     Sampler,
 
     Default = ConstantBuffer
   };
 };
 
-/// \brief Specifies the allows shader stage a \see spShaderResource
+/// \brief Specifies the allows shader stage a \a spShaderResource
 /// can be bound to.
 struct SP_RHI_DLL spShaderStage
 {
@@ -618,25 +618,25 @@ struct SP_RHI_DLL spShaderSpecializationConstantType
   };
 };
 
-/// \brief A flag that indicates the possible usage for a \see spTexture resource.
+/// \brief A flag that indicates the possible usage for a \a spTexture resource.
 struct SP_RHI_DLL spTextureUsage
 {
   typedef ezUInt8 StorageType;
 
   enum Enum : StorageType
   {
-    /// \brief The \see spTexture can be used as the target of a read-only \see spTextureView,
+    /// \brief The \a spTexture can be used as the target of a read-only \a spTextureView,
     /// and can be accessed from shaders.
     Sampled = EZ_BIT(0),
 
-    /// \brief The \see spTexture can be used as the target of a read-write \see spTextureView,
+    /// \brief The \a spTexture can be used as the target of a read-write \a spTextureView,
     /// and can be accessed from shaders.
     Storage = EZ_BIT(1),
 
-    /// \brief The texture is used as a color target of a \see spFramebuffer.
+    /// \brief The texture is used as a color target of a \a spFramebuffer.
     RenderTarget = EZ_BIT(2),
 
-    /// \brief The texture is used as a depth target of a \see spFramebuffer.
+    /// \brief The texture is used as a depth target of a \a spFramebuffer.
     DepthStencil = EZ_BIT(3),
 
     /// \brief The texture is used as a 2D cubemap.
@@ -665,7 +665,7 @@ struct SP_RHI_DLL spTextureUsage
 
 EZ_DECLARE_FLAGS_OPERATORS(spTextureUsage);
 
-/// \brief Specifies the dimension of a \see spTexture.
+/// \brief Specifies the dimension of a \a spTexture.
 struct SP_RHI_DLL spTextureDimension
 {
   typedef ezUInt8 StorageType;
@@ -685,7 +685,7 @@ struct SP_RHI_DLL spTextureDimension
   };
 };
 
-/// \brief Specifies the wrapping mode applied to a \see spSampler.
+/// \brief Specifies the wrapping mode applied to a \a spSampler.
 struct SP_RHI_DLL spSamplerAddressMode
 {
   typedef ezUInt8 StorageType;
@@ -711,7 +711,7 @@ struct SP_RHI_DLL spSamplerAddressMode
   };
 };
 
-/// \brief Specifies the filtering mode applied to a \see spSampler.
+/// \brief Specifies the filtering mode applied to a \a spSampler.
 struct SP_RHI_DLL spSamplerFilter
 {
   typedef ezUInt8 StorageType;
@@ -856,7 +856,7 @@ struct spBufferUsage
 
 EZ_DECLARE_FLAGS_OPERATORS(spBufferUsage);
 
-/// \brief The format of data in an \see spIndexBuffer.
+/// \brief The format of data in an \a spIndexBuffer.
 struct spIndexFormat
 {
   using StorageType = ezUInt8;
@@ -1081,7 +1081,7 @@ struct SP_RHI_DLL spInputElementFormat
 };
 
 /// \brief The default location semantics used by input elements.
-/// Can be extended by using the \see spInputElementLocationSemantic::Last value
+/// Can be extended by using the \a spInputElementLocationSemantic::Last value
 /// and adding the desired offset.
 struct SP_RHI_DLL spInputElementLocationSemantic
 {
@@ -1090,43 +1090,43 @@ struct SP_RHI_DLL spInputElementLocationSemantic
   enum Enum : StorageType
   {
     /// \brief Defines an input layout element storing vertices positions
-    /// data. Use the location 0 of the \see ShaderPipeline.
+    /// data. Use the location 0 of the \a ShaderPipeline.
     Position = 0,
 
     /// \brief Defines an input layout element vertices normal vectors
-    /// data. Use the location 1 of the \see ShaderPipeline.
+    /// data. Use the location 1 of the \a ShaderPipeline.
     Normal = 1,
 
     /// \brief Defines an input layout element vertices tangent vectors
-    /// data. Use the location 2 of the \see ShaderPipeline.
+    /// data. Use the location 2 of the \a ShaderPipeline.
     Tangent = 2,
 
     /// \brief Defines an input layout element vertices bi-tangent vectors
-    /// data. Use the location 3 of the \see ShaderPipeline.
+    /// data. Use the location 3 of the \a ShaderPipeline.
     BiTangent = 3,
 
     /// \brief Defines an input layout element storing texture coordinates
-    /// data. Use the location 4 of the \see ShaderPipeline.
+    /// data. Use the location 4 of the \a ShaderPipeline.
     TexCoord0 = 4,
 
     /// \brief Defines an input layout element storing texture coordinates
-    /// data. Use the location 5 of the \see ShaderPipeline.
+    /// data. Use the location 5 of the \a ShaderPipeline.
     TexCoord1 = 5,
 
     /// \brief Defines an input layout element storing vertex color
-    /// data. Use the location 6 of the \see ShaderPipeline.
+    /// data. Use the location 6 of the \a ShaderPipeline.
     Color0 = 6,
 
     /// \brief Defines an input layout element storing vertex color
-    /// data. Use the location 7 of the \see ShaderPipeline.
+    /// data. Use the location 7 of the \a ShaderPipeline.
     Color1 = 7,
 
     /// \brief Defines an input layout element storing bones weights
-    /// data. Use the location 8 of the \see ShaderPipeline.
+    /// data. Use the location 8 of the \a ShaderPipeline.
     BoneWeights0 = 8,
 
     /// \brief Defines an input layout element storing bones indices
-    /// data. Use the location 9 of the \see ShaderPipeline.
+    /// data. Use the location 9 of the \a ShaderPipeline.
     BoneIndices0 = 9,
 
     /// \brief Defines the last possible value for input layout element managed
@@ -1137,7 +1137,7 @@ struct SP_RHI_DLL spInputElementLocationSemantic
   };
 };
 
-/// \brief Defines some options for a \see spResourceLayoutElementDescription
+/// \brief Defines some options for a \a spResourceLayoutElementDescription
 struct SP_RHI_DLL spResourceLayoutElementOptions
 {
   typedef ezUInt32 StorageType;
@@ -1147,11 +1147,11 @@ struct SP_RHI_DLL spResourceLayoutElementOptions
     /// \brief No special options
     None = 0,
 
-    /// \brief Can be applied to a buffer resource type (\see spShaderResourceType::ReadOnlyBuffer,
-    /// \see spShaderResourceType::ReadWriteBuffer, or \see spShaderResourceType::UniformBuffer), allowing it to be
-    /// bound with a dynamic offset using \see spCommandList::SetGraphicsResourceSet(ezUInt32, spResourceSet, ezDynamicArray<ezUInt32>).
-    /// Offsets specified this way must be a multiple of \see spDevice::GetUniformBufferMinOffsetAlignment() or
-    /// \see spDevice::GetStructuredBufferMinOffsetAlignment().
+    /// \brief Can be applied to a buffer resource type (\a spShaderResourceType::ReadOnlyBuffer,
+    /// \a spShaderResourceType::ReadWriteBuffer, or \a spShaderResourceType::UniformBuffer), allowing it to be
+    /// bound with a dynamic offset using \a spCommandList::SetGraphicsResourceSet(ezUInt32, spResourceSet, ezDynamicArray<ezUInt32>).
+    /// Offsets specified this way must be a multiple of \a spDevice::GetConstantBufferMinOffsetAlignment() or
+    /// \a spDevice::GetStructuredBufferMinOffsetAlignment().
     DynamicBinding = EZ_BIT(0),
 
     Default = None,
@@ -1228,10 +1228,10 @@ struct SP_RHI_DLL spBlendFactor
     /// \brief Each component is multiplied by (1 - the matching component of the destination color).
     InverseDestinationColor,
 
-    /// \brief Each component is multiplied by the matching component in constant factor as specified in \see spBlendState::m_BlendFactor.
+    /// \brief Each component is multiplied by the matching component in constant factor as specified in \a spBlendState::m_BlendFactor.
     BlendFactor,
 
-    /// \brief Each component is multiplied by (1 - the matching component in constant factor as specified in \see spBlendState::m_BlendFactor).
+    /// \brief Each component is multiplied by (1 - the matching component in constant factor as specified in \a spBlendState::m_BlendFactor).
     InverseBlendFactor,
 
     Default = SourceAlpha,

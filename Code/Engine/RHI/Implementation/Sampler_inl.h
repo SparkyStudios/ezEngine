@@ -1,3 +1,5 @@
+#pragma once
+
 #pragma region spSamplerDescription
 
 inline const spSamplerDescription spSamplerDescription::Point = {

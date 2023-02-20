@@ -9,6 +9,8 @@ class spResourceLayoutD3D11;
 
 class SP_RHID3D11_DLL spComputePipelineD3D11 final : public spComputePipeline
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spComputePipelineD3D11, spComputePipeline);
+
   // spDeviceResource
 
 public:
@@ -28,10 +30,10 @@ private:
   ID3D11ComputeShader* m_pComputeShader{nullptr};
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spComputePipelineD3D11);
-
 class SP_RHID3D11_DLL spGraphicPipelineD3D11 final : public spGraphicPipeline
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spGraphicPipelineD3D11, spGraphicPipeline);
+
   // spDeviceResource
 
 public:
@@ -87,5 +89,3 @@ private:
 
   ezDynamicArray<ezUInt32> m_VertexStrides;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spGraphicPipelineD3D11);

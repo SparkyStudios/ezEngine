@@ -192,7 +192,7 @@ EZ_ALWAYS_INLINE static ezEnum<spPixelFormat> spFromD3D11(DXGI_FORMAT eFormat)
   }
 }
 
-/// \brief Coverts a \see spBufferUsage flags into a \see D3D11_BIND_FLAG.
+/// \brief Coverts a \a spBufferUsage flags into a \a D3D11_BIND_FLAG.
 EZ_ALWAYS_INLINE static UINT spToD3D11(ezBitflags<spBufferUsage> eUsage)
 {
   UINT flags = 0;

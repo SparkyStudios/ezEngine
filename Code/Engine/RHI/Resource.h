@@ -45,11 +45,12 @@ class spRenderTarget;
 /// \brief Abstract class for a resource on the graphics device.
 class SP_RHI_DLL spDeviceResource : public ezReflectedClass, public ezRefCounted
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spDeviceResource, ezReflectedClass);
+
   friend class spDeviceResourceManager;
 
 public:
   spDeviceResource() = default;
-  ~spDeviceResource() override = default;
 
   /// \brief Gets the handle of this resource.
   EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetHandle() const { return m_Handle; }
@@ -78,15 +79,10 @@ protected:
   bool m_bReleased{false};
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDeviceResource);
-
 /// \brief Abstract class for device resources which are created only when needed.
 class SP_RHI_DLL spDeferredDeviceResource
 {
 public:
-  spDeferredDeviceResource() = default;
-  virtual ~spDeferredDeviceResource() = default;
-
   void EnsureResourceCreated();
 
   /// \brief Gets whether the resource has been created.
@@ -105,17 +101,15 @@ EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDeferredDeviceResource);
 /// \brief Abstract class for device resources used in shaders.
 class SP_RHI_DLL spShaderResource : public spDeviceResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spShaderResource, spDeviceResource);
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spShaderResource);
 
 /// \brief Abstract class for shader resources which can be mapped to
 /// CPU memory.
 class SP_RHI_DLL spMappableResource : public spShaderResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spMappableResource, spShaderResource);
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spMappableResource);
 
 /// \brief Describes the layout of a mapped resource object.
 class SP_RHI_DLL spMappedResource : public ezRefCounted
@@ -177,26 +171,26 @@ private:
   /// \brief The size in bytes of the mapped data region.
   ezUInt32 m_uiSize{0};
 
-  /// \brief For mapped \see spTexture resources, this is the subresource which is mapped.
-  /// For \see spBuffer resources, this field has no meaning.
+  /// \brief For mapped \a spTexture resources, this is the subresource which is mapped.
+  /// For \a spBuffer resources, this field has no meaning.
   ezUInt32 m_uiSubResource{0};
 
-  /// \brief For mapped \see spTexture resources, this is the number of bytes between each row of texels.
-  /// For \see spBuffer resources, this field has no meaning.
+  /// \brief For mapped \a spTexture resources, this is the number of bytes between each row of texels.
+  /// For \a spBuffer resources, this field has no meaning.
   ezUInt32 m_uiRowPitch{0};
 
-  /// \brief For mapped \see spTexture resources, this is the number of bytes between each depth slice of a 3D Texture.
-  /// For \see spBuffer resources or 2D Textures, this field has no meaning.
+  /// \brief For mapped \a spTexture resources, this is the number of bytes between each depth slice of a 3D Texture.
+  /// For \a spBuffer resources or 2D Textures, this field has no meaning.
   ezUInt32 m_uiDepthPitch{0};
 };
 
-/// \brief A typed view of a \see spMappedResource. Provides by-reference structured
+/// \brief A typed view of a \a spMappedResource. Provides by-reference structured
 /// access to individual elements in the mapped data.
 template <typename T>
 class SP_RHI_DLL spMappedResourceView
 {
 public:
-  /// \brief The \see spMappedResource viewed by this instance.
+  /// \brief The \a spMappedResource viewed by this instance.
   EZ_NODISCARD EZ_ALWAYS_INLINE const spMappedResource& GetMappedResource() const { return m_MappedResource; }
 
   /// \brief The total size in bytes of the mapped resource.
@@ -206,7 +200,7 @@ public:
   /// This is effectively the total number of bytes divided by the size of the structure type.
   EZ_NODISCARD EZ_ALWAYS_INLINE ezInt32 GetCount() const { return m_uiCount; }
 
-  /// \brief Creates a typed view of the given \see spMappedResource.
+  /// \brief Creates a typed view of the given \a spMappedResource.
   spMappedResourceView(const spMappedResource& resource)
   {
     m_MappedResource = resource;
@@ -298,12 +292,12 @@ private:
 
 /// \brief A simple implementation of a cache key used to store mappable resources in
 /// a map. Used internally by RHI backends.
-struct SP_RHI_DLL spMappedResourceCacheKey : public ezHashableStruct<spMappedResourceCacheKey>
+struct SP_RHI_DLL spMappedResourceCacheKey : ezHashableStruct<spMappedResourceCacheKey>
 {
   spMappedResourceCacheKey() = default;
 
   spMappedResourceCacheKey(spMappableResource* pResource, ezUInt32 uiSubResource)
-    : ezHashableStruct<spMappedResourceCacheKey>()
+    : ezHashableStruct()
   {
     m_pResource = pResource;
     m_uiSubResource = uiSubResource;
@@ -335,8 +329,6 @@ class SP_RHI_DLL spDeviceResourceFactory
   friend class spDevice;
 
 public:
-  virtual ~spDeviceResourceFactory() = default;
-
   /// \brief Gets the graphics device for which resources are created.
   EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
 
@@ -354,7 +346,7 @@ public:
   ezSharedPtr<spRenderTarget> CreateRenderTarget(const spRenderTargetDescription& description);
 
   /// \brief Creates a new \a spRenderTarget resource from a framebuffer.
-  /// \param pFrameBuffer The framebuffer to create the render target from.
+  /// \param pFramebuffer The framebuffer to create the render target from.
   ezSharedPtr<spRenderTarget> CreateRenderTarget(ezSharedPtr<spFramebuffer> pFramebuffer);
 
   /// \brief Creates a new \a spRenderTarget resource from a texture.
@@ -449,9 +441,13 @@ private:
   spDevice* m_pDevice;
 };
 
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDeviceResourceFactory);
+
 /// \brief Manages resources allocation/deallocation within a graphics devices.
 class SP_RHI_DLL spDeviceResourceManager : public ezReflectedClass
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spDeviceResourceManager, ezReflectedClass);
+
   friend class spDevice;
 
 public:
@@ -469,7 +465,7 @@ public:
   /// \return The handle to the registered resource.
   ///
   /// \note The method is not meant to be called directly, otherwise, create your
-  /// resources using the \see spDeviceResourceFactory and it will do it for you.
+  /// resources using the \a spDeviceResourceFactory and it will do it for you.
   spResourceHandle RegisterResource(spDeviceResource* pResource);
 
   /// \brief Gets a registered resource from the manager using the given handle.
@@ -524,11 +520,11 @@ protected:
   spResourceTable m_RegisteredResources;
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDeviceResourceManager);
-
 /// \brief Default implementation of the resource manager. Use a queue to collect and dispose resources.
 class SP_RHI_DLL spDefaultDeviceResourceManager : public spDeviceResourceManager
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spDefaultDeviceResourceManager, spDeviceResourceManager);
+
 public:
   /// \brief Creates a new resource manager for the given device.
   /// \param pDevice The graphics device for which the resource manager will manage resources.
@@ -558,8 +554,6 @@ public:
 private:
   ezDeque<spDeviceResource*> m_ResourcesQueue;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDefaultDeviceResourceManager);
 
 class SP_RHI_DLL spResourceHelper
 {

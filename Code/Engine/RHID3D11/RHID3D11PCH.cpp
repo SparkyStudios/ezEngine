@@ -13,6 +13,7 @@ EZ_STATICLINK_LIBRARY(RHID3D11)
   EZ_STATICLINK_REFERENCE(RHID3D11_Implementation_Framebuffer);
   EZ_STATICLINK_REFERENCE(RHID3D11_Implementation_InputLayout);
   EZ_STATICLINK_REFERENCE(RHID3D11_Implementation_Pipeline);
+  EZ_STATICLINK_REFERENCE(RHID3D11_Implementation_Profiler);
   EZ_STATICLINK_REFERENCE(RHID3D11_Implementation_ResourceFactory);
   EZ_STATICLINK_REFERENCE(RHID3D11_Implementation_ResourceLayout);
   EZ_STATICLINK_REFERENCE(RHID3D11_Implementation_ResourceManager);

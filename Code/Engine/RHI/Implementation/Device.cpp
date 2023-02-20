@@ -4,6 +4,19 @@
 
 #pragma region spDevice
 
+const spMappedResource g_InvalidMappedResource = {};
+
+// clang-format off
+EZ_BEGIN_STATIC_REFLECTED_TYPE(spDevice, ezReflectedClass, 1, ezRTTINoAllocator)
+EZ_END_STATIC_REFLECTED_TYPE;
+// clang-format on
+
+spDevice::spDevice(ezAllocatorBase* pAllocator, spDeviceDescription description)
+  : m_Description(std::move(description))
+  , m_pAllocator(pAllocator)
+{
+}
+
 void spDevice::SubmitCommandList(ezSharedPtr<spCommandList> pCommandList)
 {
   SubmitCommandList(pCommandList, nullptr);
@@ -50,7 +63,7 @@ const spMappedResource& spDevice::Map(ezSharedPtr<spMappableResource> pResource,
   if (pResource == nullptr)
   {
     EZ_ASSERT_DEV(pResource != nullptr, "Trying to map a resource that was not registered in the resource manager of the device. If you have created this resource without the resource factory, you should register it yourself.");
-    return m_InvalidDefaultMappedResource;
+    return g_InvalidMappedResource;
   }
 
   if (pResource->IsInstanceOf<spBuffer>())
@@ -71,7 +84,7 @@ const spMappedResource& spDevice::Map(ezSharedPtr<spMappableResource> pResource,
   }
 
   EZ_ASSERT_NOT_IMPLEMENTED;
-  return m_InvalidDefaultMappedResource;
+  return g_InvalidMappedResource;
 }
 
 void spDevice::UnMap(ezSharedPtr<spMappableResource> pResource, ezUInt32 uiSubresource)

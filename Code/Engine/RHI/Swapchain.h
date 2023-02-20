@@ -8,22 +8,18 @@
 /// \brief A platform-specific rendering surface.
 class SP_RHI_DLL spRenderingSurface : public ezReflectedClass
 {
-protected:
-  spRenderingSurface() = default;
-  ~spRenderingSurface() override = default;
+  EZ_ADD_DYNAMIC_REFLECTION(spRenderingSurface, ezReflectedClass);
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spRenderingSurface);
-
-struct spSwapchainDescription : public ezHashableStruct<spSwapchainDescription>
+struct spSwapchainDescription : ezHashableStruct<spSwapchainDescription>
 {
   spSwapchainDescription()
-    : ezHashableStruct<spSwapchainDescription>()
+    : ezHashableStruct()
   {
   }
 
   spSwapchainDescription(ezUInt32 uiWidth, ezUInt32 uiHeight, const ezEnum<spPixelFormat>& eDepthFormat = spPixelFormat::Default, bool bUseSrgb = false, bool bVSync = false)
-    : ezHashableStruct<spSwapchainDescription>()
+    : ezHashableStruct()
     , m_uiWidth(uiWidth)
     , m_uiHeight(uiHeight)
     , m_eDepthFormat(eDepthFormat)
@@ -32,7 +28,7 @@ struct spSwapchainDescription : public ezHashableStruct<spSwapchainDescription>
   {
   }
 
-  /// \brief The \see spRenderingSurface to use as the target of rendering operations.
+  /// \brief The \a spRenderingSurface to use as the target of rendering operations.
   spRenderingSurface* m_pRenderingSurface{nullptr};
 
   /// \brief The swapchain width.
@@ -42,7 +38,7 @@ struct spSwapchainDescription : public ezHashableStruct<spSwapchainDescription>
   ezUInt32 m_uiHeight{0};
 
   /// \brief Enables the usage of a depth texture in the swapchain.
-  /// \note When this value is true, a suitable value must be set to \see m_eDepthFormat.
+  /// \note When this value is true, a suitable value must be set to \a m_eDepthFormat.
   bool m_bUseDepthTexture{false};
 
   /// \brief The swapchain's depth target pixel format.
@@ -59,8 +55,10 @@ class SP_RHI_DLL spSwapchain : public spDeviceResource
 {
   friend class spDeviceResourceFactory;
 
+  EZ_ADD_DYNAMIC_REFLECTION(spSwapchain, spDeviceResource);
+
 public:
-  /// \brief The \see spFramebuffer representing the render target of this swapchain.
+  /// \brief The \a spFramebuffer representing the render target of this swapchain.
   EZ_NODISCARD virtual ezSharedPtr<spFramebuffer> GetFramebuffer() const = 0;
 
   /// \brief Sets if the swapchain uses vertical synchronization with the display refresh rate.
@@ -70,7 +68,7 @@ public:
   /// \brief Returns whether the swapchain has VSync enabled.
   EZ_NODISCARD virtual bool GetVSync() const = 0;
 
-  /// \brief Resizes the \see spFramebuffer of this swapchain.
+  /// \brief Resizes the \a spFramebuffer of this swapchain.
   /// \param [in] uiWidth The new swapchain width.
   /// \param [in] uiHeight The new swapchain height.
   virtual void Resize(ezUInt32 uiWidth, ezUInt32 uiHeight) = 0;
@@ -79,12 +77,7 @@ public:
   virtual void Present() = 0;
 
 protected:
-  spSwapchain(spSwapchainDescription description)
-    : m_Description(std::move(description))
-  {
-  }
+  explicit spSwapchain(spSwapchainDescription description);
 
   spSwapchainDescription m_Description;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spSwapchain);

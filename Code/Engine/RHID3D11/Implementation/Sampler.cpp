@@ -6,6 +6,11 @@
 
 #pragma region spSamplerStateD3D11
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSamplerStateD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 spSamplerStateD3D11::spSamplerStateD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description)
   : m_Description(description)
 {
@@ -66,6 +71,11 @@ bool spSamplerStateD3D11::IsReleased() const
 #pragma endregion
 
 #pragma region spSamplerD3D11
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSamplerD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 ezSharedPtr<spSamplerState> spSamplerD3D11::GetSamplerWithMipMap() const
 {

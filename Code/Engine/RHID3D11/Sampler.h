@@ -10,6 +10,8 @@ class SP_RHID3D11_DLL spSamplerStateD3D11 : public spSamplerState
 {
   friend class spSamplerD3D11;
 
+  EZ_ADD_DYNAMIC_REFLECTION(spSamplerStateD3D11, spSamplerState);
+
 public:
   ~spSamplerStateD3D11() override;
 
@@ -30,11 +32,11 @@ private:
   ID3D11SamplerState* m_pSamplerState{nullptr};
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spSamplerStateD3D11);
-
 class SP_RHID3D11_DLL spSamplerD3D11 : public spSampler, public spDeferredDeviceResource
 {
   friend class spDeviceResourceFactoryD3D11;
+
+  EZ_ADD_DYNAMIC_REFLECTION(spSamplerD3D11, spSampler);
 
   // spDeviceResource
 
@@ -68,5 +70,3 @@ private:
 
   spSamplerDescription m_Description;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spSamplerD3D11);

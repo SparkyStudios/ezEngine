@@ -10,12 +10,10 @@
 #include <RHI/ResourceLayout.h>
 #include <RHI/ResourceSet.h>
 
-#include <utility>
-
 #pragma region spCommandListIndexBuffer
 
 spCommandListIndexBuffer::spCommandListIndexBuffer(spResourceHandle hIndexBuffer, const ezEnum<spIndexFormat>& eFormat, ezUInt32 uiOffset)
-  : ezHashableStruct<spCommandListIndexBuffer>()
+  : ezHashableStruct()
   , m_hIndexBuffer(hIndexBuffer)
   , m_eIndexFormat(eFormat)
   , m_uiOffset(uiOffset)
@@ -27,11 +25,24 @@ spCommandListIndexBuffer::spCommandListIndexBuffer(spResourceHandle hIndexBuffer
 #pragma region spCommandListResourceSet
 
 spCommandListResourceSet::spCommandListResourceSet(spResourceHandle hResource, ezUInt32 uiOffsetCount, const ezUInt32* pOffsets)
-  : ezHashableStruct<spCommandListResourceSet>()
+  : ezHashableStruct()
   , m_hResourceSet(hResource)
 {
   m_Offsets = EZ_DEFAULT_NEW_ARRAY(ezUInt32, uiOffsetCount);
   m_Offsets.CopyFrom(ezMakeArrayPtr(pOffsets, uiOffsetCount));
+}
+
+spCommandListResourceSet::spCommandListResourceSet(const spCommandListResourceSet& copy)
+{
+  m_hResourceSet = copy.m_hResourceSet;
+  m_Offsets = EZ_DEFAULT_NEW_ARRAY(ezUInt32, copy.m_Offsets.GetCount());
+  m_Offsets.CopyFrom(copy.m_Offsets);
+}
+
+spCommandListResourceSet::spCommandListResourceSet(spCommandListResourceSet&& move) noexcept
+{
+  std::swap(m_hResourceSet, move.m_hResourceSet);
+  std::swap(m_Offsets, move.m_Offsets);
 }
 
 spCommandListResourceSet::~spCommandListResourceSet()
@@ -42,6 +53,11 @@ spCommandListResourceSet::~spCommandListResourceSet()
 #pragma endregion
 
 #pragma region spCommandList
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spCommandList, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 spCommandList::spCommandList(spCommandListDescription description)
   : spDeviceResource()

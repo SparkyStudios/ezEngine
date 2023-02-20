@@ -3,6 +3,11 @@
 #include <RHID3D11/Device.h>
 #include <RHID3D11/InputLayout.h>
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spInputLayoutD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 void spInputLayoutD3D11::ReleaseResource()
 {
   if (IsReleased())

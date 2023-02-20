@@ -94,18 +94,18 @@ struct spDeviceCapabilities
 };
 
 /// \brief Describes how to create a device.
-struct spDeviceDescription : public ezHashableStruct<spDeviceDescription>
+struct spDeviceDescription : ezHashableStruct<spDeviceDescription>
 {
   /// \brief Indicates whether the device should support debug features.
   bool m_bDebug{false};
 
   /// \brief The initial width of the device.
-  ezUInt32 m_uiWidth;
+  ezUInt32 m_uiWidth{0};
 
   /// \brief The initial height of the device.
-  ezUInt32 m_uiHeight;
+  ezUInt32 m_uiHeight{0};
 
-  /// \brief Indicates that the device will include a "main" \see spSwapchain. If this
+  /// \brief Indicates that the device will include a "main" \a spSwapchain. If this
   /// value is true, then the \a m_MainSwapchainDescription field must be set.
   bool m_bHasMainSwapchain{false};
 
@@ -113,11 +113,11 @@ struct spDeviceDescription : public ezHashableStruct<spDeviceDescription>
   /// of creation.
   spSwapchainDescription m_MainSwapchainDescription;
 
-  /// \brief Indicates that the "main" \see spSwapchain of the device will include a depth buffer.
+  /// \brief Indicates that the "main" \a spSwapchain of the device will include a depth buffer.
   bool m_bMainSwapchainHasDepth{false};
 
-  /// \brief An optional \see spPixelFormat for the depth buffer of the swapchain. This value must be set
-  /// if \see m_bMainSwapchainHasDepth is true.
+  /// \brief An optional \a spPixelFormat for the depth buffer of the swapchain. This value must be set
+  /// if \a m_bMainSwapchainHasDepth is true.
   ezEnum<spPixelFormat> m_eSwapchainDepthPixelFormat;
 
   /// \brief Specifies if the main swapchain will be synchronized with the window system's vertical refresh rate.
@@ -179,7 +179,7 @@ public:
   /// \note m_uiOffset must be a multiple of this value when used for structured buffers.
   EZ_NODISCARD virtual ezUInt32 GetStructuredBufferMinOffsetAlignment() const = 0;
 
-  /// \brief Gets the main swapchain used as the default swapchain for new \see spGraphicsDeviceContext
+  /// \brief Gets the main swapchain used as the default swapchain for new \a spGraphicsDeviceContext
   /// create without a swapchain.
   EZ_NODISCARD virtual ezSharedPtr<spSwapchain> GetMainSwapchain() const = 0;
 
@@ -189,58 +189,58 @@ public:
   /// \brief Gets the staging memory pool used by this graphics device.
   EZ_NODISCARD EZ_ALWAYS_INLINE spStagingMemoryPool* GetStagingMemoryPool() const { return m_pStagingMemoryPool; }
 
-  /// \brief Submits the given \see spCommandList for execution by this device.
+  /// \brief Submits the given \a spCommandList for execution by this device.
   /// \param [in] pCommandList The handle to the command list to execute.
   ///
   /// \note Commands submitted with this method will block the calling thread until
   /// all commands are executed.
   void SubmitCommandList(ezSharedPtr<spCommandList> pCommandList);
 
-  /// \brief Submits the given \see spCommandList for execution by this device.
+  /// \brief Submits the given \a spCommandList for execution by this device.
   /// \param [in] pCommandList The handle to the command list to execute.
-  /// \param [in] pFence The handle to the \see spFence which will be signaled after this submission fully completes execution.
+  /// \param [in] pFence The handle to the \a spFence which will be signaled after this submission fully completes execution.
   ///
   /// \note Commands submitted with this method will block the calling thread until
   /// all commands are executed.
   virtual void SubmitCommandList(ezSharedPtr<spCommandList> pCommandList, ezSharedPtr<spFence> pFence) = 0;
 
-  /// \brief Blocks the calling thread until the given \see spFence is signaled.
-  /// \param [in] pFence The handle to the \see spFence to wait for.
+  /// \brief Blocks the calling thread until the given \a spFence is signaled.
+  /// \param [in] pFence The handle to the \a spFence to wait for.
   void WaitForFence(ezSharedPtr<spFence> pFence);
 
-  /// \brief Blocks the calling thread until the given \see spFence is signaled.
-  /// \param [in] pFence The handle to the \see spFence to wait for.
-  /// \param [in] timeout A timeout to wait for the \see spFence to be signaled.
+  /// \brief Blocks the calling thread until the given \a spFence is signaled.
+  /// \param [in] pFence The handle to the \a spFence to wait for.
+  /// \param [in] timeout A timeout to wait for the \a spFence to be signaled.
   /// \returns \c true if the \a hFence was signaled within the timeout, and \c false if the timeout was reached.
   bool WaitForFence(ezSharedPtr<spFence> pFence, const ezTime& timeout);
 
-  /// \brief Blocks the calling thread until the given \see spFence is signaled.
-  /// \param [in] pFence The handle to the \see spFence to wait for.
-  /// \param [in] uiNanosecondsTimeout A timeout in nanoseconds to wait for the \see spFence.
+  /// \brief Blocks the calling thread until the given \a spFence is signaled.
+  /// \param [in] pFence The handle to the \a spFence to wait for.
+  /// \param [in] uiNanosecondsTimeout A timeout in nanoseconds to wait for the \a spFence.
   /// \returns \c true if the \a hFence was signaled within the timeout, and \c false if the timeout was reached.
   virtual bool WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout) = 0;
 
   /// \brief Blocks the calling thread until the given one or all the given \a fences are signaled.
-  /// \param [in] fences The list of handles to the \see spFence instances to wait for.
+  /// \param [in] fences The list of handles to the \a spFence instances to wait for.
   /// \param [in] bWaitAll Specifies if the method should block until all the fences has been signaled.
   void WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll);
 
   /// \brief Blocks the calling thread until the given one or all the given \a fences are signaled.
-  /// \param [in] fences The list of handles to the \see spFence instances to wait for.
+  /// \param [in] fences The list of handles to the \a spFence instances to wait for.
   /// \param [in] timeout A timeout to wait for \a fences to be signaled.
   /// \param [in] bWaitAll Specifies if the method should block until all the fences has been signaled.
   /// \returns \c true when one or all the \a fences was signaled within the timeout, and \c false if the timeout was reached.
   bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, const ezTime& timeout);
 
   /// \brief Blocks the calling thread until the given one or all the given \a fences are signaled.
-  /// \param [in] fences The list of handles to the \see spFence instances to wait for.
+  /// \param [in] fences The list of handles to the \a spFence instances to wait for.
   /// \param [in] uiNanosecondsTimeout A timeout in nanoseconds to wait \a fences.
   /// \param [in] bWaitAll Specifies if the method should block until all the fences has been signaled.
   /// \returns \c true when one or all the \a fences was signaled within the timeout, and \c false if the timeout was reached.
   virtual bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout) = 0;
 
-  /// \brief Resets the given \see spFence to an unsignaled state.
-  /// \param [in] pFence The handle to the \see spFence to reset.
+  /// \brief Resets the given \a spFence to an unsignaled state.
+  /// \param [in] pFence The handle to the \a spFence to reset.
   virtual void ResetFence(ezSharedPtr<spFence> pFence) = 0;
 
   /// \brief Notifies the device to performs a resize operation on the main swap chain.
@@ -250,7 +250,7 @@ public:
   /// \note This method does not do anything when the device has been created without a swap chain.
   void ResizeSwapchain(ezUInt32 uiWidth, ezUInt32 uiHeight);
 
-  /// \brief A blocking method that returns when all submitted \see spCommandList have fully completed.
+  /// \brief A blocking method that returns when all submitted \a spCommandList have fully completed.
   void WaitForIdle();
 
   /// \brief Swap front and back buffers of the main swapchain if created.
@@ -259,21 +259,21 @@ public:
   /// \brief Gets the maximum samples count supported by the \a format.
   /// \param [in] eFormat The format to get the maximum samples count for.
   /// \param [in] bIsDepthFormat Specifies whether the \a format is used for a depth buffer.
-  /// \returns A \see spTextureSampleCount value representing the maximum sample count that a \see spTexture
+  /// \returns A \a spTextureSampleCount value representing the maximum sample count that a \a spTexture
   /// of this \a format can be created with.
   virtual ezEnum<spTextureSampleCount> GetTextureSampleCountLimit(const ezEnum<spPixelFormat>& eFormat, bool bIsDepthFormat) = 0;
 
-  /// \brief Maps a \see spBuffer or a \see spTexture into a CPU-accessible data region.
+  /// \brief Maps a \a spBuffer or a \a spTexture into a CPU-accessible data region.
   /// \param [in] pResource A handle to the buffer or texture resource to map.
-  /// \param [in] eAccess The \see spMapAccess to use.
+  /// \param [in] eAccess The \a spMapAccess to use.
   /// \param [in] uiSubResource The subresource to map. Subresources are indexed first by mip level, then by array layer. For
   /// buffer resources, this parameter should be \c 0.
   const spMappedResource& Map(ezSharedPtr<spMappableResource> pResource, const ezEnum<spMapAccess>& eAccess, ezUInt32 uiSubResource);
 
-  /// \brief Maps a \see spBuffer or a \see spTexture into a CPU-accessible data region, and returns
+  /// \brief Maps a \a spBuffer or a \a spTexture into a CPU-accessible data region, and returns
   /// a structured view over that region.
   /// \param [in] pResource A handle to the buffer or texture resource to map.
-  /// \param [in] eAccess The \see spMapAccess to use.
+  /// \param [in] eAccess The \a spMapAccess to use.
   /// \param [in] uiSubResource The subresource to map. Subresources are indexed first by mip level, then by array layer. For
   /// buffer resources, this parameter should be \c 0.
   template <typename T>
@@ -289,8 +289,8 @@ public:
   /// For buffer resources, this parameter should be \c 0
   void UnMap(ezSharedPtr<spMappableResource> pResource, ezUInt32 uiSubResource);
 
-  /// \brief Updates the \see spTexture data with the given \a source.
-  /// \param pTexture The handle to the \see spTexture to update.
+  /// \brief Updates the \a spTexture data with the given \a source.
+  /// \param pTexture The handle to the \a spTexture to update.
   /// \param pData The data source to upload to the texture.
   /// \param uiSize The size in bytes of data to upload in the texture.
   /// \param uiX The minimum X value of the updated region.
@@ -300,13 +300,13 @@ public:
   /// \param uiHeight The height of the updated region, in texels.
   /// \param uiDepth The depth of the updated region, in texels.
   /// \param uiMipLevel The mipmap level to update. Must be less than the total number of
-  /// mipmap contained in the \see spTexture.
+  /// mipmap contained in the \a spTexture.
   /// \param uiArrayLayer The array layer to update. Must be less than the total array layer
-  /// count contained in the \see spTexture.
+  /// count contained in the \a spTexture.
   virtual void UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) = 0;
 
-  /// \brief Updates the \see spTexture data with the given source \a data.
-  /// \param pTexture The handle to the \see spTexture to update.
+  /// \brief Updates the \a spTexture data with the given source \a data.
+  /// \param pTexture The handle to the \a spTexture to update.
   /// \param data The data source to upload to the texture.
   /// \param uiX The minimum X value of the updated region.
   /// \param uiY The minimum Y value of the updated region.
@@ -315,9 +315,9 @@ public:
   /// \param uiHeight The height of the updated region, in texels.
   /// \param uiDepth The depth of the updated region, in texels.
   /// \param uiMipLevel The mipmap level to update. Must be less than the total number of
-  /// mipmap contained in the \see spTexture.
+  /// mipmap contained in the \a spTexture.
   /// \param uiArrayLayer The array layer to update. Must be less than the total array layer
-  /// count contained in the \see spTexture.
+  /// count contained in the \a spTexture.
   template <typename T>
   EZ_ALWAYS_INLINE void UpdateTexture(ezSharedPtr<spTexture> pTexture, const ezArrayPtr<T> data, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
   {
@@ -325,8 +325,8 @@ public:
     UpdateTexture(pTexture, reinterpret_cast<void*>(data.GetPtr()), uiSize, uiX, uiY, uiZ, uiWidth, uiHeight, uiDepth, uiMipLevel, uiArrayLayer);
   }
 
-  /// \brief Updates the \see spTexture data with the given source \a data.
-  /// \param pTexture The handle to the \see spTexture to update.
+  /// \brief Updates the \a spTexture data with the given source \a data.
+  /// \param pTexture The handle to the \a spTexture to update.
   /// \param data The data source to upload to the texture.
   /// \param uiX The minimum X value of the updated region.
   /// \param uiY The minimum Y value of the updated region.
@@ -335,9 +335,9 @@ public:
   /// \param uiHeight The height of the updated region, in texels.
   /// \param uiDepth The depth of the updated region, in texels.
   /// \param uiMipLevel The mipmap level to update. Must be less than the total number of
-  /// mipmap contained in the \see spTexture.
+  /// mipmap contained in the \a spTexture.
   /// \param uiArrayLayer The array layer to update. Must be less than the total array layer
-  /// count contained in the \see spTexture.
+  /// count contained in the \a spTexture.
   template <typename T>
   EZ_ALWAYS_INLINE void UpdateTexture(ezSharedPtr<spTexture> pTexture, const ezBlobPtr<T> data, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
   {
@@ -345,15 +345,15 @@ public:
     UpdateTexture(pTexture, reinterpret_cast<void*>(data.GetPtr()), uiSize, uiX, uiY, uiZ, uiWidth, uiHeight, uiDepth, uiMipLevel, uiArrayLayer);
   }
 
-  /// \brief Updates the \see spBuffer region with new data.
-  /// \param pBuffer The handle to the \see spBuffer to update.
+  /// \brief Updates the \a spBuffer region with new data.
+  /// \param pBuffer The handle to the \a spBuffer to update.
   /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param pSource A pointer to the start of the data to be uploaded.
   /// \param uiSize The size in bytes of the data to be uploaded.
   void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSource, ezUInt32 uiSize);
 
-  /// \brief Updates the \see spBuffer region with new data.
-  /// \param pBuffer The handle to the \see spBuffer to update.
+  /// \brief Updates the \a spBuffer region with new data.
+  /// \param pBuffer The handle to the \a spBuffer to update.
   /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param source The data to upload in the buffer.
   template <typename T>
@@ -362,8 +362,8 @@ public:
     UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(&source), sizeof(T));
   }
 
-  /// \brief Updates the \see spBuffer region with new data.
-  /// \param pBuffer The handle to the \see spBuffer to update.
+  /// \brief Updates the \a spBuffer region with new data.
+  /// \param pBuffer The handle to the \a spBuffer to update.
   /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param pSource The data to upload in the buffer.
   /// \param uiCount The number of elements in the array to upload in the buffer.
@@ -373,8 +373,8 @@ public:
     UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(pSource), uiCount * sizeof(T));
   }
 
-  /// \brief Updates the \see spBuffer region with new data.
-  /// \param pBuffer The handle to the \see spBuffer to update.
+  /// \brief Updates the \a spBuffer region with new data.
+  /// \param pBuffer The handle to the \a spBuffer to update.
   /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param source The data array to upload in the buffer.
   /// \param uiCount The number of elements in the array to upload in the buffer.
@@ -408,14 +408,10 @@ public:
   virtual void EndFrame();
 
 protected:
-  /// \brief Constructs a new instance of the \see spDevice class.
+  /// \brief Constructs a new instance of the \a spDevice class.
   /// \param pAllocator The resources allocator.
   /// \param description The resource manager for the device.
-  spDevice(ezAllocatorBase* pAllocator, spDeviceDescription description)
-    : m_Description(std::move(description))
-    , m_pAllocator(pAllocator)
-  {
-  }
+  spDevice(ezAllocatorBase* pAllocator, spDeviceDescription description);
 
   virtual void WaitForIdleInternal() = 0;
   virtual const spMappedResource& MapInternal(ezSharedPtr<spBuffer> pBuffer, ezEnum<spMapAccess> eAccess) = 0;
@@ -436,9 +432,6 @@ protected:
   ezAllocatorBase* m_pAllocator;
 
   ezUInt32 m_uiFrameCounter{0};
-
-private:
-  spMappedResource m_InvalidDefaultMappedResource{};
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spDevice);

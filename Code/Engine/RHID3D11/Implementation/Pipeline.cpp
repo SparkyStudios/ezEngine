@@ -11,6 +11,11 @@
 
 #pragma region spComputePipelineD3D11
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spComputePipelineD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 void spComputePipelineD3D11::ReleaseResource()
 {
   if (IsReleased())
@@ -65,6 +70,11 @@ spComputePipelineD3D11::~spComputePipelineD3D11()
 #pragma endregion
 
 #pragma region spGraphicPipelineD3D11
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spGraphicPipelineD3D11, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 void spGraphicPipelineD3D11::ReleaseResource()
 {

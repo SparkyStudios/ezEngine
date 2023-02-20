@@ -14,6 +14,8 @@ class SP_RHID3D11_DLL spFramebufferD3D11 : public spFramebuffer, public spDeferr
   friend class spDeviceResourceFactoryD3D11;
   friend class spSwapchainD3D11;
 
+  EZ_ADD_DYNAMIC_REFLECTION(spFramebufferD3D11, spFramebuffer);
+
 public:
   // spDeviceResource
 
@@ -61,5 +63,3 @@ private:
   ezUInt32 m_uiWidth{0};
   ezUInt32 m_uiHeight{0};
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spFramebufferD3D11);

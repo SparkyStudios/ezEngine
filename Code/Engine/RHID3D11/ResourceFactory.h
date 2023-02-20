@@ -40,3 +40,5 @@ private:
   spDeviceD3D11* m_pDevice{nullptr};
   ID3D11Device* m_pD3D11Device{nullptr};
 };
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spDeviceResourceFactoryD3D11);

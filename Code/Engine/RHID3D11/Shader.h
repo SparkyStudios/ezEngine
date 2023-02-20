@@ -9,6 +9,8 @@ class spShaderD3D11;
 
 class SP_RHID3D11_DLL spShaderProgramD3D11 final : public spShaderProgram
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spShaderProgramD3D11, spShaderProgram);
+
   // spDeviceResource
 public:
   void ReleaseResource() override;
@@ -48,11 +50,11 @@ private:
   ezSharedPtr<spShaderD3D11> m_pComputeShader{nullptr};
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spShaderProgramD3D11);
-
 class SP_RHID3D11_DLL spShaderD3D11 final : public spShader, public spDeferredDeviceResource
 {
   friend class spDeviceResourceFactoryD3D11;
+
+  EZ_ADD_DYNAMIC_REFLECTION(spShaderD3D11, spShader);
 
 public:
   // spDeviceResource
@@ -80,5 +82,3 @@ private:
   ID3D11DeviceChild* m_pD3D11Shader{nullptr};
   ezByteArrayPtr m_pByteCode;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spShaderD3D11);

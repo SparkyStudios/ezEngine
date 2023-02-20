@@ -6,20 +6,16 @@
 #include <RHI/Output.h>
 #include <RHI/Resource.h>
 
-/// \brief Describes a single attachment for a \see spFramebuffer.
-struct spFramebufferAttachmentDescription : public ezHashableStruct<spFramebufferAttachmentDescription>
+/// \brief Describes a single attachment for a \a spFramebuffer.
+struct spFramebufferAttachmentDescription : ezHashableStruct<spFramebufferAttachmentDescription>
 {
   /// \brief Constructs an empty spFramebufferAttachmentDescription.
-  spFramebufferAttachmentDescription()
-    : ezHashableStruct<spFramebufferAttachmentDescription>()
-    , m_hTarget()
-  {
-  }
+  spFramebufferAttachmentDescription() = default;
 
   /// \brief Constructs a spFramebufferAttachmentDescription.
   /// \param hTarget The texture to render into.
-  spFramebufferAttachmentDescription(const spResourceHandle& hTarget)
-    : ezHashableStruct<spFramebufferAttachmentDescription>()
+  explicit spFramebufferAttachmentDescription(const spResourceHandle& hTarget)
+    : ezHashableStruct()
     , m_hTarget(hTarget)
   {
   }
@@ -29,20 +25,20 @@ struct spFramebufferAttachmentDescription : public ezHashableStruct<spFramebuffe
   /// \param uiArrayLayer The array layer from the target to render into.
   /// \param uiMipLevel The mip level from the target to render into.
   spFramebufferAttachmentDescription(const spResourceHandle& hTarget, ezUInt32 uiArrayLayer, ezUInt32 uiMipLevel = 0)
-    : ezHashableStruct<spFramebufferAttachmentDescription>()
+    : ezHashableStruct()
     , m_hTarget(hTarget)
     , m_uiArrayLayer(uiArrayLayer)
     , m_uiMipLevel(uiMipLevel)
   {
   }
 
-  /// \brief Compares this \see spFramebufferDescription with an \a other description for equality.
+  /// \brief Compares this \a spFramebufferDescription with an \a other description for equality.
   EZ_ALWAYS_INLINE bool operator==(const spFramebufferAttachmentDescription& other) const
   {
     return m_hTarget == other.m_hTarget && m_uiArrayLayer == other.m_uiArrayLayer && m_uiMipLevel == other.m_uiMipLevel;
   }
 
-  /// \brief Compares this \see spFramebufferDescription with an \a other description for inequality.
+  /// \brief Compares this \a spFramebufferDescription with an \a other description for inequality.
   EZ_ALWAYS_INLINE bool operator!=(const spFramebufferAttachmentDescription& other) const
   {
     return !(*this == other);
@@ -62,8 +58,8 @@ struct spFramebufferAttachmentDescription : public ezHashableStruct<spFramebuffe
   ezUInt32 m_uiMipLevel{0};
 };
 
-/// \brief Describes a \see spFramebuffer, for creation using a \see spDeviceResourceFactory.
-struct spFramebufferDescription : public ezHashableStruct<spFramebufferDescription>
+/// \brief Describes a \a spFramebuffer, for creation using a \a spDeviceResourceFactory.
+struct spFramebufferDescription : ezHashableStruct<spFramebufferDescription>
 {
   /// \brief Constructs an empty spFramebufferDescription.
   spFramebufferDescription()
@@ -72,14 +68,14 @@ struct spFramebufferDescription : public ezHashableStruct<spFramebufferDescripti
   {
   }
 
-  /// \brief Constructs a \see spFramebufferDescription with a single color target.
+  /// \brief Constructs a \a spFramebufferDescription with a single color target.
   /// \param [in] hDepthTarget The depth texture to use with the spFramebuffer.
   /// \param [in] hColorTarget The color target of the spFramebuffer.
   spFramebufferDescription(const spResourceHandle& hDepthTarget, const spResourceHandle& hColorTarget)
     : ezHashableStruct()
     , m_DepthTarget(hDepthTarget)
   {
-    m_ColorTargets.PushBack(hColorTarget);
+    m_ColorTargets.PushBack(spFramebufferAttachmentDescription(hColorTarget));
   }
 
   /// \brief Constructs a spFramebufferDescription.
@@ -93,13 +89,13 @@ struct spFramebufferDescription : public ezHashableStruct<spFramebufferDescripti
       m_ColorTargets[i] = spFramebufferAttachmentDescription(colorTargets[i]);
   }
 
-  /// \brief Compares this \see spFramebufferDescription to the given \a other description for equality.
+  /// \brief Compares this \a spFramebufferDescription to the given \a other description for equality.
   EZ_ALWAYS_INLINE bool operator==(const spFramebufferDescription& other) const
   {
     return m_DepthTarget == other.m_DepthTarget && m_ColorTargets == other.m_ColorTargets;
   }
 
-  /// \brief Compares this \see spFramebufferDescription to the given \a other description for inequality.
+  /// \brief Compares this \a spFramebufferDescription to the given \a other description for inequality.
   EZ_ALWAYS_INLINE bool operator!=(const spFramebufferDescription& other) const
   {
     return !(*this == other);
@@ -135,6 +131,8 @@ private:
 /// \brief Controls which color and depth textures are set as active render targets.
 class SP_RHI_DLL spFramebuffer : public spDeviceResource
 {
+  EZ_ADD_DYNAMIC_REFLECTION(spFramebuffer, spDeviceResource);
+
   friend class spDeviceResourceFactory;
 
 public:
@@ -167,12 +165,7 @@ public:
   void virtual Snapshot(ezUInt32 uiColorTargetIndex, ezUInt32 uiArrayLayer, ezUInt32 uiMipLevel, ezByteArrayPtr& out_Pixels) = 0;
 
 protected:
-  spFramebuffer(spFramebufferDescription description)
-    : m_Description(std::move(description))
-  {
-  }
+  explicit spFramebuffer(spFramebufferDescription description);
 
   spFramebufferDescription m_Description;
 };
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHI_DLL, spFramebuffer);

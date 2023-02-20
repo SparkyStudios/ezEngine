@@ -7,7 +7,21 @@
 
 #include <Foundation/Logging/Log.h>
 
+#pragma region spDeviceResource
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spDeviceResource, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
+#pragma endregion
+
 #pragma region spDeferredDeviceResource
+
+// clang-format off
+EZ_BEGIN_STATIC_REFLECTED_TYPE(spDeferredDeviceResource, ezNoBase, 1, ezRTTINoAllocator)
+EZ_END_STATIC_REFLECTED_TYPE;
+// clang-format on
 
 void spDeferredDeviceResource::EnsureResourceCreated()
 {
@@ -16,6 +30,24 @@ void spDeferredDeviceResource::EnsureResourceCreated()
 
   CreateResource();
 }
+
+#pragma endregion
+
+#pragma region spShaderResource
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spShaderResource, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
+#pragma endregion
+
+#pragma region spMappableResource
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spMappableResource, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 #pragma endregion
 
@@ -82,7 +114,12 @@ ezUInt32 spMappedResource::GetDepthPitch() const
 
 #pragma endregion
 
-#pragma region spDeviceFactory
+#pragma region spDeviceResourceFactory
+
+// clang-format off
+EZ_BEGIN_STATIC_REFLECTED_TYPE(spDeviceResourceFactory, ezNoBase, 1, ezRTTINoAllocator)
+EZ_END_STATIC_REFLECTED_TYPE;
+// clang-format on
 
 ezSharedPtr<spRenderTarget> spDeviceResourceFactory::CreateRenderTarget(const spRenderTargetDescription& description)
 {
@@ -112,6 +149,11 @@ ezSharedPtr<spRenderTarget> spDeviceResourceFactory::CreateRenderTarget(ezShared
 
 #pragma region spDeviceResourceManager
 
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spDeviceResourceManager, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
+
 spDeviceResourceManager::spDeviceResourceManager(spDevice* pDevice)
   : m_pDevice(pDevice)
   , m_pAllocator(pDevice->GetAllocator())
@@ -122,6 +164,9 @@ spDeviceResourceManager::spDeviceResourceManager(spDevice* pDevice)
 spDeviceResourceManager::~spDeviceResourceManager()
 {
   m_RegisteredResources.Clear();
+
+  m_pDevice = nullptr;
+  m_pAllocator = nullptr;
 }
 
 spResourceHandle spDeviceResourceManager::RegisterResource(spDeviceResource* pResource)
@@ -162,6 +207,11 @@ ezUInt32 spDeviceResourceManager::DecrementResourceRef(const spResourceHandle& h
 #pragma endregion
 
 #pragma region spDefaultDeviceResourceManager
+
+// clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spDefaultDeviceResourceManager, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+// clang-format on
 
 spDefaultDeviceResourceManager::spDefaultDeviceResourceManager(spDevice* pDevice)
   : spDeviceResourceManager(pDevice)
