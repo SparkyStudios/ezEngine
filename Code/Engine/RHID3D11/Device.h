@@ -32,8 +32,11 @@ public:
   EZ_NODISCARD ezSharedPtr<spSwapchain> GetMainSwapchain() const override;
   EZ_NODISCARD const spDeviceCapabilities& GetCapabilities() const override;
   void SubmitCommandList(ezSharedPtr<spCommandList> pCommandList, ezSharedPtr<spFence> pFence) override;
+  bool WaitForFence(ezSharedPtr<spFence> pFence) override;
   bool WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout) override;
+  bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll) override;
   bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout) override;
+  void RaiseFence(ezSharedPtr<spFence> pFence) override;
   void ResetFence(ezSharedPtr<spFence> pFence) override;
   void Present() override;
   ezEnum<spTextureSampleCount> GetTextureSampleCountLimit(const ezEnum<spPixelFormat>& eFormat, bool bIsDepthFormat) override;

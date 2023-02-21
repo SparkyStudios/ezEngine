@@ -25,7 +25,7 @@
 #include <RHID3D11/ResourceManager.h>
 #include <RHID3D11/Swapchain.h>
 
-#include <RPI/Pipeline/Passes/MainSwapchainRenderGraphNode.h>
+#include <RPI/Graph/Nodes/MainSwapchainRenderGraphNode.h>
 
 #include <RHISample/RHISample.h>
 
@@ -184,12 +184,12 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
     description.m_eSwapchainDepthPixelFormat = spPixelFormat::D24UNormS8UInt;
     description.m_bPreferDepthRangeZeroToOne = true;
 
-    device = spRHIImplementationFactory::CreateDevice(szRendererName, ezDefaultAllocatorWrapper::GetAllocator(), description);
+    m_pDevice = spRHIImplementationFactory::CreateDevice(szRendererName, ezDefaultAllocatorWrapper::GetAllocator(), description);
   }
 
-  EZ_ASSERT_DEV(device != nullptr, "Device creation failed");
+  EZ_ASSERT_DEV(m_pDevice != nullptr, "Device creation failed");
 
-  auto* pFactory = device->GetResourceFactory();
+  auto* pFactory = m_pDevice->GetResourceFactory();
 
   ezImage image;
   image.LoadFrom(":base/Textures/Grid.png").IgnoreResult();
@@ -197,24 +197,21 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   spTextureDescription td = spTextureDescription::Texture2D(image.GetWidth(), image.GetHeight(), image.GetNumMipLevels(), image.GetNumArrayIndices(), spPixelFormat::R8G8B8A8UNorm, spTextureUsage::Sampled);
   tex = pFactory->CreateTexture(td);
 
-  device->UpdateTexture(tex, image.GetByteBlobPtr(), 0, 0, 0, image.GetWidth(), image.GetHeight(), 1, 0, 0);
+  m_pDevice->UpdateTexture(tex, image.GetByteBlobPtr(), 0, 0, 0, image.GetWidth(), image.GetHeight(), 1, 0, 0);
 
-  cl = device->GetResourceFactory()->CreateCommandList(spCommandListDescription());
-  cl->SetDebugName("RHI SAMPLE CMD");
-
-  m_pFence = device->GetResourceFactory()->CreateFence(spFenceDescription(false));
+  m_pSceneContext = EZ_NEW(m_pDevice->GetAllocator(), spSceneContext, m_pDevice.Borrow());
 
 
 
-  // --- Experimental render graph
+  // --- Begin Experimental render graph
 
   // 1. Setup graph
-  graphBuilder = EZ_NEW(device->GetAllocator(), spRenderGraphBuilder, device);
+  graphBuilder = EZ_NEW(m_pDevice->GetAllocator(), spRenderGraphBuilder, m_pDevice.Borrow());
 
   spResourceHandle importedTexture = graphBuilder->Import(tex); // Import a resource in the graph
 
   // 2. Setup graph nodes
-  ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(device->GetAllocator(), spTriangleDemoRenderGraphNode);
+  ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(m_pDevice->GetAllocator(), spTriangleDemoRenderGraphNode);
 
   ezHashedString texName;
   texName.Assign("tex");
@@ -224,7 +221,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   graphBuilder->AddNode("Triangle", std::move(triangleNode), triangleNodeResources);
 
-  ezUniquePtr<spMainSwapchainRenderGraphNode> swapchainNode = EZ_NEW(device->GetAllocator(), spMainSwapchainRenderGraphNode);
+  ezUniquePtr<spMainSwapchainRenderGraphNode> swapchainNode = EZ_NEW(m_pDevice->GetAllocator(), spMainSwapchainRenderGraphNode);
   swapchainNode->SetRenderTargetSize(g_uiWindowWidth, g_uiWindowHeight);
 
   ezHashedString inputName;
@@ -237,6 +234,12 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   // 3. Compile graph
   renderPipeline = graphBuilder->Compile();
+
+  // --- End Experimental render graph
+
+
+
+  m_pSceneContext->AddPipeline(renderPipeline.Borrow());
 };
 
 void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
@@ -245,24 +248,25 @@ void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
   // and that it therefore needs to cleanup anything that depends on that
   ezStartup::ShutdownHighLevelSystems();
 
-  device->GetResourceManager()->ReleaseResources();
+  // release pending resources
+  m_pDevice->GetResourceManager()->ReleaseResources();
+
+  // cleanup the render pipeline
+  renderPipeline->CleanUp();
 
   tex.Clear();
-  cl.Clear();
 
   renderPipeline.Clear();
   graphBuilder.Clear();
 
-  m_pFence->Reset();
-
   m_pRenderingThread->Stop();
   EZ_DEFAULT_DELETE(m_pRenderingThread);
 
-  m_pFence.Clear();
+  m_pSceneContext.Clear();
 
   // destroy device
-  device->Destroy();
-  device.Clear();
+  m_pDevice->Destroy();
+  m_pDevice.Clear();
 
   // finally destroy the window
   m_pWindow->Destroy().IgnoreResult();
@@ -271,7 +275,7 @@ void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
 
 void ezRHISampleApp::OnResize(ezUInt32 width, ezUInt32 height)
 {
-  device->ResizeSwapchain(width, height);
+  m_pDevice->ResizeSwapchain(width, height);
 }
 
 ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources)
@@ -288,8 +292,8 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
 
   m_PassData.m_hGridTexture = pBuilder->Read(this, m_PassData.m_hGridTexture);
   m_PassData.m_hConstantBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezColor), spBufferUsage::ConstantBuffer | spBufferUsage::Dynamic | spBufferUsage::TripleBuffered), spRenderGraphResourceBindType::Transient);
-  m_PassData.m_hIndexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezUInt16) * 4, spBufferUsage::IndexBuffer), spRenderGraphResourceBindType::Transient);
-  m_PassData.m_hVertexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezVec3) * 4, spBufferUsage::VertexBuffer), spRenderGraphResourceBindType::Transient);
+  m_PassData.m_hIndexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezUInt16) * 3, spBufferUsage::IndexBuffer), spRenderGraphResourceBindType::Transient);
+  m_PassData.m_hVertexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezVec3) * 3, spBufferUsage::VertexBuffer), spRenderGraphResourceBindType::Transient);
   m_PassData.m_hSampler = pBuilder->CreateSampler(this, spSamplerDescription::Linear, spRenderGraphResourceBindType::Transient);
   m_PassData.m_hRenderTarget = pBuilder->CreateRenderTarget(this, rtDescription, spRenderGraphResourceBindType::ReadOnly);
 
@@ -298,7 +302,7 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
 
 ezUniquePtr<spRenderPass> spTriangleDemoRenderGraphNode::Compile(spRenderGraphBuilder* pBuilder)
 {
-  const spRenderPass::ExecuteCallback callback = [name = GetName()](const spRenderGraphResourcesTable& resources, spRenderingContext* context, ezVariant& passData) -> void
+  const spRenderPass::ExecuteCallback executeCallback = [name = GetName()](const spRenderGraphResourcesTable& resources, spRenderingContext* context, ezVariant& passData) -> void
   {
     auto& data = passData.GetWritable<PassData>();
 
@@ -372,11 +376,11 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     spRenderGraphResource* rtt = nullptr;
     resources.TryGetValue(data.m_hRenderTarget.GetInternalID(), rtt);
 
-    context->GetDevice()->UpdateBuffer<ezUInt16>(ibo->m_pResource.Downcast<spBuffer>(), 0, &IndexBuffer[0], EZ_ARRAY_SIZE(IndexBuffer));
-    context->GetDevice()->UpdateBuffer<float>(vbo->m_pResource.Downcast<spBuffer>(), 0, &VertexBuffer[0], EZ_ARRAY_SIZE(VertexBuffer));
-
     if (data.m_pVertexShader == nullptr)
     {
+      context->GetDevice()->UpdateBuffer<ezUInt16>(ibo->m_pResource.Downcast<spBuffer>(), 0, &IndexBuffer[0], EZ_ARRAY_SIZE(IndexBuffer));
+      context->GetDevice()->UpdateBuffer<float>(vbo->m_pResource.Downcast<spBuffer>(), 0, &VertexBuffer[0], EZ_ARRAY_SIZE(VertexBuffer));
+
       spShaderDescription vsDescription;
       vsDescription.m_sEntryPoint = ezMakeHashedString("main");
       vsDescription.m_eShaderStage = spShaderStage::VertexShader;
@@ -506,7 +510,40 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     cbo->m_pResource.Downcast<spBuffer>()->SwapBuffers();
   };
 
-  ezUniquePtr<spRenderPass> pPass = EZ_NEW(pBuilder->GetAllocator(), spRenderPass, callback);
+  const spRenderPass::CleanUpCallback cleanUpCallback = [](const spRenderGraphResourcesTable& resources, ezVariant& passData) -> void
+  {
+    auto& data = passData.GetWritable<PassData>();
+
+    spRenderGraphResource* cbo = nullptr;
+    if (resources.TryGetValue(data.m_hConstantBuffer.GetInternalID(), cbo))
+      cbo->m_pResource.Clear();
+
+    spRenderGraphResource* ibo = nullptr;
+    resources.TryGetValue(data.m_hIndexBuffer.GetInternalID(), ibo);
+    ibo->m_pResource.Clear();
+
+    spRenderGraphResource* vbo = nullptr;
+    resources.TryGetValue(data.m_hVertexBuffer.GetInternalID(), vbo);
+    vbo->m_pResource.Clear();
+
+    spRenderGraphResource* smp = nullptr;
+    resources.TryGetValue(data.m_hSampler.GetInternalID(), smp);
+    smp->m_pResource.Clear();
+
+    spRenderGraphResource* rtt = nullptr;
+    resources.TryGetValue(data.m_hRenderTarget.GetInternalID(), rtt);
+    rtt->m_pResource.Clear();
+
+    data.m_pGraphicPipeline.Clear();
+    data.m_pResourceSet.Clear();
+    data.m_pResourceLayout.Clear();
+    data.m_pInputLayout.Clear();
+    data.m_pShaderProgram.Clear();
+    data.m_pPixelShader.Clear();
+    data.m_pVertexShader.Clear();
+  };
+
+  ezUniquePtr<spRenderPass> pPass = EZ_NEW(pBuilder->GetAllocator(), spRenderPass, executeCallback, cleanUpCallback);
   pPass->SetData(m_PassData);
 
   return pPass;
@@ -546,17 +583,14 @@ ezApplication::Execution ezRHISampleApp::Run()
   // do the rendering
   m_pRenderingThread->PostAsync([&]() -> void
   {
-  const ezUniquePtr<spRenderingContext> pC = EZ_NEW(device->GetAllocator(), spRenderingContext, device);
-  pC->SetCommandList(cl);
-
-  pC->BeginFrame();
-  {
-    renderPipeline->Execute(pC.Borrow());
-  }
-    pC->EndFrame(m_pFence);
+    m_pSceneContext->BeginFrame();
+    {
+      m_pSceneContext->Draw();
+    }
+    m_pSceneContext->EndFrame();
   });
 
-  device->WaitForFence(m_pFence);
+  m_pSceneContext->WaitForIdle();
 
   // needs to be called once per frame
   ezResourceManager::PerFrameUpdate();

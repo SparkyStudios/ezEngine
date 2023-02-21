@@ -13,20 +13,15 @@ void spFenceD3D11::ReleaseResource()
   if (IsReleased())
     return;
 
-  if (m_hEvent != nullptr)
-  {
-    CloseHandle(m_hEvent);
-    m_hEvent = nullptr;
-  }
-
-  SP_RHI_DX11_RELEASE(m_pD3D11Fence);
+  m_ThreadSignal.RaiseSignal();
+  m_ThreadSignal.ClearSignal();
 
   m_bReleased = true;
 }
 
 bool spFenceD3D11::IsReleased() const
 {
-  return m_pD3D11Fence == nullptr;
+  return m_bReleased;
 }
 
 bool spFenceD3D11::IsSignaled()
@@ -36,59 +31,52 @@ bool spFenceD3D11::IsSignaled()
 
 void spFenceD3D11::Reset()
 {
-  m_uiCurrentFenceValue = 0;
+  if (!m_bSignaled)
+    return;
 
-  if (m_hEvent != nullptr)
-  {
-    SetEvent(m_hEvent);
-    ResetEvent(m_hEvent);
-  }
+  m_bSignaled = false;
+  m_ThreadSignal.ClearSignal();
 }
 
-void spFenceD3D11::Raise(ID3D11DeviceContext4* pDeviceContext)
+void spFenceD3D11::Raise()
 {
-  Raise(m_uiCurrentFenceValue + 1, pDeviceContext);
+  if (m_bSignaled)
+    return;
+
+  m_bSignaled = true;
+  m_ThreadSignal.RaiseSignal();
 }
 
-void spFenceD3D11::Raise(ezUInt64 uiValue, ID3D11DeviceContext4* pDeviceContext)
+bool spFenceD3D11::Wait()
 {
-  EZ_ASSERT_DEV(uiValue > m_uiCurrentFenceValue, "Invalid fence value.");
-  m_uiCurrentFenceValue = uiValue;
+  if (!m_bSignaled)
+    m_ThreadSignal.WaitForSignal();
 
-  const HRESULT res = pDeviceContext->Signal(m_pD3D11Fence, uiValue);
-  EZ_HRESULT_TO_ASSERT(res);
+  m_bSignaled = true;
+
+  return m_bSignaled;
 }
 
-bool spFenceD3D11::Wait(ezTime timeout) const
+bool spFenceD3D11::Wait(ezTime timeout)
 {
-  return Wait(m_uiCurrentFenceValue, timeout);
-}
+  if (!m_bSignaled)
+    m_bSignaled = m_ThreadSignal.WaitForSignal(timeout) == ezThreadSignal::WaitResult::Signaled;
 
-bool spFenceD3D11::Wait(ezUInt64 uiValue, ezTime timeout) const
-{
-  if (m_pD3D11Fence->GetCompletedValue() < uiValue)
-  {
-    EZ_HRESULT_TO_ASSERT(m_pD3D11Fence->SetEventOnCompletion(uiValue, m_hEvent));
-    const auto t = static_cast<DWORD>(timeout.GetMilliseconds());
-    return WaitForSingleObjectEx(m_hEvent, t, FALSE) == WAIT_OBJECT_0;
-  }
-
-  return true;
+  return m_bSignaled;
 }
 
 spFenceD3D11::spFenceD3D11(spDeviceD3D11* pDevice, const spFenceDescription& description)
   : spFence(description)
+  , m_ThreadSignal(ezThreadSignal::Mode::ManualReset)
 {
   m_pDevice = pDevice;
 
-  pDevice->GetD3D11Device()->CreateFence(0, D3D11_FENCE_FLAG_SHARED, IID_ID3D11Fence, reinterpret_cast<void**>(&m_pD3D11Fence));
-  m_hEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-  EZ_ASSERT_DEV(m_hEvent != nullptr, "Failed to D3D11 fence create event.");
-
   if (description.m_bSignaled)
-    SetEvent(m_hEvent);
+    m_ThreadSignal.RaiseSignal();
+  else
+    m_ThreadSignal.ClearSignal();
 
-  m_bReleased = false;
+  m_bSignaled = description.m_bSignaled;
 }
 
 spFenceD3D11::~spFenceD3D11()

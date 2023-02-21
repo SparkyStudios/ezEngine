@@ -15,9 +15,10 @@
 #include <RHI/Texture.h>
 
 #include <RPI/Core/RenderingThread.h>
-#include <RPI/Pipeline/Graph/RenderGraph.h>
+#include <RPI/Graph/RenderGraph.h>
 #include <RPI/Pipeline/RenderPass.h>
 #include <RPI/Pipeline/RenderPipeline.h>
+#include <RPI/Scene/SceneContext.h>
 
 #include <ShaderCompilerHLSL/ShaderCompilerHLSL.h>
 
@@ -154,15 +155,13 @@ private:
   ezRHISampleWindow* m_pWindow{nullptr};
   spRenderingThread* m_pRenderingThread{nullptr};
 
-  ezSharedPtr<spDevice> device;
-  ezSharedPtr<spFence> m_pFence;
+  ezSharedPtr<spDevice> m_pDevice{nullptr};
+  ezUniquePtr<spSceneContext> m_pSceneContext{nullptr};
 
   ezUniquePtr<spRenderGraphBuilder> graphBuilder;
   ezUniquePtr<spRenderPipeline> renderPipeline;
 
   ezSharedPtr<spTexture> tex;
-
-  ezSharedPtr<spCommandList> cl;
 };
 
 class spTriangleDemoRenderGraphNode final : public spRenderGraphNode
@@ -170,7 +169,8 @@ class spTriangleDemoRenderGraphNode final : public spRenderGraphNode
 public:
   spTriangleDemoRenderGraphNode()
     : spRenderGraphNode("TrianglePass")
-  {}
+  {
+  }
 
   struct PassData
   {

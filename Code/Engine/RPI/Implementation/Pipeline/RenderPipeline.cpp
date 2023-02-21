@@ -8,6 +8,12 @@ spRenderPipeline::spRenderPipeline(spRenderGraphResourcesTable&& resources)
 {
 }
 
+spRenderPipeline::~spRenderPipeline()
+{
+  for (const auto& pass : m_OrderedPasses)
+    RemovePass(pass);
+}
+
 void spRenderPipeline::Execute(spRenderingContext* pContext)
 {
   for (const auto& pass : m_OrderedPasses)
@@ -41,14 +47,33 @@ void spRenderPipeline::AddPass(ezHashedString sName, ezUniquePtr<spRenderPass>&&
   m_OrderedPasses.PushBack(sName);
 }
 
-spRenderPass::spRenderPass(ExecuteCallback callback)
-  : m_Callback(std::move(callback))
+void spRenderPipeline::RemovePass(ezHashedString sName)
+{
+}
+
+void spRenderPipeline::CleanUp()
+{
+  for (const auto& pass : m_OrderedPasses)
+  {
+    const ezUniquePtr<spRenderPass>* pPass = m_Passes.GetValue(pass);
+    (*pPass)->CleanUp(m_PipelineResources);
+  }
+}
+
+spRenderPass::spRenderPass(ExecuteCallback executeCallback, CleanUpCallback cleanUpCallback)
+  : m_ExecuteCallback(std::move(executeCallback))
+  , m_CleanUpCallback(std::move(cleanUpCallback))
 {
 }
 
 void spRenderPass::Execute(const spRenderGraphResourcesTable& resources, spRenderingContext* context)
 {
-  m_Callback(resources, context, m_PassData);
+  m_ExecuteCallback(resources, context, m_PassData);
+}
+
+void spRenderPass::CleanUp(const spRenderGraphResourcesTable& resources)
+{
+  m_CleanUpCallback(resources, m_PassData);
 }
 
 EZ_STATICLINK_FILE(RPI, RPI_Implementation_Pipeline_RenderPipeline);

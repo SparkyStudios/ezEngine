@@ -1,6 +1,6 @@
 #include <RPI/RPIPCH.h>
 
-#include <RPI/Pipeline/Graph/RenderGraph.h>
+#include <RPI/Graph/RenderGraph.h>
 #include <RPI/Pipeline/RenderPass.h>
 
 spRenderGraphBuilder::spRenderGraphBuilder(spDevice* pDevice)
@@ -176,8 +176,8 @@ ezUniquePtr<spRenderPipeline> spRenderGraphBuilder::Compile()
 
       if (res.m_eBindType != spRenderGraphResourceBindType::Imported && res.GetRefCount() <= 0)
       {
-        m_GraphResources.Remove(readResource.value.GetInternalID());
         culledResources.PushBack(res);
+        m_GraphResources.Remove(readResource.value.GetInternalID());
       }
     }
 
@@ -197,8 +197,8 @@ ezUniquePtr<spRenderPipeline> spRenderGraphBuilder::Compile()
 
       if (res.m_eBindType != spRenderGraphResourceBindType::Imported && res.GetRefCount() <= 0)
       {
-        m_GraphResources.Remove(it.Id());
         culledResources.PushBack(res);
+        m_GraphResources.Remove(it.Id());
         continue;
       }
 
@@ -206,7 +206,7 @@ ezUniquePtr<spRenderPipeline> spRenderGraphBuilder::Compile()
     }
   };
 
-  // Cull disabled nodes and all its resources
+  // Cull disabled nodes and all their resources
   for (auto nodeIt = m_Nodes.GetIterator(); nodeIt.IsValid(); nodeIt.Next())
   {
     ezUniquePtr<spRenderGraphNode>& pNode = nodeIt.Value();

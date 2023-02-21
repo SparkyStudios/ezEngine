@@ -17,7 +17,7 @@ public:
 
   /// \brief Sets the current context's command list with an existing instance.
   /// \param pCommandList The new command list.
-  EZ_ALWAYS_INLINE void SetCommandList(ezSharedPtr<spCommandList> pCommandList) { m_pCommandList = pCommandList; }
+  void SetCommandList(ezSharedPtr<spCommandList> pCommandList);
 
   /// \brief Creates a new  context's command list from the given descriptor.
   /// \param description The command list descriptor.
@@ -39,7 +39,10 @@ public:
   /// \brief Marks the end of a render process.
   /// This will execute all commands that were collected in the current context
   /// and reset the command list for the next render process.
-  void EndFrame();
+  void EndFrame(ezSharedPtr<spFence> pFence = nullptr);
+
+  /// \brief Resets the current state of the \a spRenderingContext.
+  void Reset();
 
 private:
   spDevice* m_pDevice;

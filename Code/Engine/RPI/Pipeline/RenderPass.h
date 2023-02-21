@@ -3,7 +3,7 @@
 #include <RPI/RPIDLL.h>
 
 #include <RPI/Core/RenderingContext.h>
-#include <RPI/Pipeline/Graph/RenderGraph.h>
+#include <RPI/Graph/RenderGraph.h>
 
 class SP_RPI_DLL spRenderPass
 {
@@ -11,8 +11,9 @@ class SP_RPI_DLL spRenderPass
 
 public:
   typedef ezDelegate<void(const spRenderGraphResourcesTable&, spRenderingContext*, ezVariant&)> ExecuteCallback;
+  typedef ezDelegate<void(const spRenderGraphResourcesTable&, ezVariant&)> CleanUpCallback;
 
-  spRenderPass(ExecuteCallback callback);
+  spRenderPass(ExecuteCallback executeCallback, CleanUpCallback cleanUpCallback);
 
   template <typename T>
   EZ_ALWAYS_INLINE void SetData(const T& data)
@@ -20,9 +21,13 @@ public:
     m_PassData = data;
   }
 
-  void Execute(const spRenderGraphResourcesTable& resources, spRenderingContext* context);
+  virtual void Execute(const spRenderGraphResourcesTable& resources, spRenderingContext* context);
+
+  virtual void CleanUp(const spRenderGraphResourcesTable& resources);
 
 private:
-  ExecuteCallback m_Callback;
+  ExecuteCallback m_ExecuteCallback;
+  CleanUpCallback m_CleanUpCallback;
+
   ezVariant m_PassData;
 };

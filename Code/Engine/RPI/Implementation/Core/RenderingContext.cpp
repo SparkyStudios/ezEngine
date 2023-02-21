@@ -12,17 +12,28 @@ spRenderingContext::~spRenderingContext()
   m_pCommandList.Clear();
 }
 
+void spRenderingContext::SetCommandList(ezSharedPtr<spCommandList> pCommandList)
+{
+  if (m_pCommandList == pCommandList)
+    return;
+
+  m_pCommandList = pCommandList;
+  m_pCommandList->Reset();
+}
+
 void spRenderingContext::BeginFrame()
 {
-  m_pDevice->BeginFrame();
-
   m_pCommandList->Begin();
 }
 
-void spRenderingContext::EndFrame()
+void spRenderingContext::EndFrame(ezSharedPtr<spFence> pFence)
 {
   m_pCommandList->End();
 
-  m_pDevice->SubmitCommandList(m_pCommandList);
-  m_pDevice->EndFrame();
+  m_pDevice->SubmitCommandList(m_pCommandList, pFence);
+}
+
+void spRenderingContext::Reset()
+{
+  m_pCommandList->Reset();
 }

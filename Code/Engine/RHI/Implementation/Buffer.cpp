@@ -30,16 +30,15 @@ spBuffer::spBuffer(spBufferDescription description)
   , m_Description(std::move(description))
   , m_BufferRanges()
 {
-}
-
-void spBuffer::PreCreateResource()
-{
   m_uiBufferCount = m_Description.m_eUsage.IsSet(spBufferUsage::TripleBuffered)   ? 3
                     : m_Description.m_eUsage.IsSet(spBufferUsage::DoubleBuffered) ? 2
                                                                                   : 1;
 
   m_BufferRanges.SetCount(m_uiBufferCount);
+}
 
+void spBuffer::PreCreateResource()
+{
   ezUInt32 uiBufferAlignmentMinOffset = 1;
 
   if (m_Description.m_eUsage.IsSet(spBufferUsage::ConstantBuffer))

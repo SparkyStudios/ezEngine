@@ -1,4 +1,3 @@
-#include "Foundation/Threading/ThreadUtils.h"
 #include <RPI/RPIPCH.h>
 
 #include <RPI/Core/RenderingThread.h>
@@ -98,7 +97,7 @@ void spRenderingThread::Post(WorkerFunction&& action, WorkerFunction&& onComplet
     std::swap(work.m_Action, action);
     std::swap(work.m_Callback, onComplete);
     work.m_bIsAsync = bIsAsync;
-    work.m_pThreadSignal = bIsAsync ? nullptr : &threadSignal;
+    work.m_pThreadSignal = bIsAsync ? nullptr : &threadSignal; // We can safely pass the pointer here, since we know the object won't get destroyed
   }
 
   m_ThreadSignal.RaiseSignal();
