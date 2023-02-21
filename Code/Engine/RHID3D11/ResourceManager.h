@@ -209,8 +209,7 @@ private:
   ID3D11RasterizerState* CreateRasterizerState(const spRasterizerState& rasterizerState, bool bMultisample) const;
   ID3D11InputLayout* CreateInputLayout(ezArrayPtr<spInputLayoutDescription> inputLayouts, ezByteArrayPtr vertexShaderByteCode) const;
 
-  ID3D11Device* m_pD3D11Device{nullptr};
-  ID3D11Device3* m_pD3D11Device3{nullptr};
+  ID3D11Device5* m_pD3D11Device{nullptr};
 
   ezArrayMap<ezUInt32, ID3D11BlendState*> m_BlendStates;
   ezArrayMap<ezUInt32, ID3D11DepthStencilState*> m_DepthStencilStates;

@@ -6,7 +6,7 @@
 
 #include <RHI/RHIDLL.h>
 
-#include <d3d11_3.h>
+#include <d3d11_4.h>
 
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
 #  include <dxgi1_3.h>

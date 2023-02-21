@@ -206,7 +206,7 @@ public:
 
   /// \brief Blocks the calling thread until the given \a spFence is signaled.
   /// \param [in] pFence The handle to the \a spFence to wait for.
-  void WaitForFence(ezSharedPtr<spFence> pFence);
+  bool WaitForFence(ezSharedPtr<spFence> pFence);
 
   /// \brief Blocks the calling thread until the given \a spFence is signaled.
   /// \param [in] pFence The handle to the \a spFence to wait for.

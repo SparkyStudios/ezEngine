@@ -202,6 +202,8 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   cl = device->GetResourceFactory()->CreateCommandList(spCommandListDescription());
   cl->SetDebugName("RHI SAMPLE CMD");
 
+  m_pFence = device->GetResourceFactory()->CreateFence(spFenceDescription(false));
+
 
 
   // --- Experimental render graph
@@ -248,14 +250,19 @@ void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
   tex.Clear();
   cl.Clear();
 
-  graphBuilder.Clear();
   renderPipeline.Clear();
+  graphBuilder.Clear();
 
-  // destroy device
-  device->Destroy();
+  m_pFence->Reset();
 
   m_pRenderingThread->Stop();
   EZ_DEFAULT_DELETE(m_pRenderingThread);
+
+  m_pFence.Clear();
+
+  // destroy device
+  device->Destroy();
+  device.Clear();
 
   // finally destroy the window
   m_pWindow->Destroy().IgnoreResult();
@@ -536,15 +543,20 @@ ezApplication::Execution ezRHISampleApp::Run()
   // update all input state
   ezInputManager::Update(ezClock::GetGlobalClock()->GetTimeDiff());
 
+  // do the rendering
+  m_pRenderingThread->PostAsync([&]() -> void
+  {
   const ezUniquePtr<spRenderingContext> pC = EZ_NEW(device->GetAllocator(), spRenderingContext, device);
   pC->SetCommandList(cl);
 
-  // do the rendering
   pC->BeginFrame();
   {
     renderPipeline->Execute(pC.Borrow());
   }
-  pC->EndFrame();
+    pC->EndFrame(m_pFence);
+  });
+
+  device->WaitForFence(m_pFence);
 
   // needs to be called once per frame
   ezResourceManager::PerFrameUpdate();

@@ -58,20 +58,18 @@ public:
 
   EZ_NODISCARD EZ_ALWAYS_INLINE spDeviceResourceManagerD3D11* GetD3D11ResourceManager() const { return ezStaticCast<spDeviceResourceManagerD3D11*>(m_pResourceManager); }
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Device* GetD3D11Device() const { return m_pD3D11Device; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Device3* GetD3D11Device3() const { return m_pD3D11Device3; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Device5* GetD3D11Device() const { return m_pD3D11Device; }
   EZ_NODISCARD EZ_ALWAYS_INLINE IDXGIAdapter* GetDXGIAdapter() const { return m_pDXGIAdapter; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceContext* GetD3D11DeviceContext() const { return m_pD3D11ImmediateContext; }
+  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceContext4* GetD3D11DeviceContext() const { return m_pD3D11ImmediateContext; }
 
 private:
   bool CheckFormatMultisample(DXGI_FORMAT format, ezUInt32 uiSampleCount) const;
   ezSharedPtr<spBufferD3D11> GetFreeStagingBuffer(ezUInt32 uiSize);
 
-  ID3D11Device* m_pD3D11Device{nullptr};
-  ID3D11Device3* m_pD3D11Device3{nullptr};
+  ID3D11Device5* m_pD3D11Device{nullptr};
   IDXGIAdapter* m_pDXGIAdapter{nullptr};
   IDXGIDevice1* m_pDXGIDevice{nullptr};
-  ID3D11DeviceContext* m_pD3D11ImmediateContext{nullptr};
+  ID3D11DeviceContext4* m_pD3D11ImmediateContext{nullptr};
   ID3D11Debug* m_pD3D11Debug{nullptr};
   D3D_FEATURE_LEVEL m_uiFeatureLevel;
 

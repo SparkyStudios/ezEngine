@@ -47,7 +47,6 @@ spDeviceResourceManagerD3D11::spDeviceResourceManagerD3D11(spDeviceD3D11* pDevic
   : spDefaultDeviceResourceManager(pDevice)
 {
   m_pD3D11Device = pDevice->GetD3D11Device();
-  m_pD3D11Device3 = pDevice->GetD3D11Device3();
 }
 
 spDeviceResourceManagerD3D11::~spDeviceResourceManagerD3D11()
@@ -239,7 +238,7 @@ ID3D11RasterizerState* spDeviceResourceManagerD3D11::CreateRasterizerState(const
     desc.ForcedSampleCount = 0;
 
     ID3D11RasterizerState2* pRasterizerState = nullptr;
-    const HRESULT res = m_pD3D11Device3->CreateRasterizerState2(&desc, &pRasterizerState);
+    const HRESULT res = m_pD3D11Device->CreateRasterizerState2(&desc, &pRasterizerState);
     EZ_HRESULT_TO_ASSERT(res);
 
     return pRasterizerState;

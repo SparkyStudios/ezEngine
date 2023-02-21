@@ -155,6 +155,7 @@ private:
   spRenderingThread* m_pRenderingThread{nullptr};
 
   ezSharedPtr<spDevice> device;
+  ezSharedPtr<spFence> m_pFence;
 
   ezUniquePtr<spRenderGraphBuilder> graphBuilder;
   ezUniquePtr<spRenderPipeline> renderPipeline;
