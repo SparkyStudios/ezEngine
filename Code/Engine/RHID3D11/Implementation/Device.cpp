@@ -32,7 +32,7 @@ static bool SdkLayersAvailable()
     nullptr,           // No need to keep the D3D device reference.
     nullptr,           // No need to know the feature level.
     nullptr            // No need to keep the D3D device context reference.
-    );
+  );
 
   return SUCCEEDED(hr);
 }
@@ -121,7 +121,15 @@ void spDeviceD3D11::SubmitCommandList(ezSharedPtr<spCommandList> pCommandList, e
   }
 
   if (const auto pFenceD3D11 = pFence.Downcast<spFenceD3D11>(); pFenceD3D11 != nullptr)
-    pFenceD3D11->Raise(m_pD3D11ImmediateContext);
+    pFenceD3D11->Raise();
+}
+
+bool spDeviceD3D11::WaitForFence(ezSharedPtr<spFence> pFence)
+{
+  if (pFence == nullptr)
+    return false;
+
+  return pFence.Downcast<spFenceD3D11>()->Wait();
 }
 
 bool spDeviceD3D11::WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout)
@@ -129,8 +137,25 @@ bool spDeviceD3D11::WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecon
   if (pFence == nullptr)
     return false;
 
-  const auto pFenceD3D11 = pFence.Downcast<spFenceD3D11>();
-  return pFenceD3D11->Wait(ezTime::Nanoseconds(uiNanosecondsTimeout));
+  return pFence.Downcast<spFenceD3D11>()->Wait(ezTime::Nanoseconds(uiNanosecondsTimeout));
+}
+
+bool spDeviceD3D11::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll)
+{
+  for (auto it = fences.GetIterator(); it.IsValid(); it.Next())
+  {
+    if (it->Downcast<spFenceD3D11>()->Wait())
+    {
+      if (bWaitAll)
+        continue;
+
+      return true;
+    }
+
+    return false;
+  }
+
+  return true;
 }
 
 bool spDeviceD3D11::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout)
@@ -151,12 +176,20 @@ bool spDeviceD3D11::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bo
   return true;
 }
 
+void spDeviceD3D11::RaiseFence(ezSharedPtr<spFence> pFence)
+{
+  if (pFence == nullptr)
+    return;
+
+  return pFence.Downcast<spFenceD3D11>()->Raise();
+}
+
 void spDeviceD3D11::ResetFence(ezSharedPtr<spFence> pFence)
 {
   if (pFence == nullptr)
     return;
 
-  return pFence->Reset();
+  return pFence.Downcast<spFenceD3D11>()->Reset();
 }
 
 void spDeviceD3D11::Present()
@@ -268,7 +301,8 @@ void spDeviceD3D11::Destroy()
 
 void spDeviceD3D11::WaitForIdleInternal()
 {
-  // noop
+  m_pResourceManager->ReleaseResources();
+  m_pD3D11ImmediateContext->Flush();
 }
 
 const spMappedResource& spDeviceD3D11::MapInternal(ezSharedPtr<spBuffer> pBuffer, ezEnum<spMapAccess> eAccess)

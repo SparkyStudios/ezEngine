@@ -28,6 +28,9 @@ class SP_RPI_DLL spRenderPipeline : public ezRefCounted
 
 public:
   explicit spRenderPipeline(spRenderGraphResourcesTable&& resources);
+  ~spRenderPipeline();
+
+  EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderGraphResourcesTable& GetResources() const { return m_PipelineResources; }
 
   void Execute(spRenderingContext* pContext);
 
@@ -36,12 +39,12 @@ public:
   void EndPass(spRenderPass* pPass, spRenderingContext* pContext);
 
   void AddPass(ezHashedString sName, ezUniquePtr<spRenderPass>&& pPass);
-
   void RemovePass(ezHashedString sName);
 
   bool TryGetPass(ezHashedString sName, spRenderPass*& pPass);
-
   spRenderPass* GetPass(ezHashedString sName);
+
+  void CleanUp();
 
 private:
   ezEvent<const spRenderPassEvent&, ezMutex> m_PassEvents;

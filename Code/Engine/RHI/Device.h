@@ -206,7 +206,7 @@ public:
 
   /// \brief Blocks the calling thread until the given \a spFence is signaled.
   /// \param [in] pFence The handle to the \a spFence to wait for.
-  bool WaitForFence(ezSharedPtr<spFence> pFence);
+  virtual bool WaitForFence(ezSharedPtr<spFence> pFence) = 0;
 
   /// \brief Blocks the calling thread until the given \a spFence is signaled.
   /// \param [in] pFence The handle to the \a spFence to wait for.
@@ -223,7 +223,7 @@ public:
   /// \brief Blocks the calling thread until the given one or all the given \a fences are signaled.
   /// \param [in] fences The list of handles to the \a spFence instances to wait for.
   /// \param [in] bWaitAll Specifies if the method should block until all the fences has been signaled.
-  void WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll);
+  virtual bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll) = 0;
 
   /// \brief Blocks the calling thread until the given one or all the given \a fences are signaled.
   /// \param [in] fences The list of handles to the \a spFence instances to wait for.
@@ -238,6 +238,9 @@ public:
   /// \param [in] bWaitAll Specifies if the method should block until all the fences has been signaled.
   /// \returns \c true when one or all the \a fences was signaled within the timeout, and \c false if the timeout was reached.
   virtual bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout) = 0;
+
+  /// \brief Raises a signal from the given \a spFence, allowing waiting threads to continue.
+  virtual void RaiseFence(ezSharedPtr<spFence> pFence) = 0;
 
   /// \brief Resets the given \a spFence to an unsignaled state.
   /// \param [in] pFence The handle to the \a spFence to reset.

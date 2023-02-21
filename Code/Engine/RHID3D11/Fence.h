@@ -23,22 +23,21 @@ public:
   // spFence
 
   bool IsSignaled() override;
-  void Reset() override;
 
   // spFenceD3D11
 
-  void Raise(ID3D11DeviceContext4* pDeviceContext);
-  void Raise(ezUInt64 uiValue, ID3D11DeviceContext4* pDeviceContext);
+  void Reset();
 
-  bool Wait(ezTime timeout) const;
-  bool Wait(ezUInt64 uiValue, ezTime timeout) const;
+  void Raise();
+
+  bool Wait();
+  bool Wait(ezTime timeout);
 
   spFenceD3D11(spDeviceD3D11* pDevice, const spFenceDescription& description);
   ~spFenceD3D11() override;
 
 private:
-  ID3D11Fence* m_pD3D11Fence{nullptr};
-  HANDLE m_hEvent{nullptr};
+  ezThreadSignal m_ThreadSignal;
 
-  ezUInt64 m_uiCurrentFenceValue{0};
+  bool m_bSignaled{false};
 };

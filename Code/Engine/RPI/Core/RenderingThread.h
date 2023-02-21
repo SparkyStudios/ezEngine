@@ -9,11 +9,11 @@
 ///
 /// Rendering operations should be executed inside this thread. You can use \a PostSync and
 /// \a PostAsync to push functions to be executed synchronously or asynchronously respectively.
-class SP_RPI_DLL spRenderingThread final : private ezThread
+class SP_RPI_DLL spRenderingThread final : ezThread
 {
   typedef ezDelegate<void(), 128> WorkerFunction;
 
-  // ezThreadWithDispatcher
+  // ezThread
 
 public:
   ezUInt32 Run() override;

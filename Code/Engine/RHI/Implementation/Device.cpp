@@ -22,19 +22,9 @@ void spDevice::SubmitCommandList(ezSharedPtr<spCommandList> pCommandList)
   SubmitCommandList(pCommandList, nullptr);
 }
 
-bool spDevice::WaitForFence(ezSharedPtr<spFence> pFence)
-{
-  return WaitForFence(pFence, static_cast<double>(0xffffffffffffffffui64));;
-}
-
 bool spDevice::WaitForFence(ezSharedPtr<spFence> pFence, const ezTime& timeout)
 {
   return WaitForFence(pFence, timeout.GetNanoseconds());
-}
-
-void spDevice::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitForAll)
-{
-  WaitForFences(fences, bWaitForAll, static_cast<double>(0xffffffffffffffffui64));
 }
 
 bool spDevice::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, const ezTime& timeout)
@@ -133,8 +123,6 @@ void spDevice::BeginFrame()
 
 void spDevice::EndFrame()
 {
-  WaitForIdle();
-
   // If debugging is enabled, stop the profiler
   if (IsDebugEnabled())
     m_pFrameProfiler->End();

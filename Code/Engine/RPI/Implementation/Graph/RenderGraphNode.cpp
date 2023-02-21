@@ -1,11 +1,9 @@
 #include <RPI/RPIPCH.h>
 
-#include <RPI/Pipeline/Graph/RenderGraph.h>
+#include <RPI/Graph/RenderGraph.h>
 
 // clang-format off
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderGraphNode, 1, ezRTTINoAllocator)
-{
-}
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 // clang-format on
 
