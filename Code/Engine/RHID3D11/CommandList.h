@@ -116,8 +116,7 @@ private:
   void OnComplete();
 
   ID3D11CommandList* m_pCommandList{nullptr};
-  ID3D11DeviceContext* m_pDeviceContext{nullptr};
-  ID3D11DeviceContext1* m_pDeviceContext1{nullptr};
+  ID3D11DeviceContext3* m_pDeviceContext{nullptr};
   ID3DUserDefinedAnnotation* m_pUserDefinedAnnotation{nullptr};
 
   bool m_bHasStarted{false};

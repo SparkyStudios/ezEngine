@@ -32,7 +32,7 @@ static bool SdkLayersAvailable()
     nullptr,           // No need to keep the D3D device reference.
     nullptr,           // No need to know the feature level.
     nullptr            // No need to keep the D3D device context reference.
-  );
+    );
 
   return SUCCEEDED(hr);
 }
@@ -121,7 +121,7 @@ void spDeviceD3D11::SubmitCommandList(ezSharedPtr<spCommandList> pCommandList, e
   }
 
   if (const auto pFenceD3D11 = pFence.Downcast<spFenceD3D11>(); pFenceD3D11 != nullptr)
-    pFenceD3D11->Raise();
+    pFenceD3D11->Raise(m_pD3D11ImmediateContext);
 }
 
 bool spDeviceD3D11::WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout)
@@ -135,8 +135,20 @@ bool spDeviceD3D11::WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecon
 
 bool spDeviceD3D11::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout)
 {
-  EZ_ASSERT_NOT_IMPLEMENTED;
-  return false;
+  for (auto it = fences.GetIterator(); it.IsValid(); it.Next())
+  {
+    if (it->Downcast<spFenceD3D11>()->Wait(ezTime::Nanoseconds(uiNanosecondsTimeout)))
+    {
+      if (bWaitAll)
+        continue;
+
+      return true;
+    }
+
+    return false;
+  }
+
+  return true;
 }
 
 void spDeviceD3D11::ResetFence(ezSharedPtr<spFence> pFence)
@@ -232,7 +244,6 @@ void spDeviceD3D11::Destroy()
   m_pFrameProfiler.Clear();
 
   SP_RHI_DX11_RELEASE(m_pD3D11ImmediateContext);
-  SP_RHI_DX11_RELEASE(m_pD3D11Device3);
 
   if (IsDebugEnabled())
   {
@@ -428,14 +439,22 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
 
   m_bIsDebugEnabled = (uiFlags & D3D11_CREATE_DEVICE_DEBUG) != 0;
 
-  constexpr D3D_FEATURE_LEVEL featureLevels[] = {D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0};
-  HRESULT res = D3D11CreateDevice(deviceDescription.m_pD3D11Adapter, D3D_DRIVER_TYPE_HARDWARE, nullptr, uiFlags, &featureLevels[0], 2, D3D11_SDK_VERSION, &m_pD3D11Device, (D3D_FEATURE_LEVEL*)&m_uiFeatureLevel, nullptr);
+  HRESULT res;
 
-  if (FAILED(res))
   {
-    ezLog::Error("Failed to create D3D11 device. Trying fallback device creation.");
-    res = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, uiFlags, &featureLevels[0], 2, D3D11_SDK_VERSION, &m_pD3D11Device, (D3D_FEATURE_LEVEL*)&m_uiFeatureLevel, nullptr);
-    EZ_HRESULT_TO_ASSERT(res);
+    spScopedD3D11Resource<ID3D11Device> pD3D11Device;
+    constexpr D3D_FEATURE_LEVEL featureLevels[] = {D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0};
+    res = D3D11CreateDevice(deviceDescription.m_pD3D11Adapter, D3D_DRIVER_TYPE_HARDWARE, nullptr, uiFlags, &featureLevels[0], 2, D3D11_SDK_VERSION, &pD3D11Device, (D3D_FEATURE_LEVEL*)&m_uiFeatureLevel, nullptr);
+
+    if (FAILED(res))
+    {
+      ezLog::Error("Failed to create D3D11 device. Trying fallback device creation.");
+      res = D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, uiFlags, &featureLevels[0], 2, D3D11_SDK_VERSION, &pD3D11Device, (D3D_FEATURE_LEVEL*)&m_uiFeatureLevel, nullptr);
+      EZ_HRESULT_TO_ASSERT(res);
+    }
+
+    res = pD3D11Device->QueryInterface(IID_ID3D11Device5, reinterpret_cast<void**>(&m_pD3D11Device));
+    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create D3D11 device. The D3D11 backend only supports Windows 10 Creators Update and later versions.");
   }
 
   {
@@ -496,14 +515,6 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
       break;
   }
 
-  {
-    if (FAILED(m_pD3D11Device->QueryInterface(IID_ID3D11Device3, reinterpret_cast<void**>(&m_pD3D11Device3))))
-    {
-      ezLog::Warning("Failed to get ID3D11Device3 from D3D11 device, some features won't be available.");
-      m_pD3D11Device3 = nullptr;
-    }
-  }
-
   m_pResourceManager = EZ_DEFAULT_NEW(spDeviceResourceManagerD3D11, this);
   m_pResourceFactory = EZ_DEFAULT_NEW(spDeviceResourceFactoryD3D11, this);
   m_pTextureSamplerManager = EZ_DEFAULT_NEW(spTextureSamplerManagerD3D11, this);
@@ -514,8 +525,14 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
   }
 
   {
-    m_pD3D11Device->GetImmediateContext(&m_pD3D11ImmediateContext);
+    spScopedD3D11Resource<ID3D11DeviceContext> pImmediateContext;
+    m_pD3D11Device->GetImmediateContext(&pImmediateContext);
 
+    res = pImmediateContext->QueryInterface(IID_ID3D11DeviceContext4, reinterpret_cast<void**>(&m_pD3D11ImmediateContext));
+    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create D3D11 immediate context. The D3D11 backend only supports Windows 10 Creators Update and later versions.");
+  }
+
+  {
     D3D11_FEATURE_DATA_THREADING support;
     res = m_pD3D11Device->CheckFeatureSupport(D3D11_FEATURE_THREADING, &support, sizeof(D3D11_FEATURE_DATA_THREADING));
 
@@ -553,7 +570,7 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
     m_Capabilities.m_bSubsetTextureView = true;
     m_Capabilities.m_bTessellationShader = true;
     m_Capabilities.m_bTexture1D = true;
-    m_Capabilities.m_bConservaiveRasterization = CheckConservativeRasterizationSupport(m_pD3D11Device3);
+    m_Capabilities.m_bConservaiveRasterization = CheckConservativeRasterizationSupport(m_pD3D11Device);
     m_Capabilities.m_bSupportCommandLists = m_bSupportsCommandLists;
     m_Capabilities.m_bSupportConcurrentResources = m_bSupportsConcurrentResources;
   }

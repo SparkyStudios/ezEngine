@@ -22,9 +22,9 @@ void spDevice::SubmitCommandList(ezSharedPtr<spCommandList> pCommandList)
   SubmitCommandList(pCommandList, nullptr);
 }
 
-void spDevice::WaitForFence(ezSharedPtr<spFence> pFence)
+bool spDevice::WaitForFence(ezSharedPtr<spFence> pFence)
 {
-  WaitForFence(pFence, static_cast<double>(0xffffffffffffffffui64));
+  return WaitForFence(pFence, static_cast<double>(0xffffffffffffffffui64));;
 }
 
 bool spDevice::WaitForFence(ezSharedPtr<spFence> pFence, const ezTime& timeout)
