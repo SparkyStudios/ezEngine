@@ -351,13 +351,13 @@ ezUniquePtr<spRenderPass> spTriangleDemoRenderGraphNode::Compile(spRenderGraphBu
 struct VS_INPUT
 {
   float3 pos : POSITION;
+  float3 nrm : Normal;
+  float3 tnt : Tangent;
+  float3 btt : BiTangent;
   float2 uv0 : TexCoord0;
   float2 uv1 : TexCoord1;
   float4 cl0 : Color0;
   float4 cl1 : Color1;
-  float3 nrm : Normal;
-  float3 tnt : Tangent;
-  float3 btt : BiTangent;
 };
 
 struct VS_OUTPUT
@@ -475,13 +475,13 @@ float4 main(VS_OUTPUT input) : SV_TARGET
       inputLayoutDescription.m_uiInstanceStepRate = 0;
       inputLayoutDescription.m_uiStride = sizeof(spMesh::Vertex);
       inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("nrm", spInputElementLocationSemantic::Normal, spInputElementFormat::Float3, offsetof(spMesh::Vertex, m_vNormal)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tgt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float4, offsetof(spMesh::Vertex, m_vTangent)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("btt", spInputElementLocationSemantic::BiTangent, spInputElementFormat::Float4, offsetof(spMesh::Vertex, m_vBiTangent)));
       inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv0", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spMesh::Vertex, m_vTexCoord0)));
       inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv1", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spMesh::Vertex, m_vTexCoord1)));
       inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl0", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spMesh::Vertex, m_Color0)));
       inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl1", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spMesh::Vertex, m_Color1)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("nrm", spInputElementLocationSemantic::Normal, spInputElementFormat::Float3, offsetof(spMesh::Vertex, m_vNormal)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tgt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float3, offsetof(spMesh::Vertex, m_vTangent)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("btt", spInputElementLocationSemantic::BiTangent, spInputElementFormat::Float3, offsetof(spMesh::Vertex, m_vBiTangent)));
 
       data.m_pInputLayout = context->GetDevice()->GetResourceFactory()->CreateInputLayout(inputLayoutDescription, data.m_pVertexShader->GetHandle());
       data.m_pInputLayout->SetDebugName("input");
