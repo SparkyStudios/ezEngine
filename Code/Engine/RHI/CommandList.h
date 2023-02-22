@@ -33,19 +33,19 @@ struct alignas(16) spDrawIndexedIndirectCommand
   EZ_DECLARE_POD_TYPE();
 
   /// \brief The number of elements (in an instance) to be drawn.
-  ezUInt32 m_uiCount;
+  ezUInt32 m_uiCount{0};
 
   /// \brief The number of instances to be drawn.
-  ezUInt32 m_uiInstanceCount;
+  ezUInt32 m_uiInstanceCount{0};
 
   /// \brief Index of the first element to be drawn.
-  ezUInt32 m_uiFirstIndex;
+  ezUInt32 m_uiFirstIndex{0};
 
   /// \brief Constant that should be added to each element when choosing elements the enabled vertex arrays.
-  ezUInt32 m_uiBaseVertex;
+  ezUInt32 m_uiBaseVertex{0};
 
   /// \brief The base instance for use in fetching instanced vertex attributes.
-  ezUInt32 m_uiBaseInstance;
+  ezUInt32 m_uiBaseInstance{0};
 };
 
 /// \brief Holds data for a \a spBuffer bound as an index buffer in a \a spCommandList.

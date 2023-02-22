@@ -26,18 +26,14 @@ static LPCSTR GetSemanticName(const ezEnum<spInputElementLocationSemantic>& eSem
       return "TANGENT";
     case spInputElementLocationSemantic::BiTangent:
       return "BITANGENT";
-    case spInputElementLocationSemantic::TexCoord0:
-      return "TEXCOORD0";
-    case spInputElementLocationSemantic::TexCoord1:
-      return "TEXCOORD1";
-    case spInputElementLocationSemantic::Color0:
-      return "COLOR0";
-    case spInputElementLocationSemantic::Color1:
-      return "COLOR1";
-    case spInputElementLocationSemantic::BoneWeights0:
-      return "BONEWEIGHTS0";
-    case spInputElementLocationSemantic::BoneIndices0:
-      return "BONEINDICES0";
+    case spInputElementLocationSemantic::TexCoord:
+      return "TEXCOORD";
+    case spInputElementLocationSemantic::Color:
+      return "COLOR";
+    case spInputElementLocationSemantic::BoneWeights:
+      return "BONEWEIGHTS";
+    case spInputElementLocationSemantic::BoneIndices:
+      return "BONEINDICES";
     default:
       return "UNKNOWN";
   }
