@@ -26,6 +26,7 @@
 #include <RHID3D11/Swapchain.h>
 
 #include <RPI/Graph/Nodes/MainSwapchainRenderGraphNode.h>
+#include <RPI/Assets/Import/MeshImporter.h>
 
 #include <RHISample/RHISample.h>
 
@@ -88,6 +89,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   ezFileSystem::AddDataDirectory(">user/ezEngine Project/RHISample", "AppData", "appdata", ezFileSystem::AllowWrites).IgnoreResult(); // app user data
 
   ezFileSystem::AddDataDirectory(">sdk/Data/Base", "Base", "base").IgnoreResult();
+  ezFileSystem::AddDataDirectory(">sdk/Data/Content", "Content", "content").IgnoreResult();
   ezFileSystem::AddDataDirectory(">project/", "Project", "project", ezFileSystem::AllowWrites).IgnoreResult();
 
   ezGlobalLog::AddLogWriter(ezLogWriter::Console::LogMessageHandler);
@@ -201,6 +203,31 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   m_pSceneContext = EZ_NEW(m_pDevice->GetAllocator(), spSceneContext, m_pDevice.Borrow());
 
+  spMeshImporterConfiguration config;
+  config.m_fScale = 2.0f;
+  config.m_bFlipWindingNormals = true;
+  config.m_bRecomputeNormals = true;
+  config.m_bRecomputeTangents = true;
+  config.m_bOptimizeMesh = true;
+
+  ezStringBuilder sAbsPath;
+  if (ezFileSystem::ResolvePath(":content/Objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.FBX", &sAbsPath, nullptr).Failed())
+  {
+    return ezLog::Error("Couldn't make path absolute: '{0}'", sAbsPath);
+  }
+
+  spMeshImporter importer(config);
+  importer.Import(sAbsPath, &m_Mesh).AssertSuccess();
+
+  ezUInt32 uiVerticesCount = m_Mesh.GetData().m_Vertices.GetCount();
+  ezUInt32 uiIndicesCount = m_Mesh.GetData().m_Indices.GetCount();
+
+  auto pVertexBuffer = pFactory->CreateBuffer(spBufferDescription(sizeof(spMesh::Vertex) * uiVerticesCount, spBufferUsage::VertexBuffer));
+  auto pIndexBuffer = pFactory->CreateBuffer(spBufferDescription(sizeof(ezUInt16) * uiIndicesCount, spBufferUsage::IndexBuffer));
+
+  m_pDevice->UpdateBuffer<spMesh::Vertex>(pVertexBuffer, 0, m_Mesh.GetData().m_Vertices.GetData(), uiVerticesCount);
+  m_pDevice->UpdateBuffer<ezUInt16>(pIndexBuffer, 0, m_Mesh.GetData().m_Indices.GetData(), uiIndicesCount);
+
 
 
   // --- Begin Experimental render graph
@@ -208,16 +235,24 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   // 1. Setup graph
   graphBuilder = EZ_NEW(m_pDevice->GetAllocator(), spRenderGraphBuilder, m_pDevice.Borrow());
 
-  spResourceHandle importedTexture = graphBuilder->Import(tex); // Import a resource in the graph
+  spResourceHandle importedTexture = graphBuilder->Import(tex);       // Import a resource in the graph
+  spResourceHandle importedVBO = graphBuilder->Import(pVertexBuffer); // Import a resource in the graph
+  spResourceHandle importedIBO = graphBuilder->Import(pIndexBuffer);  // Import a resource in the graph
 
   // 2. Setup graph nodes
-  ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(m_pDevice->GetAllocator(), spTriangleDemoRenderGraphNode);
+  ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(m_pDevice->GetAllocator(), spTriangleDemoRenderGraphNode, &m_Mesh);
 
   ezHashedString texName;
   texName.Assign("tex");
+  ezHashedString vboName;
+  vboName.Assign("vbo");
+  ezHashedString iboName;
+  iboName.Assign("ibo");
 
   ezHashTable<ezHashedString, spResourceHandle> triangleNodeResources;
   triangleNodeResources.Insert(texName, importedTexture);
+  triangleNodeResources.Insert(vboName, importedVBO);
+  triangleNodeResources.Insert(iboName, importedIBO);
 
   graphBuilder->AddNode("Triangle", std::move(triangleNode), triangleNodeResources);
 
@@ -282,6 +317,12 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
 {
   if (!resources.TryGetValue("tex", m_PassData.m_hGridTexture))
     return EZ_FAILURE;
+  if (!resources.TryGetValue("vbo", m_PassData.m_hVertexBuffer))
+    return EZ_FAILURE;
+  if (!resources.TryGetValue("ibo", m_PassData.m_hIndexBuffer))
+    return EZ_FAILURE;
+
+  m_PassData.m_hIndirectBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof spDrawIndexedIndirectCommand, spBufferUsage::IndirectBuffer), spRenderGraphResourceBindType::Transient);
 
   spRenderTargetDescription rtDescription;
   rtDescription.m_bGenerateMipMaps = false;
@@ -292,8 +333,8 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
 
   m_PassData.m_hGridTexture = pBuilder->Read(this, m_PassData.m_hGridTexture);
   m_PassData.m_hConstantBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezColor), spBufferUsage::ConstantBuffer | spBufferUsage::Dynamic | spBufferUsage::TripleBuffered), spRenderGraphResourceBindType::Transient);
-  m_PassData.m_hIndexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezUInt16) * 3, spBufferUsage::IndexBuffer), spRenderGraphResourceBindType::Transient);
-  m_PassData.m_hVertexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezVec3) * 3, spBufferUsage::VertexBuffer), spRenderGraphResourceBindType::Transient);
+  // m_PassData.m_hIndexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezUInt16) * 3, spBufferUsage::IndexBuffer), spRenderGraphResourceBindType::Transient);
+  // m_PassData.m_hVertexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezVec3) * 3, spBufferUsage::VertexBuffer), spRenderGraphResourceBindType::Transient);
   m_PassData.m_hSampler = pBuilder->CreateSampler(this, spSamplerDescription::Linear, spRenderGraphResourceBindType::Transient);
   m_PassData.m_hRenderTarget = pBuilder->CreateRenderTarget(this, rtDescription, spRenderGraphResourceBindType::ReadOnly);
 
@@ -302,7 +343,7 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
 
 ezUniquePtr<spRenderPass> spTriangleDemoRenderGraphNode::Compile(spRenderGraphBuilder* pBuilder)
 {
-  const spRenderPass::ExecuteCallback executeCallback = [name = GetName()](const spRenderGraphResourcesTable& resources, spRenderingContext* context, ezVariant& passData) -> void
+  const spRenderPass::ExecuteCallback executeCallback = [=](const spRenderGraphResourcesTable& resources, spRenderingContext* context, ezVariant& passData) -> void
   {
     auto& data = passData.GetWritable<PassData>();
 
@@ -310,19 +351,26 @@ ezUniquePtr<spRenderPass> spTriangleDemoRenderGraphNode::Compile(spRenderGraphBu
 struct VS_INPUT
 {
   float3 pos : POSITION;
+  float2 uv0 : TexCoord0;
+  float2 uv1 : TexCoord1;
+  float4 cl0 : Color0;
+  float4 cl1 : Color1;
+  float3 nrm : Normal;
+  float3 tnt : Tangent;
+  float3 btt : BiTangent;
 };
 
 struct VS_OUTPUT
 {
   float4 pos: SV_POSITION;
-  float2 uv : TEXCOORD0;
+  float2 uv0 : TEXCOORD0;
 };
 
 VS_OUTPUT main(VS_INPUT input)
 {
   VS_OUTPUT output;
   output.pos = float4(input.pos, 1.0f);
-  output.uv = input.pos.xy * 0.5f + float2(0.5f, 0.5f);
+  output.uv0 = input.uv0;
   return output;
 }
 )";
@@ -331,7 +379,7 @@ VS_OUTPUT main(VS_INPUT input)
 struct VS_OUTPUT
 {
   float4 pos: SV_POSITION;
-  float2 uv : TEXCOORD0;
+  float2 uv0 : TEXCOORD0;
 };
 
 cbuffer Settings : register(b0)
@@ -345,16 +393,16 @@ SamplerState linearSampler : register(s0);
 
 float4 main(VS_OUTPUT input) : SV_TARGET
 {
-  return tex.SampleLevel(linearSampler, input.uv, 0) * color;
+  return tex.SampleLevel(linearSampler, input.uv0, 0) * color;
 }
 )";
 
-    constexpr ezUInt16 IndexBuffer[3] = {0, 1, 2};
+    // constexpr ezUInt16 IndexBuffer[3] = {0, 1, 2};
 
-    constexpr float VertexBuffer[9] = {
-      -0.5f, -0.5f, 0.0,
-      0.0f, 0.5f, 0.0,
-      0.5f, -0.5f, 0.0f};
+    // constexpr float VertexBuffer[9] = {
+    //   -0.5f, -0.5f, 0.0,
+    //   0.0f, 0.5f, 0.0,
+    //   0.5f, -0.5f, 0.0f};
 
     const auto cl = context->GetCommandList();
 
@@ -376,10 +424,22 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     spRenderGraphResource* rtt = nullptr;
     resources.TryGetValue(data.m_hRenderTarget.GetInternalID(), rtt);
 
+    spRenderGraphResource* idb = nullptr;
+    resources.TryGetValue(data.m_hIndirectBuffer.GetInternalID(), idb);
+
+    spDrawIndexedIndirectCommand command;
+    command.m_uiCount = m_pMesh->GetData().m_Indices.GetCount();
+    command.m_uiInstanceCount = 1;
+    command.m_uiFirstIndex = 0;
+    command.m_uiBaseVertex = 0;
+    command.m_uiBaseInstance = 0;
+
+    context->GetDevice()->UpdateBuffer(idb->m_pResource.Downcast<spBuffer>(), 0, command);
+
     if (data.m_pVertexShader == nullptr)
     {
-      context->GetDevice()->UpdateBuffer<ezUInt16>(ibo->m_pResource.Downcast<spBuffer>(), 0, &IndexBuffer[0], EZ_ARRAY_SIZE(IndexBuffer));
-      context->GetDevice()->UpdateBuffer<float>(vbo->m_pResource.Downcast<spBuffer>(), 0, &VertexBuffer[0], EZ_ARRAY_SIZE(VertexBuffer));
+      // context->GetDevice()->UpdateBuffer<ezUInt16>(ibo->m_pResource.Downcast<spBuffer>(), 0, &IndexBuffer[0], EZ_ARRAY_SIZE(IndexBuffer));
+      // context->GetDevice()->UpdateBuffer<float>(vbo->m_pResource.Downcast<spBuffer>(), 0, &VertexBuffer[0], EZ_ARRAY_SIZE(VertexBuffer));
 
       spShaderDescription vsDescription;
       vsDescription.m_sEntryPoint = ezMakeHashedString("main");
@@ -413,8 +473,15 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     {
       spInputLayoutDescription inputLayoutDescription;
       inputLayoutDescription.m_uiInstanceStepRate = 0;
-      inputLayoutDescription.m_uiStride = sizeof(ezVec3);
+      inputLayoutDescription.m_uiStride = sizeof(spMesh::Vertex);
       inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv0", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spMesh::Vertex, m_vTexCoord0)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv1", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spMesh::Vertex, m_vTexCoord1)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl0", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spMesh::Vertex, m_Color0)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl1", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spMesh::Vertex, m_Color1)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("nrm", spInputElementLocationSemantic::Normal, spInputElementFormat::Float3, offsetof(spMesh::Vertex, m_vNormal)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tgt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float3, offsetof(spMesh::Vertex, m_vTangent)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("btt", spInputElementLocationSemantic::BiTangent, spInputElementFormat::Float3, offsetof(spMesh::Vertex, m_vBiTangent)));
 
       data.m_pInputLayout = context->GetDevice()->GetResourceFactory()->CreateInputLayout(inputLayoutDescription, data.m_pVertexShader->GetHandle());
       data.m_pInputLayout->SetDebugName("input");
@@ -464,7 +531,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     {
       spGraphicPipelineDescription desc;
       desc.m_Output = rtt->m_pResource.Downcast<spRenderTarget>()->GetFramebuffer()->GetOutputDescription();
-      desc.m_ePrimitiveTopology = spPrimitiveTopology::TriangleStrip;
+      desc.m_ePrimitiveTopology = spPrimitiveTopology::Triangles;
       desc.m_RenderingState.m_BlendState = spBlendState::SingleDisabled;
       desc.m_RenderingState.m_DepthState = spDepthState::Disabled;
       desc.m_RenderingState.m_RasterizerState = spRasterizerState::Default;
@@ -483,7 +550,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 
     ezSharedPtr<spScopeProfiler> pTestScopeProfiler;
 
-    cl->PushProfileScope(name);
+    cl->PushProfileScope(GetName());
     {
       cl->SetGraphicPipeline(data.m_pGraphicPipeline);
 
@@ -502,7 +569,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 
       cl->SetGraphicResourceSet(0, data.m_pResourceSet);
 
-      cl->DrawIndexed(3, 1, 0, 0, 0);
+      cl->DrawIndexedIndirect(idb->m_pResource.Downcast<spBuffer>(), 0, 1, sizeof(spDrawIndexedIndirectCommand));
     }
     cl->PopProfileScope(pTestScopeProfiler);
 

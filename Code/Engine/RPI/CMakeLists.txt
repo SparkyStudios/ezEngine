@@ -9,7 +9,11 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
   Core
   RHI
+  assimp
+
+  PRIVATE
   meshoptimizer
+  mikktspace
 )
 
 if(EZ_3RDPARTY_OZZ_SUPPORT)

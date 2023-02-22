@@ -14,6 +14,7 @@
 #include <RHI/Swapchain.h>
 #include <RHI/Texture.h>
 
+#include <RPI/Assets/Mesh.h>
 #include <RPI/Core/RenderingThread.h>
 #include <RPI/Graph/RenderGraph.h>
 #include <RPI/Pipeline/RenderPass.h>
@@ -162,13 +163,15 @@ private:
   ezUniquePtr<spRenderPipeline> renderPipeline;
 
   ezSharedPtr<spTexture> tex;
+  spMesh m_Mesh;
 };
 
 class spTriangleDemoRenderGraphNode final : public spRenderGraphNode
 {
 public:
-  spTriangleDemoRenderGraphNode()
+  spTriangleDemoRenderGraphNode(const spMesh* pMesh)
     : spRenderGraphNode("TrianglePass")
+    , m_pMesh(pMesh)
   {
   }
 
@@ -180,6 +183,7 @@ public:
     spResourceHandle m_hConstantBuffer;
     spResourceHandle m_hSampler;
     spResourceHandle m_hRenderTarget;
+    spResourceHandle m_hIndirectBuffer;
 
     ezSharedPtr<spShader> m_pVertexShader{nullptr};
     ezSharedPtr<spShader> m_pPixelShader{nullptr};
@@ -199,6 +203,7 @@ public:
   bool IsEnabled() const override;
 
 private:
+  const spMesh* m_pMesh{nullptr};
   PassData m_PassData;
 };
 

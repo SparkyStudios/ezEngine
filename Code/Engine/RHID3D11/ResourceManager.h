@@ -161,12 +161,10 @@ private:
     ezUInt32 m_uiNormal;
     ezUInt32 m_uiTangent;
     ezUInt32 m_uiBiTangent;
-    ezUInt32 m_uiTexCoord0;
-    ezUInt32 m_uiTexCoord1;
-    ezUInt32 m_uiColor0;
-    ezUInt32 m_uiColor1;
-    ezUInt32 m_uiBoneWeights0;
-    ezUInt32 m_uiBoneIndices0;
+    ezUInt32 m_uiTexCoord;
+    ezUInt32 m_uiColor;
+    ezUInt32 m_uiBoneWeights;
+    ezUInt32 m_uiBoneIndices;
 
     static ezUInt32 GetAndIncrement(SemanticIndices& indices, const ezEnum<spInputElementLocationSemantic>& eSemantic)
     {
@@ -180,18 +178,14 @@ private:
           return indices.m_uiTangent++;
         case spInputElementLocationSemantic::BiTangent:
           return indices.m_uiBiTangent++;
-        case spInputElementLocationSemantic::TexCoord0:
-          return indices.m_uiTexCoord0++;
-        case spInputElementLocationSemantic::TexCoord1:
-          return indices.m_uiTexCoord1++;
-        case spInputElementLocationSemantic::Color0:
-          return indices.m_uiColor0++;
-        case spInputElementLocationSemantic::Color1:
-          return indices.m_uiColor1++;
-        case spInputElementLocationSemantic::BoneWeights0:
-          return indices.m_uiBoneWeights0++;
-        case spInputElementLocationSemantic::BoneIndices0:
-          return indices.m_uiBoneIndices0++;
+        case spInputElementLocationSemantic::TexCoord:
+          return indices.m_uiTexCoord++;
+        case spInputElementLocationSemantic::Color:
+          return indices.m_uiColor++;
+        case spInputElementLocationSemantic::BoneWeights:
+          return indices.m_uiBoneWeights++;
+        case spInputElementLocationSemantic::BoneIndices:
+          return indices.m_uiBoneIndices++;
         default:
           EZ_ASSERT_NOT_IMPLEMENTED;
           return 0;

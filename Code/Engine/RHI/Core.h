@@ -1107,31 +1107,23 @@ struct SP_RHI_DLL spInputElementLocationSemantic
 
     /// \brief Defines an input layout element storing texture coordinates
     /// data. Use the location 4 of the \a ShaderPipeline.
-    TexCoord0 = 4,
+    TexCoord = 4,
 
-    /// \brief Defines an input layout element storing texture coordinates
+    /// \brief Defines an input layout element storing vertex color
     /// data. Use the location 5 of the \a ShaderPipeline.
-    TexCoord1 = 5,
-
-    /// \brief Defines an input layout element storing vertex color
-    /// data. Use the location 6 of the \a ShaderPipeline.
-    Color0 = 6,
-
-    /// \brief Defines an input layout element storing vertex color
-    /// data. Use the location 7 of the \a ShaderPipeline.
-    Color1 = 7,
+    Color = 5,
 
     /// \brief Defines an input layout element storing bones weights
-    /// data. Use the location 8 of the \a ShaderPipeline.
-    BoneWeights0 = 8,
+    /// data. Use the location 7 of the \a ShaderPipeline.
+    BoneWeights = 7,
 
     /// \brief Defines an input layout element storing bones indices
-    /// data. Use the location 9 of the \a ShaderPipeline.
-    BoneIndices0 = 9,
+    /// data. Use the location 8 of the \a ShaderPipeline.
+    BoneIndices = 8,
 
     /// \brief Defines the last possible value for input layout element managed
     /// by the engine. Any value after this one is user defined.
-    Last = BoneIndices0,
+    Last = BoneIndices,
 
     Default = Position
   };
