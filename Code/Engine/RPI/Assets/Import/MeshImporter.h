@@ -39,9 +39,9 @@ public:
 
 private:
   void ImportMeshes(const aiScene* pScene, spMesh* out_pMesh);
-
   spMesh::Node ComputeMeshHierarchy(const ezDynamicArray<spMesh::Entry>& allEntries, const aiNode* pRootNode);
   void ImportMesh(spMesh::Data& data, const aiMesh* pMesh);
+  void RecomputeTangents(spMesh::Data& data);
 
   ezStringView m_sFilePath;
 

@@ -72,6 +72,87 @@ static int spFromAssimp(int value)
   return value;
 }
 
+static int MikkTGetNumFaces(const SMikkTSpaceContext* pContext)
+{
+  const auto* pMeshData = static_cast<spMesh::Data*>(pContext->m_pUserData);
+
+  const auto fSize = static_cast<float>(pMeshData->m_Indices.GetCount()) / 3.0f;
+  const auto iSize = static_cast<int>(pMeshData->m_Indices.GetCount()) / 3;
+
+  EZ_ASSERT_DEV(fSize - static_cast<float>(iSize) == 0.0f, "There are faces in the mesh that are not triangles.");
+
+  return iSize;
+}
+
+static int MikkTGetNumVerticesOfFace(const SMikkTSpaceContext* context, int iFace)
+{
+  // We only work with triangles
+  return 3;
+}
+
+static int MikkTGetVertexIndex(const SMikkTSpaceContext* pContext, int iFace, int iVert)
+{
+  const auto* pMeshData = static_cast<spMesh::Data*>(pContext->m_pUserData);
+
+  const int iFaceSize = MikkTGetNumVerticesOfFace(pContext, iFace);
+  const int iIndicesIndex = iFace * iFaceSize + iVert;
+
+  return pMeshData->m_Indices[iIndicesIndex];
+}
+
+static void MikkTGetNormal(const SMikkTSpaceContext* pContext, float fvNormOut[], const int iFace, const int iVert)
+{
+  const auto* pMeshData = static_cast<spMesh::Data*>(pContext->m_pUserData);
+
+  const int iIndex = MikkTGetVertexIndex(pContext, iFace, iVert);
+  const spMesh::Vertex vertex = pMeshData->m_Vertices[iIndex];
+
+  fvNormOut[0] = vertex.m_vNormal.x;
+  fvNormOut[1] = vertex.m_vNormal.y;
+  fvNormOut[2] = vertex.m_vNormal.z;
+}
+
+static void MikkTGetPosition(const SMikkTSpaceContext* pContext, float fvPosOut[], const int iFace, const int iVert)
+{
+  const auto* pMeshData = static_cast<spMesh::Data*>(pContext->m_pUserData);
+
+  const int iIndex = MikkTGetVertexIndex(pContext, iFace, iVert);
+  const spMesh::Vertex vertex = pMeshData->m_Vertices[iIndex];
+
+  fvPosOut[0] = vertex.m_vPosition.x;
+  fvPosOut[1] = vertex.m_vPosition.y;
+  fvPosOut[2] = vertex.m_vPosition.z;
+}
+
+static void MikkTGetTexCoord(const SMikkTSpaceContext* pContext, float fvTexcOut[], const int iFace, const int iVert)
+{
+  const auto* pMeshData = static_cast<spMesh::Data*>(pContext->m_pUserData);
+
+  const int iIndex = MikkTGetVertexIndex(pContext, iFace, iVert);
+  const spMesh::Vertex vertex = pMeshData->m_Vertices[iIndex];
+
+  fvTexcOut[0] = vertex.m_vTexCoord0.x;
+  fvTexcOut[1] = vertex.m_vTexCoord0.y;
+}
+
+static void MikkTSetTSpace(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fvBiTangent[], const float fMagS, const float fMagT, const tbool bIsOrientationPreserving, const int iFace, const int iVert)
+{
+  auto* pMeshData = static_cast<spMesh::Data*>(pContext->m_pUserData);
+
+  const auto index = MikkTGetVertexIndex(pContext, iFace, iVert);
+  auto* vertex = &pMeshData->m_Vertices[index];
+
+  vertex->m_vTangent.x = fvTangent[0];
+  vertex->m_vTangent.y = fvTangent[1];
+  vertex->m_vTangent.z = fvTangent[2];
+  vertex->m_vTangent.w = fMagS;
+
+  vertex->m_vBiTangent.x = fvBiTangent[0];
+  vertex->m_vBiTangent.y = fvBiTangent[1];
+  vertex->m_vBiTangent.z = fvBiTangent[2];
+  vertex->m_vBiTangent.w = fMagT;
+}
+
 ezResult spMeshImporter::Import(ezStringView sSourceFile, spMesh* out_pAsset)
 {
   EZ_LOG_BLOCK("ezMeshImporter::Import()");
@@ -79,7 +160,7 @@ ezResult spMeshImporter::Import(ezStringView sSourceFile, spMesh* out_pAsset)
   m_sFilePath = sSourceFile;
 
   ezUInt32 uiPreset = aiProcess_Triangulate | aiProcess_SortByPType | aiProcess_FindDegenerates | aiProcess_FindInstances | aiProcess_FindInvalidData | aiProcess_RemoveRedundantMaterials
-                      | aiProcess_LimitBoneWeights | aiProcess_GlobalScale | aiProcess_JoinIdenticalVertices | aiProcess_SplitLargeMeshes | aiProcess_RemoveComponent | aiProcess_GenUVCoords;
+                      | aiProcess_LimitBoneWeights | aiProcess_GlobalScale | aiProcess_JoinIdenticalVertices | aiProcess_SplitLargeMeshes | aiProcess_RemoveComponent | aiProcess_GenUVCoords | aiProcess_TransformUVCoords;
 
   if (m_Configuration.m_bFlipWindingNormals)
     uiPreset |= aiProcess_FixInfacingNormals;
@@ -87,6 +168,8 @@ ezResult spMeshImporter::Import(ezStringView sSourceFile, spMesh* out_pAsset)
     uiPreset |= aiProcess_FlipUVs;
   if (!m_Configuration.m_bImportSkeleton)
     uiPreset |= aiProcess_Debone;
+  if (m_Configuration.m_bRecomputeNormals)
+    uiPreset |= aiProcess_ForceGenNormals;
 
   ezStringBuilder sb;
   const aiScene* pScene = m_Importer.ReadFile(sSourceFile.GetData(sb), uiPreset);
@@ -196,6 +279,9 @@ void spMeshImporter::ImportMeshes(const aiScene* pScene, spMesh* out_pMesh)
     ImportMesh(meshData, pScene->mMeshes[meshIndex]);
   }
 
+  if (m_Configuration.m_bRecomputeTangents)
+    RecomputeTangents(meshData);
+
   out_pMesh->SetData(meshData);
   out_pMesh->SetRootNode(ComputeMeshHierarchy(entries, pScene->mRootNode));
 }
@@ -241,8 +327,8 @@ void spMeshImporter::ImportMesh(spMesh::Data& data, const aiMesh* pMesh)
   {
     data.m_Vertices[vertexIndex].m_vPosition = spFromAssimp(pMesh->mVertices[vertexIndex]);
     data.m_Vertices[vertexIndex].m_vNormal = pMesh->HasNormals() ? spFromAssimp(pMesh->mNormals[vertexIndex]) : ezVec3::ZeroVector();
-    data.m_Vertices[vertexIndex].m_vTangent = pMesh->HasTangentsAndBitangents() ? spFromAssimp(pMesh->mTangents[vertexIndex]) : ezVec3::ZeroVector();
-    data.m_Vertices[vertexIndex].m_vBiTangent = pMesh->HasTangentsAndBitangents() ? spFromAssimp(pMesh->mBitangents[vertexIndex]) : ezVec3::ZeroVector();
+    data.m_Vertices[vertexIndex].m_vTangent = pMesh->HasTangentsAndBitangents() ? spFromAssimp(pMesh->mTangents[vertexIndex]).GetAsVec4(1.0f) : ezVec4::ZeroVector();
+    data.m_Vertices[vertexIndex].m_vBiTangent = pMesh->HasTangentsAndBitangents() ? spFromAssimp(pMesh->mBitangents[vertexIndex]).GetAsVec4(1.0f) : ezVec4::ZeroVector();
     data.m_Vertices[vertexIndex].m_vTexCoord0 = pMesh->HasTextureCoords(0) ? spFromAssimp(pMesh->mTextureCoords[0][vertexIndex]).GetAsVec2() : ezVec2::ZeroVector();
     data.m_Vertices[vertexIndex].m_vTexCoord1 = pMesh->HasTextureCoords(1) ? spFromAssimp(pMesh->mTextureCoords[1][vertexIndex]).GetAsVec2() : ezVec2::ZeroVector();
     data.m_Vertices[vertexIndex].m_Color0 = pMesh->HasVertexColors(0) ? spFromAssimp(pMesh->mColors[0][vertexIndex]) : ezColor::White;
@@ -301,4 +387,23 @@ void spMeshImporter::ImportMesh(spMesh::Data& data, const aiMesh* pMesh)
 
     remap.Clear();
   }
+}
+
+void spMeshImporter::RecomputeTangents(spMesh::Data& data)
+{
+  SMikkTSpaceInterface mkt;
+  SMikkTSpaceContext mktContext;
+
+  mkt.m_getNumFaces = MikkTGetNumFaces;
+  mkt.m_getNumVerticesOfFace = MikkTGetNumVerticesOfFace;
+  mkt.m_getNormal = MikkTGetNormal;
+  mkt.m_getPosition = MikkTGetPosition;
+  mkt.m_getTexCoord = MikkTGetTexCoord;
+  mkt.m_setTSpace = MikkTSetTSpace;
+  mkt.m_setTSpaceBasic = nullptr;
+
+  mktContext.m_pInterface = &mkt;
+  mktContext.m_pUserData = &data;
+
+  genTangSpaceDefault(&mktContext);
 }

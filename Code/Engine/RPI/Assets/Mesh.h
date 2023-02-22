@@ -2,19 +2,30 @@
 
 #include <RPI/RPIDLL.h>
 
+/// \brief A mesh asset. Stores all needed data to render a mesh.
 class SP_RPI_DLL spMesh
 {
 public:
+  /// \brief A single vertex in the mesh asset.
   struct Vertex
   {
+    /// \brief The vertex position.
     ezVec3 m_vPosition;
+
+    /// \brief The vertex normal.
+    ezVec3 m_vNormal;
+
+    /// \brief The vertex tangent.
+    ezVec4 m_vTangent;
+
+    /// \brief The vertex bitangent.
+    ezVec4 m_vBiTangent;
+
     ezVec2 m_vTexCoord0;
     ezVec2 m_vTexCoord1;
+
     ezColor m_Color0;
     ezColor m_Color1;
-    ezVec3 m_vNormal;
-    ezVec3 m_vTangent;
-    ezVec3 m_vBiTangent;
   };
 
   struct Data
