@@ -25,8 +25,9 @@
 #include <RHID3D11/ResourceManager.h>
 #include <RHID3D11/Swapchain.h>
 
-#include <RPI/Graph/Nodes/MainSwapchainRenderGraphNode.h>
 #include <RPI/Assets/Import/MeshImporter.h>
+#include <RPI/Graph/Nodes/MainSwapchainRenderGraphNode.h>
+#include <RPI/Resources/MeshResource.h>
 
 #include <RHISample/RHISample.h>
 
@@ -211,13 +212,38 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   config.m_bOptimizeMesh = true;
 
   ezStringBuilder sAbsPath;
-  if (ezFileSystem::ResolvePath(":content/Objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.FBX", &sAbsPath, nullptr).Failed())
+  if (!ezFileSystem::ExistsFile(":project/objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.spMesh"))
   {
-    return ezLog::Error("Couldn't make path absolute: '{0}'", sAbsPath);
-  }
+    if (ezFileSystem::ResolvePath(":content/Objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.FBX", &sAbsPath, nullptr).Failed())
+    {
+      return ezLog::Error("Couldn't make path absolute: '{0}'", sAbsPath);
+    }
 
-  spMeshImporter importer(config);
-  importer.Import(sAbsPath, &m_Mesh).AssertSuccess();
+    spMeshImporter importer(config);
+    importer.Import(sAbsPath, &m_Mesh).AssertSuccess();
+
+    if (ezFileSystem::ResolvePath(":project/objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.spMesh", &sAbsPath, nullptr).Failed())
+    {
+      return ezLog::Error("Couldn't make path absolute: '{0}'", sAbsPath);
+    }
+
+    spMeshResourceDescriptor desc;
+    desc.SetLOD(0, m_Mesh);
+
+    desc.Save(sAbsPath).AssertSuccess();
+  }
+  else
+  {
+    if (ezFileSystem::ResolvePath(":project/objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.spMesh", &sAbsPath, nullptr).Failed())
+    {
+      return ezLog::Error("Couldn't make path absolute: '{0}'", sAbsPath);
+    }
+
+    spMeshResourceDescriptor desc;
+    desc.Load(sAbsPath).AssertSuccess();
+
+    m_Mesh = desc.GetLOD(0);
+  }
 
   ezUInt32 uiVerticesCount = m_Mesh.GetData().m_Vertices.GetCount();
   ezUInt32 uiIndicesCount = m_Mesh.GetData().m_Indices.GetCount();
@@ -322,7 +348,7 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
   if (!resources.TryGetValue("ibo", m_PassData.m_hIndexBuffer))
     return EZ_FAILURE;
 
-  m_PassData.m_hIndirectBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof spDrawIndexedIndirectCommand, spBufferUsage::IndirectBuffer), spRenderGraphResourceBindType::Transient);
+  m_PassData.m_hIndirectBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(spDrawIndexedIndirectCommand), spBufferUsage::IndirectBuffer), spRenderGraphResourceBindType::Transient);
 
   spRenderTargetDescription rtDescription;
   rtDescription.m_bGenerateMipMaps = false;
@@ -649,13 +675,12 @@ ezApplication::Execution ezRHISampleApp::Run()
 
   // do the rendering
   m_pRenderingThread->PostAsync([&]() -> void
-  {
+    {
     m_pSceneContext->BeginFrame();
     {
       m_pSceneContext->Draw();
     }
-    m_pSceneContext->EndFrame();
-  });
+    m_pSceneContext->EndFrame(); });
 
   m_pSceneContext->WaitForIdle();
 

@@ -5,10 +5,15 @@
 /// \brief A mesh asset. Stores all needed data to render a mesh.
 class SP_RPI_DLL spMesh
 {
+  friend class spMeshResource;
+  friend class spMeshResourceDescriptor;
+
 public:
   /// \brief A single vertex in the mesh asset.
   struct Vertex
   {
+    EZ_DECLARE_POD_TYPE();
+
     /// \brief The vertex position.
     ezVec3 m_vPosition;
 
@@ -21,61 +26,115 @@ public:
     /// \brief The vertex bitangent.
     ezVec4 m_vBiTangent;
 
+    /// \brief The vertex texture coordinates at channel 1.
     ezVec2 m_vTexCoord0;
+
+    /// \brief The vertex texture coordinates at channel 2.
     ezVec2 m_vTexCoord1;
 
+    /// \brief The vertex color at channel 1.
     ezColor m_Color0;
+
+    /// \brief The vertex color at channel 2.
     ezColor m_Color1;
   };
 
+  /// \brief The mesh data. Stores all the vertices and indices.
   struct Data
   {
+    /// \brief The mesh vertices.
     ezDynamicArray<Vertex> m_Vertices;
+
+    /// \brief The mesh indices.
     ezDynamicArray<ezUInt16> m_Indices;
   };
 
+  /// \brief An entry (sub-mesh) in the mesh.
   struct Entry
   {
-    ezStringView m_sName;
+    /// \brief The sub-mesh name.
+    ezString m_sName;
 
+    /// \brief The offset from the beginning of the indices
+    /// buffer telling where this sub-mesh data live in the mesh \a Data.
     ezUInt32 m_uiBaseIndex{0};
+
+    /// \brief The number of indices to read starting at the offset when drawing the sub-mesh.
     ezUInt32 m_uiIndicesCount{0};
 
+    /// \brief The offset from the beginning of the vertices
+    /// buffer telling where this sub-mesh data live in the mesh \a Data.
     ezUInt32 m_uiBaseVertex{0};
+
+    /// \brief The number of vertices to read starting at the offset when drawing the sub-mesh.
     ezUInt32 m_uiVerticesCount{0};
   };
 
+  /// \brief Stores transformation data for mesh nodes.
   struct Transform
   {
+    EZ_DECLARE_POD_TYPE();
+
+    /// \brief The node position.
     ezVec3 m_vPosition;
+
+    /// \brief The node scale.
     ezVec3 m_vScale;
+
+    /// \brief The node rotation.
     ezVec3 m_vRotation;
   };
 
+  /// \brief A mesh node.
+  ///
+  /// This is to maintain the same hierarchy as in the DCC tool. A node
+  /// may not have mesh data, therefore the entries array will be empty.
   struct Node
   {
-    ezStringView m_sName;
+    /// \brief The node name.
+    ezString m_sName;
+
+    /// \brief The list of meshes in this node.
     ezDynamicArray<Entry> m_Entries;
+
+    /// \brief The node children.
     ezDynamicArray<Node> m_Children;
+
+    /// \brief The node transformation.
     Transform m_Transform;
-    ezStringView m_sMaterial;
+
+    /// \brief The name of the material applied to this node.
+    ezString m_sMaterial;
   };
 
+  /// \brief Default constructor.
   spMesh() = default;
 
+  /// \brief Creates a new mesh asset from the given \a meshData and \a rootNode.
+  /// \param meshData The mesh data.
+  /// \param rootNode The root node.
   spMesh(Data meshData, Node rootNode)
     : m_Data(std::move(meshData))
     , m_Root(std::move(rootNode))
   {
   }
 
+  /// \brief Gets the data of this mesh asset.
   EZ_NODISCARD EZ_ALWAYS_INLINE const Data& GetData() const { return m_Data; }
 
+  /// \brief Sets the data of this mesh asset.
+  /// \param [in] data The mesh data.
   EZ_ALWAYS_INLINE void SetData(const Data& data) { m_Data = data; }
 
+  /// \brief Gets the root node of this mesh asset.
   EZ_NODISCARD EZ_ALWAYS_INLINE const Node& GetRootNode() const { return m_Root; }
 
+  /// \brief Sets the root node of this mesh asset.
+  /// \param [in] rootNode The root node.
   EZ_ALWAYS_INLINE void SetRootNode(const Node& rootNode) { m_Root = rootNode; }
+
+  /// \brief Clear the mesh data.
+  void Clear();
 
 private:
   Data m_Data;
