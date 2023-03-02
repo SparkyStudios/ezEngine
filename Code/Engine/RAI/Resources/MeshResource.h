@@ -1,9 +1,9 @@
 #pragma once
 
-#include <RPI/RPIDLL.h>
+#include <RAI/RAIDLL.h>
 
-#include <RPI/Assets/Mesh.h>
-#include <RPI/Core.h>
+#include <RAI/Mesh.h>
+#include <RAI/Core.h>
 
 #include <Core/ResourceManager/Resource.h>
 
@@ -12,7 +12,7 @@
 
 typedef ezTypedResourceHandle<class spMeshResource> spMeshResourceHandle;
 
-class SP_RPI_DLL spMeshResourceDescriptor
+class SP_RAI_DLL spMeshResourceDescriptor
 {
   friend class spMeshResource;
 
@@ -38,19 +38,16 @@ public:
   ezResult Load(ezStringView sFile);
 
 private:
-  static void WriteMeshData(ezChunkStreamWriter& chunk, const spMesh& mesh);
-  static void ReadMeshData(ezChunkStreamReader& chunk, spMesh& mesh);
-  static void WriteMeshNode(ezChunkStreamWriter& chunk, const spMesh::Node& node);
-  static void ReadMeshNode(ezChunkStreamReader& chunk, spMesh::Node& node);
-
   ezUInt32 m_uiNumLOD{0};
 
   spMesh m_LOD0;
 
+  ezStaticArray<spMesh, SP_RAI_MAX_LOD_COUNT> m_LODs;
+
   ezBoundingBoxSphere m_Bounds;
 };
 
-class SP_RPI_DLL spMeshResource final : public ezResource
+class SP_RAI_DLL spMeshResource final : public ezResource
 {
   EZ_ADD_DYNAMIC_REFLECTION(spMeshResource, ezResource);
   EZ_RESOURCE_DECLARE_COMMON_CODE(spMeshResource);

@@ -12,6 +12,7 @@ target_link_libraries(${PROJECT_NAME}
   Core
   GameEngine
   PRIVATE
+  RAI
   RHI
   RPI
   RHID3D11

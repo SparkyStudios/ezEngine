@@ -1,9 +1,9 @@
 ﻿#pragma once
 
-#include <RPI/RPIDLL.h>
+#include <RAI/RAIDLL.h>
 
 /// \brief A mesh asset. Stores all needed data to render a mesh.
-class SP_RPI_DLL spMesh
+class SP_RAI_DLL spMesh
 {
   friend class spMeshResource;
   friend class spMeshResourceDescriptor;
@@ -140,3 +140,109 @@ private:
   Data m_Data;
   Node m_Root;
 };
+
+inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const spMesh::Vertex& vertex)
+{
+  inout_stream << vertex.m_vPosition;
+  inout_stream << vertex.m_vNormal;
+  inout_stream << vertex.m_vTangent;
+  inout_stream << vertex.m_vBiTangent;
+  inout_stream << vertex.m_vTexCoord0;
+  inout_stream << vertex.m_vTexCoord1;
+  inout_stream << vertex.m_Color0;
+  inout_stream << vertex.m_Color1;
+
+  return inout_stream;
+}
+
+inline ezStreamReader& operator>>(ezStreamReader& inout_stream, spMesh::Vertex& ref_vertex)
+{
+  inout_stream >> ref_vertex.m_vPosition;
+  inout_stream >> ref_vertex.m_vNormal;
+  inout_stream >> ref_vertex.m_vTangent;
+  inout_stream >> ref_vertex.m_vBiTangent;
+  inout_stream >> ref_vertex.m_vTexCoord0;
+  inout_stream >> ref_vertex.m_vTexCoord1;
+  inout_stream >> ref_vertex.m_Color0;
+  inout_stream >> ref_vertex.m_Color1;
+
+  return inout_stream;
+}
+
+inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const spMesh::Transform& transform)
+{
+  inout_stream << transform.m_vPosition;
+  inout_stream << transform.m_vScale;
+  inout_stream << transform.m_vRotation;
+
+  return inout_stream;
+}
+
+inline ezStreamReader& operator>>(ezStreamReader& inout_stream, spMesh::Transform& ref_transform)
+{
+  inout_stream >> ref_transform.m_vPosition;
+  inout_stream >> ref_transform.m_vScale;
+  inout_stream >> ref_transform.m_vRotation;
+
+  return inout_stream;
+}
+
+inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const spMesh::Entry& meshEntry)
+{
+  inout_stream << meshEntry.m_sName;
+  inout_stream << meshEntry.m_uiBaseIndex;
+  inout_stream << meshEntry.m_uiIndicesCount;
+  inout_stream << meshEntry.m_uiBaseVertex;
+  inout_stream << meshEntry.m_uiVerticesCount;
+
+  return inout_stream;
+}
+
+inline ezStreamReader& operator>>(ezStreamReader& inout_stream, spMesh::Entry& ref_meshEntry)
+{
+  inout_stream >> ref_meshEntry.m_sName;
+  inout_stream >> ref_meshEntry.m_uiBaseIndex;
+  inout_stream >> ref_meshEntry.m_uiIndicesCount;
+  inout_stream >> ref_meshEntry.m_uiBaseVertex;
+  inout_stream >> ref_meshEntry.m_uiVerticesCount;
+
+  return inout_stream;
+}
+
+inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const spMesh::Node& meshNode)
+{
+  inout_stream << meshNode.m_sName;
+  inout_stream << meshNode.m_Transform;
+  inout_stream << meshNode.m_sMaterial;
+  inout_stream.WriteArray(meshNode.m_Entries).AssertSuccess();
+  inout_stream.WriteArray(meshNode.m_Children).AssertSuccess();
+
+  return inout_stream;
+}
+
+inline ezStreamReader& operator>>(ezStreamReader& inout_stream, spMesh::Node& ref_meshNode)
+{
+  inout_stream >> ref_meshNode.m_sName;
+  inout_stream >> ref_meshNode.m_Transform;
+  inout_stream >> ref_meshNode.m_sMaterial;
+  inout_stream.ReadArray(ref_meshNode.m_Entries).AssertSuccess();
+  inout_stream.ReadArray(ref_meshNode.m_Children).AssertSuccess();
+
+  return inout_stream;
+}
+
+inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const spMesh::Data& meshData)
+{
+  inout_stream.WriteArray(meshData.m_Vertices).AssertSuccess();
+  inout_stream.WriteArray(meshData.m_Indices).AssertSuccess();
+
+  return inout_stream;
+}
+
+inline ezStreamReader& operator>>(ezStreamReader& inout_stream, spMesh::Data& ref_meshData)
+{
+  inout_stream.ReadArray(ref_meshData.m_Vertices).AssertSuccess();
+  inout_stream.ReadArray(ref_meshData.m_Indices).AssertSuccess();
+
+  return inout_stream;
+}

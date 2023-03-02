@@ -5,6 +5,8 @@
 #include <Foundation/Types/SharedPtr.h>
 #include <Foundation/Types/UniquePtr.h>
 
+#include <RAI/Mesh.h>
+
 #include <RHI/Buffer.h>
 #include <RHI/Device.h>
 #include <RHI/Fence.h>
@@ -14,7 +16,6 @@
 #include <RHI/Swapchain.h>
 #include <RHI/Texture.h>
 
-#include <RPI/Assets/Mesh.h>
 #include <RPI/Core/RenderingThread.h>
 #include <RPI/Graph/RenderGraph.h>
 #include <RPI/Pipeline/RenderPass.h>
