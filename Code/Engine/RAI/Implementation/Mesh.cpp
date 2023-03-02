@@ -1,6 +1,6 @@
-#include <RPI/RPIPCH.h>
+#include <RAI/RAIPCH.h>
 
-#include <RPI/Assets/Mesh.h>
+#include <RAI/Mesh.h>
 
 void spMesh::Clear()
 {

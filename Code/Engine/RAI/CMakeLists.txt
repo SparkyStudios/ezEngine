@@ -8,6 +8,17 @@ ez_create_target(LIBRARY ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
   Core
-  RHI
-  RAI
+  assimp
+
+  PRIVATE
+  meshoptimizer
+  mikktspace
+  rgbcx
 )
+
+if(EZ_3RDPARTY_OZZ_SUPPORT)
+  target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+    ozz
+  )
+endif()

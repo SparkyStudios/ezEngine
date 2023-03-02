@@ -1,6 +1,6 @@
-#include <RPI/RPIPCH.h>
+#include <RAI/RAIPCH.h>
 
-#include <RPI/Resources/MeshResource.h>
+#include <RAI/Resources/MeshResource.h>
 
 #include <Core/Assets/AssetFileHeader.h>
 
@@ -36,45 +36,45 @@ void spMeshResourceDescriptor::Clear()
 {
   m_uiNumLOD = 0;
 
-  m_LOD0.Clear();
+  m_LODs.Reserve(SP_RAI_MAX_LOD_COUNT);
 
   m_Bounds.SetInvalid();
 }
 
 const spMesh& spMeshResourceDescriptor::GetLOD(ezUInt32 uiLodIndex) const
 {
-  switch (uiLodIndex)
-  {
-    case 0:
-      return m_LOD0;
-  }
+  EZ_ASSERT_DEV(uiLodIndex < SP_RAI_MAX_LOD_COUNT, "Invalid LOD index {0}. Value is greater than the maximum number of LODs.", uiLodIndex);
+  EZ_ASSERT_DEV(uiLodIndex < m_LODs.GetCount(), "Invalid LOD index {0}. Value is greater than the available number of LODs.", uiLodIndex);
 
-  EZ_ASSERT_DEV(false, "Invalid LOD index {0}", uiLodIndex);
-  return m_LOD0;
+  return m_LODs[uiLodIndex];
 }
 
 spMesh& spMeshResourceDescriptor::WriteLOD(ezUInt32 uiLodIndex)
 {
-  switch (uiLodIndex)
-  {
-    case 0:
-      return m_LOD0;
-  }
+  EZ_ASSERT_DEV(uiLodIndex < SP_RAI_MAX_LOD_COUNT, "Invalid LOD index {0}. Value is greater than the maximum number of LODs.", uiLodIndex);
+  EZ_ASSERT_DEV(uiLodIndex < m_LODs.GetCount(), "Invalid LOD index {0}. Value is greater than the available number of LODs.", uiLodIndex);
 
-  EZ_ASSERT_DEV(false, "Invalid LOD index {0}", uiLodIndex);
-  return m_LOD0;
+  return m_LODs[uiLodIndex];
 }
 
 void spMeshResourceDescriptor::ClearLOD(ezUInt32 uiLodIndex)
 {
-  EZ_ASSERT_DEV(uiLodIndex < SP_RPI_MAX_LOD_COUNT, "Invalid LOD Index. Values are 0 to SP_RPI_MAX_LOD_COUNT.");
+  EZ_ASSERT_DEV(uiLodIndex < SP_RAI_MAX_LOD_COUNT, "Invalid LOD index {0}. Value is greater than the maximum number of LODs.", uiLodIndex);
+  EZ_ASSERT_DEV(uiLodIndex < m_LODs.GetCount(), "Invalid LOD index {0}. Value is greater than the available number of LODs.", uiLodIndex);
+
   WriteLOD(uiLodIndex).Clear();
 }
 
 void spMeshResourceDescriptor::SetLOD(ezUInt32 uiLodIndex, const spMesh& mesh)
 {
-  EZ_ASSERT_DEV(uiLodIndex < SP_RPI_MAX_LOD_COUNT, "Invalid LOD Index. Values are 0 to SP_RPI_MAX_LOD_COUNT.");
-  m_uiNumLOD = uiLodIndex + 1;
+  EZ_ASSERT_DEV(uiLodIndex < SP_RAI_MAX_LOD_COUNT, "Invalid LOD index {0}. Value is greater than the maximum number of LODs.", uiLodIndex);
+
+  if (m_uiNumLOD <= uiLodIndex)
+  {
+    m_uiNumLOD = uiLodIndex + 1;
+    m_LODs.EnsureCount(m_uiNumLOD);
+  }
+
   WriteLOD(uiLodIndex) = mesh;
 }
 
@@ -108,13 +108,15 @@ ezResult spMeshResourceDescriptor::Save(ezStreamWriter& stream)
 
     chunk.BeginChunk(kLODsDataChunkName, 1);
     {
-      WriteMeshData(chunk, m_LOD0);
+      for (auto& lod : m_LODs)
+        chunk << lod.m_Data;
     }
     chunk.EndChunk();
 
     chunk.BeginChunk(kLODsNodeChunkName, 1);
     {
-      WriteMeshNode(chunk, m_LOD0.m_Root);
+      for (auto& lod : m_LODs)
+        chunk << lod.m_Root;
     }
     chunk.EndChunk();
   }
@@ -200,6 +202,8 @@ ezResult spMeshResourceDescriptor::Load(ezStreamReader& inout_stream)
         // Number of LODs
         chunk >> m_uiNumLOD;
 
+        m_LODs.SetCount(m_uiNumLOD);
+
         // Mesh bounds
         chunk >> m_Bounds;
       }
@@ -213,7 +217,8 @@ ezResult spMeshResourceDescriptor::Load(ezStreamReader& inout_stream)
           return EZ_FAILURE;
         }
 
-        ReadMeshData(chunk, m_LOD0);
+        for (auto& lod : m_LODs)
+          chunk >> lod.m_Data;
       }
 
       // LODs Node chunk
@@ -225,7 +230,8 @@ ezResult spMeshResourceDescriptor::Load(ezStreamReader& inout_stream)
           return EZ_FAILURE;
         }
 
-        ReadMeshNode(chunk, m_LOD0.m_Root);
+        for (auto& lod : m_LODs)
+          chunk >> lod.m_Root;
       }
 
       chunk.NextChunk();
@@ -250,133 +256,12 @@ ezResult spMeshResourceDescriptor::Load(ezStringView sFile)
   return Load(file);
 }
 
-void spMeshResourceDescriptor::WriteMeshData(ezChunkStreamWriter& chunk, const spMesh& mesh)
-{
-  // Vertex buffer
-  {
-    const ezUInt32 uiNumVertices = mesh.GetData().m_Vertices.GetCount();
-
-    // Number of vertices
-    chunk << uiNumVertices;
-
-    // The vertex buffer data
-    for (ezUInt32 i = 0; i < uiNumVertices; ++i)
-    {
-      chunk << mesh.GetData().m_Vertices[i].m_vPosition;
-      chunk << mesh.GetData().m_Vertices[i].m_vNormal;
-      chunk << mesh.GetData().m_Vertices[i].m_vTangent;
-      chunk << mesh.GetData().m_Vertices[i].m_vBiTangent;
-      chunk << mesh.GetData().m_Vertices[i].m_vTexCoord0;
-      chunk << mesh.GetData().m_Vertices[i].m_vTexCoord1;
-      chunk << mesh.GetData().m_Vertices[i].m_Color0;
-      chunk << mesh.GetData().m_Vertices[i].m_Color1;
-    }
-  }
-
-  // Index buffer
-  {
-    // The index buffer data
-    chunk.WriteArray(mesh.GetData().m_Indices).IgnoreResult();
-  }
-}
-
-void spMeshResourceDescriptor::ReadMeshData(ezChunkStreamReader& chunk, spMesh& mesh)
-{
-  // Vertices
-  ezUInt32 uiNumVertices = 0;
-  chunk >> uiNumVertices;
-  mesh.m_Data.m_Vertices.SetCount(uiNumVertices);
-
-  for (ezUInt32 v = 0; v < uiNumVertices; ++v)
-  {
-    chunk >> mesh.m_Data.m_Vertices[v].m_vPosition;
-    chunk >> mesh.m_Data.m_Vertices[v].m_vNormal;
-    chunk >> mesh.m_Data.m_Vertices[v].m_vTangent;
-    chunk >> mesh.m_Data.m_Vertices[v].m_vBiTangent;
-    chunk >> mesh.m_Data.m_Vertices[v].m_vTexCoord0;
-    chunk >> mesh.m_Data.m_Vertices[v].m_vTexCoord1;
-    chunk >> mesh.m_Data.m_Vertices[v].m_Color0;
-    chunk >> mesh.m_Data.m_Vertices[v].m_Color1;
-  }
-
-  // Indices
-  chunk.ReadArray(mesh.m_Data.m_Indices).IgnoreResult();
-}
-
-void spMeshResourceDescriptor::WriteMeshNode(ezChunkStreamWriter& chunk, const spMesh::Node& node)
-{
-  // Node name
-  chunk << node.m_sName;
-
-  // Node transform
-  chunk << node.m_Transform.m_vPosition;
-  chunk << node.m_Transform.m_vScale;
-  chunk << node.m_Transform.m_vRotation;
-
-  // Node material
-  chunk << node.m_sMaterial;
-
-  // Node meshes
-  chunk << node.m_Entries.GetCount();
-  for (const auto& entry : node.m_Entries)
-  {
-    chunk << entry.m_sName;
-    chunk << entry.m_uiBaseIndex;
-    chunk << entry.m_uiIndicesCount;
-    chunk << entry.m_uiBaseVertex;
-    chunk << entry.m_uiVerticesCount;
-  }
-
-  // Node children
-  chunk << node.m_Children.GetCount();
-  for (const auto& child : node.m_Children)
-  {
-    WriteMeshNode(chunk, child);
-  }
-}
-
-void spMeshResourceDescriptor::ReadMeshNode(ezChunkStreamReader& chunk, spMesh::Node& node)
-{
-  // Node name
-  chunk >> node.m_sName;
-
-  // Node transform
-  chunk >> node.m_Transform.m_vPosition;
-  chunk >> node.m_Transform.m_vScale;
-  chunk >> node.m_Transform.m_vRotation;
-
-  // Node material
-  chunk >> node.m_sMaterial;
-
-  // Node meshes
-  ezUInt32 uiEntryCount = 0;
-  chunk >> uiEntryCount;
-  node.m_Entries.SetCount(uiEntryCount);
-  for (ezUInt32 i = 0; i < uiEntryCount; ++i)
-  {
-    chunk >> node.m_Entries[i].m_sName;
-    chunk >> node.m_Entries[i].m_uiBaseIndex;
-    chunk >> node.m_Entries[i].m_uiIndicesCount;
-    chunk >> node.m_Entries[i].m_uiBaseVertex;
-    chunk >> node.m_Entries[i].m_uiVerticesCount;
-  }
-
-  // Node children
-  ezUInt32 uiChildCount = 0;
-  chunk >> uiChildCount;
-  node.m_Children.SetCount(uiChildCount);
-  for (ezUInt32 i = 0; i < uiChildCount; ++i)
-  {
-    ReadMeshNode(chunk, node.m_Children[i]);
-  }
-}
-
 #pragma endregion
 
 #pragma region spMeshResource
 
 spMeshResource::spMeshResource()
-  : ezResource(DoUpdate::OnAnyThread, SP_RPI_MAX_LOD_COUNT)
+  : ezResource(DoUpdate::OnAnyThread, SP_RAI_MAX_LOD_COUNT)
 {
   m_Bounds.SetInvalid();
 }
@@ -404,7 +289,7 @@ ezResourceLoadDesc spMeshResource::UnloadData(Unload WhatToUnload)
 
   ezResourceLoadDesc res;
   res.m_uiQualityLevelsDiscardable = uiNumLODs;
-  res.m_uiQualityLevelsLoadable = SP_RPI_MAX_LOD_COUNT - uiNumLODs;
+  res.m_uiQualityLevelsLoadable = SP_RAI_MAX_LOD_COUNT - uiNumLODs;
   res.m_State = uiNumLODs == 0 ? ezResourceState::Unloaded : ezResourceState::Loaded;
 
   return res;
@@ -466,4 +351,4 @@ EZ_RESOURCE_IMPLEMENT_CREATEABLE(spMeshResource, spMeshResourceDescriptor)
 
 #pragma endregion
 
-EZ_STATICLINK_FILE(RPI, RPI_Implementation_Resources_MeshResource);
+EZ_STATICLINK_FILE(RAI, RAI_Implementation_Resources_MeshResource);

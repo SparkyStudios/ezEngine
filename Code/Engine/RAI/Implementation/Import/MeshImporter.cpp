@@ -1,6 +1,6 @@
-#include <RPI/RPIPCH.h>
+#include <RAI/RAIPCH.h>
 
-#include <RPI/Assets/Import/MeshImporter.h>
+#include <RAI/Import/MeshImporter.h>
 
 #include <assimp/DefaultLogger.hpp>
 #include <assimp/LogStream.hpp>
@@ -153,14 +153,16 @@ static void MikkTSetTSpace(const SMikkTSpaceContext* pContext, const float fvTan
   vertex->m_vBiTangent.w = fMagT;
 }
 
-ezResult spMeshImporter::Import(ezStringView sSourceFile, spMesh* out_pAsset)
+ezResult spMeshImporter::Import(ezStringView sSourceFile, spMesh* out_pAsset, ezUInt32 uiCount)
 {
   EZ_LOG_BLOCK("ezMeshImporter::Import()");
 
+  if (uiCount == 0)
+    return EZ_FAILURE;
+
   m_sFilePath = sSourceFile;
 
-  ezUInt32 uiPreset = aiProcess_Triangulate | aiProcess_SortByPType | aiProcess_FindDegenerates | aiProcess_FindInstances | aiProcess_FindInvalidData | aiProcess_RemoveRedundantMaterials
-                      | aiProcess_LimitBoneWeights | aiProcess_GlobalScale | aiProcess_JoinIdenticalVertices | aiProcess_SplitLargeMeshes | aiProcess_RemoveComponent | aiProcess_GenUVCoords | aiProcess_TransformUVCoords;
+  ezUInt32 uiPreset = aiProcess_Triangulate | aiProcess_SortByPType | aiProcess_FindDegenerates | aiProcess_FindInstances | aiProcess_FindInvalidData | aiProcess_RemoveRedundantMaterials | aiProcess_LimitBoneWeights | aiProcess_GlobalScale | aiProcess_JoinIdenticalVertices | aiProcess_SplitLargeMeshes | aiProcess_RemoveComponent | aiProcess_GenUVCoords | aiProcess_TransformUVCoords;
 
   if (m_Configuration.m_bFlipWindingNormals)
     uiPreset |= aiProcess_FixInfacingNormals;
@@ -186,7 +188,7 @@ ezResult spMeshImporter::Import(ezStringView sSourceFile, spMesh* out_pAsset)
 
   if (m_Configuration.m_bImportMeshes)
   {
-    ImportMeshes(pScene, out_pAsset);
+    ImportLODs(pScene, out_pAsset, uiCount);
   }
 
   if (m_Configuration.m_bImportSkeleton)
@@ -237,9 +239,33 @@ spMeshImporter::~spMeshImporter()
 {
 }
 
-void spMeshImporter::ImportMeshes(const aiScene* pScene, spMesh* out_pMesh)
+void spMeshImporter::ImportLODs(const aiScene* pScene, spMesh* out_pMesh, ezUInt32 uiCount)
 {
-  const ezUInt32 uiMeshCount = pScene->mNumMeshes;
+  ezUInt32 uiFoundLODs = 0;
+
+  // Browse the root node for LOD meshes
+  for (ezUInt32 n = 0; n < pScene->mRootNode->mNumChildren; ++n)
+  {
+    const aiNode* pNode = pScene->mRootNode->mChildren[n];
+
+    bool bShouldSkip = false;
+    if (pNode->mMetaData->Get<bool>("spark.mesh.import.skip", bShouldSkip) && bShouldSkip)
+      continue;
+
+    ezInt32 uiLODLevel = 0;
+    if (pNode->mMetaData->Get<ezInt32>("spark.mesh.lod", uiLODLevel) && uiLODLevel >= uiCount)
+      continue;
+
+    ImportMeshes(pScene, pNode, &out_pMesh[uiLODLevel]);
+    uiFoundLODs++;
+  }
+
+  ezLog::Dev("Imported {} LOD meshes, while requested {} LOD meshes", uiFoundLODs, uiCount);
+}
+
+void spMeshImporter::ImportMeshes(const aiScene* pScene, const aiNode* pNode, spMesh* out_pMesh)
+{
+  const ezUInt32 uiMeshCount = pNode->mNumMeshes;
 
   ezDynamicArray<spMesh::Entry> entries;
   entries.SetCount(uiMeshCount);
@@ -250,7 +276,7 @@ void spMeshImporter::ImportMeshes(const aiScene* pScene, spMesh* out_pMesh)
   // Count the number of vertices and indices
   for (ezUInt32 meshIndex = 0; meshIndex < uiMeshCount; ++meshIndex)
   {
-    const aiMesh* pMesh = pScene->mMeshes[meshIndex];
+    const aiMesh* pMesh = pScene->mMeshes[pNode->mMeshes[meshIndex]];
     const ezUInt32 uiIndicesCount = pMesh->mNumFaces * 3; // Import only triangles
 
     entries[meshIndex].m_sName = pMesh->mName.C_Str();
@@ -276,33 +302,37 @@ void spMeshImporter::ImportMeshes(const aiScene* pScene, spMesh* out_pMesh)
   // Build mesh data
   for (ezUInt32 meshIndex = 0; meshIndex < uiMeshCount; ++meshIndex)
   {
-    ImportMesh(meshData, pScene->mMeshes[meshIndex]);
+    ImportMesh(meshData, pScene->mMeshes[pNode->mMeshes[meshIndex]]);
   }
 
   if (m_Configuration.m_bRecomputeTangents)
     RecomputeTangents(meshData);
 
   out_pMesh->SetData(meshData);
-  out_pMesh->SetRootNode(ComputeMeshHierarchy(entries, pScene->mRootNode));
+  out_pMesh->SetRootNode(ComputeMeshHierarchy(entries, pNode));
 }
 
-spMesh::Node spMeshImporter::ComputeMeshHierarchy(const ezDynamicArray<spMesh::Entry>& allEntries, const aiNode* pRootNode)
+spMesh::Node spMeshImporter::ComputeMeshHierarchy(const ezDynamicArray<spMesh::Entry>& allEntries, const aiNode* pNode)
 {
   spMesh::Node node;
 
   aiVector3D s, r, p;
-  pRootNode->mTransformation.Decompose(s, r, p);
+  pNode->mTransformation.Decompose(s, r, p);
 
-  node.m_sName = pRootNode->mName.C_Str();
+  node.m_sName = pNode->mName.C_Str();
   node.m_Transform = {spFromAssimp(p), spFromAssimp(s), spFromAssimp(r)};
 
-  if (pRootNode->mNumMeshes > 0)
-    for (ezUInt32 meshIndex = 0; meshIndex < pRootNode->mNumMeshes; ++meshIndex)
-      node.m_Entries.ExpandAndGetRef() = allEntries[pRootNode->mMeshes[meshIndex]];
+  if (pNode->mNumMeshes > 0)
+    for (ezUInt32 meshIndex = 0; meshIndex < pNode->mNumMeshes; ++meshIndex)
+      node.m_Entries.ExpandAndGetRef() = allEntries[meshIndex];
 
-  if (pRootNode->mNumChildren > 0)
-    for (ezUInt32 childIndex = 0; childIndex < pRootNode->mNumChildren; ++childIndex)
-      node.m_Children.ExpandAndGetRef() = ComputeMeshHierarchy(allEntries, pRootNode->mChildren[childIndex]);
+  if (pNode->mNumChildren > 0)
+    for (ezUInt32 childIndex = 0; childIndex < pNode->mNumChildren; ++childIndex)
+      node.m_Children.ExpandAndGetRef() = ComputeMeshHierarchy(allEntries, pNode->mChildren[childIndex]);
+
+  aiString sMaterialName;
+  if (pNode->mMetaData->Get<aiString>("spark.mesh.material", sMaterialName))
+    node.m_sMaterial = sMaterialName.C_Str();
 
   return node;
 }

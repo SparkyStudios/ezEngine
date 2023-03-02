@@ -14,6 +14,9 @@
 
 #include <Texture/Image/Image.h>
 
+#include <RAI/Import/MeshImporter.h>
+#include <RAI/Resources/MeshResource.h>
+
 #include <RHI/CommandList.h>
 #include <RHI/Core.h>
 #include <RHI/Factory.h>
@@ -25,9 +28,7 @@
 #include <RHID3D11/ResourceManager.h>
 #include <RHID3D11/Swapchain.h>
 
-#include <RPI/Assets/Import/MeshImporter.h>
 #include <RPI/Graph/Nodes/MainSwapchainRenderGraphNode.h>
-#include <RPI/Resources/MeshResource.h>
 
 #include <RHISample/RHISample.h>
 
@@ -220,7 +221,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
     }
 
     spMeshImporter importer(config);
-    importer.Import(sAbsPath, &m_Mesh).AssertSuccess();
+    importer.Import(sAbsPath, &m_Mesh, 1).AssertSuccess();
 
     if (ezFileSystem::ResolvePath(":project/objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.spMesh", &sAbsPath, nullptr).Failed())
     {

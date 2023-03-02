@@ -1,9 +1,9 @@
 #pragma once
 
-#include <RPI/RPIDLL.h>
+#include <RAI/RAIDLL.h>
 
-#include <RPI/Assets/Import/Importer.h>
-#include <RPI/Assets/Mesh.h>
+#include <RAI/Import/Importer.h>
+#include <RAI/Mesh.h>
 
 #include <assimp/Importer.hpp>
 
@@ -24,12 +24,12 @@ struct spMeshImporterConfiguration
   bool m_bOptimizeMesh{true};
 };
 
-class SP_RPI_DLL spMeshImporter final : public spImporter<spMeshImporterConfiguration, spMesh>
+class SP_RAI_DLL spMeshImporter final : public spImporter<spMeshImporterConfiguration, spMesh>
 {
   // spImporter<spMeshImporterConfiguration, spMesh>
 
 public:
-  ezResult Import(ezStringView sSourceFile, spMesh* out_pAsset) override;
+  ezResult Import(ezStringView sSourceFile, spMesh* out_pAsset, ezUInt32 uiCount) override;
 
   // spMeshImporter
 
@@ -38,8 +38,9 @@ public:
   ~spMeshImporter() override;
 
 private:
-  void ImportMeshes(const aiScene* pScene, spMesh* out_pMesh);
-  spMesh::Node ComputeMeshHierarchy(const ezDynamicArray<spMesh::Entry>& allEntries, const aiNode* pRootNode);
+  void ImportLODs(const aiScene* pScene, spMesh* out_pMesh, ezUInt32 uiCount);
+  void ImportMeshes(const aiScene* pScene, const aiNode* pNode, spMesh* out_pMesh);
+  spMesh::Node ComputeMeshHierarchy(const ezDynamicArray<spMesh::Entry>& allEntries, const aiNode* pNode);
   void ImportMesh(spMesh::Data& data, const aiMesh* pMesh);
   void RecomputeTangents(spMesh::Data& data);
 
