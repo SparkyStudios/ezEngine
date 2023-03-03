@@ -101,7 +101,6 @@ public:
   EZ_NODISCARD virtual spSamplerDescription GetSamplerDescription() const = 0;
 };
 
-
 class SP_RHI_DLL spSampler : public spShaderResource
 {
   EZ_ADD_DYNAMIC_REFLECTION(spSampler, spShaderResource);

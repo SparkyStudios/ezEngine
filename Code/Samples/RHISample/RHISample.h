@@ -6,6 +6,7 @@
 #include <Foundation/Types/UniquePtr.h>
 
 #include <RAI/Mesh.h>
+#include <RAI/Resources/MeshResource.h>
 
 #include <RHI/Buffer.h>
 #include <RHI/Device.h>
@@ -164,13 +165,15 @@ private:
   ezUniquePtr<spRenderPipeline> renderPipeline;
 
   ezSharedPtr<spTexture> tex;
-  spMesh m_Mesh;
+
+  RAI::spMesh m_Mesh;
+  RAI::spMeshResourceHandle m_hMesh;
 };
 
 class spTriangleDemoRenderGraphNode final : public spRenderGraphNode
 {
 public:
-  spTriangleDemoRenderGraphNode(const spMesh* pMesh)
+  spTriangleDemoRenderGraphNode(const RAI::spMesh* pMesh)
     : spRenderGraphNode("TrianglePass")
     , m_pMesh(pMesh)
   {
@@ -204,7 +207,7 @@ public:
   bool IsEnabled() const override;
 
 private:
-  const spMesh* m_pMesh{nullptr};
+  const RAI::spMesh* m_pMesh{nullptr};
   PassData m_PassData;
 };
 
