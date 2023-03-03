@@ -2,69 +2,68 @@
 
 #include <RAI/RAIDLL.h>
 
-#include <RAI/Mesh.h>
 #include <RAI/Core.h>
+#include <RAI/Mesh.h>
 
 #include <Core/ResourceManager/Resource.h>
 
 #include <Foundation/IO/ChunkStream.h>
 #include <Foundation/Math/BoundingBoxSphere.h>
 
-typedef ezTypedResourceHandle<class spMeshResource> spMeshResourceHandle;
-
-class SP_RAI_DLL spMeshResourceDescriptor
+namespace RAI
 {
-  friend class spMeshResource;
+  typedef ezTypedResourceHandle<class spMeshResource> spMeshResourceHandle;
 
-public:
-  spMeshResourceDescriptor();
+  class SP_RAI_DLL spMeshResourceDescriptor
+  {
+    friend class spMeshResource;
 
-  void Clear();
+  public:
+    spMeshResourceDescriptor();
 
-  EZ_NODISCARD const spMesh& GetLOD(ezUInt32 uiLodIndex = 0) const;
+    void Clear();
 
-  EZ_NODISCARD spMesh& WriteLOD(ezUInt32 uiLodIndex = 0);
+    EZ_NODISCARD const spMesh& GetLOD(ezUInt32 uiLodIndex = 0) const;
 
-  void ClearLOD(ezUInt32 uiLodIndex = 0);
+    EZ_NODISCARD spMesh& WriteLOD(ezUInt32 uiLodIndex = 0);
 
-  void SetLOD(ezUInt32 uiLodIndex, const spMesh& mesh);
+    void ClearLOD(ezUInt32 uiLodIndex = 0);
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt8 GetNumLODs() const { return m_uiNumLOD; }
+    void SetLOD(ezUInt32 uiLodIndex, const spMesh& mesh);
 
-  ezResult Save(ezStreamWriter& stream);
-  ezResult Save(ezStringView sFile);
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt8 GetNumLODs() const { return m_uiNumLOD; }
 
-  ezResult Load(ezStreamReader& inout_stream);
-  ezResult Load(ezStringView sFile);
+    ezResult Save(ezStreamWriter& inout_stream);
+    ezResult Save(ezStringView sFile);
 
-private:
-  ezUInt32 m_uiNumLOD{0};
+    ezResult Load(ezStreamReader& inout_stream);
+    ezResult Load(ezStringView sFile);
 
-  spMesh m_LOD0;
+  private:
+    ezUInt8 m_uiNumLOD{0};
 
-  ezStaticArray<spMesh, SP_RAI_MAX_LOD_COUNT> m_LODs;
+    ezStaticArray<spMesh, SP_RAI_MAX_LOD_COUNT> m_LODs;
 
-  ezBoundingBoxSphere m_Bounds;
-};
+    ezBoundingBoxSphere m_Bounds;
+  };
 
-class SP_RAI_DLL spMeshResource final : public ezResource
-{
-  EZ_ADD_DYNAMIC_REFLECTION(spMeshResource, ezResource);
-  EZ_RESOURCE_DECLARE_COMMON_CODE(spMeshResource);
-  EZ_RESOURCE_DECLARE_CREATEABLE(spMeshResource, spMeshResourceDescriptor);
+  class SP_RAI_DLL spMeshResource final : public ezResource
+  {
+    EZ_ADD_DYNAMIC_REFLECTION(spMeshResource, ezResource);
+    EZ_RESOURCE_DECLARE_COMMON_CODE(spMeshResource);
+    EZ_RESOURCE_DECLARE_CREATEABLE(spMeshResource, spMeshResourceDescriptor);
 
-public:
-  spMeshResource();
+  public:
+    spMeshResource();
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<const spMesh::Vertex> GetVertices() const { return m_Descriptor.GetLOD(0).GetData().m_Vertices; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spMeshResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<const ezUInt16> GetIndices() const { return m_Descriptor.GetLOD(0).GetData().m_Indices; }
+  private:
+    ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;
+    ezResourceLoadDesc UpdateContent(ezStreamReader* pStream) override;
+    void UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage) override;
 
-private:
-  ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;
-  ezResourceLoadDesc UpdateContent(ezStreamReader* pStream) override;
-  void UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage) override;
-
-  spMeshResourceDescriptor m_Descriptor;
-  ezBoundingBoxSphere m_Bounds;
-};
+    spMeshResourceDescriptor m_Descriptor;
+    ezBoundingBoxSphere m_Bounds;
+  };
+} // namespace RAI

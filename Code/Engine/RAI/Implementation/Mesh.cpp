@@ -2,6 +2,8 @@
 
 #include <RAI/Mesh.h>
 
+using namespace RAI;
+
 void spMesh::Clear()
 {
   m_Data.m_Indices.Clear();

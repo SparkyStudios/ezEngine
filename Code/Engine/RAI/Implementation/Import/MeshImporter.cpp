@@ -11,6 +11,8 @@
 
 #include <mikktspace/mikktspace.h>
 
+using namespace RAI;
+
 class aiLogStreamError : public Assimp::LogStream
 {
 public:
@@ -188,7 +190,10 @@ ezResult spMeshImporter::Import(ezStringView sSourceFile, spMesh* out_pAsset, ez
 
   if (m_Configuration.m_bImportMeshes)
   {
-    ImportLODs(pScene, out_pAsset, uiCount);
+    if (m_Configuration.m_bImportLODs)
+      ImportWithLODs(pScene, out_pAsset, uiCount);
+    else
+      ImportWithoutLODs(pScene, out_pAsset, uiCount);
   }
 
   if (m_Configuration.m_bImportSkeleton)
@@ -239,21 +244,24 @@ spMeshImporter::~spMeshImporter()
 {
 }
 
-void spMeshImporter::ImportLODs(const aiScene* pScene, spMesh* out_pMesh, ezUInt32 uiCount)
+void spMeshImporter::ImportWithLODs(const aiScene* pScene, spMesh* out_pMesh, ezUInt32 uiCount)
 {
   ezUInt32 uiFoundLODs = 0;
 
   // Browse the root node for LOD meshes
   for (ezUInt32 n = 0; n < pScene->mRootNode->mNumChildren; ++n)
   {
+    if (uiFoundLODs >= uiCount)
+      break;
+
     const aiNode* pNode = pScene->mRootNode->mChildren[n];
 
     bool bShouldSkip = false;
-    if (pNode->mMetaData->Get<bool>("spark.mesh.import.skip", bShouldSkip) && bShouldSkip)
+    if (pNode->mMetaData != nullptr && pNode->mMetaData->Get<bool>("spark.mesh.import.skip", bShouldSkip) && bShouldSkip)
       continue;
 
     ezInt32 uiLODLevel = 0;
-    if (pNode->mMetaData->Get<ezInt32>("spark.mesh.lod", uiLODLevel) && uiLODLevel >= uiCount)
+    if (pNode->mMetaData != nullptr && pNode->mMetaData->Get<ezInt32>("spark.mesh.lod", uiLODLevel) && uiLODLevel >= uiCount)
       continue;
 
     ImportMeshes(pScene, pNode, &out_pMesh[uiLODLevel]);
@@ -261,6 +269,55 @@ void spMeshImporter::ImportLODs(const aiScene* pScene, spMesh* out_pMesh, ezUInt
   }
 
   ezLog::Dev("Imported {} LOD meshes, while requested {} LOD meshes", uiFoundLODs, uiCount);
+}
+
+void spMeshImporter::ImportWithoutLODs(const aiScene* pScene, spMesh* out_pMesh, ezUInt32 uiCount)
+{
+  const ezUInt32 uiMeshCount = pScene->mNumMeshes;
+
+  ezDynamicArray<spMesh::Entry> entries;
+  entries.SetCount(uiMeshCount);
+
+  ezUInt32 uiBaseVertex = 0;
+  ezUInt32 uiBaseIndex = 0;
+
+  // Count the number of vertices and indices
+  for (ezUInt32 meshIndex = 0; meshIndex < uiMeshCount; ++meshIndex)
+  {
+    const aiMesh* pMesh = pScene->mMeshes[meshIndex];
+    const ezUInt32 uiIndicesCount = pMesh->mNumFaces * 3; // Import only triangles
+
+    entries[meshIndex].m_sName = pMesh->mName.C_Str();
+    entries[meshIndex].m_uiBaseIndex = uiBaseIndex;
+    entries[meshIndex].m_uiIndicesCount = uiIndicesCount;
+    entries[meshIndex].m_uiBaseVertex = uiBaseVertex;
+    entries[meshIndex].m_uiVerticesCount = pMesh->mNumVertices;
+
+    if (m_Configuration.m_bImportMaterials)
+    {
+      // TODO: Material
+    }
+
+    uiBaseIndex += uiIndicesCount;
+    uiBaseVertex += pMesh->mNumVertices;
+  }
+
+  spMesh::Data meshData;
+
+  meshData.m_Vertices.SetCount(uiBaseVertex);
+  meshData.m_Indices.SetCount(uiBaseIndex);
+
+  // Build mesh data
+  for (ezUInt32 meshIndex = 0; meshIndex < uiMeshCount; ++meshIndex)
+  {
+    ImportMesh(meshData, pScene->mMeshes[meshIndex]);
+  }
+
+  if (m_Configuration.m_bRecomputeTangents)
+    RecomputeTangents(meshData);
+
+  out_pMesh->SetData(meshData);
+  out_pMesh->SetRootNode(ComputeMeshHierarchy(entries, pScene->mRootNode));
 }
 
 void spMeshImporter::ImportMeshes(const aiScene* pScene, const aiNode* pNode, spMesh* out_pMesh)
@@ -331,7 +388,7 @@ spMesh::Node spMeshImporter::ComputeMeshHierarchy(const ezDynamicArray<spMesh::E
       node.m_Children.ExpandAndGetRef() = ComputeMeshHierarchy(allEntries, pNode->mChildren[childIndex]);
 
   aiString sMaterialName;
-  if (pNode->mMetaData->Get<aiString>("spark.mesh.material", sMaterialName))
+  if (pNode->mMetaData != nullptr && pNode->mMetaData->Get<aiString>("spark.mesh.material", sMaterialName))
     node.m_sMaterial = sMaterialName.C_Str();
 
   return node;

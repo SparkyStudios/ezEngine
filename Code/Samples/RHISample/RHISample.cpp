@@ -1,3 +1,4 @@
+#include <Core/Assets/AssetFileHeader.h>
 #include <Core/Input/InputManager.h>
 #include <Core/ResourceManager/ResourceManager.h>
 #include <Core/System/Window.h>
@@ -6,6 +7,7 @@
 #include <Foundation/Configuration/Startup.h>
 #include <Foundation/Containers/ArrayMap.h>
 #include <Foundation/IO/FileSystem/FileSystem.h>
+#include <Foundation/IO/FileSystem/FileWriter.h>
 #include <Foundation/Logging/ConsoleWriter.h>
 #include <Foundation/Logging/Log.h>
 #include <Foundation/Logging/VisualStudioWriter.h>
@@ -31,6 +33,8 @@
 #include <RPI/Graph/Nodes/MainSwapchainRenderGraphNode.h>
 
 #include <RHISample/RHISample.h>
+
+using namespace RAI;
 
 typedef spTriangleDemoRenderGraphNode::PassData spTriangleDemoRenderGraphNodePassData;
 
@@ -211,17 +215,22 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   config.m_bRecomputeNormals = true;
   config.m_bRecomputeTangents = true;
   config.m_bOptimizeMesh = true;
+  config.m_bImportLODs = false;
 
-  ezStringBuilder sAbsPath;
-  if (!ezFileSystem::ExistsFile(":project/objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.spMesh"))
+  m_hMesh = ezResourceManager::LoadResource<spMeshResource>(":project/objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.spMesh");
+  if (const ezResourceLock resource(m_hMesh, ezResourceAcquireMode::BlockTillLoaded_NeverFail); !resource.IsValid())
   {
+    ezStringBuilder sAbsPath;
     if (ezFileSystem::ResolvePath(":content/Objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.FBX", &sAbsPath, nullptr).Failed())
     {
       return ezLog::Error("Couldn't make path absolute: '{0}'", sAbsPath);
     }
 
+    ezStaticArray<spMesh, 3> lods;
+    lods.SetCount(3);
+
     spMeshImporter importer(config);
-    importer.Import(sAbsPath, &m_Mesh, 1).AssertSuccess();
+    importer.Import(sAbsPath, lods.GetData(), lods.GetCount()).AssertSuccess();
 
     if (ezFileSystem::ResolvePath(":project/objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.spMesh", &sAbsPath, nullptr).Failed())
     {
@@ -229,21 +238,27 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
     }
 
     spMeshResourceDescriptor desc;
-    desc.SetLOD(0, m_Mesh);
+    desc.SetLOD(0, lods[0]);
+    desc.SetLOD(1, lods[1]);
+    desc.SetLOD(2, lods[2]);
 
-    desc.Save(sAbsPath).AssertSuccess();
+    ezFileWriter file;
+    if (file.Open(sAbsPath, 1024 * 1024).Failed())
+    {
+      return ezLog::Error("Failed to open mesh file");
+    }
+
+    // Write asset header
+    const ezAssetFileHeader assetHeader;
+    assetHeader.Write(file).AssertSuccess();
+
+    desc.Save(file).AssertSuccess();
+
+    m_Mesh = lods[0];
   }
   else
   {
-    if (ezFileSystem::ResolvePath(":project/objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.spMesh", &sAbsPath, nullptr).Failed())
-    {
-      return ezLog::Error("Couldn't make path absolute: '{0}'", sAbsPath);
-    }
-
-    spMeshResourceDescriptor desc;
-    desc.Load(sAbsPath).AssertSuccess();
-
-    m_Mesh = desc.GetLOD(0);
+    m_Mesh = resource.GetPointer()->GetDescriptor().GetLOD(0);
   }
 
   ezUInt32 uiVerticesCount = m_Mesh.GetData().m_Vertices.GetCount();
@@ -315,6 +330,9 @@ void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
 
   // cleanup the render pipeline
   renderPipeline->CleanUp();
+
+  m_Mesh.Clear();
+  m_hMesh.Invalidate();
 
   tex.Clear();
 
