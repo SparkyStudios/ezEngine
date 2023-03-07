@@ -12,6 +12,10 @@
 #  include <Foundation/IO/CompressedStreamZstd.h>
 #endif
 
+#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
+#  include <Foundation/IO/CompressedStreamBrotliG.h>
+#endif
+
 namespace RAI
 {
   // clang-format off
@@ -86,7 +90,11 @@ namespace RAI
 
     ezUInt8 uiCompressionMode = 0;
 
-#ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
+#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
+    uiCompressionMode = 2;
+    ezCompressedStreamWriterBrotliG compressor(&inout_stream);
+    ezChunkStreamWriter chunk(compressor);
+#elif BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     uiCompressionMode = 1;
     ezCompressedStreamWriterZstd compressor(&inout_stream, ezCompressedStreamWriterZstd::Compression::Average);
     ezChunkStreamWriter chunk(compressor);
@@ -164,6 +172,10 @@ namespace RAI
     ezCompressedStreamReaderZstd decompressorZstd;
 #endif
 
+#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
+    ezCompressedStreamReaderBrotliG decompressorBrotliG;
+#endif
+
     switch (uiCompressionMode)
     {
       case 0:
@@ -177,6 +189,16 @@ namespace RAI
 #else
         ezLog::Error("Mesh is compressed with zstandard, but support for this compressor is not compiled in.");
         return EZ_FAILURE;
+#endif
+
+      case 2:
+#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
+      decompressorBrotliG.SetInputStream(&inout_stream);
+      pCompressor = &decompressorBrotliG;
+      break;
+#else
+      ezLog::Error("Mesh is compressed with BrotliG, but support for this compressor is not compiled in.");
+      return EZ_FAILURE;
 #endif
 
       default:

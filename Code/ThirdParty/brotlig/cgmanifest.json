@@ -1,0 +1,13 @@
+{
+  "Registrations": [
+    {
+      "component": {
+        "type": "git",
+        "git": {
+          "repositoryUrl": "https://github.com/GPUOpen-LibrariesAndSDKs/brotli_g_sdk.git",
+          "commitHash": "ce3fb0f16bfc6950b6bed2ee6e86cdc833d222c6"
+        }
+      }
+    }
+  ]
+}
