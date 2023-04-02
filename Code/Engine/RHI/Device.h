@@ -84,9 +84,10 @@ struct spDeviceCapabilities
   bool m_bShader16BitsPrecision{false};
 
   /// \brief Specifies whether the device supports conservative rasterization.
-  bool m_bConservaiveRasterization{false};
+  bool m_bConservativeRasterization{false};
 
-  /// \brief Specifies whether the device supports command lists.
+  /// \brief Specifies whether the device supports command lists. If this value is false, the device
+  /// implementation will emulate the command list behavior to keep the same API.
   bool m_bSupportCommandLists{false};
 
   /// \brief Specifies whether the device supports command lists.
@@ -357,34 +358,44 @@ public:
 
   /// \brief Updates the \a spBuffer region with new data.
   /// \param pBuffer The handle to the \a spBuffer to update.
-  /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
+  /// \param uiOffset The offset in elements from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param source The data to upload in the buffer.
   template <typename T>
   void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const T& source)
   {
-    UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(&source), sizeof(T));
+    UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(&source), sizeof(T));
   }
 
   /// \brief Updates the \a spBuffer region with new data.
   /// \param pBuffer The handle to the \a spBuffer to update.
-  /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
+  /// \param uiOffset The offset in elements from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param pSource The data to upload in the buffer.
   /// \param uiCount The number of elements in the array to upload in the buffer.
   template <typename T>
   void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const T* pSource, ezUInt32 uiCount)
   {
-    UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(pSource), uiCount * sizeof(T));
+    UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(pSource), uiCount * sizeof(T));
   }
 
   /// \brief Updates the \a spBuffer region with new data.
   /// \param pBuffer The handle to the \a spBuffer to update.
-  /// \param uiOffset The offset in bytes from the beginning of the buffer's storage, at which the data will be uploaded.
+  /// \param uiOffset The offset in elements from the beginning of the buffer's storage, at which the data will be uploaded.
   /// \param source The data array to upload in the buffer.
   /// \param uiCount The number of elements in the array to upload in the buffer.
   template <typename T>
-  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, ezArrayPtr<T> source, ezUInt32 uiCount)
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const ezArrayPtr<T>& source, ezUInt32 uiCount)
   {
-    UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(source.GetPtr()), uiCount * sizeof(T));
+    UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(source.GetPtr()), uiCount * sizeof(T));
+  }
+
+  /// \brief Updates the \a spBuffer region with new data.
+  /// \param pBuffer The handle to the \a spBuffer to update.
+  /// \param uiOffset The offset in elements from the beginning of the buffer's storage, at which the data will be uploaded.
+  /// \param source The data array to upload in the buffer.
+  template <typename T>
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const ezArrayPtr<T>& source)
+  {
+    UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(source.GetPtr()), source.GetCount() * sizeof(T));
   }
 
   /// \brief Copy a texture content from the \a hSource to the \a hDestination.
@@ -402,7 +413,7 @@ public:
   EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezSharedPtr<spFrameProfiler> GetFrameProfiler() const { return m_pFrameProfiler; }
 
   /// \brief Gets the total number of processed frames.
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetFrameCount() const { return m_uiFrameCounter; };
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetFrameCount() const { return m_uiFrameCounter; }
 
   /// \brief Begin a frame. This should be called once per frame.
   virtual void BeginFrame();
@@ -423,6 +434,7 @@ protected:
   virtual void UnMapInternal(ezSharedPtr<spTexture> pTexture, ezUInt32 uiSubresource) = 0;
   virtual void UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize) = 0;
 
+  HardwareInfo m_HardwareInfo;
   spDeviceDescription m_Description;
   spGraphicsApiVersion m_ApiVersion;
   spDeviceCapabilities m_Capabilities;

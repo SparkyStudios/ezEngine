@@ -604,7 +604,7 @@ spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescript
     m_Capabilities.m_bSubsetTextureView = true;
     m_Capabilities.m_bTessellationShader = true;
     m_Capabilities.m_bTexture1D = true;
-    m_Capabilities.m_bConservaiveRasterization = CheckConservativeRasterizationSupport(m_pD3D11Device);
+    m_Capabilities.m_bConservativeRasterization = CheckConservativeRasterizationSupport(m_pD3D11Device);
     m_Capabilities.m_bSupportCommandLists = m_bSupportsCommandLists;
     m_Capabilities.m_bSupportConcurrentResources = m_bSupportsConcurrentResources;
   }

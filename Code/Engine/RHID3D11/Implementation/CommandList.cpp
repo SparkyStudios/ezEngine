@@ -837,7 +837,7 @@ void spCommandListD3D11::BindConstantBuffer(ezSharedPtr<spBufferRangeD3D11> pBuf
       {
         PackRangeParams(pBufferRange);
         if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-          m_pDeviceContext->VSSetConstantBuffers(uiSlot, 1, nullptr);
+          m_pDeviceContext->VSSetConstantBuffers(uiSlot, 0, nullptr);
 
         m_pDeviceContext->VSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
       }
@@ -855,7 +855,7 @@ void spCommandListD3D11::BindConstantBuffer(ezSharedPtr<spBufferRangeD3D11> pBuf
     {
       PackRangeParams(pBufferRange);
       if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-        m_pDeviceContext->GSSetConstantBuffers(uiSlot, 1, nullptr);
+        m_pDeviceContext->GSSetConstantBuffers(uiSlot, 0, nullptr);
 
       m_pDeviceContext->GSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
     }
@@ -872,7 +872,7 @@ void spCommandListD3D11::BindConstantBuffer(ezSharedPtr<spBufferRangeD3D11> pBuf
     {
       PackRangeParams(pBufferRange);
       if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-        m_pDeviceContext->HSSetConstantBuffers(uiSlot, 1, nullptr);
+        m_pDeviceContext->HSSetConstantBuffers(uiSlot, 0, nullptr);
 
       m_pDeviceContext->HSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
     }
@@ -889,7 +889,7 @@ void spCommandListD3D11::BindConstantBuffer(ezSharedPtr<spBufferRangeD3D11> pBuf
     {
       PackRangeParams(pBufferRange);
       if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-        m_pDeviceContext->DSSetConstantBuffers(uiSlot, 1, nullptr);
+        m_pDeviceContext->DSSetConstantBuffers(uiSlot, 0, nullptr);
 
       m_pDeviceContext->DSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
     }
@@ -927,7 +927,7 @@ void spCommandListD3D11::BindConstantBuffer(ezSharedPtr<spBufferRangeD3D11> pBuf
       {
         PackRangeParams(pBufferRange);
         if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-          m_pDeviceContext->PSSetConstantBuffers(uiSlot, 1, nullptr);
+          m_pDeviceContext->PSSetConstantBuffers(uiSlot, 0, nullptr);
 
         m_pDeviceContext->PSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
       }
@@ -945,7 +945,7 @@ void spCommandListD3D11::BindConstantBuffer(ezSharedPtr<spBufferRangeD3D11> pBuf
     {
       PackRangeParams(pBufferRange);
       if (!m_pDevice->GetCapabilities().m_bSupportCommandLists)
-        m_pDeviceContext->CSSetConstantBuffers(uiSlot, 1, nullptr);
+        m_pDeviceContext->CSSetConstantBuffers(uiSlot, 0, nullptr);
 
       m_pDeviceContext->CSSetConstantBuffers1(uiSlot, 1, m_ConstantBuffersOut.GetData(), m_FirstConstantBufferRef.GetData(), m_ConstantBuffersRefCounts.GetData());
     }

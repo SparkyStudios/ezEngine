@@ -2,20 +2,19 @@
 
 #include <RAI/Sampler.h>
 
-namespace RAI
+using namespace RAI;
+
+RAI::spSampler RAI::spSampler::CreatePoint()
 {
-  spSampler spSampler::CreatePoint()
-  {
-    return spSampler(spSamplerDescription::Point);
-  }
+  return spSampler(spSamplerDescription::Point);
+}
 
-  spSampler spSampler::CreateLinear()
-  {
-    return spSampler(spSamplerDescription::Linear);
-  }
+RAI::spSampler RAI::spSampler::CreateLinear()
+{
+  return spSampler(spSamplerDescription::Linear);
+}
 
-  spSampler spSampler::CreateAnisotropic4x()
-  {
-    return spSampler(spSamplerDescription::Anisotropic4x);
-  }
-} // namespace RAI
+RAI::spSampler RAI::spSampler::CreateAnisotropic4x()
+{
+  return spSampler(spSamplerDescription::Anisotropic4x);
+}

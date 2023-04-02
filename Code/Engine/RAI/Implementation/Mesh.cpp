@@ -11,6 +11,6 @@ void spMesh::Clear()
 
   m_Root.m_Children.Clear();
   m_Root.m_Entries.Clear();
-  m_Root.m_sName = "";
+  m_Root.m_sName.Clear();
   m_Root.m_Transform = {};
 }

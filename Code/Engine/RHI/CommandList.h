@@ -215,19 +215,25 @@ public:
   template <typename T>
   void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const T& source)
   {
-    UpdateBuffer(pBuffer, uiOffset, &source, 1);
+    UpdateBuffer<T>(pBuffer, uiOffset, static_cast<const T*>(&source), 1);
   }
 
   template <typename T>
   void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const T* pSource, ezUInt32 uiCount)
   {
-    UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(pSource), uiCount * sizeof(T));
+    UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(pSource), uiCount * sizeof(T));
   }
 
   template <typename T>
-  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, ezArrayPtr<T> source, ezUInt32 uiCount)
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const ezArrayPtr<T>& source, ezUInt32 uiCount)
   {
-    UpdateBuffer(pBuffer, uiOffset, reinterpret_cast<const void*>(source.GetPtr()), uiCount * sizeof(T));
+    UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(source.GetPtr()), uiCount * sizeof(T));
+  }
+
+  template <typename T>
+  void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const ezArrayPtr<T>& source)
+  {
+    UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(source.GetPtr()), source.GetCount() * sizeof(T));
   }
 
   void CopyBuffer(ezSharedPtr<spBuffer> pSourceBuffer, ezUInt32 uiSourceOffset, ezSharedPtr<spBuffer> pDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize);

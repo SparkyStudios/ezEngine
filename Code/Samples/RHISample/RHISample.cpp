@@ -16,7 +16,6 @@
 
 #include <Texture/Image/Image.h>
 
-#include <RAI/Import/MeshImporter.h>
 #include <RAI/Resources/MeshResource.h>
 
 #include <RHI/CommandList.h>
@@ -209,68 +208,21 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   m_pSceneContext = EZ_NEW(m_pDevice->GetAllocator(), spSceneContext, m_pDevice.Borrow());
 
-  spMeshImporterConfiguration config;
-  config.m_fScale = 2.0f;
-  config.m_bFlipWindingNormals = true;
-  config.m_bRecomputeNormals = true;
-  config.m_bRecomputeTangents = true;
-  config.m_bOptimizeMesh = true;
-  config.m_bImportLODs = false;
+  m_hMesh = ezResourceManager::LoadResource<spMeshResource>(":project/objects/yemaya_body.spMesh");
+  const ezResourceLock resource(m_hMesh, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
+  if (!resource.IsValid())
+    return ezLog::Error("Unable to get the mesh resource! Make sure to run AssetProcessor first.");
 
-  m_hMesh = ezResourceManager::LoadResource<spMeshResource>(":project/objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.spMesh");
-  if (const ezResourceLock resource(m_hMesh, ezResourceAcquireMode::BlockTillLoaded_NeverFail); !resource.IsValid())
-  {
-    ezStringBuilder sAbsPath;
-    if (ezFileSystem::ResolvePath(":content/Objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.FBX", &sAbsPath, nullptr).Failed())
-    {
-      return ezLog::Error("Couldn't make path absolute: '{0}'", sAbsPath);
-    }
-
-    ezStaticArray<spMesh, 3> lods;
-    lods.SetCount(3);
-
-    spMeshImporter importer(config);
-    importer.Import(sAbsPath, lods.GetData(), lods.GetCount()).AssertSuccess();
-
-    if (ezFileSystem::ResolvePath(":project/objects/3dmodelhaven.com/Barrel01/Barrel_01_Lowpoly.spMesh", &sAbsPath, nullptr).Failed())
-    {
-      return ezLog::Error("Couldn't make path absolute: '{0}'", sAbsPath);
-    }
-
-    spMeshResourceDescriptor desc;
-    desc.SetLOD(0, lods[0]);
-    desc.SetLOD(1, lods[1]);
-    desc.SetLOD(2, lods[2]);
-
-    ezFileWriter file;
-    if (file.Open(sAbsPath, 1024 * 1024).Failed())
-    {
-      return ezLog::Error("Failed to open mesh file");
-    }
-
-    // Write asset header
-    const ezAssetFileHeader assetHeader;
-    assetHeader.Write(file).AssertSuccess();
-
-    desc.Save(file).AssertSuccess();
-
-    m_Mesh = lods[0];
-  }
-  else
-  {
-    m_Mesh = resource.GetPointer()->GetDescriptor().GetLOD(0);
-  }
+  m_Mesh = resource.GetPointer()->GetDescriptor().GetLOD(0);
 
   ezUInt32 uiVerticesCount = m_Mesh.GetData().m_Vertices.GetCount();
   ezUInt32 uiIndicesCount = m_Mesh.GetData().m_Indices.GetCount();
 
-  auto pVertexBuffer = pFactory->CreateBuffer(spBufferDescription(sizeof(spMesh::Vertex) * uiVerticesCount, spBufferUsage::VertexBuffer));
+  auto pVertexBuffer = pFactory->CreateBuffer(spBufferDescription(sizeof(spVertex) * uiVerticesCount, spBufferUsage::VertexBuffer));
   auto pIndexBuffer = pFactory->CreateBuffer(spBufferDescription(sizeof(ezUInt16) * uiIndicesCount, spBufferUsage::IndexBuffer));
 
-  m_pDevice->UpdateBuffer<spMesh::Vertex>(pVertexBuffer, 0, m_Mesh.GetData().m_Vertices.GetData(), uiVerticesCount);
-  m_pDevice->UpdateBuffer<ezUInt16>(pIndexBuffer, 0, m_Mesh.GetData().m_Indices.GetData(), uiIndicesCount);
-
-
+  m_pDevice->UpdateBuffer<spVertex>(pVertexBuffer, 0, m_Mesh.GetData().m_Vertices.GetArrayPtr());
+  m_pDevice->UpdateBuffer<ezUInt16>(pIndexBuffer, 0, m_Mesh.GetData().m_Indices.GetArrayPtr());
 
   // --- Begin Experimental render graph
 
@@ -358,6 +310,24 @@ void ezRHISampleApp::OnResize(ezUInt32 width, ezUInt32 height)
   m_pDevice->ResizeSwapchain(width, height);
 }
 
+static void GetDrawCommands(ezDynamicArray<spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands, const spMesh::Node& node)
+{
+  for (const auto& entry : node.m_Entries)
+  {
+    spDrawIndexedIndirectCommand cmd;
+    cmd.m_uiCount = entry.m_uiIndexCount;
+    cmd.m_uiInstanceCount = 1;
+    cmd.m_uiFirstIndex = entry.m_uiBaseIndex;
+    cmd.m_uiBaseVertex = entry.m_uiBaseVertex;
+    cmd.m_uiBaseInstance = 0;
+
+    out_DrawCommands.PushBack(cmd);
+  }
+
+  for (const auto& child : node.m_Children)
+    GetDrawCommands(out_DrawCommands, child);
+}
+
 ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources)
 {
   if (!resources.TryGetValue("tex", m_PassData.m_hGridTexture))
@@ -367,7 +337,8 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
   if (!resources.TryGetValue("ibo", m_PassData.m_hIndexBuffer))
     return EZ_FAILURE;
 
-  m_PassData.m_hIndirectBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(spDrawIndexedIndirectCommand), spBufferUsage::IndirectBuffer), spRenderGraphResourceBindType::Transient);
+  GetDrawCommands(m_PassData.m_DrawCommands, m_pMesh->GetRootNode());
+  m_PassData.m_hIndirectBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(spDrawIndexedIndirectCommand) * m_PassData.m_DrawCommands.GetCount(), spBufferUsage::IndirectBuffer), spRenderGraphResourceBindType::Transient);
 
   spRenderTargetDescription rtDescription;
   rtDescription.m_bGenerateMipMaps = false;
@@ -472,17 +443,10 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     spRenderGraphResource* idb = nullptr;
     resources.TryGetValue(data.m_hIndirectBuffer.GetInternalID(), idb);
 
-    spDrawIndexedIndirectCommand command;
-    command.m_uiCount = m_pMesh->GetData().m_Indices.GetCount();
-    command.m_uiInstanceCount = 1;
-    command.m_uiFirstIndex = 0;
-    command.m_uiBaseVertex = 0;
-    command.m_uiBaseInstance = 0;
-
-    context->GetDevice()->UpdateBuffer(idb->m_pResource.Downcast<spBuffer>(), 0, command);
-
     if (data.m_pVertexShader == nullptr)
     {
+      context->GetDevice()->UpdateBuffer<spDrawIndexedIndirectCommand>(idb->m_pResource.Downcast<spBuffer>(), 0, m_PassData.m_DrawCommands.GetArrayPtr());
+
       // context->GetDevice()->UpdateBuffer<ezUInt16>(ibo->m_pResource.Downcast<spBuffer>(), 0, &IndexBuffer[0], EZ_ARRAY_SIZE(IndexBuffer));
       // context->GetDevice()->UpdateBuffer<float>(vbo->m_pResource.Downcast<spBuffer>(), 0, &VertexBuffer[0], EZ_ARRAY_SIZE(VertexBuffer));
 
@@ -518,15 +482,15 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     {
       spInputLayoutDescription inputLayoutDescription;
       inputLayoutDescription.m_uiInstanceStepRate = 0;
-      inputLayoutDescription.m_uiStride = sizeof(spMesh::Vertex);
+      inputLayoutDescription.m_uiStride = sizeof(spVertex);
       inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("nrm", spInputElementLocationSemantic::Normal, spInputElementFormat::Float3, offsetof(spMesh::Vertex, m_vNormal)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tgt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float4, offsetof(spMesh::Vertex, m_vTangent)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("btt", spInputElementLocationSemantic::BiTangent, spInputElementFormat::Float4, offsetof(spMesh::Vertex, m_vBiTangent)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv0", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spMesh::Vertex, m_vTexCoord0)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv1", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spMesh::Vertex, m_vTexCoord1)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl0", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spMesh::Vertex, m_Color0)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl1", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spMesh::Vertex, m_Color1)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("nrm", spInputElementLocationSemantic::Normal, spInputElementFormat::Float3, offsetof(spVertex, m_vNormal)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tgt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float4, offsetof(spVertex, m_vTangent)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("btt", spInputElementLocationSemantic::BiTangent, spInputElementFormat::Float4, offsetof(spVertex, m_vBiTangent)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv0", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord0)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv1", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord1)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl0", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spVertex, m_Color0)));
+      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl1", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spVertex, m_Color1)));
 
       data.m_pInputLayout = context->GetDevice()->GetResourceFactory()->CreateInputLayout(inputLayoutDescription, data.m_pVertexShader->GetHandle());
       data.m_pInputLayout->SetDebugName("input");
@@ -614,7 +578,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 
       cl->SetGraphicResourceSet(0, data.m_pResourceSet);
 
-      cl->DrawIndexedIndirect(idb->m_pResource.Downcast<spBuffer>(), 0, 1, sizeof(spDrawIndexedIndirectCommand));
+      cl->DrawIndexedIndirect(idb->m_pResource.Downcast<spBuffer>(), 0, m_PassData.m_DrawCommands.GetCount(), sizeof(spDrawIndexedIndirectCommand));
     }
     cl->PopProfileScope(pTestScopeProfiler);
 
@@ -694,12 +658,13 @@ ezApplication::Execution ezRHISampleApp::Run()
 
   // do the rendering
   m_pRenderingThread->PostAsync([&]() -> void
-    {
+  {
     m_pSceneContext->BeginFrame();
     {
       m_pSceneContext->Draw();
     }
-    m_pSceneContext->EndFrame(); });
+    m_pSceneContext->EndFrame();
+  });
 
   m_pSceneContext->WaitForIdle();
 
