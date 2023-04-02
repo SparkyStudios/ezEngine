@@ -134,7 +134,6 @@ namespace RAI
 
   void spSamplerResource::UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage)
   {
-    // TODO
     out_NewMemoryUsage.m_uiMemoryCPU = sizeof(spSamplerResource);
     out_NewMemoryUsage.m_uiMemoryGPU = 0;
   }

@@ -93,9 +93,6 @@ private:
 
   ezMap<spMappedResourceCacheKey, spMappedResource> m_MappedResourcesCache;
   ezList<ezSharedPtr<spBufferD3D11>> m_AvailableStagingBuffers;
-
-  HardwareInfo m_HardwareInfo;
-  spDeviceCapabilities m_Capabilities;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spDeviceD3D11);

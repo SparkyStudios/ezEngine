@@ -12,6 +12,7 @@ class SP_RHID3D11_DLL spShaderProgramD3D11 final : public spShaderProgram
   EZ_ADD_DYNAMIC_REFLECTION(spShaderProgramD3D11, spShaderProgram);
 
   // spDeviceResource
+
 public:
   void ReleaseResource() override;
   bool IsReleased() const override;

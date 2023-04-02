@@ -9,6 +9,7 @@
 #include <RAI/Resources/MeshResource.h>
 
 #include <RHI/Buffer.h>
+#include <RHI/CommandList.h>
 #include <RHI/Device.h>
 #include <RHI/Fence.h>
 #include <RHI/Pipeline.h>
@@ -198,6 +199,8 @@ public:
     ezSharedPtr<spResourceSet> m_pResourceSet{nullptr};
 
     ezSharedPtr<spGraphicPipeline> m_pGraphicPipeline{nullptr};
+
+    ezDynamicArray<spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper> m_DrawCommands;
   };
 
   EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetTarget() const { return m_PassData.m_hRenderTarget; }

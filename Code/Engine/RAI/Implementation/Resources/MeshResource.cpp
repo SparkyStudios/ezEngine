@@ -6,14 +6,13 @@
 
 #include <Foundation/IO/ChunkStream.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
-#include <Foundation/IO/FileSystem/FileWriter.h>
-
-#ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
-#  include <Foundation/IO/CompressedStreamZstd.h>
-#endif
 
 #ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
 #  include <Foundation/IO/CompressedStreamBrotliG.h>
+#endif
+
+#ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
+#  include <Foundation/IO/CompressedStreamZstd.h>
 #endif
 
 namespace RAI
@@ -27,7 +26,7 @@ namespace RAI
 
 #pragma region spMeshResourceDescriptor
 
-  static constexpr ezUInt16 kMeshResourceVersion = 1;
+  static constexpr ezTypeVersion kMeshResourceVersion = 1;
 
   static constexpr char kMetadataChunkName[] = "Metadata";
   static constexpr char kLODsDataChunkName[] = "LODsData";
@@ -41,9 +40,8 @@ namespace RAI
   void spMeshResourceDescriptor::Clear()
   {
     m_uiNumLOD = 0;
-
+    m_LODs.Clear();
     m_LODs.Reserve(SP_RAI_MAX_LOD_COUNT);
-
     m_Bounds.SetInvalid();
   }
 
@@ -90,16 +88,16 @@ namespace RAI
 
     ezUInt8 uiCompressionMode = 0;
 
-#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-    uiCompressionMode = 2;
-    ezCompressedStreamWriterBrotliG compressor(&inout_stream);
-    ezChunkStreamWriter chunk(compressor);
-#elif BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
+#ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     uiCompressionMode = 1;
     ezCompressedStreamWriterZstd compressor(&inout_stream, ezCompressedStreamWriterZstd::Compression::Average);
     ezChunkStreamWriter chunk(compressor);
+#elif BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
+    uiCompressionMode = 2;
+    ezCompressedStreamWriterBrotliG compressor(&inout_stream);
+    ezChunkStreamWriter chunk(compressor);
 #else
-    ezChunkStreamWriter chunk(stream);
+    ezChunkStreamWriter chunk(inout_stream);
 #endif
 
     inout_stream << uiCompressionMode;
@@ -134,30 +132,18 @@ namespace RAI
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     compressor.FinishCompressedStream().IgnoreResult();
-
-    ezLog::Dev("Compressed mesh data from {0} KB to {1} KB ({2}%%)", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
+    ezLog::Dev("Compressed mesh data from {0}KB to {1}KB ({2}%%) using Zstd", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
+#elif BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
+    compressor.FinishCompressedStream().IgnoreResult();
+    ezLog::Dev("Compressed mesh data from {0}KB to {1}KB ({2}%%) using BrotliG", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
 #endif
 
     return EZ_SUCCESS;
   }
 
-  ezResult spMeshResourceDescriptor::Save(ezStringView sFile)
-  {
-    EZ_LOG_BLOCK("spMeshResourceDescriptor::Save", sFile);
-
-    ezFileWriter file;
-    if (file.Open(sFile, 1024 * 1024).Failed())
-    {
-      ezLog::Error("Failed to open mesh file '{0}'", sFile);
-      return EZ_FAILURE;
-    }
-
-    return Save(file);
-  }
-
   ezResult spMeshResourceDescriptor::Load(ezStreamReader& inout_stream)
   {
-    ezUInt16 uiVersion = 0;
+    ezTypeVersion uiVersion = 0;
     inout_stream >> uiVersion;
 
     if (uiVersion == 0 || uiVersion > kMeshResourceVersion)
@@ -193,12 +179,12 @@ namespace RAI
 
       case 2:
 #ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-      decompressorBrotliG.SetInputStream(&inout_stream);
-      pCompressor = &decompressorBrotliG;
-      break;
+        decompressorBrotliG.SetInputStream(&inout_stream);
+        pCompressor = &decompressorBrotliG;
+        break;
 #else
-      ezLog::Error("Mesh is compressed with BrotliG, but support for this compressor is not compiled in.");
-      return EZ_FAILURE;
+        ezLog::Error("Mesh is compressed with BrotliG, but support for this compressor is not compiled in.");
+        return EZ_FAILURE;
 #endif
 
       default:
@@ -217,7 +203,7 @@ namespace RAI
         // Metadata chunk
         if (ci.m_sChunkName == kMetadataChunkName)
         {
-          if (ci.m_uiChunkVersion != 1)
+          if (ci.m_uiChunkVersion > 1)
           {
             ezLog::Error("Version of chunk '{0}' is invalid ({1})", ci.m_sChunkName, ci.m_uiChunkVersion);
             return EZ_FAILURE;
@@ -235,7 +221,7 @@ namespace RAI
         // LODs Data chunk
         else if (ci.m_sChunkName == kLODsDataChunkName)
         {
-          if (ci.m_uiChunkVersion != 1)
+          if (ci.m_uiChunkVersion > 1)
           {
             ezLog::Error("Version of chunk '{0}' is invalid ({1})", ci.m_sChunkName, ci.m_uiChunkVersion);
             return EZ_FAILURE;
@@ -248,7 +234,7 @@ namespace RAI
         // LODs Node chunk
         else if (ci.m_sChunkName == kLODsNodeChunkName)
         {
-          if (ci.m_uiChunkVersion != 1)
+          if (ci.m_uiChunkVersion > 1)
           {
             ezLog::Error("Version of chunk '{0}' is invalid ({1})", ci.m_sChunkName, ci.m_uiChunkVersion);
             return EZ_FAILURE;
@@ -266,18 +252,18 @@ namespace RAI
     return EZ_SUCCESS;
   }
 
-  ezResult spMeshResourceDescriptor::Load(ezStringView sFile)
+  ezResult spMeshResourceDescriptor::Load(ezStringView sFileName)
   {
-    EZ_LOG_BLOCK("spMeshResourceDescriptor::Load", sFile);
+    EZ_LOG_BLOCK("spMeshResourceDescriptor::Load", sFileName);
 
     ezFileReader file;
-    if (file.Open(sFile, 1024 * 1024).Failed())
+    if (file.Open(sFileName, 1024 * 1024).Failed())
     {
-      ezLog::Error("Failed to open mesh file '{0}'", sFile);
+      ezLog::Error("Failed to open mesh file '{0}'", sFileName);
       return EZ_FAILURE;
     }
 
-    // skip asset header
+    // Skip asset header
     ezAssetFileHeader assetHeader;
     EZ_SUCCEED_OR_RETURN(assetHeader.Read(file));
 
@@ -367,7 +353,7 @@ namespace RAI
     m_Descriptor = descriptor;
 
     m_Bounds = descriptor.m_Bounds;
-    EZ_ASSERT_DEV(m_Bounds.IsValid(), "The mesh bounds are invalid. Make sure to call ezMeshResourceDescriptor::ComputeBounds()");
+    // EZ_ASSERT_DEV(m_Bounds.IsValid(), "The mesh bounds are invalid. Make sure to call ezMeshResourceDescriptor::ComputeBounds()");
 
     ezResourceLoadDesc res;
     res.m_uiQualityLevelsDiscardable = 0;

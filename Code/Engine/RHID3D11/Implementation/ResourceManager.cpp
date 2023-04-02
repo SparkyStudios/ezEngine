@@ -216,7 +216,7 @@ ID3D11RasterizerState* spDeviceResourceManagerD3D11::CreateRasterizerState(const
 {
   if (rasterizerState.m_bConservativeRasterization)
   {
-    if (!m_pDevice->GetCapabilities().m_bConservaiveRasterization)
+    if (!m_pDevice->GetCapabilities().m_bConservativeRasterization)
     {
       ezLog::Error("Conservative rasterization is not supported on this device.");
       return nullptr;
