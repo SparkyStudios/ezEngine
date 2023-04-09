@@ -83,9 +83,9 @@ void ezAudioTranslationLayer::Update()
   pAudioMiddleware->Update(m_LastFrameTime);
 }
 
-ezAudioSystemDataID ezAudioTranslationLayer::GetTriggerId(const char* szTriggerName) const
+ezAudioSystemDataID ezAudioTranslationLayer::GetTriggerId(ezStringView sTriggerName) const
 {
-  const auto uiTriggerId = ezHashHelper<const char*>::Hash(szTriggerName);
+  const auto uiTriggerId = ezHashHelper<ezStringView>::Hash(sTriggerName);
 
   if (const auto it = m_mTriggers.Find(uiTriggerId); it.IsValid())
   {
@@ -95,9 +95,9 @@ ezAudioSystemDataID ezAudioTranslationLayer::GetTriggerId(const char* szTriggerN
   return 0;
 }
 
-ezAudioSystemDataID ezAudioTranslationLayer::GetRtpcId(const char* szRtpcName) const
+ezAudioSystemDataID ezAudioTranslationLayer::GetRtpcId(ezStringView sRtpcName) const
 {
-  const auto uiRtpcId = ezHashHelper<const char*>::Hash(szRtpcName);
+  const auto uiRtpcId = ezHashHelper<ezStringView>::Hash(sRtpcName);
 
   if (const auto it = m_mRtpcs.Find(uiRtpcId); it.IsValid())
   {
@@ -107,9 +107,9 @@ ezAudioSystemDataID ezAudioTranslationLayer::GetRtpcId(const char* szRtpcName) c
   return 0;
 }
 
-ezAudioSystemDataID ezAudioTranslationLayer::GetSwitchStateId(const char* szSwitchStateName) const
+ezAudioSystemDataID ezAudioTranslationLayer::GetSwitchStateId(ezStringView sSwitchStateName) const
 {
-  const auto uiSwitchStateId = ezHashHelper<const char*>::Hash(szSwitchStateName);
+  const auto uiSwitchStateId = ezHashHelper<ezStringView>::Hash(sSwitchStateName);
 
   if (const auto it = m_mSwitchStates.Find(uiSwitchStateId); it.IsValid())
   {
@@ -119,9 +119,9 @@ ezAudioSystemDataID ezAudioTranslationLayer::GetSwitchStateId(const char* szSwit
   return 0;
 }
 
-ezAudioSystemDataID ezAudioTranslationLayer::GetEnvironmentId(const char* szEnvironmentName) const
+ezAudioSystemDataID ezAudioTranslationLayer::GetEnvironmentId(ezStringView sEnvironmentName) const
 {
-  const auto uiEnvironmentId = ezHashHelper<const char*>::Hash(szEnvironmentName);
+  const auto uiEnvironmentId = ezHashHelper<ezStringView>::Hash(sEnvironmentName);
 
   if (const auto it = m_mEnvironments.Find(uiEnvironmentId); it.IsValid())
   {

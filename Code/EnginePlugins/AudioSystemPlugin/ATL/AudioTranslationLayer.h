@@ -32,27 +32,27 @@ public:
   void Update();
 
   /// \brief Returns the ID of a trigger control identified by its name.
-  /// \param szTriggerName The name of the trigger control.
+  /// \param sTriggerName The name of the trigger control.
   /// \returns The ID of the trigger, or 0 if a trigger control with the given name
   /// is not registered.
-  EZ_NODISCARD ezAudioSystemDataID GetTriggerId(const char* szTriggerName) const;
+  EZ_NODISCARD ezAudioSystemDataID GetTriggerId(ezStringView sTriggerName) const;
 
   /// \brief Returns the ID of a real-time parameter control identified by its name.
-  /// \param szRtpcName The name of the RTPC.
+  /// \param sRtpcName The name of the RTPC.
   /// \returns The ID of the RTPC, or 0 if a RTPC with the given name is not registered.
-  EZ_NODISCARD ezAudioSystemDataID GetRtpcId(const char* szRtpcName) const;
+  EZ_NODISCARD ezAudioSystemDataID GetRtpcId(ezStringView sRtpcName) const;
 
   /// \brief Returns the ID of a switch state control identified by its name.
-  /// \param szSwitchStateName The name of the switch state control.
+  /// \param sSwitchStateName The name of the switch state control.
   /// \returns The ID of the switch state, or 0 if a switch state control with the given name
   /// is not registered.
-  EZ_NODISCARD ezAudioSystemDataID GetSwitchStateId(const char* szSwitchStateName) const;
+  EZ_NODISCARD ezAudioSystemDataID GetSwitchStateId(ezStringView sSwitchStateName) const;
 
   /// \brief Returns the ID of an environment control identified by its name.
-  /// \param szEnvironmentName The name of the environment control.
+  /// \param sEnvironmentName The name of the environment control.
   /// \returns The ID of the environment, or 0 if an environment control with the given name
   /// is not registered.
-  EZ_NODISCARD ezAudioSystemDataID GetEnvironmentId(const char* szEnvironmentName) const;
+  EZ_NODISCARD ezAudioSystemDataID GetEnvironmentId(ezStringView sEnvironmentName) const;
 
 private:
   friend class ezAudioSystem;
