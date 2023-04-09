@@ -15,7 +15,7 @@
 constexpr ezTypeVersion kVersion_AudioTriggerComponent = 1;
 
 /// \brief The last used event ID for all audio trigger components.
-static ezAudioSystemDataID s_uiNextEventId = 1;
+static ezAudioSystemDataID s_uiNextEventId = 2;
 
 /// \brief A set of generated points distributed in a sphere. This is used
 /// for casting rays during the obstruction/occlusion calculation.

@@ -10,6 +10,7 @@
 #include <Foundation/Time/Clock.h>
 
 constexpr ezAudioSystemDataID kEditorListenerId = 1; // EZ will send -1 as ID in override mode, but we use 1 internally
+constexpr ezAudioSystemDataID kEditorSoundEventId = 1;
 
 ezThreadID gMainThreadId = static_cast<ezThreadID>(0);
 
@@ -19,10 +20,10 @@ ezCVarFloat cvar_AudioSystemFPS("Audio.FPS", 60, ezCVarFlags::Save, "The maximum
 EZ_IMPLEMENT_SINGLETON(ezAudioSystem);
 // clang-format on
 
-void ezAudioSystem::LoadConfiguration(const char* szFile)
+void ezAudioSystem::LoadConfiguration(ezStringView sFile)
 {
   ezFileReader file;
-  if (file.Open(szFile).Failed())
+  if (file.Open(sFile).Failed())
     return;
 
   ezOpenDdlReader ddl;
@@ -49,7 +50,7 @@ void ezAudioSystem::LoadConfiguration(const char* szFile)
   }
 }
 
-void ezAudioSystem::SetOverridePlatform(const char* szPlatform)
+void ezAudioSystem::SetOverridePlatform(ezStringView sPlatform)
 {
 }
 
@@ -109,9 +110,9 @@ void ezAudioSystem::UpdateSound()
 #endif
 }
 
-void ezAudioSystem::SetMasterChannelVolume(float volume)
+void ezAudioSystem::SetMasterChannelVolume(float fVolume)
 {
-  m_AudioTranslationLayer.m_pAudioMiddleware->OnMasterGainChange(volume);
+  m_AudioTranslationLayer.m_pAudioMiddleware->OnMasterGainChange(fVolume);
 }
 
 float ezAudioSystem::GetMasterChannelVolume() const
@@ -119,9 +120,9 @@ float ezAudioSystem::GetMasterChannelVolume() const
   return m_AudioTranslationLayer.m_pAudioMiddleware->GetMasterGain();
 }
 
-void ezAudioSystem::SetMasterChannelMute(bool mute)
+void ezAudioSystem::SetMasterChannelMute(bool bMute)
 {
-  m_AudioTranslationLayer.m_pAudioMiddleware->OnMuteChange(mute);
+  m_AudioTranslationLayer.m_pAudioMiddleware->OnMuteChange(bMute);
 }
 
 bool ezAudioSystem::GetMasterChannelMute() const
@@ -129,7 +130,7 @@ bool ezAudioSystem::GetMasterChannelMute() const
   return m_AudioTranslationLayer.m_pAudioMiddleware->GetMute();
 }
 
-void ezAudioSystem::SetMasterChannelPaused(bool paused)
+void ezAudioSystem::SetMasterChannelPaused(bool bPaused)
 {
 }
 
@@ -138,11 +139,11 @@ bool ezAudioSystem::GetMasterChannelPaused() const
   return false;
 }
 
-void ezAudioSystem::SetSoundGroupVolume(const char* szVcaGroupGuid, float volume)
+void ezAudioSystem::SetSoundGroupVolume(ezStringView sVcaGroupGuid, float fVolume)
 {
 }
 
-float ezAudioSystem::GetSoundGroupVolume(const char* szVcaGroupGuid) const
+float ezAudioSystem::GetSoundGroupVolume(ezStringView sVcaGroupGuid) const
 {
   return 0.0f;
 }
@@ -152,9 +153,9 @@ ezUInt8 ezAudioSystem::GetNumListeners()
   return 0;
 }
 
-void ezAudioSystem::SetListenerOverrideMode(bool enabled)
+void ezAudioSystem::SetListenerOverrideMode(bool bEnabled)
 {
-  m_bListenerOverrideMode = enabled;
+  m_bListenerOverrideMode = bEnabled;
 }
 
 void ezAudioSystem::SetListener(ezInt32 iIndex, const ezVec3& vPosition, const ezVec3& vForward, const ezVec3& vUp, const ezVec3& vVelocity)
@@ -177,6 +178,24 @@ void ezAudioSystem::SetListener(ezInt32 iIndex, const ezVec3& vPosition, const e
   {
     SendRequest(request);
   }
+}
+
+ezResult ezAudioSystem::OneShotSound(ezStringView sResourceID, const ezTransform& globalPosition, float fPitch, float fVolume, bool bBlockIfNotLoaded)
+{
+  ezAudioSystemRequestActivateTrigger request;
+
+  request.m_uiEntityId = 1; // Send the sound to the global entity
+  request.m_uiObjectId = GetTriggerId(sResourceID);
+  request.m_uiEventId = kEditorSoundEventId;
+
+  ezResult res = EZ_FAILURE;
+  request.m_Callback = [&res](const ezAudioSystemRequestActivateTrigger& e)
+  {
+    res = e.m_eStatus.m_Result;
+  };
+
+  SendRequestSync(request);
+  return res;
 }
 
 ezAudioSystem::ezAudioSystem()
@@ -309,27 +328,27 @@ void ezAudioSystem::QueueRequestCallback(ezVariant&& request, bool bSync)
   }
 }
 
-ezAudioSystemDataID ezAudioSystem::GetTriggerId(const char* szTriggerName) const
+ezAudioSystemDataID ezAudioSystem::GetTriggerId(ezStringView sTriggerName) const
 {
-  return m_AudioTranslationLayer.GetTriggerId(szTriggerName);
+  return m_AudioTranslationLayer.GetTriggerId(sTriggerName);
 }
 
-ezAudioSystemDataID ezAudioSystem::GetRtpcId(const char* szRtpcName) const
+ezAudioSystemDataID ezAudioSystem::GetRtpcId(ezStringView sRtpcName) const
 {
-  return m_AudioTranslationLayer.GetRtpcId(szRtpcName);
+  return m_AudioTranslationLayer.GetRtpcId(sRtpcName);
 }
 
-ezAudioSystemDataID ezAudioSystem::GetSwitchStateId(const char* szSwitchStateName) const
+ezAudioSystemDataID ezAudioSystem::GetSwitchStateId(ezStringView sSwitchStateName) const
 {
-  return m_AudioTranslationLayer.GetSwitchStateId(szSwitchStateName);
+  return m_AudioTranslationLayer.GetSwitchStateId(sSwitchStateName);
 }
 
-ezAudioSystemDataID ezAudioSystem::GetEnvironmentId(const char* szEnvironmentName) const
+ezAudioSystemDataID ezAudioSystem::GetEnvironmentId(ezStringView sEnvironmentName) const
 {
-  return m_AudioTranslationLayer.GetEnvironmentId(szEnvironmentName);
+  return m_AudioTranslationLayer.GetEnvironmentId(sEnvironmentName);
 }
 
-ezAudioSystemDataID ezAudioSystem::GetBankId(const char* szBankName) const
+ezAudioSystemDataID ezAudioSystem::GetBankId(ezStringView sBankName) const
 {
   return 0;
 }
