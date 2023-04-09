@@ -15,8 +15,8 @@ constexpr ezTypeVersion kVersion_AudioAnimationComponent = 1;
 constexpr ezTypeVersion kVersion_AudioAnimationEntry = 1;
 
 /// \brief The last used event ID for all audio triggers.
-extern ezAudioSystemDataID s_uiNextEventId;
-extern ezAudioSystemDataID s_uiNextEntityId;
+static extern ezAudioSystemDataID s_uiNextEventId;
+static extern ezAudioSystemDataID s_uiNextEntityId;
 
 // clang-format off
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAudioAnimationEntry, kVersion_AudioAnimationEntry, ezRTTIDefaultAllocator<ezAudioAnimationEntry>)
