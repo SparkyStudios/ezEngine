@@ -4,7 +4,6 @@
 
 #include <EditorFramework/Assets/AssetCurator.h>
 
-#include <Foundation/IO/FileSystem/FileSystem.h>
 #include <Foundation/IO/OSFile.h>
 
 // clang-format off
@@ -43,7 +42,7 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionAsset, 2, ezRTT
     EZ_ARRAY_MEMBER_PROPERTY("RTPCs", m_RtpcEntries),
     EZ_ARRAY_MEMBER_PROPERTY("SwitchStates", m_SwitchEntries),
     EZ_ARRAY_MEMBER_PROPERTY("Environments", m_EnvironmentEntries),
-    EZ_ARRAY_MEMBER_PROPERTY("SoundBanks", m_EnvironmentEntries),
+    EZ_ARRAY_MEMBER_PROPERTY("SoundBanks", m_SoundBankEntries),
   }
   EZ_END_PROPERTIES;
 }
@@ -94,31 +93,31 @@ void ezAmplitudeAudioControlCollectionAssetDocument::UpdateAssetDocumentInfo(ezA
   for (const auto& e : pProp->m_TriggerEntries)
   {
     if (!e.m_sControlFile.IsEmpty())
-      pInfo->m_AssetTransformDependencies.Insert(e.m_sControlFile);
+      pInfo->m_TransformDependencies.Insert(e.m_sControlFile);
   }
 
   for (const auto& e : pProp->m_RtpcEntries)
   {
     if (!e.m_sControlFile.IsEmpty())
-      pInfo->m_AssetTransformDependencies.Insert(e.m_sControlFile);
+      pInfo->m_TransformDependencies.Insert(e.m_sControlFile);
   }
 
   for (const auto& e : pProp->m_SwitchEntries)
   {
     if (!e.m_sControlFile.IsEmpty())
-      pInfo->m_AssetTransformDependencies.Insert(e.m_sControlFile);
+      pInfo->m_TransformDependencies.Insert(e.m_sControlFile);
   }
 
   for (const auto& e : pProp->m_EnvironmentEntries)
   {
     if (!e.m_sControlFile.IsEmpty())
-      pInfo->m_AssetTransformDependencies.Insert(e.m_sControlFile);
+      pInfo->m_TransformDependencies.Insert(e.m_sControlFile);
   }
 
   for (const auto& e : pProp->m_SoundBankEntries)
   {
     if (!e.m_sControlFile.IsEmpty())
-      pInfo->m_AssetTransformDependencies.Insert(e.m_sControlFile);
+      pInfo->m_TransformDependencies.Insert(e.m_sControlFile);
   }
 }
 

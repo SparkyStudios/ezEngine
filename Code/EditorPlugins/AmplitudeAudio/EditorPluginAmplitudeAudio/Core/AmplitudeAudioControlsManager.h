@@ -1,9 +1,8 @@
 #pragma once
 
-#include "AmplitudeAudioPlugin/Core/AmplitudeAudioData.h"
-#include "Foundation/Types/Types.h"
 #include <EditorPluginAmplitudeAudio/EditorPluginAmplitudeAudioDLL.h>
 
+#include <AmplitudeAudioPlugin/Core/AmplitudeAudioData.h>
 #include <AudioSystemPlugin/Core/AudioSystemData.h>
 
 #include <Foundation/Configuration/Singleton.h>
@@ -41,6 +40,6 @@ private:
 
   ezResult LoadSoundBanks(const char* szRootFolder, const char* szSubPath);
   //  void LoadBuses(const char* sRootFolder);
-  ezResult LoadControlsInFolder(const char* szFolderPath, ezEnum<ezAmplitudeAudioControlType> type);
-  ezResult LoadControl(const ezVariantDictionary& json, ezEnum<ezAmplitudeAudioControlType> type);
+  ezResult LoadControlsInFolder(const char* szFolderPath, const ezEnum<ezAmplitudeAudioControlType>& eType);
+  ezResult LoadControl(const ezVariantDictionary& json, const ezEnum<ezAmplitudeAudioControlType>& eType);
 };

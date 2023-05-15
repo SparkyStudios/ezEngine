@@ -314,7 +314,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadSoundBanks(const char* sRootFolder
   return EZ_SUCCESS;
 }
 
-ezResult ezAmplitudeAudioControlsManager::LoadControlsInFolder(const char* sFolderPath, ezEnum<ezAmplitudeAudioControlType> type)
+ezResult ezAmplitudeAudioControlsManager::LoadControlsInFolder(const char* sFolderPath, const ezEnum<ezAmplitudeAudioControlType>& eType)
 {
   ezStringBuilder const searchPath(sFolderPath);
 
@@ -337,8 +337,8 @@ ezResult ezAmplitudeAudioControlsManager::LoadControlsInFolder(const char* sFold
 
     if (json.Parse(reader).Succeeded())
     {
-      if (LoadControl(json.GetTopLevelObject(), type).Succeeded())
-        return EZ_SUCCESS;
+      if (LoadControl(json.GetTopLevelObject(), eType).Failed())
+        return EZ_FAILURE;
     }
     else
     {
@@ -347,10 +347,10 @@ ezResult ezAmplitudeAudioControlsManager::LoadControlsInFolder(const char* sFold
     }
   }
 
-  return EZ_FAILURE;
+  return EZ_SUCCESS;
 }
 
-ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary& json, ezEnum<ezAmplitudeAudioControlType> type)
+ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary& json, const ezEnum<ezAmplitudeAudioControlType>& eType)
 {
   if (json.Contains("name"))
   {
@@ -362,7 +362,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
 
     const ezString controlName(name->Get<ezString>());
 
-    switch (type)
+    switch (eType)
     {
       case ezAmplitudeAudioControlType::Invalid:
       case ezAmplitudeAudioControlType::SoundBank:

@@ -28,7 +28,7 @@ EZ_PLUGIN_ON_LOADED()
       ezActionMapManager::RegisterActionMap("AudioControlCollectionAssetToolBar").IgnoreResult();
       ezDocumentActions::MapActions("AudioControlCollectionAssetToolBar", "", true);
       ezCommandHistoryActions::MapActions("AudioControlCollectionAssetToolBar", "");
-      ezAssetActions::MapActions("AudioControlCollectionAssetToolBar", true);
+      ezAssetActions::MapToolBarActions("AudioControlCollectionAssetToolBar", true);
       ezAmplitudeAudioActions::MapToolbarActions("AudioControlCollectionAssetToolBar");
     }
   }
