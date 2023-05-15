@@ -107,9 +107,9 @@ namespace Memory
 
 namespace Utils
 {
-  static hmm_vec3 ezVec3ToAmVec3(const ezVec3& vec)
+  static AmVec3 ezVec3ToAmVec3(const ezVec3& vec)
   {
-    return AM_Vec3(vec.x, vec.y, vec.z);
+    return AM_V3(vec.x, vec.y, vec.z);
   }
 } // namespace Utils
 
