@@ -9,10 +9,8 @@ target_link_libraries(${PROJECT_NAME}
   Foundation
   RAI
 
-  avir
   meshoptimizer
   mikktspace
-  rgbcx
   ozz
 )
 
