@@ -8,6 +8,8 @@
 #include <RHID3D11/ResourceFactory.h>
 #include <RHID3D11/ResourceManager.h>
 
+using namespace RHI;
+
 ezInternal::NewInstance<spDeviceD3D11> CreateRHID3D11Device(ezAllocatorBase* pAllocator, const spDeviceDescription& description)
 {
   return EZ_NEW(pAllocator, spDeviceD3D11, ezDefaultAllocatorWrapper::GetAllocator(), static_cast<const spDeviceDescriptionD3D11&>(description));

@@ -9,16 +9,16 @@
 
 namespace RAI
 {
+  static constexpr ezUInt16 kSamplerResourceVersion = 1;
+
   // clang-format off
-  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSamplerResource, 1, ezRTTIDefaultAllocator<spSamplerResource>)
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSamplerResource, kSamplerResourceVersion, ezRTTIDefaultAllocator<spSamplerResource>)
   EZ_END_DYNAMIC_REFLECTED_TYPE;
 
   EZ_RESOURCE_IMPLEMENT_COMMON_CODE(spSamplerResource);
   // clang-format on
 
 #pragma region spSamplerResourceDescriptor
-
-  static constexpr ezUInt16 kSamplerResourceVersion = 1;
 
   spSamplerResourceDescriptor::spSamplerResourceDescriptor()
   {
@@ -27,7 +27,7 @@ namespace RAI
 
   void spSamplerResourceDescriptor::Clear()
   {
-    m_Sampler.SetSamplerDescription(spSamplerDescription::Linear);
+    m_Sampler.SetSamplerDescription(RHI::spSamplerDescription::Linear);
   }
 
   ezResult spSamplerResourceDescriptor::Save(ezStreamWriter& inout_stream)

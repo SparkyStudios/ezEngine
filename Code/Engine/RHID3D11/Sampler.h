@@ -4,69 +4,72 @@
 
 #include <RHI/Sampler.h>
 
-class spDeviceD3D11;
-
-class SP_RHID3D11_DLL spSamplerStateD3D11 : public spSamplerState
+namespace RHI
 {
-  friend class spSamplerD3D11;
+  class spDeviceD3D11;
 
-  EZ_ADD_DYNAMIC_REFLECTION(spSamplerStateD3D11, spSamplerState);
+  class SP_RHID3D11_DLL spSamplerStateD3D11 : public spSamplerState
+  {
+    friend class spSamplerD3D11;
 
-public:
-  ~spSamplerStateD3D11() override;
+    EZ_ADD_DYNAMIC_REFLECTION(spSamplerStateD3D11, spSamplerState);
 
-  spSamplerDescription GetSamplerDescription() const override;
-  void SetDebugName(ezStringView sDebugName) override;
-  void ReleaseResource() override;
-  bool IsReleased() const override;
+  public:
+    ~spSamplerStateD3D11() override;
 
-  // spSamplerStateD3D11
+    spSamplerDescription GetSamplerDescription() const override;
+    void SetDebugName(ezStringView sDebugName) override;
+    void ReleaseResource() override;
+    bool IsReleased() const override;
 
-public:
-  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11SamplerState* GetD3D11SamplerState() const { return m_pSamplerState; }
+    // spSamplerStateD3D11
 
-private:
-  spSamplerStateD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description);
+  public:
+    EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11SamplerState* GetD3D11SamplerState() const { return m_pSamplerState; }
 
-  spSamplerDescription m_Description;
-  ID3D11SamplerState* m_pSamplerState{nullptr};
-};
+  private:
+    spSamplerStateD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description);
 
-class SP_RHID3D11_DLL spSamplerD3D11 : public spSampler, public spDeferredDeviceResource
-{
-  friend class spDeviceResourceFactoryD3D11;
+    spSamplerDescription m_Description;
+    ID3D11SamplerState* m_pSamplerState{nullptr};
+  };
 
-  EZ_ADD_DYNAMIC_REFLECTION(spSamplerD3D11, spSampler);
+  class SP_RHID3D11_DLL spSamplerD3D11 : public spSampler, public spDeferredDeviceResource
+  {
+    friend class spDeviceResourceFactoryD3D11;
 
-  // spDeviceResource
+    EZ_ADD_DYNAMIC_REFLECTION(spSamplerD3D11, spSampler);
 
-public:
-  void SetDebugName(ezStringView sDebugName) override;
-  void ReleaseResource() override;
-  bool IsReleased() const override;
+    // spDeviceResource
 
-  // spDeferredDeviceResource
+  public:
+    void SetDebugName(ezStringView sDebugName) override;
+    void ReleaseResource() override;
+    bool IsReleased() const override;
 
-public:
-  void CreateResource() override;
+    // spDeferredDeviceResource
 
-  // spSampler
+  public:
+    void CreateResource() override;
 
-public:
-  EZ_NODISCARD ezSharedPtr<spSamplerState> GetSamplerWithMipMap() const override;
-  EZ_NODISCARD ezSharedPtr<spSamplerState> GetSamplerWithoutMipMap() const override;
+    // spSampler
 
-  // spSamplerD3D11
+  public:
+    EZ_NODISCARD ezSharedPtr<spSamplerState> GetSamplerWithMipMap() const override;
+    EZ_NODISCARD ezSharedPtr<spSamplerState> GetSamplerWithoutMipMap() const override;
 
-public:
-  ~spSamplerD3D11() override;
+    // spSamplerD3D11
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spSamplerStateD3D11> GetSamplerState() const { return m_pSamplerState; }
+  public:
+    ~spSamplerD3D11() override;
 
-private:
-  spSamplerD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description);
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spSamplerStateD3D11> GetSamplerState() const { return m_pSamplerState; }
 
-  ezSharedPtr<spSamplerStateD3D11> m_pSamplerState;
+  private:
+    spSamplerD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description);
 
-  spSamplerDescription m_Description;
-};
+    ezSharedPtr<spSamplerStateD3D11> m_pSamplerState;
+
+    spSamplerDescription m_Description;
+  };
+} // namespace RHI

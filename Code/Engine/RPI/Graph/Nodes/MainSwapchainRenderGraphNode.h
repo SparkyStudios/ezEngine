@@ -12,7 +12,7 @@ class SP_RPI_DLL spMainSwapchainRenderGraphNode final : public spRenderGraphNode
   EZ_ADD_DYNAMIC_REFLECTION(spMainSwapchainRenderGraphNode, spRenderGraphNode);
 
 public:
-  ezResult Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources) override;
+  ezResult Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, RHI::spResourceHandle>& resources) override;
   ezUniquePtr<spRenderPass> Compile(spRenderGraphBuilder* pBuilder) override;
   bool IsEnabled() const override;
 

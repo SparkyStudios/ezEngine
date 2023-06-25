@@ -4,95 +4,98 @@
 
 #include <RHI/Device.h>
 
-class spDeviceResourceManagerD3D11;
-class spDeviceResourceFactoryD3D11;
-class spTextureSamplerManagerD3D11;
-class spSwapchainD3D11;
-class spBufferD3D11;
-
-struct SP_RHID3D11_DLL spDeviceDescriptionD3D11 : spDeviceDescription
+namespace RHI
 {
-  IDXGIAdapter* m_pD3D11Adapter{nullptr};
-  ezUInt32 m_uiCreationFlags{0};
-};
+  class spDeviceResourceManagerD3D11;
+  class spDeviceResourceFactoryD3D11;
+  class spTextureSamplerManagerD3D11;
+  class spSwapchainD3D11;
+  class spBufferD3D11;
 
-class SP_RHID3D11_DLL spDeviceD3D11 final : public spDevice
-{
-  EZ_DECLARE_SINGLETON_OF_INTERFACE(spDeviceD3D11, spDevice);
+  struct SP_RHID3D11_DLL spDeviceDescriptionD3D11 : spDeviceDescription
+  {
+    IDXGIAdapter* m_pD3D11Adapter{nullptr};
+    ezUInt32 m_uiCreationFlags{0};
+  };
 
-  // spDevice
+  class SP_RHID3D11_DLL spDeviceD3D11 final : public spDevice
+  {
+    EZ_DECLARE_SINGLETON_OF_INTERFACE(spDeviceD3D11, spDevice);
 
-public:
-  EZ_NODISCARD HardwareInfo GetHardwareInfo() const override;
-  EZ_NODISCARD ezEnum<spGraphicsApi> GetAPI() const override;
-  EZ_NODISCARD spDeviceResourceFactory* GetResourceFactory() const override;
-  EZ_NODISCARD spTextureSamplerManager* GetTextureSamplerManager() const override;
-  EZ_NODISCARD ezUInt32 GetConstantBufferMinOffsetAlignment() const override;
-  EZ_NODISCARD ezUInt32 GetStructuredBufferMinOffsetAlignment() const override;
-  EZ_NODISCARD ezSharedPtr<spSwapchain> GetMainSwapchain() const override;
-  EZ_NODISCARD const spDeviceCapabilities& GetCapabilities() const override;
-  void SubmitCommandList(ezSharedPtr<spCommandList> pCommandList, ezSharedPtr<spFence> pFence) override;
-  bool WaitForFence(ezSharedPtr<spFence> pFence) override;
-  bool WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout) override;
-  bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll) override;
-  bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout) override;
-  void RaiseFence(ezSharedPtr<spFence> pFence) override;
-  void ResetFence(ezSharedPtr<spFence> pFence) override;
-  void Present() override;
-  ezEnum<spTextureSampleCount> GetTextureSampleCountLimit(const ezEnum<spPixelFormat>& eFormat, bool bIsDepthFormat) override;
-  void UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) override;
-  void ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination) override;
-  void Destroy() override;
-  EZ_NODISCARD EZ_ALWAYS_INLINE bool IsDebugEnabled() const override { return m_bIsDebugEnabled; }
+    // spDevice
 
-protected:
-  void WaitForIdleInternal() override;
-  const spMappedResource& MapInternal(ezSharedPtr<spBuffer> pBuffer, ezEnum<spMapAccess> eAccess) override;
-  const spMappedResource& MapInternal(ezSharedPtr<spTexture> pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource) override;
-  void UnMapInternal(ezSharedPtr<spBuffer> pBuffer) override;
-  void UnMapInternal(ezSharedPtr<spTexture> pTexture, ezUInt32 uiSubresource) override;
-  void UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize) override;
+  public:
+    EZ_NODISCARD HardwareInfo GetHardwareInfo() const override;
+    EZ_NODISCARD ezEnum<spGraphicsApi> GetAPI() const override;
+    EZ_NODISCARD spDeviceResourceFactory* GetResourceFactory() const override;
+    EZ_NODISCARD spTextureSamplerManager* GetTextureSamplerManager() const override;
+    EZ_NODISCARD ezUInt32 GetConstantBufferMinOffsetAlignment() const override;
+    EZ_NODISCARD ezUInt32 GetStructuredBufferMinOffsetAlignment() const override;
+    EZ_NODISCARD ezSharedPtr<spSwapchain> GetMainSwapchain() const override;
+    EZ_NODISCARD const spDeviceCapabilities& GetCapabilities() const override;
+    void SubmitCommandList(ezSharedPtr<spCommandList> pCommandList, ezSharedPtr<spFence> pFence) override;
+    bool WaitForFence(ezSharedPtr<spFence> pFence) override;
+    bool WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout) override;
+    bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll) override;
+    bool WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout) override;
+    void RaiseFence(ezSharedPtr<spFence> pFence) override;
+    void ResetFence(ezSharedPtr<spFence> pFence) override;
+    void Present() override;
+    ezEnum<spTextureSampleCount> GetTextureSampleCountLimit(const ezEnum<spPixelFormat>& eFormat, bool bIsDepthFormat) override;
+    void UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) override;
+    void ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination) override;
+    void Destroy() override;
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsDebugEnabled() const override { return m_bIsDebugEnabled; }
 
-  // spDeviceD3D11
+  protected:
+    void WaitForIdleInternal() override;
+    const spMappedResource& MapInternal(ezSharedPtr<spBuffer> pBuffer, ezEnum<spMapAccess> eAccess) override;
+    const spMappedResource& MapInternal(ezSharedPtr<spTexture> pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource) override;
+    void UnMapInternal(ezSharedPtr<spBuffer> pBuffer) override;
+    void UnMapInternal(ezSharedPtr<spTexture> pTexture, ezUInt32 uiSubresource) override;
+    void UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize) override;
 
-public:
-  spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescriptionD3D11& deviceDescription);
-  ~spDeviceD3D11() override;
+    // spDeviceD3D11
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE spDeviceResourceManagerD3D11* GetD3D11ResourceManager() const { return ezStaticCast<spDeviceResourceManagerD3D11*>(m_pResourceManager); }
+  public:
+    spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescriptionD3D11& deviceDescription);
+    ~spDeviceD3D11() override;
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Device5* GetD3D11Device() const { return m_pD3D11Device; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE IDXGIAdapter* GetDXGIAdapter() const { return m_pDXGIAdapter; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceContext4* GetD3D11DeviceContext() const { return m_pD3D11ImmediateContext; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE spDeviceResourceManagerD3D11* GetD3D11ResourceManager() const { return ezStaticCast<spDeviceResourceManagerD3D11*>(m_pResourceManager); }
 
-private:
-  bool CheckFormatMultisample(DXGI_FORMAT format, ezUInt32 uiSampleCount) const;
-  ezSharedPtr<spBufferD3D11> GetFreeStagingBuffer(ezUInt32 uiSize);
+    EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Device5* GetD3D11Device() const { return m_pD3D11Device; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE IDXGIAdapter* GetDXGIAdapter() const { return m_pDXGIAdapter; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceContext4* GetD3D11DeviceContext() const { return m_pD3D11ImmediateContext; }
 
-  ID3D11Device5* m_pD3D11Device{nullptr};
-  IDXGIAdapter* m_pDXGIAdapter{nullptr};
-  IDXGIDevice1* m_pDXGIDevice{nullptr};
-  ID3D11DeviceContext4* m_pD3D11ImmediateContext{nullptr};
-  ID3D11Debug* m_pD3D11Debug{nullptr};
-  D3D_FEATURE_LEVEL m_uiFeatureLevel;
+  private:
+    bool CheckFormatMultisample(DXGI_FORMAT format, ezUInt32 uiSampleCount) const;
+    ezSharedPtr<spBufferD3D11> GetFreeStagingBuffer(ezUInt32 uiSize);
 
-  spDeviceResourceFactoryD3D11* m_pResourceFactory{nullptr};
-  spTextureSamplerManagerD3D11* m_pTextureSamplerManager{nullptr};
+    ID3D11Device5* m_pD3D11Device{nullptr};
+    IDXGIAdapter* m_pDXGIAdapter{nullptr};
+    IDXGIDevice1* m_pDXGIDevice{nullptr};
+    ID3D11DeviceContext4* m_pD3D11ImmediateContext{nullptr};
+    ID3D11Debug* m_pD3D11Debug{nullptr};
+    D3D_FEATURE_LEVEL m_uiFeatureLevel;
 
-  ezSharedPtr<spSwapchainD3D11> m_pMainSwapchain{nullptr};
+    spDeviceResourceFactoryD3D11* m_pResourceFactory{nullptr};
+    spTextureSamplerManagerD3D11* m_pTextureSamplerManager{nullptr};
 
-  bool m_bIsDebugEnabled{false};
+    ezSharedPtr<spSwapchainD3D11> m_pMainSwapchain{nullptr};
 
-  bool m_bSupportsConcurrentResources{false};
-  bool m_bSupportsCommandLists{false};
+    bool m_bIsDebugEnabled{false};
 
-  ezMutex m_ImmediateContextMutex;
-  ezMutex m_MappedResourcesMutex;
-  ezMutex m_StagingResourcesMutex;
-  ezMutex m_ResetEventsMutex;
+    bool m_bSupportsConcurrentResources{false};
+    bool m_bSupportsCommandLists{false};
 
-  ezMap<spMappedResourceCacheKey, spMappedResource> m_MappedResourcesCache;
-  ezList<ezSharedPtr<spBufferD3D11>> m_AvailableStagingBuffers;
-};
+    ezMutex m_ImmediateContextMutex;
+    ezMutex m_MappedResourcesMutex;
+    ezMutex m_StagingResourcesMutex;
+    ezMutex m_ResetEventsMutex;
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, spDeviceD3D11);
+    ezMap<spMappedResourceCacheKey, spMappedResource> m_MappedResourcesCache;
+    ezList<ezSharedPtr<spBufferD3D11>> m_AvailableStagingBuffers;
+  };
+}
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RHID3D11_DLL, RHI::spDeviceD3D11);

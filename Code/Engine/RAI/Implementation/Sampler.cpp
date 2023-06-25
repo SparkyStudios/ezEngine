@@ -6,15 +6,15 @@ using namespace RAI;
 
 RAI::spSampler RAI::spSampler::CreatePoint()
 {
-  return spSampler(spSamplerDescription::Point);
+  return spSampler(RHI::spSamplerDescription::Point);
 }
 
 RAI::spSampler RAI::spSampler::CreateLinear()
 {
-  return spSampler(spSamplerDescription::Linear);
+  return spSampler(RHI::spSamplerDescription::Linear);
 }
 
 RAI::spSampler RAI::spSampler::CreateAnisotropic4x()
 {
-  return spSampler(spSamplerDescription::Anisotropic4x);
+  return spSampler(RHI::spSamplerDescription::Anisotropic4x);
 }

@@ -10,7 +10,7 @@
 struct spRHIImplementationDescription
 {
   /// \brief The graphics API provided by the implementation.
-  ezEnum<spGraphicsApi> m_API;
+  ezEnum<RHI::spGraphicsApi> m_API;
 
   /// \brief The supported shader model of the implementation.
   ezString m_sShaderModel;
@@ -21,9 +21,9 @@ struct spRHIImplementationDescription
 
 struct SP_RHI_DLL spRHIImplementationFactory
 {
-  using Factory = ezDelegate<ezInternal::NewInstance<spDevice>(ezAllocatorBase*, const spDeviceDescription&)>;
+  using Factory = ezDelegate<ezInternal::NewInstance<RHI::spDevice>(ezAllocatorBase*, const RHI::spDeviceDescription&)>;
 
-  static ezInternal::NewInstance<spDevice> CreateDevice(const char* szImplementationName, ezAllocatorBase* pAllocator, const spDeviceDescription& description);
+  static ezInternal::NewInstance<RHI::spDevice> CreateDevice(const char* szImplementationName, ezAllocatorBase* pAllocator, const RHI::spDeviceDescription& description);
 
   static void RegisterImplementation(const char* szName, const Factory& func, const spRHIImplementationDescription& description);
 

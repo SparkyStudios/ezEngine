@@ -2,6 +2,8 @@
 
 #include <RPI/Core/RenderingContext.h>
 
+using namespace RHI;
+
 spRenderingContext::spRenderingContext(spDevice* pDevice)
   : m_pDevice(pDevice)
 {

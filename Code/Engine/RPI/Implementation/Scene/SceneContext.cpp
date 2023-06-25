@@ -2,6 +2,8 @@
 
 #include <RPI/Scene/SceneContext.h>
 
+using namespace RHI;
+
 spSceneContext::spSceneContext(spDevice* pDevice)
   : m_pDevice(pDevice)
 {
