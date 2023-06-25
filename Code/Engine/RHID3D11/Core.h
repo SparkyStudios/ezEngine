@@ -122,6 +122,13 @@ EZ_ALWAYS_INLINE static ezEnum<spPixelFormat> spFromD3D11(DXGI_FORMAT eFormat)
     case DXGI_FORMAT_R32G32_FLOAT:
       return spPixelFormat::R32G32Float;
 
+    case DXGI_FORMAT_R32G32B32_UINT:
+      return spPixelFormat::R32G32B32UInt;
+    case DXGI_FORMAT_R32G32B32_SINT:
+      return spPixelFormat::R32G32B32SInt;
+    case DXGI_FORMAT_R32G32B32_FLOAT:
+      return spPixelFormat::R32G32B32Float;
+
     case DXGI_FORMAT_R8G8B8A8_UNORM:
       return spPixelFormat::R8G8B8A8UNorm;
     case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
@@ -273,6 +280,13 @@ EZ_ALWAYS_INLINE static DXGI_FORMAT spToD3D11(const ezEnum<spPixelFormat>& eForm
     case spPixelFormat::R32G32Float:
       return DXGI_FORMAT_R32G32_FLOAT;
 
+    case spPixelFormat::R32G32B32UInt:
+      return DXGI_FORMAT_R32G32B32_UINT;
+    case spPixelFormat::R32G32B32SInt:
+      return DXGI_FORMAT_R32G32B32_SINT;
+    case spPixelFormat::R32G32B32Float:
+      return DXGI_FORMAT_R32G32B32_FLOAT;
+
     case spPixelFormat::R8G8B8A8UNorm:
       return DXGI_FORMAT_R8G8B8A8_UNORM;
     case spPixelFormat::R8G8B8A8UNormSRgb:
@@ -336,6 +350,11 @@ EZ_ALWAYS_INLINE static DXGI_FORMAT spToD3D11(const ezEnum<spPixelFormat>& eForm
       return DXGI_FORMAT_BC5_UNORM;
     case spPixelFormat::Bc5SNorm:
       return DXGI_FORMAT_BC5_SNORM;
+
+    case spPixelFormat::Bc6HUFloat:
+      return DXGI_FORMAT_BC6H_UF16;
+    case spPixelFormat::Bc6HSFloat:
+      return DXGI_FORMAT_BC6H_SF16;
 
     case spPixelFormat::Bc7UNorm:
       return DXGI_FORMAT_BC7_UNORM;
