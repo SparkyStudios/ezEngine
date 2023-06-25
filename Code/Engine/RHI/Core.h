@@ -395,6 +395,12 @@ struct SP_RHI_DLL spPixelFormat
     /// \brief BC5 block compressed format, signed normalized values.
     Bc5SNorm,
 
+    /// \brief BC6 block compressed format, 32-bit unsigned floating point values.
+    Bc6HUFloat,
+
+    /// \brief BC6 block compressed format, 32-bit signed floating point values.
+    Bc6HSFloat,
+
     /// \brief BC7 block compressed format.
     Bc7UNorm,
 
