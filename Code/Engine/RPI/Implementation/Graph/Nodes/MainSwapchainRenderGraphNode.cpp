@@ -6,6 +6,8 @@
 #include <RPI/Graph/Nodes/MainSwapchainRenderGraphNode.h>
 #include <RPI/Pipeline/Passes/MainSwapchainRenderPass.h>
 
+using namespace RHI;
+
 // clang-format off
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spMainSwapchainRenderGraphNode, 1, ezRTTIDefaultAllocator<spMainSwapchainRenderGraphNode>)
 EZ_END_DYNAMIC_REFLECTED_TYPE;

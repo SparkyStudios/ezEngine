@@ -4,135 +4,138 @@
 #include <RHID3D11/Device.h>
 #include <RHID3D11/Sampler.h>
 
+namespace RHI
+{
 #pragma region spSamplerStateD3D11
 
-// clang-format off
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSamplerStateD3D11, 1, ezRTTINoAllocator)
-EZ_END_DYNAMIC_REFLECTED_TYPE;
-// clang-format on
+  // clang-format off
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSamplerStateD3D11, 1, ezRTTINoAllocator)
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
+  // clang-format on
 
-spSamplerStateD3D11::spSamplerStateD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description)
-  : m_Description(description)
-{
-  m_pDevice = pDevice;
+  spSamplerStateD3D11::spSamplerStateD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description)
+    : m_Description(description)
+  {
+    m_pDevice = pDevice;
 
-  D3D11_SAMPLER_DESC desc;
-  desc.AddressU = spToD3D11(description.m_eAddressModeR);
-  desc.AddressV = spToD3D11(description.m_eAddressModeS);
-  desc.AddressW = spToD3D11(description.m_eAddressModeT);
-  desc.Filter = spToD3D11(description.m_eMinFilter, description.m_eMagFilter, description.m_eMipFilter, description.m_eSamplerComparison != spDepthStencilComparison::None);
-  desc.MinLOD = static_cast<float>(description.m_uiMinLod);
-  desc.MaxLOD = static_cast<float>(description.m_uiMaxLod);
-  desc.MaxAnisotropy = description.m_uiMaxAnisotropy;
-  desc.ComparisonFunc = spToD3D11(description.m_eSamplerComparison);
-  desc.MipLODBias = description.m_fLodBias;
-  desc.BorderColor[0] = description.m_BorderColor.r;
-  desc.BorderColor[1] = description.m_BorderColor.g;
-  desc.BorderColor[2] = description.m_BorderColor.b;
-  desc.BorderColor[3] = description.m_BorderColor.a;
+    D3D11_SAMPLER_DESC desc;
+    desc.AddressU = spToD3D11(description.m_eAddressModeR);
+    desc.AddressV = spToD3D11(description.m_eAddressModeS);
+    desc.AddressW = spToD3D11(description.m_eAddressModeT);
+    desc.Filter = spToD3D11(description.m_eMinFilter, description.m_eMagFilter, description.m_eMipFilter, description.m_eSamplerComparison != spDepthStencilComparison::None);
+    desc.MinLOD = static_cast<float>(description.m_uiMinLod);
+    desc.MaxLOD = static_cast<float>(description.m_uiMaxLod);
+    desc.MaxAnisotropy = description.m_uiMaxAnisotropy;
+    desc.ComparisonFunc = spToD3D11(description.m_eSamplerComparison);
+    desc.MipLODBias = description.m_fLodBias;
+    desc.BorderColor[0] = description.m_BorderColor.r;
+    desc.BorderColor[1] = description.m_BorderColor.g;
+    desc.BorderColor[2] = description.m_BorderColor.b;
+    desc.BorderColor[3] = description.m_BorderColor.a;
 
-  const HRESULT res = pDevice->GetD3D11Device()->CreateSamplerState(&desc, &m_pSamplerState);
-  EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 sampler state. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
-}
+    const HRESULT res = pDevice->GetD3D11Device()->CreateSamplerState(&desc, &m_pSamplerState);
+    EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 sampler state. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
+  }
 
-spSamplerStateD3D11::~spSamplerStateD3D11()
-{
-  m_pDevice->GetResourceManager()->ReleaseResource(this);
-}
+  spSamplerStateD3D11::~spSamplerStateD3D11()
+  {
+    m_pDevice->GetResourceManager()->ReleaseResource(this);
+  }
 
-spSamplerDescription spSamplerStateD3D11::GetSamplerDescription() const
-{
-  return m_Description;
-}
+  spSamplerDescription spSamplerStateD3D11::GetSamplerDescription() const
+  {
+    return m_Description;
+  }
 
-void spSamplerStateD3D11::SetDebugName(ezStringView sDebugName)
-{
-  spDeviceResource::SetDebugName(sDebugName);
+  void spSamplerStateD3D11::SetDebugName(ezStringView sDebugName)
+  {
+    spDeviceResource::SetDebugName(sDebugName);
 
-  if (IsReleased())
-    return;
+    if (IsReleased())
+      return;
 
-  m_pSamplerState->SetPrivateData(WKPDID_D3DDebugObjectName, sDebugName.GetElementCount(), sDebugName.GetStartPointer());
-}
+    m_pSamplerState->SetPrivateData(WKPDID_D3DDebugObjectName, sDebugName.GetElementCount(), sDebugName.GetStartPointer());
+  }
 
-void spSamplerStateD3D11::ReleaseResource()
-{
-  if (IsReleased())
-    return;
+  void spSamplerStateD3D11::ReleaseResource()
+  {
+    if (IsReleased())
+      return;
 
-  SP_RHI_DX11_RELEASE(m_pSamplerState);
-}
+    SP_RHI_DX11_RELEASE(m_pSamplerState);
+  }
 
-bool spSamplerStateD3D11::IsReleased() const
-{
-  return m_pSamplerState == nullptr;
-}
+  bool spSamplerStateD3D11::IsReleased() const
+  {
+    return m_pSamplerState == nullptr;
+  }
 
 #pragma endregion
 
 #pragma region spSamplerD3D11
 
-// clang-format off
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSamplerD3D11, 1, ezRTTINoAllocator)
-EZ_END_DYNAMIC_REFLECTED_TYPE;
-// clang-format on
+  // clang-format off
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSamplerD3D11, 1, ezRTTINoAllocator)
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
+  // clang-format on
 
-ezSharedPtr<spSamplerState> spSamplerD3D11::GetSamplerWithMipMap() const
-{
-  return m_pSamplerState;
-}
+  ezSharedPtr<spSamplerState> spSamplerD3D11::GetSamplerWithMipMap() const
+  {
+    return m_pSamplerState;
+  }
 
-ezSharedPtr<spSamplerState> spSamplerD3D11::GetSamplerWithoutMipMap() const
-{
-  return m_pSamplerState;
-}
+  ezSharedPtr<spSamplerState> spSamplerD3D11::GetSamplerWithoutMipMap() const
+  {
+    return m_pSamplerState;
+  }
 
-void spSamplerD3D11::CreateResource()
-{
-  if (!IsReleased())
-    return;
+  void spSamplerD3D11::CreateResource()
+  {
+    if (!IsReleased())
+      return;
 
-  m_pSamplerState = EZ_NEW(m_pDevice->GetAllocator(), spSamplerStateD3D11, ezStaticCast<spDeviceD3D11*>(m_pDevice), m_Description);
-  m_pDevice->GetResourceManager()->RegisterResource(m_pSamplerState);
+    m_pSamplerState = EZ_NEW(m_pDevice->GetAllocator(), spSamplerStateD3D11, ezStaticCast<spDeviceD3D11*>(m_pDevice), m_Description);
+    m_pDevice->GetResourceManager()->RegisterResource(m_pSamplerState);
 
-  SetDebugName(m_sDebugName);
+    SetDebugName(m_sDebugName);
 
-  m_bIsResourceCreated = true;
-}
+    m_bIsResourceCreated = true;
+  }
 
-void spSamplerD3D11::SetDebugName(ezStringView sDebugName)
-{
-  spDeviceResource::SetDebugName(sDebugName);
-  m_pSamplerState->SetDebugName(sDebugName);
-}
+  void spSamplerD3D11::SetDebugName(ezStringView sDebugName)
+  {
+    spDeviceResource::SetDebugName(sDebugName);
+    m_pSamplerState->SetDebugName(sDebugName);
+  }
 
-void spSamplerD3D11::ReleaseResource()
-{
-  if (IsReleased())
-    return;
+  void spSamplerD3D11::ReleaseResource()
+  {
+    if (IsReleased())
+      return;
 
-  m_pDevice->GetResourceManager()->ReleaseResource(m_pSamplerState);
+    m_pDevice->GetResourceManager()->ReleaseResource(m_pSamplerState);
 
-  m_bIsResourceCreated = false;
-}
+    m_bIsResourceCreated = false;
+  }
 
-bool spSamplerD3D11::IsReleased() const
-{
-  return m_pSamplerState == nullptr || m_pSamplerState->IsReleased();
-}
+  bool spSamplerD3D11::IsReleased() const
+  {
+    return m_pSamplerState == nullptr || m_pSamplerState->IsReleased();
+  }
 
-spSamplerD3D11::~spSamplerD3D11()
-{
-  m_pDevice->GetResourceManager()->ReleaseResource(this);
-}
+  spSamplerD3D11::~spSamplerD3D11()
+  {
+    m_pDevice->GetResourceManager()->ReleaseResource(this);
+  }
 
-spSamplerD3D11::spSamplerD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description)
-  : m_pSamplerState(nullptr)
-{
-  m_pDevice = pDevice;
-  m_Description = description;
-}
+  spSamplerD3D11::spSamplerD3D11(spDeviceD3D11* pDevice, const spSamplerDescription& description)
+    : m_pSamplerState(nullptr)
+  {
+    m_pDevice = pDevice;
+    m_Description = description;
+  }
 
 #pragma endregion
+} // namespace RHI
 
 EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Sampler);

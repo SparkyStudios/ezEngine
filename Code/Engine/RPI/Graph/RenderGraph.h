@@ -50,7 +50,7 @@ struct SP_RPI_DLL spRenderGraphResourceType
 class SP_RPI_DLL spRenderGraphResource : public ezRefCounted
 {
 public:
-  ezSharedPtr<spDeviceResource> m_pResource{nullptr};
+  ezSharedPtr<RHI::spDeviceResource> m_pResource{nullptr};
   ezEnum<spRenderGraphResourceBindType> m_eBindType{spRenderGraphResourceBindType::Transient};
   ezEnum<spRenderGraphResourceType> m_eType{spRenderGraphResourceType::Unknown};
   spRenderGraphNode* m_pProducer{nullptr};
@@ -73,7 +73,7 @@ public:
 
   EZ_ALWAYS_INLINE void SetName(ezStringView sName) { m_sName = sName; }
 
-  virtual ezResult Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources) = 0;
+  virtual ezResult Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, RHI::spResourceHandle>& resources) = 0;
 
   virtual ezUniquePtr<spRenderPass> Compile(spRenderGraphBuilder* pBuilder) = 0;
 
@@ -88,32 +88,32 @@ class SP_RPI_DLL spRenderGraphBuilder
   EZ_DISALLOW_COPY_AND_ASSIGN(spRenderGraphBuilder);
 
 public:
-  spRenderGraphBuilder(spDevice* pDevice);
+  spRenderGraphBuilder(RHI::spDevice* pDevice);
 
   // --- spDevice shortcuts
 
   EZ_NODISCARD EZ_ALWAYS_INLINE ezAllocatorBase* GetAllocator() const { return m_pDevice->GetAllocator(); }
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE spDeviceResourceManager* GetResourceManager() const { return m_pDevice->GetResourceManager(); }
+  EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spDeviceResourceManager* GetResourceManager() const { return m_pDevice->GetResourceManager(); }
 
   // --- spRenderGraphResource creation
 
-  spResourceHandle Import(ezSharedPtr<spBuffer> pBuffer);
-  spResourceHandle Import(ezSharedPtr<spTexture> pTexture);
-  spResourceHandle Import(ezSharedPtr<spRenderTarget> pRenderTarget);
-  spResourceHandle Import(ezSharedPtr<spSampler> pSampler);
+  RHI::spResourceHandle Import(ezSharedPtr<RHI::spBuffer> pBuffer);
+  RHI::spResourceHandle Import(ezSharedPtr<RHI::spTexture> pTexture);
+  RHI::spResourceHandle Import(ezSharedPtr<RHI::spRenderTarget> pRenderTarget);
+  RHI::spResourceHandle Import(ezSharedPtr<RHI::spSampler> pSampler);
 
-  spResourceHandle Write(spRenderGraphNode* pWriter, spResourceHandle hResource);
-  spResourceHandle Read(spRenderGraphNode* pReader, spResourceHandle hResource);
+  RHI::spResourceHandle Write(spRenderGraphNode* pWriter, RHI::spResourceHandle hResource);
+  RHI::spResourceHandle Read(spRenderGraphNode* pReader, RHI::spResourceHandle hResource);
 
-  spResourceHandle CreateTexture(spRenderGraphNode* pProducer, const spTextureDescription& description, const ezEnum<spRenderGraphResourceBindType>& eBindType);
-  spResourceHandle CreateRenderTarget(spRenderGraphNode* pProducer, const spRenderTargetDescription& description, const ezEnum<spRenderGraphResourceBindType>& eBindType);
-  spResourceHandle CreateBuffer(spRenderGraphNode* pProducer, const spBufferDescription& description, const ezEnum<spRenderGraphResourceBindType>& eBindType);
-  spResourceHandle CreateSampler(spRenderGraphNode* pProducer, const spSamplerDescription& description, const ezEnum<spRenderGraphResourceBindType>& eBindType);
+  RHI::spResourceHandle CreateTexture(spRenderGraphNode* pProducer, const RHI::spTextureDescription& description, const ezEnum<spRenderGraphResourceBindType>& eBindType);
+  RHI::spResourceHandle CreateRenderTarget(spRenderGraphNode* pProducer, const RHI::spRenderTargetDescription& description, const ezEnum<spRenderGraphResourceBindType>& eBindType);
+  RHI::spResourceHandle CreateBuffer(spRenderGraphNode* pProducer, const RHI::spBufferDescription& description, const ezEnum<spRenderGraphResourceBindType>& eBindType);
+  RHI::spResourceHandle CreateSampler(spRenderGraphNode* pProducer, const RHI::spSamplerDescription& description, const ezEnum<spRenderGraphResourceBindType>& eBindType);
 
   // --- spRenderGraphNode management
 
-  void AddNode(ezStringView sName, ezUniquePtr<spRenderGraphNode>&& node, const ezHashTable<ezHashedString, spResourceHandle>& resources);
+  void AddNode(ezStringView sName, ezUniquePtr<spRenderGraphNode>&& node, const ezHashTable<ezHashedString, RHI::spResourceHandle>& resources);
 
   const spRenderGraphNode* GetNode(ezStringView sName) const;
 
@@ -122,16 +122,16 @@ public:
   ezUniquePtr<spRenderPipeline> Compile();
 
 private:
-  spResourceHandle Import(ezSharedPtr<spDeviceResource> pResource, const ezEnum<spRenderGraphResourceType>& eType);
+  RHI::spResourceHandle Import(ezSharedPtr<RHI::spDeviceResource> pResource, const ezEnum<spRenderGraphResourceType>& eType);
 
-  spDevice* m_pDevice{nullptr};
+  RHI::spDevice* m_pDevice{nullptr};
 
-  ezArrayMap<spResourceHandle, spTextureDescription> m_PendingTextures;
-  ezArrayMap<spResourceHandle, spRenderTargetDescription> m_PendingRenderTargets;
-  ezArrayMap<spResourceHandle, spBufferDescription> m_PendingBuffers;
-  ezArrayMap<spResourceHandle, spSamplerDescription> m_PendingSamplers;
+  ezArrayMap<RHI::spResourceHandle, RHI::spTextureDescription> m_PendingTextures;
+  ezArrayMap<RHI::spResourceHandle, RHI::spRenderTargetDescription> m_PendingRenderTargets;
+  ezArrayMap<RHI::spResourceHandle, RHI::spBufferDescription> m_PendingBuffers;
+  ezArrayMap<RHI::spResourceHandle, RHI::spSamplerDescription> m_PendingSamplers;
 
-  ezArrayMap<spRenderGraphNode*, spResourceHandle> m_ReadResources;
+  ezArrayMap<spRenderGraphNode*, RHI::spResourceHandle> m_ReadResources;
 
   spRenderGraphResourcesTable m_GraphResources;
   ezHashTable<ezHashedString, ezUniquePtr<spRenderGraphNode>> m_Nodes;

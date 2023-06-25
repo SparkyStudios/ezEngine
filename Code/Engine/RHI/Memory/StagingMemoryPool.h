@@ -4,63 +4,66 @@
 
 #include <Foundation/Containers/List.h>
 
-/// \brief A single block in a staging memory pool.
-struct spStagingMemoryBlock
+namespace RHI
 {
-  /// \brief The block ID.
-  ezUInt32 m_uiId{0};
-
-  /// \brief The pointer to the data stored in the block.
-  void* m_pData{nullptr};
-
-  /// \brief The requested size of the block in bytes.
-  ezUInt32 m_uiSize{0};
-
-  /// \brief The total block capacity in bytes.
-  ezUInt32 m_uiCapacity{0};
-
-  /// \brief Creates an empty staging memory block.
-  spStagingMemoryBlock() = default;
-
-  /// \brief Creates a new staging memory block.
-  spStagingMemoryBlock(ezUInt32 uiId, void* pData, ezUInt32 uiSize, ezUInt32 uiCapacity)
-    : m_uiId(uiId)
-    , m_pData(pData)
-    , m_uiSize(uiSize)
-    , m_uiCapacity(uiCapacity)
+  /// \brief A single block in a staging memory pool.
+  struct spStagingMemoryBlock
   {
-  }
-};
+    /// \brief The block ID.
+    ezUInt32 m_uiId{0};
 
-class SP_RHI_DLL spStagingMemoryPool
-{
-  static constexpr const ezUInt32 kMinimumCapacity = 128;
+    /// \brief The pointer to the data stored in the block.
+    void* m_pData{nullptr};
 
-public:
-  explicit spStagingMemoryPool(ezAllocatorBase* pAllocator);
-  ~spStagingMemoryPool();
+    /// \brief The requested size of the block in bytes.
+    ezUInt32 m_uiSize{0};
 
-  spStagingMemoryBlock Stage(void* pData, ezUInt32 uiSize);
+    /// \brief The total block capacity in bytes.
+    ezUInt32 m_uiCapacity{0};
 
-  spStagingMemoryBlock Stage(ezByteArrayPtr source);
+    /// \brief Creates an empty staging memory block.
+    spStagingMemoryBlock() = default;
 
-  spStagingMemoryBlock GetBlock(ezUInt32 uiSize);
+    /// \brief Creates a new staging memory block.
+    spStagingMemoryBlock(ezUInt32 uiId, void* pData, ezUInt32 uiSize, ezUInt32 uiCapacity)
+      : m_uiId(uiId)
+      , m_pData(pData)
+      , m_uiSize(uiSize)
+      , m_uiCapacity(uiCapacity)
+    {
+    }
+  };
 
-  spStagingMemoryBlock GetBlockWithId(ezUInt32 uiId);
+  class SP_RHI_DLL spStagingMemoryPool
+  {
+    static constexpr const ezUInt32 kMinimumCapacity = 128;
 
-  void Free(const spStagingMemoryBlock& block);
+  public:
+    explicit spStagingMemoryPool(ezAllocatorBase* pAllocator);
+    ~spStagingMemoryPool();
 
-private:
-  void Rent(ezUInt32 uiSize, spStagingMemoryBlock& block);
+    spStagingMemoryBlock Stage(void* pData, ezUInt32 uiSize);
 
-  void Allocate(ezUInt32 uiSize, spStagingMemoryBlock& block);
+    spStagingMemoryBlock Stage(ezByteArrayPtr source);
 
-  typedef ezCompareHelper<ezUInt32> spStagingMemoryCapacityComparer;
+    spStagingMemoryBlock GetBlock(ezUInt32 uiSize);
 
-  ezAllocatorBase* m_pAllocator;
+    spStagingMemoryBlock GetBlockWithId(ezUInt32 uiId);
 
-  ezDynamicArray<spStagingMemoryBlock> m_Storage;
-  ezArrayMap<ezUInt32, ezUInt32> m_AvailableMemoryBlocks;
+    void Free(const spStagingMemoryBlock& block);
 
-  ezMutex m_Lock;
-};
+  private:
+    void Rent(ezUInt32 uiSize, spStagingMemoryBlock& block);
+
+    void Allocate(ezUInt32 uiSize, spStagingMemoryBlock& block);
+
+    typedef ezCompareHelper<ezUInt32> spStagingMemoryCapacityComparer;
+
+    ezAllocatorBase* m_pAllocator;
+
+    ezDynamicArray<spStagingMemoryBlock> m_Storage;
+    ezArrayMap<ezUInt32, ezUInt32> m_AvailableMemoryBlocks;
+
+    ezMutex m_Lock;
+  };
+} // namespace RHI

@@ -26,6 +26,9 @@
 
 #include <ShaderCompilerHLSL/ShaderCompilerHLSL.h>
 
+using namespace RAI;
+using namespace RHI;
+
 class ezRHISampleWindow;
 
 // ezString GetShaderPath(const ezString& shaderFile)

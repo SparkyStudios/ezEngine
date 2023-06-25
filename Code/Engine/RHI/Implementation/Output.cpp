@@ -4,56 +4,59 @@
 #include <RHI/Framebuffer.h>
 #include <RHI/Output.h>
 
+namespace RHI
+{
 #pragma region spOutputDescription
 
-spOutputDescription spOutputDescription::CreateFromFramebuffer(const spFramebuffer* pFramebuffer)
-{
-  ezEnum<spTextureSampleCount> eSampleCount = spTextureSampleCount::None;
-  spOutputAttachmentDescription depthAttachment;
-  bool bUseDepthAttachment = false;
-
-  const auto* pDevice = pFramebuffer->GetDevice();
-
-  if (!pFramebuffer->GetDepthTarget().IsInvalidated())
+  spOutputDescription spOutputDescription::CreateFromFramebuffer(const spFramebuffer* pFramebuffer)
   {
-    const auto pTexture = pDevice->GetResourceManager()->GetResource<spTexture>(pFramebuffer->GetDepthTarget());
-    EZ_ASSERT_DEV(pTexture != nullptr, "Trying to get an unregistered texture from the device.");
+    ezEnum<spTextureSampleCount> eSampleCount = spTextureSampleCount::None;
+    spOutputAttachmentDescription depthAttachment;
+    bool bUseDepthAttachment = false;
 
-    bUseDepthAttachment = true;
-    depthAttachment = spOutputAttachmentDescription(pTexture->GetFormat());
-    eSampleCount = pTexture->GetSampleCount();
+    const auto* pDevice = pFramebuffer->GetDevice();
+
+    if (!pFramebuffer->GetDepthTarget().IsInvalidated())
+    {
+      const auto pTexture = pDevice->GetResourceManager()->GetResource<spTexture>(pFramebuffer->GetDepthTarget());
+      EZ_ASSERT_DEV(pTexture != nullptr, "Trying to get an unregistered texture from the device.");
+
+      bUseDepthAttachment = true;
+      depthAttachment = spOutputAttachmentDescription(pTexture->GetFormat());
+      eSampleCount = pTexture->GetSampleCount();
+    }
+
+    const auto& colorTargets = pFramebuffer->GetColorTargets();
+
+    ezStaticArray<spOutputAttachmentDescription, SP_RHI_MAX_COLOR_TARGETS> colorAttachments;
+    colorAttachments.EnsureCount(colorTargets.GetCount());
+
+    for (ezUInt32 i = 0, l = colorTargets.GetCount(); i < l; ++i)
+    {
+      const auto pTexture = pDevice->GetResourceManager()->GetResource<spTexture>(colorTargets[i]);
+      EZ_ASSERT_DEV(pTexture != nullptr, "Trying to get an unregistered texture from the device.");
+
+      colorAttachments[i] = spOutputAttachmentDescription(pTexture->GetFormat());
+      eSampleCount = pTexture->GetSampleCount();
+    }
+
+    return {
+      {},
+      bUseDepthAttachment,
+      depthAttachment,
+      colorAttachments,
+      eSampleCount,
+    };
   }
 
-  const auto& colorTargets = pFramebuffer->GetColorTargets();
-
-  ezStaticArray<spOutputAttachmentDescription, SP_RHI_MAX_COLOR_TARGETS> colorAttachments;
-  colorAttachments.EnsureCount(colorTargets.GetCount());
-
-  for (ezUInt32 i = 0, l = colorTargets.GetCount(); i < l; ++i)
+  spOutputDescription spOutputDescription::CreateFromFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer)
   {
-    const auto pTexture = pDevice->GetResourceManager()->GetResource<spTexture>(colorTargets[i]);
-    EZ_ASSERT_DEV(pTexture != nullptr, "Trying to get an unregistered texture from the device.");
+    EZ_ASSERT_DEV(pFramebuffer != nullptr, "Trying to get an unregistered framebuffer from the device.");
 
-    colorAttachments[i] = spOutputAttachmentDescription(pTexture->GetFormat());
-    eSampleCount = pTexture->GetSampleCount();
+    return CreateFromFramebuffer(pFramebuffer.Borrow());
   }
-
-  return {
-    {},
-    bUseDepthAttachment,
-    depthAttachment,
-    colorAttachments,
-    eSampleCount,
-  };
-}
-
-spOutputDescription spOutputDescription::CreateFromFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer)
-{
-  EZ_ASSERT_DEV(pFramebuffer != nullptr, "Trying to get an unregistered framebuffer from the device.");
-
-  return CreateFromFramebuffer(pFramebuffer.Borrow());
-}
 
 #pragma endregion
+} // namespace RHI
 
 EZ_STATICLINK_FILE(RHI, RHI_Implementation_Output);

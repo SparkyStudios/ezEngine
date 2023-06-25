@@ -4,82 +4,85 @@
 
 #include <RHI/Shader.h>
 
-class spDeviceD3D11;
-class spShaderD3D11;
-
-class SP_RHID3D11_DLL spShaderProgramD3D11 final : public spShaderProgram
+namespace RHI
 {
-  EZ_ADD_DYNAMIC_REFLECTION(spShaderProgramD3D11, spShaderProgram);
+  class spDeviceD3D11;
+  class spShaderD3D11;
 
-  // spDeviceResource
+  class SP_RHID3D11_DLL spShaderProgramD3D11 final : public spShaderProgram
+  {
+    EZ_ADD_DYNAMIC_REFLECTION(spShaderProgramD3D11, spShaderProgram);
 
-public:
-  void ReleaseResource() override;
-  bool IsReleased() const override;
+    // spDeviceResource
 
-  // spShaderProgram
+  public:
+    void ReleaseResource() override;
+    bool IsReleased() const override;
 
-public:
-  void Attach(ezSharedPtr<spShader> pShader) override;
-  void Detach(ezSharedPtr<spShader> pShader) override;
-  void Detach(const ezEnum<spShaderStage>& eStage) override;
-  void DetachAll() override;
-  void Use() override;
-  EZ_NODISCARD ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const override;
+    // spShaderProgram
 
-  // spShaderProgramD3D11
+  public:
+    void Attach(ezSharedPtr<spShader> pShader) override;
+    void Detach(ezSharedPtr<spShader> pShader) override;
+    void Detach(const ezEnum<spShaderStage>& eStage) override;
+    void DetachAll() override;
+    void Use() override;
+    EZ_NODISCARD ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const override;
 
-public:
-  spShaderProgramD3D11(spDeviceD3D11* pDevice);
-  ~spShaderProgramD3D11() override;
+    // spShaderProgramD3D11
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetVertexShader() const { return m_pVertexShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetGeometryShader() const { return m_pGeometryShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetHullShader() const { return m_pHullShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetDomainShader() const { return m_pDomainShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetPixelShader() const { return m_pPixelShader; }
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetComputeShader() const { return m_pComputeShader; }
+  public:
+    spShaderProgramD3D11(spDeviceD3D11* pDevice);
+    ~spShaderProgramD3D11() override;
 
-private:
-  ID3D11Device* m_pD3D11Device{nullptr};
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetVertexShader() const { return m_pVertexShader; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetGeometryShader() const { return m_pGeometryShader; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetHullShader() const { return m_pHullShader; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetDomainShader() const { return m_pDomainShader; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetPixelShader() const { return m_pPixelShader; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetComputeShader() const { return m_pComputeShader; }
 
-  ezSharedPtr<spShaderD3D11> m_pVertexShader{nullptr};
-  ezSharedPtr<spShaderD3D11> m_pGeometryShader{nullptr};
-  ezSharedPtr<spShaderD3D11> m_pHullShader{nullptr};
-  ezSharedPtr<spShaderD3D11> m_pDomainShader{nullptr};
-  ezSharedPtr<spShaderD3D11> m_pPixelShader{nullptr};
-  ezSharedPtr<spShaderD3D11> m_pComputeShader{nullptr};
-};
+  private:
+    ID3D11Device* m_pD3D11Device{nullptr};
 
-class SP_RHID3D11_DLL spShaderD3D11 final : public spShader, public spDeferredDeviceResource
-{
-  friend class spDeviceResourceFactoryD3D11;
+    ezSharedPtr<spShaderD3D11> m_pVertexShader{nullptr};
+    ezSharedPtr<spShaderD3D11> m_pGeometryShader{nullptr};
+    ezSharedPtr<spShaderD3D11> m_pHullShader{nullptr};
+    ezSharedPtr<spShaderD3D11> m_pDomainShader{nullptr};
+    ezSharedPtr<spShaderD3D11> m_pPixelShader{nullptr};
+    ezSharedPtr<spShaderD3D11> m_pComputeShader{nullptr};
+  };
 
-  EZ_ADD_DYNAMIC_REFLECTION(spShaderD3D11, spShader);
+  class SP_RHID3D11_DLL spShaderD3D11 final : public spShader, public spDeferredDeviceResource
+  {
+    friend class spDeviceResourceFactoryD3D11;
 
-public:
-  // spDeviceResource
+    EZ_ADD_DYNAMIC_REFLECTION(spShaderD3D11, spShader);
 
-  void ReleaseResource() override;
-  bool IsReleased() const override;
-  void SetDebugName(ezStringView sDebugName) override;
+  public:
+    // spDeviceResource
 
-  // spDeferredDeviceResource
+    void ReleaseResource() override;
+    bool IsReleased() const override;
+    void SetDebugName(ezStringView sDebugName) override;
 
-  void CreateResource() override;
+    // spDeferredDeviceResource
 
-  // spShaderD3D11
+    void CreateResource() override;
 
-  spShaderD3D11(spDeviceD3D11* pDevice, const spShaderDescription& description);
-  ~spShaderD3D11() override;
+    // spShaderD3D11
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceChild* GetD3D11Shader() const { return m_pD3D11Shader; }
+    spShaderD3D11(spDeviceD3D11* pDevice, const spShaderDescription& description);
+    ~spShaderD3D11() override;
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezByteArrayPtr GetShaderByteCode() const { return m_pByteCode; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceChild* GetD3D11Shader() const { return m_pD3D11Shader; }
 
-private:
-  ID3D11Device* m_pD3D11Device{nullptr};
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezByteArrayPtr GetShaderByteCode() const { return m_pByteCode; }
 
-  ID3D11DeviceChild* m_pD3D11Shader{nullptr};
-  ezByteArrayPtr m_pByteCode;
-};
+  private:
+    ID3D11Device* m_pD3D11Device{nullptr};
+
+    ID3D11DeviceChild* m_pD3D11Shader{nullptr};
+    ezByteArrayPtr m_pByteCode;
+  };
+} // namespace RHI

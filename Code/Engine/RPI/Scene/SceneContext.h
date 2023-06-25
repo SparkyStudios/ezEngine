@@ -9,7 +9,7 @@ class spRenderingContext;
 class SP_RPI_DLL spSceneContext
 {
 public:
-  explicit spSceneContext(spDevice* pDevice);
+  explicit spSceneContext(RHI::spDevice* pDevice);
 
   /// \brief Gets the \a spRenderingContext which stores drawing data for this scene.
   EZ_NODISCARD EZ_ALWAYS_INLINE spRenderingContext* GetRenderingContext() const { return m_pRenderingContext.Borrow(); }
@@ -31,12 +31,12 @@ public:
   void WaitForIdle();
 
 private:
-  spDevice* m_pDevice{nullptr};
+  RHI::spDevice* m_pDevice{nullptr};
 
-  ezSharedPtr<spCommandList> m_pCommandList{nullptr};
+  ezSharedPtr<RHI::spCommandList> m_pCommandList{nullptr};
   ezUniquePtr<spRenderingContext> m_pRenderingContext{nullptr};
 
   ezList<spRenderPipeline*> m_RenderPipelines;
 
-  ezSharedPtr<spFence> m_pFence{nullptr};
+  ezSharedPtr<RHI::spFence> m_pFence{nullptr};
 };

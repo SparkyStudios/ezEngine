@@ -9,206 +9,209 @@
 #include <RHID3D11/ResourceManager.h>
 #include <RHID3D11/Shader.h>
 
+namespace RHI
+{
 #pragma region spComputePipelineD3D11
 
-// clang-format off
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spComputePipelineD3D11, 1, ezRTTINoAllocator)
-EZ_END_DYNAMIC_REFLECTED_TYPE;
-// clang-format on
+  // clang-format off
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spComputePipelineD3D11, 1, ezRTTINoAllocator)
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
+  // clang-format on
 
-void spComputePipelineD3D11::ReleaseResource()
-{
-  if (IsReleased())
-    return;
-
-  EZ_IGNORE_UNUSED(m_pDevice->GetResourceManager()->DecrementResourceRef(m_Description.m_hComputeShader));
-
-  for (ezUInt32 i = 0, l = m_ResourceLayouts.GetCount(); i < l; ++i)
-    m_ResourceLayouts[i].Clear();
-
-  m_ResourceLayouts.Clear();
-
-  m_bReleased = true;
-}
-
-bool spComputePipelineD3D11::IsReleased() const
-{
-  return m_bReleased;
-}
-
-spComputePipelineD3D11::spComputePipelineD3D11(spDeviceD3D11* pDevice, const spComputePipelineDescription& description)
-  : spComputePipeline(description)
-{
-  m_pDevice = pDevice;
-  m_pD3D11Device = pDevice->GetD3D11Device();
-
+  void spComputePipelineD3D11::ReleaseResource()
   {
-    const auto pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(description.m_hComputeShader);
-    EZ_ASSERT_DEV(pShader != nullptr, "Invalid compute shader resource {0}", description.m_hComputeShader.GetInternalID().m_Data);
+    if (IsReleased())
+      return;
 
-    EZ_IGNORE_UNUSED(pShader->AddRef());
-    m_pComputeShader = static_cast<ID3D11ComputeShader*>(pShader->GetD3D11Shader());
+    EZ_IGNORE_UNUSED(m_pDevice->GetResourceManager()->DecrementResourceRef(m_Description.m_hComputeShader));
+
+    for (ezUInt32 i = 0, l = m_ResourceLayouts.GetCount(); i < l; ++i)
+      m_ResourceLayouts[i].Clear();
+
+    m_ResourceLayouts.Clear();
+
+    m_bReleased = true;
   }
 
-  m_ResourceLayouts.EnsureCount(description.m_ResourceLayouts.GetCount());
-  for (ezUInt32 i = 0, l = description.m_ResourceLayouts.GetCount(); i < l; ++i)
+  bool spComputePipelineD3D11::IsReleased() const
   {
-    auto layout = m_pDevice->GetResourceManager()->GetResource<spResourceLayoutD3D11>(description.m_ResourceLayouts[i]);
-    EZ_ASSERT_DEV(layout != nullptr, "Invalid resource layout handle {0}", description.m_hComputeShader.GetInternalID().m_Data);
-
-    m_ResourceLayouts[i] = layout;
+    return m_bReleased;
   }
 
-  m_bReleased = false;
-}
+  spComputePipelineD3D11::spComputePipelineD3D11(spDeviceD3D11* pDevice, const spComputePipelineDescription& description)
+    : spComputePipeline(description)
+  {
+    m_pDevice = pDevice;
+    m_pD3D11Device = pDevice->GetD3D11Device();
 
-spComputePipelineD3D11::~spComputePipelineD3D11()
-{
-  m_pDevice->GetResourceManager()->ReleaseResource(this);
-}
+    {
+      const auto pShader = m_pDevice->GetResourceManager()->GetResource<spShaderD3D11>(description.m_hComputeShader);
+      EZ_ASSERT_DEV(pShader != nullptr, "Invalid compute shader resource {0}", description.m_hComputeShader.GetInternalID().m_Data);
+
+      EZ_IGNORE_UNUSED(pShader->AddRef());
+      m_pComputeShader = static_cast<ID3D11ComputeShader*>(pShader->GetD3D11Shader());
+    }
+
+    m_ResourceLayouts.EnsureCount(description.m_ResourceLayouts.GetCount());
+    for (ezUInt32 i = 0, l = description.m_ResourceLayouts.GetCount(); i < l; ++i)
+    {
+      auto layout = m_pDevice->GetResourceManager()->GetResource<spResourceLayoutD3D11>(description.m_ResourceLayouts[i]);
+      EZ_ASSERT_DEV(layout != nullptr, "Invalid resource layout handle {0}", description.m_hComputeShader.GetInternalID().m_Data);
+
+      m_ResourceLayouts[i] = layout;
+    }
+
+    m_bReleased = false;
+  }
+
+  spComputePipelineD3D11::~spComputePipelineD3D11()
+  {
+    m_pDevice->GetResourceManager()->ReleaseResource(this);
+  }
 
 #pragma endregion
 
 #pragma region spGraphicPipelineD3D11
 
-// clang-format off
+  // clang-format off
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spGraphicPipelineD3D11, 1, ezRTTINoAllocator)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
-// clang-format on
+  // clang-format on
 
-void spGraphicPipelineD3D11::ReleaseResource()
-{
-  if (IsReleased())
-    return;
-
-  EZ_IGNORE_UNUSED(m_pDevice->GetResourceManager()->DecrementResourceRef(m_hShaderProgram));
-
-  for (ezUInt32 i = 0, l = m_ResourceLayouts.GetCount(); i < l; ++i)
-    m_ResourceLayouts[i].Clear();
-
-  for (ezUInt32 i = 0, l = m_InputLayouts.GetCount(); i < l; ++i)
-    m_InputLayouts[i].Clear();
-
-  m_ResourceLayouts.Clear();
-  m_InputLayouts.Clear();
-
-  m_bReleased = true;
-}
-
-bool spGraphicPipelineD3D11::IsReleased() const
-{
-  return m_bReleased;
-}
-
-spGraphicPipelineD3D11::spGraphicPipelineD3D11(spDeviceD3D11* pDevice, const spGraphicPipelineDescription& description)
-  : spGraphicPipeline(description)
-{
-  m_pDevice = pDevice;
-  m_pD3D11Device = pDevice->GetD3D11Device();
-
-  ezByteArrayPtr vertexShaderByteCode;
-
+  void spGraphicPipelineD3D11::ReleaseResource()
   {
-    const auto pShaderProgram = m_pDevice->GetResourceManager()->GetResource<spShaderProgramD3D11>(m_hShaderProgram);
-    EZ_ASSERT_DEV(pShaderProgram != nullptr, "Invalid shader program resource {0}", m_hShaderProgram.GetInternalID().m_Data);
+    if (IsReleased())
+      return;
 
-    EZ_IGNORE_UNUSED(pShaderProgram->AddRef());
+    EZ_IGNORE_UNUSED(m_pDevice->GetResourceManager()->DecrementResourceRef(m_hShaderProgram));
 
-    if (auto* pShader = ezStaticCast<spShaderD3D11*>(pShaderProgram->GetVertexShader()); pShader != nullptr)
-    {
-      pShader->EnsureResourceCreated();
-      m_pVertexShader = static_cast<ID3D11VertexShader*>(pShader->GetD3D11Shader());
-      vertexShaderByteCode = pShader->GetShaderByteCode();
-    }
+    for (ezUInt32 i = 0, l = m_ResourceLayouts.GetCount(); i < l; ++i)
+      m_ResourceLayouts[i].Clear();
 
-    EZ_ASSERT_DEV(m_pVertexShader != nullptr, "Cannot create a graphic pipeline without a vertex shader.");
+    for (ezUInt32 i = 0, l = m_InputLayouts.GetCount(); i < l; ++i)
+      m_InputLayouts[i].Clear();
 
-    if (auto* pShader = ezStaticCast<spShaderD3D11*>(pShaderProgram->GetGeometryShader()); pShader != nullptr)
-    {
-      pShader->EnsureResourceCreated();
-      m_pGeometryShader = static_cast<ID3D11GeometryShader*>(pShader->GetD3D11Shader());
-    }
+    m_ResourceLayouts.Clear();
+    m_InputLayouts.Clear();
 
-    if (auto* pShader = ezStaticCast<spShaderD3D11*>(pShaderProgram->GetHullShader()); pShader != nullptr)
-    {
-      pShader->EnsureResourceCreated();
-      m_pHullShader = static_cast<ID3D11HullShader*>(pShader->GetD3D11Shader());
-    }
-
-    if (auto* pShader = ezStaticCast<spShaderD3D11*>(pShaderProgram->GetDomainShader()); pShader != nullptr)
-    {
-      pShader->EnsureResourceCreated();
-      m_pDomainShader = static_cast<ID3D11DomainShader*>(pShader->GetD3D11Shader());
-    }
-
-    if (auto* pShader = ezStaticCast<spShaderD3D11*>(pShaderProgram->GetPixelShader()); pShader != nullptr)
-    {
-      pShader->EnsureResourceCreated();
-      m_pPixelShader = static_cast<ID3D11PixelShader*>(pShader->GetD3D11Shader());
-    }
+    m_bReleased = true;
   }
 
-  const ezUInt32 uiVertexBuffersCount = description.m_ShaderPipeline.m_InputLayouts.GetCount();
-
-  ezDynamicArray<spInputLayoutDescription> inputLayouts;
-  inputLayouts.EnsureCount(uiVertexBuffersCount);
-
-  m_InputLayouts.EnsureCount(uiVertexBuffersCount);
-  for (ezUInt32 i = 0, l = uiVertexBuffersCount; i < l; ++i)
+  bool spGraphicPipelineD3D11::IsReleased() const
   {
-    auto layout = m_pDevice->GetResourceManager()->GetResource<spInputLayout>(description.m_ShaderPipeline.m_InputLayouts[i]);
-    EZ_ASSERT_DEV(layout != nullptr, "Invalid input layout handle {0}", description.m_ShaderPipeline.m_InputLayouts[i].GetInternalID().m_Data);
-
-    m_InputLayouts[i] = layout;
-
-    inputLayouts[i] = layout->GetDescription();
+    return m_bReleased;
   }
 
-  pDevice->GetD3D11ResourceManager()->GetPipelineResources(
-    description.m_RenderingState.m_BlendState,
-    description.m_RenderingState.m_DepthState,
-    description.m_RenderingState.m_StencilState,
-    description.m_RenderingState.m_RasterizerState,
-    description.m_Output.m_eSampleCount != spTextureSampleCount::None,
-    inputLayouts.GetArrayPtr(),
-    vertexShaderByteCode,
-    m_pBlendState,
-    m_pDepthStencilState,
-    m_pRasterizerState,
-    m_pInputLayout);
-
-  m_BlendFactor = description.m_RenderingState.m_BlendState.m_BlendColor;
-  m_uiStencilRef = description.m_RenderingState.m_StencilState.m_uiReference;
-  m_PrimitiveTopology = spToD3D11(description.m_ePrimitiveTopology);
-
-  const ezUInt32 uiResourceLayoutsCount = description.m_ResourceLayouts.GetCount();
-
-  m_ResourceLayouts.EnsureCount(uiResourceLayoutsCount);
-  for (ezUInt32 i = 0, l = uiResourceLayoutsCount; i < l; ++i)
+  spGraphicPipelineD3D11::spGraphicPipelineD3D11(spDeviceD3D11* pDevice, const spGraphicPipelineDescription& description)
+    : spGraphicPipeline(description)
   {
-    auto layout = m_pDevice->GetResourceManager()->GetResource<spResourceLayoutD3D11>(description.m_ResourceLayouts[i]);
-    EZ_ASSERT_DEV(layout != nullptr, "Invalid resource layout handle {0}", description.m_ResourceLayouts[i].GetInternalID().m_Data);
+    m_pDevice = pDevice;
+    m_pD3D11Device = pDevice->GetD3D11Device();
 
-    m_ResourceLayouts[i] = layout;
-  }
+    ezByteArrayPtr vertexShaderByteCode;
 
-  if (uiVertexBuffersCount > 0)
-  {
-    m_VertexStrides.EnsureCount(uiVertexBuffersCount);
-    for (ezUInt32 i = 0; i < uiVertexBuffersCount; ++i)
     {
-      m_VertexStrides[i] = inputLayouts[i].m_uiStride;
+      const auto pShaderProgram = m_pDevice->GetResourceManager()->GetResource<spShaderProgramD3D11>(m_hShaderProgram);
+      EZ_ASSERT_DEV(pShaderProgram != nullptr, "Invalid shader program resource {0}", m_hShaderProgram.GetInternalID().m_Data);
+
+      EZ_IGNORE_UNUSED(pShaderProgram->AddRef());
+
+      if (auto* pShader = ezStaticCast<spShaderD3D11*>(pShaderProgram->GetVertexShader()); pShader != nullptr)
+      {
+        pShader->EnsureResourceCreated();
+        m_pVertexShader = static_cast<ID3D11VertexShader*>(pShader->GetD3D11Shader());
+        vertexShaderByteCode = pShader->GetShaderByteCode();
+      }
+
+      EZ_ASSERT_DEV(m_pVertexShader != nullptr, "Cannot create a graphic pipeline without a vertex shader.");
+
+      if (auto* pShader = ezStaticCast<spShaderD3D11*>(pShaderProgram->GetGeometryShader()); pShader != nullptr)
+      {
+        pShader->EnsureResourceCreated();
+        m_pGeometryShader = static_cast<ID3D11GeometryShader*>(pShader->GetD3D11Shader());
+      }
+
+      if (auto* pShader = ezStaticCast<spShaderD3D11*>(pShaderProgram->GetHullShader()); pShader != nullptr)
+      {
+        pShader->EnsureResourceCreated();
+        m_pHullShader = static_cast<ID3D11HullShader*>(pShader->GetD3D11Shader());
+      }
+
+      if (auto* pShader = ezStaticCast<spShaderD3D11*>(pShaderProgram->GetDomainShader()); pShader != nullptr)
+      {
+        pShader->EnsureResourceCreated();
+        m_pDomainShader = static_cast<ID3D11DomainShader*>(pShader->GetD3D11Shader());
+      }
+
+      if (auto* pShader = ezStaticCast<spShaderD3D11*>(pShaderProgram->GetPixelShader()); pShader != nullptr)
+      {
+        pShader->EnsureResourceCreated();
+        m_pPixelShader = static_cast<ID3D11PixelShader*>(pShader->GetD3D11Shader());
+      }
     }
+
+    const ezUInt32 uiVertexBuffersCount = description.m_ShaderPipeline.m_InputLayouts.GetCount();
+
+    ezDynamicArray<spInputLayoutDescription> inputLayouts;
+    inputLayouts.EnsureCount(uiVertexBuffersCount);
+
+    m_InputLayouts.EnsureCount(uiVertexBuffersCount);
+    for (ezUInt32 i = 0, l = uiVertexBuffersCount; i < l; ++i)
+    {
+      auto layout = m_pDevice->GetResourceManager()->GetResource<spInputLayout>(description.m_ShaderPipeline.m_InputLayouts[i]);
+      EZ_ASSERT_DEV(layout != nullptr, "Invalid input layout handle {0}", description.m_ShaderPipeline.m_InputLayouts[i].GetInternalID().m_Data);
+
+      m_InputLayouts[i] = layout;
+
+      inputLayouts[i] = layout->GetDescription();
+    }
+
+    pDevice->GetD3D11ResourceManager()->GetPipelineResources(
+      description.m_RenderingState.m_BlendState,
+      description.m_RenderingState.m_DepthState,
+      description.m_RenderingState.m_StencilState,
+      description.m_RenderingState.m_RasterizerState,
+      description.m_Output.m_eSampleCount != spTextureSampleCount::None,
+      inputLayouts.GetArrayPtr(),
+      vertexShaderByteCode,
+      m_pBlendState,
+      m_pDepthStencilState,
+      m_pRasterizerState,
+      m_pInputLayout);
+
+    m_BlendFactor = description.m_RenderingState.m_BlendState.m_BlendColor;
+    m_uiStencilRef = description.m_RenderingState.m_StencilState.m_uiReference;
+    m_PrimitiveTopology = spToD3D11(description.m_ePrimitiveTopology);
+
+    const ezUInt32 uiResourceLayoutsCount = description.m_ResourceLayouts.GetCount();
+
+    m_ResourceLayouts.EnsureCount(uiResourceLayoutsCount);
+    for (ezUInt32 i = 0, l = uiResourceLayoutsCount; i < l; ++i)
+    {
+      auto layout = m_pDevice->GetResourceManager()->GetResource<spResourceLayoutD3D11>(description.m_ResourceLayouts[i]);
+      EZ_ASSERT_DEV(layout != nullptr, "Invalid resource layout handle {0}", description.m_ResourceLayouts[i].GetInternalID().m_Data);
+
+      m_ResourceLayouts[i] = layout;
+    }
+
+    if (uiVertexBuffersCount > 0)
+    {
+      m_VertexStrides.EnsureCount(uiVertexBuffersCount);
+      for (ezUInt32 i = 0; i < uiVertexBuffersCount; ++i)
+      {
+        m_VertexStrides[i] = inputLayouts[i].m_uiStride;
+      }
+    }
+
+    m_bReleased = false;
   }
 
-  m_bReleased = false;
-}
-
-spGraphicPipelineD3D11::~spGraphicPipelineD3D11()
-{
-  m_pDevice->GetResourceManager()->ReleaseResource(this);
-}
+  spGraphicPipelineD3D11::~spGraphicPipelineD3D11()
+  {
+    m_pDevice->GetResourceManager()->ReleaseResource(this);
+  }
 
 #pragma endregion
+} // namespace RHI
 
 EZ_STATICLINK_FILE(RHID3D11, RHID3D11_Implementation_Pipeline);

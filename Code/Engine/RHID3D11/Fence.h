@@ -6,38 +6,41 @@
 
 #include <RHI/Fence.h>
 
-class spDeviceD3D11;
-
-class SP_RHID3D11_DLL spFenceD3D11 final : public spFence
+namespace RHI
 {
-  friend class spDeviceResourceFactoryD3D11;
+  class spDeviceD3D11;
 
-  EZ_ADD_DYNAMIC_REFLECTION(spFenceD3D11, spFence);
+  class SP_RHID3D11_DLL spFenceD3D11 final : public spFence
+  {
+    friend class spDeviceResourceFactoryD3D11;
 
-public:
-  // spDeviceResource
+    EZ_ADD_DYNAMIC_REFLECTION(spFenceD3D11, spFence);
 
-  void ReleaseResource() override;
-  bool IsReleased() const override;
+  public:
+    // spDeviceResource
 
-  // spFence
+    void ReleaseResource() override;
+    bool IsReleased() const override;
 
-  bool IsSignaled() override;
+    // spFence
 
-  // spFenceD3D11
+    bool IsSignaled() override;
 
-  void Reset();
+    // spFenceD3D11
 
-  void Raise();
+    void Reset();
 
-  bool Wait();
-  bool Wait(ezTime timeout);
+    void Raise();
 
-  spFenceD3D11(spDeviceD3D11* pDevice, const spFenceDescription& description);
-  ~spFenceD3D11() override;
+    bool Wait();
+    bool Wait(ezTime timeout);
 
-private:
-  ezThreadSignal m_ThreadSignal;
+    spFenceD3D11(spDeviceD3D11* pDevice, const spFenceDescription& description);
+    ~spFenceD3D11() override;
 
-  bool m_bSignaled{false};
-};
+  private:
+    ezThreadSignal m_ThreadSignal;
+
+    bool m_bSignaled{false};
+  };
+} // namespace RHI

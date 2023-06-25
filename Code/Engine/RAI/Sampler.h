@@ -1,4 +1,18 @@
-﻿#pragma once
+﻿// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#pragma once
 
 #include <RAI/RAIDLL.h>
 
@@ -21,17 +35,17 @@ namespace RAI
 
     spSampler() = default;
 
-    explicit spSampler(spSamplerDescription description)
+    explicit spSampler(RHI::spSamplerDescription description)
       : m_SamplerDescription(std::move(description))
     {
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spSamplerDescription& GetSamplerDescription() const { return m_SamplerDescription; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const RHI::spSamplerDescription& GetSamplerDescription() const { return m_SamplerDescription; }
 
-    EZ_ALWAYS_INLINE void SetSamplerDescription(spSamplerDescription value) { m_SamplerDescription = std::move(value); }
+    EZ_ALWAYS_INLINE void SetSamplerDescription(RHI::spSamplerDescription value) { m_SamplerDescription = std::move(value); }
 
   private:
-    spSamplerDescription m_SamplerDescription;
+    RHI::spSamplerDescription m_SamplerDescription;
   };
 } // namespace RAI
 
@@ -57,7 +71,7 @@ inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spSam
 
 inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spSampler& ref_sampler)
 {
-  spSamplerDescription desc;
+  RHI::spSamplerDescription desc;
 
   inout_stream >> desc.m_uiMinLod;
   inout_stream >> desc.m_uiMaxLod;
@@ -72,7 +86,7 @@ inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spSampler& 
   inout_stream >> desc.m_eMipFilter;
   inout_stream >> desc.m_eSamplerComparison;
 
-  ref_sampler.SetSamplerDescription(desc);
+  ref_sampler.SetSamplerDescription(std::move(desc));
 
   return inout_stream;
 }

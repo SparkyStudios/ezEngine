@@ -29,14 +29,14 @@ FactoryInfo* GetFactoryInfo(const char* szImplementationName)
   return pFactory;
 }
 
-ezInternal::NewInstance<spDevice> spRHIImplementationFactory::CreateDevice(const char* szImplementationName, ezAllocatorBase* pAllocator, const spDeviceDescription& description)
+ezInternal::NewInstance<RHI::spDevice> spRHIImplementationFactory::CreateDevice(const char* szImplementationName, ezAllocatorBase* pAllocator, const RHI::spDeviceDescription& description)
 {
   if (auto pFuncInfo = GetFactoryInfo(szImplementationName))
   {
     return pFuncInfo->m_Func(pAllocator, description);
   }
 
-  return ezInternal::NewInstance<spDevice>(nullptr, pAllocator);
+  return ezInternal::NewInstance<RHI::spDevice>(nullptr, pAllocator);
 }
 
 void spRHIImplementationFactory::RegisterImplementation(const char* szName, const Factory& func, const spRHIImplementationDescription& description)

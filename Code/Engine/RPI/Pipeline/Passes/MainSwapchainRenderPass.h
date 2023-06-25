@@ -21,7 +21,7 @@ public:
   {
     EZ_DECLARE_POD_TYPE();
 
-    spResourceHandle m_hInputTexture;
+    RHI::spResourceHandle m_hInputTexture;
   };
 
   spMainSwapchainRenderPass(Data&& passData);

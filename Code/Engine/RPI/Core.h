@@ -8,7 +8,7 @@
 
 class spRenderGraphResource;
 
-typedef ezIdTable<spResourceHandleId, spRenderGraphResource> spRenderGraphResourcesTable;
+typedef ezIdTable<RHI::spResourceHandleId, spRenderGraphResource> spRenderGraphResourcesTable;
 
 typedef ezGenericId<24, 8> spRenderViewId;
 

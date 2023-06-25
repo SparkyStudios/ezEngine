@@ -3,58 +3,61 @@
 #include <RHI/Device.h>
 #include <RHI/Texture.h>
 
-#pragma region spTexture
-
 // clang-format off
-EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spTexture, 1, ezRTTINoAllocator)
-EZ_END_DYNAMIC_REFLECTED_TYPE;
+EZ_BEGIN_STATIC_REFLECTED_TYPE(RHI::spTextureSamplerManager, ezNoBase, 1, ezRTTINoAllocator)
+EZ_END_STATIC_REFLECTED_TYPE;
 // clang-format on
 
-spTexture::spTexture(spTextureDescription description)
-  : m_Description(std::move(description))
+namespace RHI
 {
-}
+#pragma region spTexture
+
+  // clang-format off
+EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spTexture, 1, ezRTTINoAllocator)
+EZ_END_DYNAMIC_REFLECTED_TYPE;
+  // clang-format on
+
+  spTexture::spTexture(spTextureDescription description)
+    : m_Description(std::move(description))
+  {
+  }
 
 #pragma endregion
 
 #pragma region spTextureView
 
-// clang-format off
+  // clang-format off
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spTextureView, 1, ezRTTINoAllocator)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
-// clang-format on
+  // clang-format on
 
-spTextureView::spTextureView(spTextureViewDescription description)
-  : m_Description(std::move(description))
-{
-}
+  spTextureView::spTextureView(spTextureViewDescription description)
+    : m_Description(std::move(description))
+  {
+  }
 
 #pragma endregion
 
 #pragma region spTextureSamplerManager
 
-// clang-format off
-EZ_BEGIN_STATIC_REFLECTED_TYPE(spTextureSamplerManager, ezNoBase, 1, ezRTTINoAllocator)
-EZ_END_STATIC_REFLECTED_TYPE;
-// clang-format on
+  spTextureSamplerManager::spTextureSamplerManager(spDevice* pDevice)
+    : m_pDevice(pDevice)
+  {
+  }
 
-spTextureSamplerManager::spTextureSamplerManager(spDevice* pDevice)
-  : m_pDevice(pDevice)
-{
-}
+  ezSharedPtr<spTextureView> spTextureSamplerManager::GetTextureView(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource)
+  {
+    if (pResource->IsInstanceOf<spTexture>())
+      return pDevice->GetTextureSamplerManager()->GetFullTextureView(pResource.Downcast<spTexture>());
 
-ezSharedPtr<spTextureView> spTextureSamplerManager::GetTextureView(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource)
-{
-  if (pResource->IsInstanceOf<spTexture>())
-    return pDevice->GetTextureSamplerManager()->GetFullTextureView(pResource.Downcast<spTexture>());
+    if (pResource->IsInstanceOf<spTextureView>())
+      return pResource.Downcast<spTextureView>();
 
-  if (pResource->IsInstanceOf<spTextureView>())
-    return pResource.Downcast<spTextureView>();
-
-  EZ_ASSERT_NOT_IMPLEMENTED;
-  return nullptr;
-}
+    EZ_ASSERT_NOT_IMPLEMENTED;
+    return nullptr;
+  }
 
 #pragma endregion
+} // namespace RHI
 
 EZ_STATICLINK_FILE(RHI, RHI_Implementation_Texture);

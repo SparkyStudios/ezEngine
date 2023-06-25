@@ -33,8 +33,6 @@
 
 #include <RHISample/RHISample.h>
 
-using namespace RAI;
-
 typedef spTriangleDemoRenderGraphNode::PassData spTriangleDemoRenderGraphNodePassData;
 
 // clang-format off

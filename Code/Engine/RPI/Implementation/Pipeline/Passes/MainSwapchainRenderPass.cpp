@@ -2,6 +2,8 @@
 
 #include <RPI/Pipeline/Passes/MainSwapchainRenderPass.h>
 
+using namespace RHI;
+
 typedef spMainSwapchainRenderPass::Data spMainSwapchainRenderGraphNodePassData;
 
 // clang-format off

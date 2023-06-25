@@ -3,6 +3,8 @@
 #include <RPI/Graph/RenderGraph.h>
 #include <RPI/Pipeline/RenderPass.h>
 
+using namespace RHI;
+
 spRenderGraphBuilder::spRenderGraphBuilder(spDevice* pDevice)
   : m_pDevice(pDevice)
 {
