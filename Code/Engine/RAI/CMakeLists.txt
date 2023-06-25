@@ -14,7 +14,6 @@ target_link_libraries(${PROJECT_NAME}
   PRIVATE
   meshoptimizer
   mikktspace
-  rgbcx
   ozz
 )
 
