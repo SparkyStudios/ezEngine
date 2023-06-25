@@ -437,7 +437,16 @@ EZ_END_STATIC_REFLECTED_TYPE;
 ezSharedPtr<spTextureView> spTextureSamplerManagerD3D11::GetFullTextureView(ezSharedPtr<spTexture> pTexture)
 {
   const auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
-  return pDevice->GetResourceFactory()->CreateTextureView(pTexture->GetHandle());
+
+  spTextureViewDescription description{};
+  description.m_hTarget = pTexture->GetHandle();
+  description.m_uiBaseMipLevel = 0;
+  description.m_uiMipCount = pTexture->GetDescription().m_uiMipCount;
+  description.m_uiBaseArrayLayer = 0;
+  description.m_uiArrayLayers = pTexture->GetDescription().m_uiArrayLayers;
+  description.m_eFormat = pTexture->GetDescription().m_eFormat;
+
+  return pDevice->GetResourceFactory()->CreateTextureView(description);
 }
 
 spTextureSamplerManagerD3D11::spTextureSamplerManagerD3D11(spDeviceD3D11* pDevice)
