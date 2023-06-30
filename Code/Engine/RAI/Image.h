@@ -35,14 +35,16 @@ namespace RAI
     friend class spImageResource;
     friend class spImageResourceDescriptor;
 
+    friend class spTextureResourceLoader;
+
   public:
     spImage() = default;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezUInt32& GetWidth() const { return m_uiWidth; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezUInt32& GetHeight() const { return m_uiHeight; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezUInt32& GetDepth() const { return m_uiDepth; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezUInt32& GetMipCount() const { return m_uiMipCount; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezUInt32& GetArrayLayerCount() const { return m_uiArrayLayers; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetWidth(ezUInt32 uiMipLevel = 0) const { return RHI::spTextureHelper::GetMipDimension(m_uiWidth, uiMipLevel); }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetHeight(ezUInt32 uiMipLevel = 0) const { return RHI::spTextureHelper::GetMipDimension(m_uiHeight, uiMipLevel); }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetDepth(ezUInt32 uiMipLevel = 0) const { return RHI::spTextureHelper::GetMipDimension(m_uiDepth, uiMipLevel); }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetMipCount() const { return m_uiMipCount; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetArrayLayerCount() const { return m_uiArrayLayers; }
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezEnum<RHI::spPixelFormat>& GetPixelFormat() const { return m_eFormat; }
 
     EZ_ALWAYS_INLINE void SetWidth(ezUInt32 value) { m_uiWidth = value; }

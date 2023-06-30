@@ -32,7 +32,8 @@ namespace RAI
   /// and can then be used for rendering.
   class SP_RAI_DLL spTexture
   {
-    friend class spTextureResource;
+    friend class spTexture2DResource;
+
     friend class spTextureResourceLoader;
     friend class spTextureResourceDescriptor;
 
