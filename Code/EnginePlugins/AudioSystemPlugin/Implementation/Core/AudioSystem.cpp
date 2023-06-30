@@ -35,7 +35,7 @@ void ezAudioSystem::LoadConfiguration(ezStringView sFile)
 
   while (pChild)
   {
-    if (pChild->IsCustomType("Middleware") && pChild->HasName() && ezStringUtils::Compare(pChild->GetName(), m_AudioTranslationLayer.m_pAudioMiddleware->GetMiddlewareName()) == 0)
+    if (pChild->IsCustomType("Middleware") && pChild->HasName() && pChild->GetName().Compare(m_AudioTranslationLayer.m_pAudioMiddleware->GetMiddlewareName()) == 0)
     {
       ezLog::Debug("Loading audio middleware configuration for {}...", pChild->GetName());
 
