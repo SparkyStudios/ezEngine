@@ -28,6 +28,8 @@ namespace RAI
   {
     friend class spImageResource;
 
+    friend class spTextureResourceLoader;
+
   public:
     spImageResourceDescriptor();
 
@@ -36,7 +38,7 @@ namespace RAI
     EZ_NODISCARD EZ_ALWAYS_INLINE const spImage& GetImage() const { return m_Image; }
     EZ_NODISCARD EZ_ALWAYS_INLINE spImage& GetImage() { return m_Image; }
 
-    EZ_NODISCARD void SetImage(const spImage& image);
+    EZ_ALWAYS_INLINE void SetImage(const spImage& image) { m_Image = image; }
 
     ezResult Save(ezStreamWriter& inout_stream);
 
@@ -49,6 +51,8 @@ namespace RAI
 
   class SP_RAI_DLL spImageResource final : public ezResource
   {
+    friend class spTextureResourceLoader;
+
     EZ_ADD_DYNAMIC_REFLECTION(spImageResource, ezResource);
     EZ_RESOURCE_DECLARE_COMMON_CODE(spImageResource);
     EZ_RESOURCE_DECLARE_CREATEABLE(spImageResource, spImageResourceDescriptor);

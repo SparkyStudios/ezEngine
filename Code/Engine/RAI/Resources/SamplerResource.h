@@ -28,6 +28,8 @@ namespace RAI
   {
     friend class spSamplerResource;
 
+    friend class spTextureResourceLoader;
+
   public:
     spSamplerResourceDescriptor();
 
@@ -49,6 +51,8 @@ namespace RAI
 
   class SP_RAI_DLL spSamplerResource final : public ezResource
   {
+    friend class spTextureResourceLoader;
+
     EZ_ADD_DYNAMIC_REFLECTION(spSamplerResource, ezResource);
     EZ_RESOURCE_DECLARE_COMMON_CODE(spSamplerResource);
     EZ_RESOURCE_DECLARE_CREATEABLE(spSamplerResource, spSamplerResourceDescriptor);

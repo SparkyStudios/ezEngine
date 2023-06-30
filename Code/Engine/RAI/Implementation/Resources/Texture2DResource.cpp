@@ -20,7 +20,7 @@
 
 #include <Foundation/Configuration/CVar.h>
 
-ezCVarBool cvar_AlwaysLoadFullQualityTextures("r.AlwaysLoadFullQualityTextures", true, ezCVarFlags::Save, "Defines if textures should always be loaded with the best available quality.");
+ezCVarBool cvar_AlwaysLoadFullQualityTextures("r.AlwaysLoadFullQualityTextures", false, ezCVarFlags::Save, "Defines if textures should always be loaded with the best available quality.");
 
 namespace RAI
 {
@@ -110,8 +110,6 @@ namespace RAI
 
   ezResourceLoadDesc spTexture2DResource::UnloadData(ezResource::Unload WhatToUnload)
   {
-    auto* pDevice = ezSingletonRegistry::GetSingletonInstance<RHI::spDevice>();
-
     if (m_uiLoadedTextures > 0)
     {
       for (ezInt32 i = 0; i < 2; ++i)
@@ -119,9 +117,7 @@ namespace RAI
         --m_uiLoadedTextures;
 
         if (m_RHITexture[m_uiLoadedTextures]->IsReferenced())
-        {
           m_RHITexture[m_uiLoadedTextures].Clear();
-        }
 
         m_uiGPUMemoryUsed[m_uiLoadedTextures] = 0;
 
@@ -131,13 +127,11 @@ namespace RAI
     }
 
     if (WhatToUnload == Unload::AllQualityLevels && m_RHISampler->IsReferenced())
-    {
       m_RHISampler.Clear();
-    }
 
     ezResourceLoadDesc res;
     res.m_uiQualityLevelsLoadable = m_uiLoadedTextures;
-    res.m_uiQualityLevelsDiscardable = 2 - m_uiLoadedTextures;
+    res.m_uiQualityLevelsDiscardable = (cvar_AlwaysLoadFullQualityTextures ? 1 : 2) - m_uiLoadedTextures;
     res.m_State = m_uiLoadedTextures == 0 ? ezResourceState::Unloaded : ezResourceState::Loaded;
 
     return res;
@@ -157,18 +151,51 @@ namespace RAI
       return res;
     }
 
-    // skip the absolute file path data that the standard file reader writes into the stream
+    spImage* pImage = nullptr;
+    spSampler* pSampler = nullptr;
+
+    pStream->ReadBytes(&pImage, sizeof(spImage*));
+    pStream->ReadBytes(&pSampler, sizeof(spSampler*));
+
+    ezUInt8 uiMipCount = cvar_AlwaysLoadFullQualityTextures ? pImage->GetMipCount() : ezMath::Min(pImage->GetMipCount(), 6U);
+
+    if (m_uiLoadedTextures == 1)
     {
-      ezStringBuilder sAbsFilePath;
-      *pStream >> sAbsFilePath;
+      uiMipCount = pImage->GetMipCount();
+    }
+    else if (m_uiLoadedTextures > 1)
+    {
+      ezLog::Debug("Ignoring texture data, resource is already fully loaded.");
+
+      res.m_uiQualityLevelsDiscardable = m_uiLoadedTextures;
+      res.m_uiQualityLevelsLoadable = 0;
+      res.m_State = ezResourceState::Loaded;
+
+      return res;
     }
 
-    ezAssetFileHeader AssetHash;
-    AssetHash.Read(*pStream).IgnoreResult();
+    EZ_ASSERT_DEBUG(m_uiLoadedTextures < 2, "Too many textures loaded.");
 
-    if (desc.Load(*pStream).Failed())
+    m_uiLoadedMipLevel = pImage->GetMipCount() - uiMipCount;
+
+    // Fill the descriptor
+    desc.m_RHITextureDescription = RHI::spTextureDescription::Texture2D(
+      pImage->GetWidth(m_uiLoadedMipLevel),
+      pImage->GetHeight(m_uiLoadedMipLevel),
+      uiMipCount,
+      pImage->GetArrayLayerCount(),
+      pImage->GetPixelFormat(),
+      RHI::spTextureUsage::Sampled);
+    desc.m_RHISamplerDescription = pSampler->GetDescription();
+
     {
-      res.m_State = ezResourceState::LoadedResourceMissing;
+      ezHybridArray<ezByteBlobPtr, 32> imageData;
+      imageData.SetCount(uiMipCount);
+
+      for (ezUInt8 m = 0; m < uiMipCount; ++m)
+        imageData[m] = pImage->GetImageData(m_uiLoadedMipLevel + m);
+
+      desc.m_ImageData = imageData;
     }
 
     return CreateResource(std::move(desc));
@@ -182,64 +209,38 @@ namespace RAI
 
   EZ_RESOURCE_IMPLEMENT_CREATEABLE(spTexture2DResource, spTextureResourceDescriptor)
   {
-    ezResourceLoadDesc res;
-    res.m_uiQualityLevelsDiscardable = m_uiLoadedTextures;
-    res.m_uiQualityLevelsLoadable = (cvar_AlwaysLoadFullQualityTextures ? 2 : 1) - m_uiLoadedTextures;
-    res.m_State = ezResourceState::Loaded;
-
-    const ezResourceLock imageResource(descriptor.m_Texture.GetImage(), ezResourceAcquireMode::BlockTillLoaded_NeverFail);
-    EZ_ASSERT_DEV(imageResource.IsValid(), "Unable to get the image resource from the texture.");
-
-    const ezResourceLock samplerResource(descriptor.m_Texture.GetSampler(), ezResourceAcquireMode::BlockTillLoaded_NeverFail);
-    EZ_ASSERT_DEV(samplerResource.IsValid(), "Unable to get the sampler resource from the texture.");
-
-    // Retrieve image and sampler RAI assets
-    const auto& image = imageResource.GetPointer()->GetDescriptor().GetImage();
-    const auto& sampler = samplerResource.GetPointer()->GetDescriptor().GetSampler();
-
-    // Fill the RHI texture descriptor
-    descriptor.m_Texture.SetDescription(RHI::spTextureDescription::Texture2D(
-      image.GetWidth(),
-      image.GetHeight(),
-      image.GetMipCount(),
-      image.GetArrayLayerCount(),
-      image.GetPixelFormat(),
-      RHI::spTextureUsage::Sampled));
-
     m_Descriptor = descriptor;
 
     auto* pDevice = ezSingletonRegistry::GetSingletonInstance<RHI::spDevice>();
 
     // Set the correct texture description for the loaded mipmap
-    RHI::spTextureDescription desc = descriptor.m_Texture.GetDescription();
-    desc.m_uiWidth = RHI::spTextureHelper::GetMipDimension(desc.m_uiWidth, m_uiLoadedMipLevel);
-    desc.m_uiHeight = RHI::spTextureHelper::GetMipDimension(desc.m_uiHeight, m_uiLoadedMipLevel);
+    RHI::spTextureDescription desc = descriptor.m_RHITextureDescription;
 
     // Create the RHI texture
     m_RHITexture[m_uiLoadedTextures] = pDevice->GetResourceFactory()->CreateTexture(desc);
 
     // Fill the RHI texture with the image data starting from the first loaded mip level
-    for (ezUInt8 m = 0, l = image.GetMipCount() - m_uiLoadedMipLevel; m < l; ++m)
+    for (ezUInt32 m = 0; m < desc.m_uiMipCount; ++m)
     {
       // TODO: Support array textures
       pDevice->UpdateTexture(
         m_RHITexture[m_uiLoadedTextures],
-        image.GetImageData(m),
+        descriptor.m_ImageData[m],
         0, 0, 0,
         RHI::spTextureHelper::GetMipDimension(desc.m_uiWidth, m),
         RHI::spTextureHelper::GetMipDimension(desc.m_uiHeight, m),
         1, m, 0);
     }
 
+    descriptor.m_ImageData.Clear();
+
     m_RHITexture[m_uiLoadedTextures]->SetDebugName(GetResourceDescription());
 
     if (m_RHISampler != nullptr && m_RHISampler->IsReleased())
-    {
       m_RHISampler.Clear();
-    }
 
-    m_RHISampler = pDevice->GetResourceFactory()->CreateSampler(sampler.GetDescription());
-    m_RHISampler->SetDebugName(samplerResource.GetPointer()->GetResourceDescription());
+    m_RHISampler = pDevice->GetResourceFactory()->CreateSampler(descriptor.m_RHISamplerDescription);
+    // m_RHISampler->SetDebugName(samplerResource.GetPointer()->GetResourceDescription());
 
     // Calculate the GPU memory used for the texture
     m_uiGPUMemoryUsed[m_uiLoadedTextures] = RHI::spPixelFormatHelper::GetDepthPitch(
@@ -249,8 +250,15 @@ namespace RAI
 
     ++m_uiLoadedTextures;
 
+    ezResourceLoadDesc res;
+    res.m_uiQualityLevelsDiscardable = m_uiLoadedTextures;
+    res.m_uiQualityLevelsLoadable = (cvar_AlwaysLoadFullQualityTextures ? 1 : 2) - m_uiLoadedTextures;
+    res.m_State = ezResourceState::Loaded;
+
     return res;
   }
 
 #pragma endregion
 } // namespace RAI
+
+EZ_STATICLINK_FILE(RAI, RAI_Implementation_Resources_Texture2DResource);

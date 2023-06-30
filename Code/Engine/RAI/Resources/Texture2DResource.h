@@ -16,7 +16,7 @@
 
 #include <RAI/RAIDLL.h>
 
-#include <RAI/Texture2D.h>
+#include <RAI/Texture.h>
 
 #include <RHI/Texture.h>
 
@@ -28,6 +28,8 @@ namespace RAI
   class SP_RAI_DLL spTextureResourceDescriptor
   {
     friend class spTexture2DResource;
+
+    friend class spTextureResourceLoader;
 
   public:
     spTextureResourceDescriptor();
@@ -47,6 +49,11 @@ namespace RAI
   private:
     /// \brief The texture asset stored in this resource.
     spTexture m_Texture;
+
+    RHI::spTextureDescription m_RHITextureDescription;
+    RHI::spSamplerDescription m_RHISamplerDescription;
+
+    ezArrayPtr<ezByteBlobPtr> m_ImageData;
   };
 
   class SP_RAI_DLL spTexture2DResource : public ezResource
@@ -73,7 +80,7 @@ namespace RAI
     ezSharedPtr<RHI::spTexture> m_RHITexture[2];
     ezUInt32 m_uiGPUMemoryUsed[2]{0, 0};
 
-    ezUInt8  m_uiLoadedMipLevel{0};
+    ezUInt8 m_uiLoadedMipLevel{0};
     ezUInt8 m_uiLoadedTextures{0};
   };
 } // namespace RAI
