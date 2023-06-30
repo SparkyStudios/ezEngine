@@ -18,3 +18,5 @@ RAI::spSampler RAI::spSampler::CreateAnisotropic4x()
 {
   return spSampler(RHI::spSamplerDescription::Anisotropic4x);
 }
+
+EZ_STATICLINK_FILE(RAI, RAI_Implementation_Sampler);

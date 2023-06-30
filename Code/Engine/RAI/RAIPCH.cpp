@@ -19,9 +19,15 @@ EZ_STATICLINK_LIBRARY(RAI)
   if (bReturn)
     return;
 
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Import_MeshImporter);
+  EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_Loaders_TextureLoader);
+  EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_BlendShapeResource);
   EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_ImageResource);
   EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_MeshResource);
+  EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_SamplersResource);
   EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_SkeletonResource);
+  EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_Texture2DResource);
+  EZ_STATICLINK_REFERENCE(RAI_Implementation_BlendShape);
+  EZ_STATICLINK_REFERENCE(RAI_Implementation_Image);
   EZ_STATICLINK_REFERENCE(RAI_Implementation_Mesh);
+  EZ_STATICLINK_REFERENCE(RAI_Implementation_Sampler);
 }
