@@ -139,7 +139,7 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequest
   ezAudioSystemDataID m_uiObjectId{0};
 
   /// \brief The status of the audio request.
-  ezStatus m_eStatus;
+  ezStatus m_eStatus{EZ_FAILURE};
 
   bool operator==(const ezAudioSystemRequest& rhs) const
   {
