@@ -36,22 +36,22 @@ namespace RAI
     spSampler() = default;
 
     explicit spSampler(RHI::spSamplerDescription description)
-      : m_SamplerDescription(std::move(description))
+      : m_Description(std::move(description))
     {
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const RHI::spSamplerDescription& GetSamplerDescription() const { return m_SamplerDescription; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const RHI::spSamplerDescription& GetDescription() const { return m_Description; }
 
-    EZ_ALWAYS_INLINE void SetSamplerDescription(RHI::spSamplerDescription value) { m_SamplerDescription = std::move(value); }
+    EZ_ALWAYS_INLINE void SetDescription(RHI::spSamplerDescription value) { m_Description = std::move(value); }
 
   private:
-    RHI::spSamplerDescription m_SamplerDescription;
+    RHI::spSamplerDescription m_Description;
   };
 } // namespace RAI
 
 inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spSampler& sampler)
 {
-  const auto& desc = sampler.GetSamplerDescription();
+  const auto& desc = sampler.GetDescription();
 
   inout_stream << desc.m_uiMinLod;
   inout_stream << desc.m_uiMaxLod;
@@ -86,7 +86,7 @@ inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spSampler& 
   inout_stream >> desc.m_eMipFilter;
   inout_stream >> desc.m_eSamplerComparison;
 
-  ref_sampler.SetSamplerDescription(std::move(desc));
+  ref_sampler.SetDescription(std::move(desc));
 
   return inout_stream;
 }

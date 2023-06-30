@@ -105,7 +105,9 @@ namespace RHI
   void spSamplerD3D11::SetDebugName(ezStringView sDebugName)
   {
     spDeviceResource::SetDebugName(sDebugName);
-    m_pSamplerState->SetDebugName(sDebugName);
+
+    if (!IsReleased())
+      m_pSamplerState->SetDebugName(sDebugName);
   }
 
   void spSamplerD3D11::ReleaseResource()

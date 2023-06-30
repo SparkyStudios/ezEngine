@@ -1,5 +1,6 @@
 ez_cmake_init()
 
+sp_requires_ktx()
 ez_requires_assimp()
 
 # Get the name of this folder as the project name
@@ -10,6 +11,7 @@ ez_create_target(LIBRARY ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
   Core
+  Texture
 
   PRIVATE
   meshoptimizer
@@ -17,4 +19,5 @@ target_link_libraries(${PROJECT_NAME}
   ozz
 )
 
+sp_link_target_ktx(${PROJECT_NAME})
 ez_link_target_assimp(${PROJECT_NAME})

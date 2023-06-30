@@ -7,6 +7,7 @@
 
 #include <RAI/Mesh.h>
 #include <RAI/Resources/MeshResource.h>
+#include <RAI/Resources/ImageResource.h>
 
 #include <RHI/Buffer.h>
 #include <RHI/CommandList.h>
@@ -156,6 +157,9 @@ public:
 
   virtual void BeforeHighLevelSystemsShutdown() override;
 
+  virtual void AfterCoreSystemsShutdown() override;
+
+
   void OnResize(ezUInt32 width, ezUInt32 height);
 
 private:
@@ -168,16 +172,16 @@ private:
   ezUniquePtr<spRenderGraphBuilder> graphBuilder;
   ezUniquePtr<spRenderPipeline> renderPipeline;
 
-  ezSharedPtr<spTexture> tex;
-
   RAI::spMesh m_Mesh;
   RAI::spMeshResourceHandle m_hMesh;
+
+  RAI::spTexture2DResourceHandle m_hTexture;
 };
 
 class spTriangleDemoRenderGraphNode final : public spRenderGraphNode
 {
 public:
-  spTriangleDemoRenderGraphNode(const RAI::spMesh* pMesh)
+  explicit spTriangleDemoRenderGraphNode(const RAI::spMesh* pMesh)
     : spRenderGraphNode("TrianglePass")
     , m_pMesh(pMesh)
   {
