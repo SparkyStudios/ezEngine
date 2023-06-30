@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2021-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <RHID3D11/RHID3D11PCH.h>
+#include <AssetProcessor/Processors/ImageProcessor.h>
 
-EZ_STATICLINK_LIBRARY(RAI)
+ezResult spImageProcessor::Process(ezStringView sFilename, ezStringView sOutputPath)
 {
-  if (bReturn)
-    return;
+  EZ_LOG_BLOCK("spTextureProcessor::Process", sFilename);
 
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Import_MeshImporter);
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_ImageResource);
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_MeshResource);
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_SkeletonResource);
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Mesh);
+  return m_Image2DImporter.Import(sFilename, sOutputPath);
 }
+
+spImageProcessor::spImageProcessor(const spImageProcessorConfig& config)
+  : spProcessor(config)
+  , m_Image2DImporter(config.m_TextureImporterConfig)
+{}

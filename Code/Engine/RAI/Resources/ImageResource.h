@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2023-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,53 +16,53 @@
 
 #include <RAI/RAIDLL.h>
 
-#include <RAI/Sampler.h>
+#include <RAI/Image.h>
 
 #include <Core/ResourceManager/Resource.h>
 
 namespace RAI
 {
-  typedef ezTypedResourceHandle<class spSamplerResource> spSamplerResourceHandle;
+  typedef ezTypedResourceHandle<class spImageResource> spImageResourceHandle;
 
-  class SP_RAI_DLL spSamplerResourceDescriptor
+  class SP_RAI_DLL spImageResourceDescriptor
   {
-    friend class spSamplerResource;
+    friend class spImageResource;
 
   public:
-    spSamplerResourceDescriptor();
+    spImageResourceDescriptor();
 
     void Clear();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spSampler& GetSampler() const { return m_Sampler; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spImage& GetImage() const { return m_Image; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE spImage& GetImage() { return m_Image; }
 
-    EZ_ALWAYS_INLINE void SetSampler(const spSampler& sampler) { m_Sampler = sampler; }
+    EZ_NODISCARD void SetImage(const spImage& image);
 
     ezResult Save(ezStreamWriter& inout_stream);
-    ezResult Save(ezStringView sFile);
 
     ezResult Load(ezStreamReader& inout_stream);
-    ezResult Load(ezStringView sFile);
+    ezResult Load(ezStringView sFileName);
 
   private:
-    spSampler m_Sampler;
+    spImage m_Image;
   };
 
-  class SP_RAI_DLL spSamplerResource final : public ezResource
+  class SP_RAI_DLL spImageResource final : public ezResource
   {
-    EZ_ADD_DYNAMIC_REFLECTION(spSamplerResource, ezResource);
-    EZ_RESOURCE_DECLARE_COMMON_CODE(spSamplerResource);
-    EZ_RESOURCE_DECLARE_CREATEABLE(spSamplerResource, spSamplerResourceDescriptor);
+    EZ_ADD_DYNAMIC_REFLECTION(spImageResource, ezResource);
+    EZ_RESOURCE_DECLARE_COMMON_CODE(spImageResource);
+    EZ_RESOURCE_DECLARE_CREATEABLE(spImageResource, spImageResourceDescriptor);
 
   public:
-    spSamplerResource();
+    spImageResource();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spSamplerResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spImageResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
 
   private:
     ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;
     ezResourceLoadDesc UpdateContent(ezStreamReader* pStream) override;
     void UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage) override;
 
-    spSamplerResourceDescriptor m_Descriptor;
+    spImageResourceDescriptor m_Descriptor;
   };
 } // namespace RAI

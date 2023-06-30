@@ -1,10 +1,22 @@
+// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #pragma once
 
 #include <RAI/RAIDLL.h>
 
 #include <RAI/Core.h>
-
-#include <meshoptimizer.h>
 
 namespace RAI
 {
@@ -119,6 +131,9 @@ namespace RAI
     void Clear();
 
   private:
+    void ReadData(ezStreamReader& inout_stream);
+    void WriteData(ezStreamWriter& inout_stream) const;
+
     Data m_Data;
     Node m_Root;
   };
@@ -182,48 +197,6 @@ inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spMesh::Nod
   inout_stream >> ref_meshNode.m_sMaterial;
   inout_stream.ReadArray(ref_meshNode.m_Entries).AssertSuccess();
   inout_stream.ReadArray(ref_meshNode.m_Children).AssertSuccess();
-
-  return inout_stream;
-}
-
-inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spMesh::Data& meshData)
-{
-  ezDynamicArray<ezUInt8> vertexData;
-  vertexData.SetCountUninitialized(static_cast<ezUInt32>(meshopt_encodeVertexBufferBound(meshData.m_Vertices.GetCount(), sizeof(RAI::spVertex))));
-  vertexData.SetCount(static_cast<ezUInt32>(meshopt_encodeVertexBuffer(vertexData.GetData(), vertexData.GetCount(), meshData.m_Vertices.GetData(), meshData.m_Vertices.GetCount(), sizeof(RAI::spVertex))));
-
-  ezDynamicArray<ezUInt8> indexData;
-  indexData.SetCountUninitialized(static_cast<ezUInt32>(meshopt_encodeIndexBufferBound(meshData.m_Indices.GetCount(), meshData.m_Vertices.GetCount())));
-  indexData.SetCount(static_cast<ezUInt32>(meshopt_encodeIndexBuffer(indexData.GetData(), indexData.GetCount(), meshData.m_Indices.GetData(), meshData.m_Indices.GetCount())));
-
-  inout_stream << meshData.m_Vertices.GetCount();
-  inout_stream << meshData.m_Indices.GetCount();
-
-  inout_stream.WriteArray(vertexData).AssertSuccess();
-  inout_stream.WriteArray(indexData).AssertSuccess();
-
-  return inout_stream;
-}
-
-inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spMesh::Data& ref_meshData)
-{
-  ezDynamicArray<ezUInt8> vertexData;
-  ezDynamicArray<ezUInt8> indexData;
-  ezUInt32 uiVertexCount = 0;
-  ezUInt32 uiIndexCount = 0;
-
-  inout_stream >> uiVertexCount;
-  inout_stream >> uiIndexCount;
-
-  inout_stream.ReadArray(vertexData).AssertSuccess();
-  inout_stream.ReadArray(indexData).AssertSuccess();
-
-  ref_meshData.m_Vertices.SetCountUninitialized(uiVertexCount);
-  ref_meshData.m_Indices.SetCountUninitialized(uiIndexCount);
-
-  const ezUInt32 uiResVb = meshopt_decodeVertexBuffer(ref_meshData.m_Vertices.GetData(), uiVertexCount, sizeof(RAI::spVertex), vertexData.GetData(), vertexData.GetCount());
-  const ezUInt32 uiResIb = meshopt_decodeIndexBuffer(ref_meshData.m_Indices.GetData(), uiIndexCount, indexData.GetData(), indexData.GetCount());
-  EZ_ASSERT_DEV(uiResIb == 0 && uiResVb == 0, "Invalid mesh asset");
 
   return inout_stream;
 }

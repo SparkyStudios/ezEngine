@@ -1,3 +1,17 @@
+// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <RAI/RAIPCH.h>
 
 #include <RAI/Resources/MeshResource.h>
@@ -86,7 +100,7 @@ namespace RAI
   {
     inout_stream << kMeshResourceVersion;
 
-    ezUInt8 uiCompressionMode = 0;
+    ezUInt8 uiCompressionMode;
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     uiCompressionMode = 1;
@@ -117,7 +131,7 @@ namespace RAI
       chunk.BeginChunk(kLODsDataChunkName, 1);
       {
         for (auto& lod : m_LODs)
-          chunk << lod.m_Data;
+          lod.WriteData(chunk);
       }
       chunk.EndChunk();
 
@@ -228,7 +242,7 @@ namespace RAI
           }
 
           for (auto& lod : m_LODs)
-            chunk >> lod.m_Data;
+            lod.ReadData(chunk);
         }
 
         // LODs Node chunk
@@ -282,16 +296,17 @@ namespace RAI
 
   ezResourceLoadDesc spMeshResource::UnloadData(Unload WhatToUnload)
   {
-    ezUInt8 uiNumLODs = m_Descriptor.GetNumLODs();
+    const ezUInt8 uiNumLODs = m_Descriptor.GetNumLODs();
+    ezUInt8 remainingLODs = uiNumLODs;
 
     if (uiNumLODs > 0)
     {
-      for (ezUInt32 i = 0, l = uiNumLODs; i < l; ++i)
+      for (ezUInt8 i = 0, l = uiNumLODs; i < l; ++i)
       {
-        m_Descriptor.ClearLOD(i);
-        --uiNumLODs;
+        remainingLODs = uiNumLODs - i - 1;
+        m_Descriptor.ClearLOD(remainingLODs);
 
-        if (WhatToUnload == Unload::OneQualityLevel || uiNumLODs == 0)
+        if (WhatToUnload == Unload::OneQualityLevel || remainingLODs == 0)
           break;
       }
     }
@@ -302,9 +317,9 @@ namespace RAI
     }
 
     ezResourceLoadDesc res;
-    res.m_uiQualityLevelsDiscardable = uiNumLODs;
-    res.m_uiQualityLevelsLoadable = SP_RAI_MAX_LOD_COUNT - uiNumLODs;
-    res.m_State = uiNumLODs == 0 ? ezResourceState::Unloaded : ezResourceState::Loaded;
+    res.m_uiQualityLevelsDiscardable = remainingLODs;
+    res.m_uiQualityLevelsLoadable = uiNumLODs;
+    res.m_State = remainingLODs == 0 ? ezResourceState::Unloaded : ezResourceState::Loaded;
 
     return res;
   }

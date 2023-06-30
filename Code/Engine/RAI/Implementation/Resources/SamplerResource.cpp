@@ -27,7 +27,7 @@ namespace RAI
 
   void spSamplerResourceDescriptor::Clear()
   {
-    m_Sampler.SetSamplerDescription(RHI::spSamplerDescription::Linear);
+    m_Sampler.SetDescription(RHI::spSamplerDescription::Linear);
   }
 
   ezResult spSamplerResourceDescriptor::Save(ezStreamWriter& inout_stream)

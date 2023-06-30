@@ -14,42 +14,40 @@
 
 #include <RAI/RAIPCH.h>
 
-#include <RAI/Resources/SkeletonResource.h>
-
-#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-#  include <Foundation/IO/CompressedStreamBrotliG.h>
-#endif
+#include <RAI/Resources/ImageResource.h>
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
 #  include <Foundation/IO/CompressedStreamZstd.h>
 #endif
 
+#include <ktx.h>
+
 namespace RAI
 {
-  static constexpr ezTypeVersion kSkeletonResourceVersion = 1;
-
   // clang-format off
-  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSkeletonResource, kSkeletonResourceVersion, ezRTTIDefaultAllocator<spSkeletonResource>)
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spImageResource, 1, ezRTTIDefaultAllocator<spImageResource>)
   EZ_END_DYNAMIC_REFLECTED_TYPE;
 
-  EZ_RESOURCE_IMPLEMENT_COMMON_CODE(spSkeletonResource);
+  EZ_RESOURCE_IMPLEMENT_COMMON_CODE(spImageResource);
   // clang-format on
 
-#pragma region spSkeletonResourceDescriptor
+#pragma region spImageResourceDescriptor
 
-  spSkeletonResourceDescriptor::spSkeletonResourceDescriptor()
+  static constexpr ezTypeVersion kImageResourceVersion = 1;
+
+  spImageResourceDescriptor::spImageResourceDescriptor()
   {
     Clear();
   }
 
-  void spSkeletonResourceDescriptor::Clear()
+  void spImageResourceDescriptor::Clear()
   {
-    m_Skeleton.GetJoints().Clear();
+    m_Image.GetData().Clear();
   }
 
-  ezResult spSkeletonResourceDescriptor::Save(ezStreamWriter& inout_stream)
+  ezResult spImageResourceDescriptor::Save(ezStreamWriter& inout_stream)
   {
-    inout_stream.WriteVersion(kSkeletonResourceVersion);
+    inout_stream.WriteVersion(kImageResourceVersion);
 
     ezUInt8 uiCompressionMode = 0;
 
@@ -59,30 +57,23 @@ namespace RAI
     uiCompressionMode = 1;
     ezCompressedStreamWriterZstd compressor(&inout_stream, ezCompressedStreamWriterZstd::Compression::Average);
     pWriter = &compressor;
-#elif BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-    uiCompressionMode = 2;
-    ezCompressedStreamWriterBrotliG compressor(&inout_stream);
-    pWriter = &compressor;
 #endif
 
     inout_stream << uiCompressionMode;
 
-    EZ_SUCCEED_OR_RETURN(pWriter->WriteArray(m_Skeleton.GetJoints()));
+    *pWriter << m_Image;
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     compressor.FinishCompressedStream().IgnoreResult();
-    ezLog::Dev("Compressed skeleton data from {0}KB to {1}KB ({2}%%) using Zstd", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
-#elif BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-    compressor.FinishCompressedStream().IgnoreResult();
-    ezLog::Dev("Compressed skeleton data from {0}KB to {1}KB ({2}%%) using BrotliG", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
+    ezLog::Dev("Compressed image data from {0}KB to {1}KB ({2}%%) using Zstd", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
 #endif
 
     return EZ_SUCCESS;
   }
 
-  ezResult spSkeletonResourceDescriptor::Load(ezStreamReader& inout_stream)
+  ezResult spImageResourceDescriptor::Load(ezStreamReader& inout_stream)
   {
-    inout_stream.ReadVersion(kSkeletonResourceVersion);
+    inout_stream.ReadVersion(kImageResourceVersion);
 
     ezUInt8 uiCompressionMode = 0;
     inout_stream >> uiCompressionMode;
@@ -91,10 +82,6 @@ namespace RAI
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     ezCompressedStreamReaderZstd decompressorZstd;
-#endif
-
-#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-    ezCompressedStreamReaderBrotliG decompressorBrotliG;
 #endif
 
     switch (uiCompressionMode)
@@ -112,34 +99,24 @@ namespace RAI
         return EZ_FAILURE;
 #endif
 
-      case 2:
-#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-        decompressorBrotliG.SetInputStream(&inout_stream);
-        pReader = &decompressorBrotliG;
-        break;
-#else
-        ezLog::Error("Asset is compressed with BrotliG, but support for this compressor is not compiled in.");
-        return EZ_FAILURE;
-#endif
-
       default:
         ezLog::Error("Asset is compressed with an unknown algorithm.");
         return EZ_FAILURE;
     }
 
-    EZ_SUCCEED_OR_RETURN(pReader->ReadArray(m_Skeleton.GetJoints()));
+    *pReader >> m_Image;
 
     return EZ_SUCCESS;
   }
 
-  ezResult spSkeletonResourceDescriptor::Load(ezStringView sFileName)
+  ezResult spImageResourceDescriptor::Load(ezStringView sFileName)
   {
-    EZ_LOG_BLOCK("spSkeletonResourceDescriptor::Load", sFileName);
+    EZ_LOG_BLOCK("spImageResourceDescriptor::Load", sFileName);
 
     ezFileReader file;
     if (file.Open(sFileName, 1024 * 1024).Failed())
     {
-      ezLog::Error("Failed to open skeleton asset '{0}'", sFileName);
+      ezLog::Error("Failed to load image asset '{0}'", sFileName);
       return EZ_FAILURE;
     }
 
@@ -148,16 +125,17 @@ namespace RAI
 
 #pragma endregion
 
-#pragma region spSkeletonResource
+#pragma region spImageResource
 
-  spSkeletonResource::spSkeletonResource()
-    : ezResource(DoUpdate::OnAnyThread, 1)
+  spImageResource::spImageResource()
+    : ezResource(DoUpdate::OnAnyThread, 2)
   {
   }
 
-  ezResourceLoadDesc spSkeletonResource::UnloadData(Unload WhatToUnload)
+  ezResourceLoadDesc spImageResource::UnloadData(ezResource::Unload WhatToUnload)
   {
     m_Descriptor.Clear();
+    m_Descriptor.m_Image.UnloadImageData();
 
     ezResourceLoadDesc res;
     res.m_uiQualityLevelsDiscardable = 0;
@@ -167,9 +145,9 @@ namespace RAI
     return res;
   }
 
-  ezResourceLoadDesc spSkeletonResource::UpdateContent(ezStreamReader* pStream)
+  ezResourceLoadDesc spImageResource::UpdateContent(ezStreamReader* pStream)
   {
-    spSkeletonResourceDescriptor desc;
+    spImageResourceDescriptor desc;
 
     ezResourceLoadDesc res;
     res.m_uiQualityLevelsDiscardable = 0;
@@ -199,18 +177,24 @@ namespace RAI
     return CreateResource(std::move(desc));
   }
 
-  void spSkeletonResource::UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage)
+  void spImageResource::UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage)
   {
-    out_NewMemoryUsage.m_uiMemoryCPU = sizeof(spSkeletonResource) + m_Descriptor.m_Skeleton.GetJoints().GetHeapMemoryUsage();
+    out_NewMemoryUsage.m_uiMemoryCPU = sizeof(spImageResource) + m_Descriptor.m_Image.m_Storage.GetHeapMemoryUsage() + ktxTexture_GetDataSize(ktxTexture(m_Descriptor.m_Image.m_pKtxTexture));
     out_NewMemoryUsage.m_uiMemoryGPU = 0;
   }
 
-  EZ_RESOURCE_IMPLEMENT_CREATEABLE(spSkeletonResource, spSkeletonResourceDescriptor)
+  EZ_RESOURCE_IMPLEMENT_CREATEABLE(spImageResource, spImageResourceDescriptor)
   {
     m_Descriptor = descriptor;
 
     ezResourceLoadDesc res;
     res.m_uiQualityLevelsDiscardable = 0;
+    res.m_uiQualityLevelsLoadable = 1;
+    res.m_State = ezResourceState::Unloaded;
+
+    if (m_Descriptor.m_Image.LoadImageData().Failed())
+      return res;
+
     res.m_uiQualityLevelsLoadable = 0;
     res.m_State = ezResourceState::Loaded;
 
@@ -220,4 +204,4 @@ namespace RAI
 #pragma endregion
 } // namespace RAI
 
-EZ_STATICLINK_FILE(RAI, RAI_Implementation_Resources_SkeletonResource);
+EZ_STATICLINK_FILE(RAI, RAI_Implementation_Resources_ImageResource);

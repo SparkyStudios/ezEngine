@@ -1,4 +1,19 @@
+// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <AssetProcessor/Importers/SkeletonImporter.h>
+#include <AssetProcessor/Processors/ImageProcessor.h>
 #include <AssetProcessor/Processors/MeshProcessor.h>
 
 #include <Foundation/Application/Application.h>
@@ -58,12 +73,12 @@ Examples:
 
 #pragma region Mesh processing options
 
-ezCommandLineOptionDoc opt_Meshes("_AssetProcessor", "-mesh", "<paths>", "\
-Path to one or many mesh files.\n\
-\n\
-It will generate an spMesh asset with the same file name, in the same path, unless\n\
-the -out option is specified with a different value.\n\
-",
+ezCommandLineOptionDoc opt_Meshes("_AssetProcessor", "-mesh", "<paths>", R"(
+Path to one or many mesh files.
+
+It will generate an spMesh asset with the same file name, in the same path, unless
+the -out option is specified with a different value.
+)",
   "");
 
 ezCommandLineOptionFloat opt_Mesh_Scale("_AssetProcessor_Mesh", "-scale", "The global scale to apply on the processed mesh.", 1.0f, 0.0f);
@@ -76,12 +91,12 @@ ezCommandLineOptionBool opt_Mesh_WithMaterials("_AssetProcessor_Mesh", "-with-ma
 
 ezCommandLineOptionBool opt_Mesh_WithMeshes("_AssetProcessor_Mesh", "-with-meshes", "Whether to process mesh assets from the mesh.", true);
 
-ezCommandLineOptionBool opt_Mesh_HasLODs("_AssetProcessor_Mesh", "-has-lods", "\
-Specifies if the mesh support the Spark LOD system.\n\
-\n\
-LODs will be detected and processed. The mesh need to be exported following the specifications\n\
-of the Spark LOD system for this option to work.\n\
-",
+ezCommandLineOptionBool opt_Mesh_HasLODs("_AssetProcessor_Mesh", "-has-lods", R"(
+Specifies if the mesh support the Spark LOD system.
+
+LODs will be detected and processed. The mesh need to be exported following the specifications
+of the Spark LOD system for this option to work.
+)",
   true);
 
 ezCommandLineOptionBool opt_Mesh_FlipUVs("_AssetProcessor_Mesh", "-flip-uvs", "Flips the vertex UVs.", false);
@@ -92,30 +107,50 @@ ezCommandLineOptionBool opt_Mesh_RecomputeTangents("_AssetsProcessor_Mesh", "-re
 
 ezCommandLineOptionBool opt_Mesh_FlipWindingNormals("_AssetProcessor_Mesh", "-flip-winding-normals", "Whether to flip in-facing normal vectors.", false);
 
-ezCommandLineOptionBool opt_Mesh_Optimize("_AssetProcessor_Mesh", "-optimize", "\
-Optimizes the mesh for GPU drawing.\n\
-\n\
-This will reorder the index and vertex buffers to reduce the number of data fetch from the GPU.\n\
-It's highly recommended to keep this option enabled.\
-",
+ezCommandLineOptionBool opt_Mesh_Optimize("_AssetProcessor_Mesh", "-optimize", R"(
+Optimizes the mesh for GPU drawing.
+
+This will reorder the index and vertex buffers to reduce the number of data fetch from the GPU.
+It's highly recommended to keep this option enabled.
+)",
   true);
 
 #pragma endregion
 
-ezCommandLineOptionDoc opt_Textures("_AssetProcessor", "-texture", "<paths>", "\
-Path to one or many texture files.\n\
-\n\
-It will generate an spTexture asset with the same file name, in the same path, unless\n\
-the -out option is specified with a different value.\n\
-",
+#pragma region Texture processing options
+
+ezCommandLineOptionDoc opt_Textures("_AssetProcessor", "-texture", "<paths>", R"(
+Path to one or many texture files.
+
+It will generate an spTexture asset with the same file name, in the same path, unless
+the -out option is specified with a different value.
+)",
   "");
 
-ezCommandLineOptionPath opt_Out("_AssetProcessor", "-out", "\
-The output path of the currently processed assets.\n\
-\n\
-This option always takes a directory path as input. It's in the specified directory that\n\
-the generated asset will be created.\n\
-",
+ezCommandLineOptionEnum opt_Texture_Type("_AssetProcessor_Texture", "-type", "The type of texture.", "Color|Greyscale|NormalMap|HeightMap|Material|HDR|RawData", 0);
+
+ezCommandLineOptionBool opt_Texture_FlipH("_AssetProcessor_Texture", "-flip-horizontal", "Flips the texture horizontally.", false);
+
+ezCommandLineOptionBool opt_Texture_FlipV("_AssetProcessor_Texture", "-flip-vertical", "Flips the texture vertically.", false);
+
+ezCommandLineOptionBool opt_Texture_GenerateMipMaps("_AssetProcessor_Texture", "-generate-mipmaps", "Generates mipmaps for the texture.", false);
+
+ezCommandLineOptionInt opt_Texture_MipLevelCount("_AssetProcessor_Texture", "-mip-level-count", "The number of mipmap levels to generate.", 0, 0);
+
+ezCommandLineOptionEnum opt_Texture_Filter("_AssetProcessor_Texture", "-filter", "The texture filtering mode to use when generating mipmaps.", "Kaiser|Triangle|Box", 0);
+
+ezCommandLineOptionEnum opt_Texture_WrapMode("_AssetProcessor_Texture", "-wrap-mode", "The texture wrapping mode to use when generating mipmaps.", "Clamp|Repeat|Mirror", 0);
+
+ezCommandLineOptionEnum opt_Texture_Compression("_AssetProcessor_Texture", "-compression", "The texture compression level.", "None|Medium|High", 0);
+
+#pragma endregion
+
+ezCommandLineOptionPath opt_Out("_AssetProcessor", "-out", R"(
+The output path of the currently processed assets.
+
+This option always takes a directory path as input. It's in the specified directory that
+the generated asset will be created.
+)",
   "");
 
 class spAssetProcessor : public ezApplication
@@ -147,6 +182,8 @@ public:
   AssetType m_eAssetType{AssetType::Unknown};
 
   spMeshProcessorConfig m_MeshProcessorConfig;
+
+  spImageProcessorConfig m_TextureProcessorConfig;
 
   static const char* GetSortingGroupFromAssetType(AssetType type)
   {
@@ -248,6 +285,8 @@ public:
     m_MeshProcessorConfig.m_AssimpImporterConfig.m_fScale = opt_Mesh_Scale.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
     m_MeshProcessorConfig.m_AssimpImporterConfig.m_bHasLODs = opt_Mesh_HasLODs.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
     m_MeshProcessorConfig.m_AssimpImporterConfig.m_bFlipUVs = opt_Mesh_FlipUVs.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
+    m_MeshProcessorConfig.m_AssimpImporterConfig.m_bRecomputeNormals = opt_Mesh_RecomputeNormals.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
+    m_MeshProcessorConfig.m_AssimpImporterConfig.m_bRecomputeTangents = opt_Mesh_RecomputeTangents.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
     m_MeshProcessorConfig.m_AssimpImporterConfig.m_bFlipWindingNormals = opt_Mesh_FlipWindingNormals.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
     m_MeshProcessorConfig.m_AssimpImporterConfig.m_bOptimizeMesh = opt_Mesh_Optimize.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
 
@@ -277,6 +316,15 @@ public:
         }
       }
     }
+
+    m_TextureProcessorConfig.m_TextureImporterConfig.m_bFlipHorizontal = opt_Texture_FlipH.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
+    m_TextureProcessorConfig.m_TextureImporterConfig.m_bFlipVertical = opt_Texture_FlipV.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
+    m_TextureProcessorConfig.m_TextureImporterConfig.m_bGenerateMipMaps = opt_Texture_GenerateMipMaps.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
+    m_TextureProcessorConfig.m_TextureImporterConfig.m_uiNumMipLevels = opt_Texture_MipLevelCount.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
+    m_TextureProcessorConfig.m_TextureImporterConfig.m_eMipmapFilter = static_cast<spTextureMipmapFilter::Enum>(opt_Texture_Filter.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified));
+    m_TextureProcessorConfig.m_TextureImporterConfig.m_eWrapMode = static_cast<spTextureWrapMode::Enum>(opt_Texture_WrapMode.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified));
+    m_TextureProcessorConfig.m_TextureImporterConfig.m_eType = static_cast<spTextureImageType::Enum>(opt_Texture_Type.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified));
+    m_TextureProcessorConfig.m_TextureImporterConfig.m_eCompressionLevel = static_cast<spTextureCompressionLevel::Enum>(opt_Texture_Compression.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified));
 
     return EZ_SUCCESS;
   }
@@ -338,6 +386,17 @@ public:
   */
   }
 
+  void ProcessTexture(ezHybridArray<ezString, 8>& failedImports)
+  {
+    for (const auto& input : m_sInputs)
+    {
+      spImageProcessor processor(m_TextureProcessorConfig);
+
+      if (processor.Process(input, m_sOutput).Failed())
+        failedImports.PushBack(input);
+    }
+  }
+
   void AfterCoreSystemsStartup() override
   {
     // Add the empty data directory to access files via absolute paths
@@ -387,6 +446,7 @@ public:
 
       case AssetType::Texture:
       {
+        ProcessTexture(failedImports);
         break;
       }
 

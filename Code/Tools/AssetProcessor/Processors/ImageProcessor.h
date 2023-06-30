@@ -12,16 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <RHID3D11/RHID3D11PCH.h>
+#pragma once
 
-EZ_STATICLINK_LIBRARY(RAI)
+#include <AssetProcessor/Importers/ImageImporter.h>
+#include <AssetProcessor/Processors/Processor.h>
+
+struct spImageProcessorConfig
 {
-  if (bReturn)
-    return;
+  spImageImporterConfiguration m_TextureImporterConfig;
+};
 
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Import_MeshImporter);
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_ImageResource);
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_MeshResource);
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Resources_SkeletonResource);
-  EZ_STATICLINK_REFERENCE(RAI_Implementation_Mesh);
-}
+class spImageProcessor : public spProcessor<spImageProcessorConfig>
+{
+public:
+  ezResult Process(ezStringView sFilename, ezStringView sOutputPath) override;
+
+public:
+  explicit spImageProcessor(const spImageProcessorConfig& config);
+  ~spImageProcessor() override = default;
+
+private:
+  spImage2DImporter m_Image2DImporter;
+};
