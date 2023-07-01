@@ -9,9 +9,9 @@ struct FactoryInfo
   ezString m_sShaderCompiler;
 };
 
-static ezHashTable<ezString, FactoryInfo> s_Factories;
+static ezHashTable<ezStringView, FactoryInfo> s_Factories;
 
-FactoryInfo* GetFactoryInfo(const char* szImplementationName)
+FactoryInfo* GetFactoryInfo(ezStringView szImplementationName)
 {
   auto pFactory = s_Factories.GetValue(szImplementationName);
 
@@ -29,17 +29,17 @@ FactoryInfo* GetFactoryInfo(const char* szImplementationName)
   return pFactory;
 }
 
-ezInternal::NewInstance<RHI::spDevice> spRHIImplementationFactory::CreateDevice(const char* szImplementationName, ezAllocatorBase* pAllocator, const RHI::spDeviceDescription& description)
+ezInternal::NewInstance<RHI::spDevice> spRHIImplementationFactory::CreateDevice(ezStringView szImplementationName, ezAllocatorBase* pAllocator, const RHI::spDeviceDescription& description)
 {
   if (auto pFuncInfo = GetFactoryInfo(szImplementationName))
   {
     return pFuncInfo->m_Func(pAllocator, description);
   }
 
-  return ezInternal::NewInstance<RHI::spDevice>(nullptr, pAllocator);
+  return {nullptr, pAllocator};
 }
 
-void spRHIImplementationFactory::RegisterImplementation(const char* szName, const Factory& func, const spRHIImplementationDescription& description)
+void spRHIImplementationFactory::RegisterImplementation(ezStringView szName, const Factory& func, const spRHIImplementationDescription& description)
 {
   FactoryInfo info;
   info.m_Func = func;
@@ -49,7 +49,7 @@ void spRHIImplementationFactory::RegisterImplementation(const char* szName, cons
   EZ_VERIFY(s_Factories.Insert(szName, info) == false, "Implementation already registered.");
 }
 
-void spRHIImplementationFactory::UnregisterImplementation(const char* szName)
+void spRHIImplementationFactory::UnregisterImplementation(ezStringView szName)
 {
   EZ_VERIFY(s_Factories.Remove(szName), "Implementation not registered.");
 }

@@ -83,9 +83,6 @@ ezRHISampleApp::ezRHISampleApp()
 
 void ezRHISampleApp::AfterCoreSystemsStartup()
 {
-  ezResourceManager::AllowResourceTypeAcquireDuringUpdateContent<spTexture2DResource, spImageResource>();
-  ezResourceManager::AllowResourceTypeAcquireDuringUpdateContent<spTexture2DResource, spSamplerResource>();
-
   ezStringBuilder sProjectDir = ">sdk/Data/Samples/RHISample";
   ezStringBuilder sProjectDirResolved;
   ezFileSystem::ResolveSpecialDirectory(sProjectDir, sProjectDirResolved).IgnoreResult();
@@ -117,34 +114,34 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   ezEnum<spGraphicsApi> eApiType = spGraphicsApi::Direct3D11;
 
-  const char* szRendererName = ezCommandLineUtils::GetGlobalInstance()->GetStringOption("-rhi", 0, "D3D11");
+  ezStringView szRendererName = ezCommandLineUtils::GetGlobalInstance()->GetStringOption("-rhi", 0, "D3D11");
   {
-    if (ezStringUtils::Compare(szRendererName, "D3D11") == 0)
+    if (szRendererName.Compare("D3D11") == 0)
     {
       eApiType = spGraphicsApi::Direct3D11;
     }
 
-    else if (ezStringUtils::Compare(szRendererName, "D3D12") == 0)
+    else if (szRendererName.Compare("D3D12") == 0)
     {
       eApiType = spGraphicsApi::Direct3D12;
     }
 
-    else if (ezStringUtils::Compare(szRendererName, "VK") == 0)
+    else if (szRendererName.Compare("VK") == 0)
     {
       eApiType = spGraphicsApi::Vulkan;
     }
 
-    else if (ezStringUtils::Compare(szRendererName, "GL") == 0)
+    else if (szRendererName.Compare("GL") == 0)
     {
       eApiType = spGraphicsApi::OpenGL;
     }
 
-    else if (ezStringUtils::Compare(szRendererName, "GLES") == 0)
+    else if (szRendererName.Compare("GLES") == 0)
     {
       eApiType = spGraphicsApi::OpenGLES;
     }
 
-    else if (ezStringUtils::Compare(szRendererName, "MTL") == 0)
+    else if (szRendererName.Compare("MTL") == 0)
     {
       eApiType = spGraphicsApi::Metal;
     }
@@ -202,7 +199,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   auto* pFactory = m_pDevice->GetResourceFactory();
 
-  m_hTexture = ezResourceManager::LoadResource<spTexture2DResource>(":project/textures/grid.spTexture2D");
+  m_hTexture = ezResourceManager::LoadResource<spTexture2DResource>(":project/textures/ground.spTexture2D");
 
   const ezResourceLock imageResource(m_hTexture, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
   if (!imageResource.IsValid())
