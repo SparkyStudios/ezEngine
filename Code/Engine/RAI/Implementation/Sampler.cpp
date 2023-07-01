@@ -2,21 +2,33 @@
 
 #include <RAI/Sampler.h>
 
-using namespace RAI;
+#include <RHI/Device.h>
 
-RAI::spSampler RAI::spSampler::CreatePoint()
+namespace RAI
 {
-  return spSampler(RHI::spSamplerDescription::Point);
-}
+  spSampler spSampler::CreatePoint()
+  {
+    return spSampler(RHI::spSamplerDescription::Point);
+  }
 
-RAI::spSampler RAI::spSampler::CreateLinear()
-{
-  return spSampler(RHI::spSamplerDescription::Linear);
-}
+  spSampler spSampler::CreateLinear()
+  {
+    return spSampler(RHI::spSamplerDescription::Linear);
+  }
 
-RAI::spSampler RAI::spSampler::CreateAnisotropic4x()
-{
-  return spSampler(RHI::spSamplerDescription::Anisotropic4x);
-}
+  spSampler spSampler::CreateAnisotropic4x()
+  {
+    return spSampler(RHI::spSamplerDescription::Anisotropic4x);
+  }
+
+  void spSampler::CreateRHISampler()
+  {
+    if (m_RHISampler != nullptr)
+      return;
+
+    auto* pDevice = ezSingletonRegistry::GetSingletonInstance<RHI::spDevice>();
+    m_RHISampler = pDevice->GetResourceFactory()->CreateSampler(m_Description);
+  }
+} // namespace RAI
 
 EZ_STATICLINK_FILE(RAI, RAI_Implementation_Sampler);

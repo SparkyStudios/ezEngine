@@ -104,6 +104,9 @@ namespace RAI
 
   ezResourceLoadDesc spSamplerResource::UnloadData(Unload WhatToUnload)
   {
+    if (m_Descriptor.m_Sampler.m_RHISampler != nullptr)
+      m_Descriptor.m_Sampler.m_RHISampler.Clear();
+
     m_Descriptor.Clear();
 
     ezResourceLoadDesc res;
@@ -154,10 +157,14 @@ namespace RAI
 
   EZ_RESOURCE_IMPLEMENT_CREATEABLE(spSamplerResource, spSamplerResourceDescriptor)
   {
-    m_Descriptor = descriptor;
+    // Create the RHI sampler resource
+    descriptor.m_Sampler.CreateRHISampler();
+    descriptor.m_Sampler.m_RHISampler->SetDebugName(GetResourceDescription());
+
+    m_Descriptor = std::move(descriptor);
 
     ezResourceLoadDesc res;
-    res.m_uiQualityLevelsDiscardable = 0;
+    res.m_uiQualityLevelsDiscardable = 1;
     res.m_uiQualityLevelsLoadable = 0;
     res.m_State = ezResourceState::Loaded;
 

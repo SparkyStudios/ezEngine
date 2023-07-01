@@ -116,7 +116,7 @@ namespace RAI
       {
         --m_uiLoadedTextures;
 
-        if (m_RHITexture[m_uiLoadedTextures]->IsReferenced())
+        if (m_RHITexture[m_uiLoadedTextures] != nullptr)
           m_RHITexture[m_uiLoadedTextures].Clear();
 
         m_uiGPUMemoryUsed[m_uiLoadedTextures] = 0;
@@ -126,7 +126,7 @@ namespace RAI
       }
     }
 
-    if (WhatToUnload == Unload::AllQualityLevels && m_RHISampler->IsReferenced())
+    if (WhatToUnload == Unload::AllQualityLevels && m_RHISampler != nullptr)
       m_RHISampler.Clear();
 
     ezResourceLoadDesc res;
@@ -186,7 +186,13 @@ namespace RAI
       pImage->GetArrayLayerCount(),
       pImage->GetPixelFormat(),
       RHI::spTextureUsage::Sampled);
-    desc.m_RHISamplerDescription = pSampler->GetDescription();
+
+    {
+      if (m_RHISampler != nullptr)
+        m_RHISampler.Clear();
+
+      m_RHISampler = pSampler->GetRHISampler();
+    }
 
     {
       ezHybridArray<ezByteBlobPtr, 32> imageData;
@@ -209,8 +215,6 @@ namespace RAI
 
   EZ_RESOURCE_IMPLEMENT_CREATEABLE(spTexture2DResource, spTextureResourceDescriptor)
   {
-    m_Descriptor = descriptor;
-
     auto* pDevice = ezSingletonRegistry::GetSingletonInstance<RHI::spDevice>();
 
     // Set the correct texture description for the loaded mipmap
@@ -232,15 +236,10 @@ namespace RAI
         1, m, 0);
     }
 
+    ezMemoryUtils::Destruct(descriptor.m_ImageData.GetPtr(), descriptor.m_ImageData.GetCount());
     descriptor.m_ImageData.Clear();
 
     m_RHITexture[m_uiLoadedTextures]->SetDebugName(GetResourceDescription());
-
-    if (m_RHISampler != nullptr && m_RHISampler->IsReleased())
-      m_RHISampler.Clear();
-
-    m_RHISampler = pDevice->GetResourceFactory()->CreateSampler(descriptor.m_RHISamplerDescription);
-    // m_RHISampler->SetDebugName(samplerResource.GetPointer()->GetResourceDescription());
 
     // Calculate the GPU memory used for the texture
     m_uiGPUMemoryUsed[m_uiLoadedTextures] = RHI::spPixelFormatHelper::GetDepthPitch(
@@ -249,6 +248,8 @@ namespace RAI
       desc.m_eFormat);
 
     ++m_uiLoadedTextures;
+
+    m_Descriptor = std::move(descriptor);
 
     ezResourceLoadDesc res;
     res.m_uiQualityLevelsDiscardable = m_uiLoadedTextures;

@@ -51,7 +51,6 @@ namespace RAI
     spTexture m_Texture;
 
     RHI::spTextureDescription m_RHITextureDescription;
-    RHI::spSamplerDescription m_RHISamplerDescription;
 
     ezArrayPtr<ezByteBlobPtr> m_ImageData;
   };
@@ -76,8 +75,8 @@ namespace RAI
 
     spTextureResourceDescriptor m_Descriptor;
 
-    ezSharedPtr<RHI::spSampler> m_RHISampler;
-    ezSharedPtr<RHI::spTexture> m_RHITexture[2];
+    ezSharedPtr<RHI::spSampler> m_RHISampler{nullptr};
+    ezSharedPtr<RHI::spTexture> m_RHITexture[2]{nullptr, nullptr};
     ezUInt32 m_uiGPUMemoryUsed[2]{0, 0};
 
     ezUInt8 m_uiLoadedMipLevel{0};
