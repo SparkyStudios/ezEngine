@@ -200,8 +200,8 @@ namespace RHI
     void SubmitCommandList(ezSharedPtr<spCommandList> pCommandList);
 
     /// \brief Submits the given \a spCommandList for execution by this device.
-    /// \param [in] pCommandList The handle to the command list to execute.
-    /// \param [in] pFence The handle to the \a spFence which will be signaled after this submission fully completes execution.
+    /// \param [in] pCommandList The command list to execute.
+    /// \param [in] pFence The \a spFence which will be signaled after this submission fully completes execution.
     ///
     /// \note Commands submitted with this method will block the calling thread until
     /// all commands are executed.

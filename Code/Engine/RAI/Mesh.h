@@ -18,6 +18,8 @@
 
 #include <RAI/Core.h>
 
+#include <RHI/CommandList.h>
+
 namespace RAI
 {
   /// \brief A mesh asset. Stores all needed data to render a mesh.
@@ -25,6 +27,8 @@ namespace RAI
   {
     friend class spMeshResource;
     friend class spMeshResourceDescriptor;
+
+#pragma region RAI Resource
 
   public:
     /// \brief The mesh data. Stores all the vertices and indices.
@@ -107,6 +111,8 @@ namespace RAI
     {
     }
 
+    ~spMesh() noexcept;
+
     /// \brief Gets the data of this mesh asset.
     EZ_NODISCARD EZ_ALWAYS_INLINE const Data& GetData() const { return m_Data; }
 
@@ -130,12 +136,49 @@ namespace RAI
     /// \brief Clear the mesh data.
     void Clear();
 
+    /// \brief Generate draw commands.
+    /// \param [out] out_DrawCommands The generated array of draw commands.
+    void GetDrawCommands(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands) const;
+
   private:
     void ReadData(ezStreamReader& inout_stream);
     void WriteData(ezStreamWriter& inout_stream) const;
 
     Data m_Data;
     Node m_Root;
+
+#pragma endregion
+
+#pragma region RHI Resources
+
+  public:
+    /// \brief Creates a RHI buffer resource for the vertex
+    /// buffer of this mesh.
+    void CreateRHIVertexBuffer();
+
+    /// \brief Creates a RHI buffer resource for the index
+    /// buffer of this mesh.
+    void CreateRHIIndexBuffer();
+
+    /// \brief Creates a RHI buffer resource for the draw commands
+    /// of this mesh.
+    void CreateRHIIndirectBuffer();
+
+    /// \brief Gets the RHI buffer resource for the vertex buffer.
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIVertexBuffer() const { return m_RHIVertexBuffer; }
+
+    /// \brief Gets the RHI buffer resource for the index buffer.
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndexBuffer() const { return m_RHIIndexBuffer; }
+
+    /// \brief Gets the RHI buffer resource for the indirect buffer (draw commands).
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndirectBuffer() const { return m_RHIIndirectBuffer; }
+
+  private:
+    ezSharedPtr<RHI::spBuffer> m_RHIVertexBuffer{nullptr};
+    ezSharedPtr<RHI::spBuffer> m_RHIIndexBuffer{nullptr};
+    ezSharedPtr<RHI::spBuffer> m_RHIIndirectBuffer{nullptr};
+
+#pragma endregion
   };
 } // namespace RAI
 

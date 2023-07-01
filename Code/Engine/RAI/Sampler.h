@@ -40,6 +40,8 @@ namespace RAI
     {
     }
 
+    ~spSampler() noexcept;
+
     EZ_NODISCARD EZ_ALWAYS_INLINE const RHI::spSamplerDescription& GetDescription() const { return m_Description; }
 
     EZ_ALWAYS_INLINE void SetDescription(RHI::spSamplerDescription value) { m_Description = std::move(value); }

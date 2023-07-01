@@ -214,14 +214,9 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   m_Mesh = resource.GetPointer()->GetDescriptor().GetLOD(0);
 
-  ezUInt32 uiVerticesCount = m_Mesh.GetData().m_Vertices.GetCount();
-  ezUInt32 uiIndicesCount = m_Mesh.GetData().m_Indices.GetCount();
-
-  auto pVertexBuffer = pFactory->CreateBuffer(spBufferDescription(sizeof(spVertex) * uiVerticesCount, spBufferUsage::VertexBuffer));
-  auto pIndexBuffer = pFactory->CreateBuffer(spBufferDescription(sizeof(ezUInt16) * uiIndicesCount, spBufferUsage::IndexBuffer));
-
-  m_pDevice->UpdateBuffer<spVertex>(pVertexBuffer, 0, m_Mesh.GetData().m_Vertices.GetArrayPtr());
-  m_pDevice->UpdateBuffer<ezUInt16>(pIndexBuffer, 0, m_Mesh.GetData().m_Indices.GetArrayPtr());
+  m_Mesh.CreateRHIVertexBuffer();
+  m_Mesh.CreateRHIIndexBuffer();
+  m_Mesh.CreateRHIIndirectBuffer();
 
   // --- Begin Experimental render graph
 
@@ -232,8 +227,9 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   spResourceHandle importedTex = graphBuilder->Import(imageResource.GetPointer()->GetRHITexture()); // Import a resource in the graph
   spResourceHandle importedSmp = graphBuilder->Import(imageResource.GetPointer()->GetRHISampler()); // Import a resource in the graph
-  spResourceHandle importedVBO = graphBuilder->Import(pVertexBuffer);                               // Import a resource in the graph
-  spResourceHandle importedIBO = graphBuilder->Import(pIndexBuffer);                                // Import a resource in the graph
+  spResourceHandle importedVBO = graphBuilder->Import(m_Mesh.GetRHIVertexBuffer());                 // Import a resource in the graph
+  spResourceHandle importedIBO = graphBuilder->Import(m_Mesh.GetRHIIndexBuffer());                  // Import a resource in the graph
+  spResourceHandle importedIDB = graphBuilder->Import(m_Mesh.GetRHIIndirectBuffer());               // Import a resource in the graph
 
   // 2. Setup graph nodes
   ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(m_pDevice->GetAllocator(), spTriangleDemoRenderGraphNode, &m_Mesh);
@@ -243,6 +239,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   triangleNodeResources.Insert(ezMakeHashedString("smp"), importedSmp);
   triangleNodeResources.Insert(ezMakeHashedString("vbo"), importedVBO);
   triangleNodeResources.Insert(ezMakeHashedString("ibo"), importedIBO);
+  triangleNodeResources.Insert(ezMakeHashedString("idb"), importedIDB);
 
   graphBuilder->AddNode("Triangle", std::move(triangleNode), triangleNodeResources);
 
@@ -305,24 +302,6 @@ void ezRHISampleApp::OnResize(ezUInt32 width, ezUInt32 height)
   m_pDevice->ResizeSwapchain(width, height);
 }
 
-static void GetDrawCommands(ezDynamicArray<spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands, const spMesh::Node& node)
-{
-  for (const auto& entry : node.m_Entries)
-  {
-    spDrawIndexedIndirectCommand cmd;
-    cmd.m_uiCount = entry.m_uiIndexCount;
-    cmd.m_uiInstanceCount = 1;
-    cmd.m_uiFirstIndex = entry.m_uiBaseIndex;
-    cmd.m_uiBaseVertex = entry.m_uiBaseVertex;
-    cmd.m_uiBaseInstance = 0;
-
-    out_DrawCommands.PushBack(cmd);
-  }
-
-  for (const auto& child : node.m_Children)
-    GetDrawCommands(out_DrawCommands, child);
-}
-
 ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources)
 {
   if (!resources.TryGetValue("tex", m_PassData.m_hGridTexture))
@@ -333,9 +312,10 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
     return EZ_FAILURE;
   if (!resources.TryGetValue("ibo", m_PassData.m_hIndexBuffer))
     return EZ_FAILURE;
+  if (!resources.TryGetValue("idb", m_PassData.m_hIndirectBuffer))
+    return EZ_FAILURE;
 
-  GetDrawCommands(m_PassData.m_DrawCommands, m_pMesh->GetRootNode());
-  m_PassData.m_hIndirectBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(spDrawIndexedIndirectCommand) * m_PassData.m_DrawCommands.GetCount(), spBufferUsage::IndirectBuffer), spRenderGraphResourceBindType::Transient);
+  m_pMesh->GetDrawCommands(m_PassData.m_DrawCommands);
 
   spRenderTargetDescription rtDescription{};
   rtDescription.m_bGenerateMipMaps = false;
@@ -346,9 +326,9 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
 
   m_PassData.m_hGridTexture = pBuilder->Read(this, m_PassData.m_hGridTexture);
   m_PassData.m_hConstantBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezColor), spBufferUsage::ConstantBuffer | spBufferUsage::Dynamic | spBufferUsage::TripleBuffered), spRenderGraphResourceBindType::Transient);
-  // m_PassData.m_hIndexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezUInt16) * 3, spBufferUsage::IndexBuffer), spRenderGraphResourceBindType::Transient);
-  // m_PassData.m_hVertexBuffer = pBuilder->CreateBuffer(this, spBufferDescription(sizeof(ezVec3) * 3, spBufferUsage::VertexBuffer), spRenderGraphResourceBindType::Transient);
-  // m_PassData.m_hSampler = pBuilder->CreateSampler(this, spSamplerDescription::Linear, spRenderGraphResourceBindType::Transient);
+  m_PassData.m_hIndexBuffer = pBuilder->Read(this, m_PassData.m_hIndexBuffer);
+  m_PassData.m_hVertexBuffer = pBuilder->Read(this, m_PassData.m_hVertexBuffer);
+  m_PassData.m_hIndirectBuffer = pBuilder->Read(this, m_PassData.m_hIndirectBuffer);
   m_PassData.m_hSampler = pBuilder->Read(this, m_PassData.m_hSampler);
   m_PassData.m_hRenderTarget = pBuilder->CreateRenderTarget(this, rtDescription, spRenderGraphResourceBindType::ReadOnly);
 
@@ -443,11 +423,6 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 
     if (data.m_pVertexShader == nullptr)
     {
-      context->GetDevice()->UpdateBuffer<spDrawIndexedIndirectCommand>(idb->m_pResource.Downcast<spBuffer>(), 0, m_PassData.m_DrawCommands.GetArrayPtr());
-
-      // context->GetDevice()->UpdateBuffer<ezUInt16>(ibo->m_pResource.Downcast<spBuffer>(), 0, &IndexBuffer[0], EZ_ARRAY_SIZE(IndexBuffer));
-      // context->GetDevice()->UpdateBuffer<float>(vbo->m_pResource.Downcast<spBuffer>(), 0, &VertexBuffer[0], EZ_ARRAY_SIZE(VertexBuffer));
-
       spShaderDescription vsDescription{};
       vsDescription.m_sEntryPoint = ezMakeHashedString("main");
       vsDescription.m_eShaderStage = spShaderStage::VertexShader;
