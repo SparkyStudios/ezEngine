@@ -131,6 +131,25 @@ namespace RHI
     }
   }
 
+  ezDynamicArray<spResourceLayoutDescription> spShaderProgramD3D11::GetResourceLayoutDescriptions() const
+  {
+    ezDynamicArray<spResourceLayoutDescription> result;
+    auto& resourceLayoutDescription = result.ExpandAndGetRef();
+
+    if (m_pVertexShader != nullptr)
+      GetResourceLayoutElementsForStage(spShaderStage::VertexShader, resourceLayoutDescription.m_Elements);
+    if (m_pGeometryShader != nullptr)
+      GetResourceLayoutElementsForStage(spShaderStage::GeometryShader, resourceLayoutDescription.m_Elements);
+    if (m_pHullShader != nullptr)
+      GetResourceLayoutElementsForStage(spShaderStage::HullShader, resourceLayoutDescription.m_Elements);
+    if (m_pPixelShader != nullptr)
+      GetResourceLayoutElementsForStage(spShaderStage::PixelShader, resourceLayoutDescription.m_Elements);
+    if (m_pComputeShader != nullptr)
+      GetResourceLayoutElementsForStage(spShaderStage::ComputeShader, resourceLayoutDescription.m_Elements);
+
+    return result;
+  }
+
   spShaderProgramD3D11::spShaderProgramD3D11(spDeviceD3D11* pDevice)
     : spShaderProgram()
   {
@@ -143,6 +162,56 @@ namespace RHI
   spShaderProgramD3D11::~spShaderProgramD3D11()
   {
     m_pDevice->GetResourceManager()->ReleaseResource(this);
+  }
+
+  void spShaderProgramD3D11::GetResourceLayoutElementsForStage(const ezEnum<RHI::spShaderStage>& eStage, ezDynamicArray<spResourceLayoutElementDescription>& out_elements) const
+  {
+    ezByteArrayPtr pByteCode;
+
+    if (eStage == spShaderStage::VertexShader)
+    {
+      m_pVertexShader->EnsureResourceCreated();
+      pByteCode = m_pVertexShader->GetShaderByteCode();
+    }
+    else if (eStage == spShaderStage::GeometryShader)
+    {
+      m_pGeometryShader->EnsureResourceCreated();
+      pByteCode = m_pGeometryShader->GetShaderByteCode();
+    }
+    else if (eStage == spShaderStage::HullShader)
+    {
+      m_pHullShader->EnsureResourceCreated();
+      pByteCode = m_pHullShader->GetShaderByteCode();
+    }
+    else if (eStage == spShaderStage::PixelShader)
+    {
+      m_pPixelShader->EnsureResourceCreated();
+      pByteCode = m_pPixelShader->GetShaderByteCode();
+    }
+    else if (eStage == spShaderStage::DomainShader)
+    {
+      m_pDomainShader->EnsureResourceCreated();
+      pByteCode = m_pDomainShader->GetShaderByteCode();
+    }
+
+    EZ_ASSERT_DEV(!pByteCode.IsEmpty(), "Unable to find shader byte code for stage {}.", eStage);
+
+    ID3D11ShaderReflection* pReflector = nullptr;
+    D3DReflect(pByteCode.GetPtr(), pByteCode.GetCount(), IID_ID3D11ShaderReflection, (void**)&pReflector);
+
+    D3D11_SHADER_DESC shaderDesc;
+    pReflector->GetDesc(&shaderDesc);
+
+    for (ezUInt32 i = 0, l = shaderDesc.BoundResources; i < l; ++i)
+    {
+      D3D11_SHADER_INPUT_BIND_DESC shaderInputBindDesc;
+      pReflector->GetResourceBindingDesc(i, &shaderInputBindDesc);
+
+      auto& element = out_elements.ExpandAndGetRef();
+      element.m_eType = spFromD3D11(shaderInputBindDesc.Type, shaderInputBindDesc.Dimension);
+      element.m_eShaderStage = eStage;
+      element.m_sName.Assign(shaderInputBindDesc.Name);
+    }
   }
 
 #pragma endregion

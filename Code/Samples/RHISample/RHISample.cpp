@@ -337,11 +337,10 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
 
 ezUniquePtr<spRenderPass> spTriangleDemoRenderGraphNode::Compile(spRenderGraphBuilder* pBuilder)
 {
-  const spRenderPass::ExecuteCallback executeCallback = [=](const spRenderGraphResourcesTable& resources, spRenderingContext* context, ezVariant& passData) -> void
-  {
-    auto& data = passData.GetWritable<PassData>();
+  auto& data = m_PassData;
+  const auto& resources = pBuilder->GetResources();
 
-    constexpr ezUInt8 szVertexShader[] = R"(
+  constexpr ezUInt8 szVertexShader[] = R"(
 struct VS_INPUT
 {
   float3 pos : POSITION;
@@ -369,12 +368,14 @@ VS_OUTPUT main(VS_INPUT input)
 }
 )";
 
-    constexpr ezUInt8 szPixelShader[] = R"(
+  constexpr ezUInt8 szPixelShader[] = R"(
 struct VS_OUTPUT
 {
   float4 pos: SV_POSITION;
   float2 uv0 : TEXCOORD0;
 };
+
+SamplerState linearSampler : register(s0);
 
 cbuffer Settings : register(b0)
 {
@@ -383,26 +384,134 @@ cbuffer Settings : register(b0)
 
 Texture2D<float4> tex : register(t0);
 
-SamplerState linearSampler : register(s0);
-
 float4 main(VS_OUTPUT input) : SV_TARGET
 {
   return tex.SampleLevel(linearSampler, input.uv0, 0) * color;
 }
 )";
 
-    // constexpr ezUInt16 IndexBuffer[3] = {0, 1, 2};
+  // constexpr ezUInt16 IndexBuffer[3] = {0, 1, 2};
 
-    // constexpr float VertexBuffer[9] = {
-    //   -0.5f, -0.5f, 0.0,
-    //   0.0f, 0.5f, 0.0,
-    //   0.5f, -0.5f, 0.0f};
+  // constexpr float VertexBuffer[9] = {
+  //   -0.5f, -0.5f, 0.0,
+  //   0.0f, 0.5f, 0.0,
+  //   0.5f, -0.5f, 0.0f};
 
-    const auto cl = context->GetCommandList();
+  spRenderGraphResource* tex = nullptr;
+  resources.TryGetValue(data.m_hGridTexture.GetInternalID(), tex);
 
-    spRenderGraphResource* tex = nullptr;
-    resources.TryGetValue(data.m_hGridTexture.GetInternalID(), tex);
+  spRenderGraphResource* cbo = nullptr;
+  resources.TryGetValue(data.m_hConstantBuffer.GetInternalID(), cbo);
 
+  spRenderGraphResource* ibo = nullptr;
+  resources.TryGetValue(data.m_hIndexBuffer.GetInternalID(), ibo);
+
+  spRenderGraphResource* vbo = nullptr;
+  resources.TryGetValue(data.m_hVertexBuffer.GetInternalID(), vbo);
+
+  spRenderGraphResource* smp = nullptr;
+  resources.TryGetValue(data.m_hSampler.GetInternalID(), smp);
+
+  spRenderGraphResource* rtt = nullptr;
+  resources.TryGetValue(data.m_hRenderTarget.GetInternalID(), rtt);
+
+  spRenderGraphResource* idb = nullptr;
+  resources.TryGetValue(data.m_hIndirectBuffer.GetInternalID(), idb);
+
+  if (data.m_pVertexShader == nullptr)
+  {
+    spShaderDescription vsDescription{};
+    vsDescription.m_sEntryPoint = ezMakeHashedString("main");
+    vsDescription.m_eShaderStage = spShaderStage::VertexShader;
+    vsDescription.m_Buffer = ezMakeByteArrayPtr(szVertexShader, static_cast<ezUInt32>(sizeof(szVertexShader)));
+
+    data.m_pVertexShader = pBuilder->GetResourceFactory()->CreateShader(vsDescription);
+    data.m_pVertexShader->SetDebugName("vs");
+  }
+
+  if (data.m_pPixelShader == nullptr)
+  {
+    spShaderDescription psDescription{};
+    psDescription.m_sEntryPoint = ezMakeHashedString("main");
+    psDescription.m_eShaderStage = spShaderStage::PixelShader;
+    psDescription.m_Buffer = ezMakeByteArrayPtr(szPixelShader, static_cast<ezUInt32>(sizeof(szPixelShader)));
+
+    data.m_pPixelShader = pBuilder->GetResourceFactory()->CreateShader(psDescription);
+    data.m_pPixelShader->SetDebugName("ps");
+  }
+
+  if (data.m_pShaderProgram == nullptr)
+  {
+    data.m_pShaderProgram = pBuilder->GetResourceFactory()->CreateShaderProgram();
+    data.m_pShaderProgram->Attach(data.m_pVertexShader);
+    data.m_pShaderProgram->Attach(data.m_pPixelShader);
+    data.m_pShaderProgram->SetDebugName("spo");
+  }
+
+  if (data.m_pInputLayout == nullptr)
+  {
+    spInputLayoutDescription inputLayoutDescription{};
+    inputLayoutDescription.m_uiInstanceStepRate = 0;
+    inputLayoutDescription.m_uiStride = sizeof(spVertex);
+    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
+    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("nrm", spInputElementLocationSemantic::Normal, spInputElementFormat::Float3, offsetof(spVertex, m_vNormal)));
+    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tgt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float4, offsetof(spVertex, m_vTangent)));
+    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("btt", spInputElementLocationSemantic::BiTangent, spInputElementFormat::Float4, offsetof(spVertex, m_vBiTangent)));
+    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv0", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord0)));
+    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv1", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord1)));
+    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl0", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spVertex, m_Color0)));
+    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl1", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spVertex, m_Color1)));
+
+    data.m_pInputLayout = pBuilder->GetResourceFactory()->CreateInputLayout(inputLayoutDescription, data.m_pVertexShader->GetHandle());
+    data.m_pInputLayout->SetDebugName("input");
+  }
+
+  auto layouts = data.m_pShaderProgram->GetResourceLayoutDescriptions();
+
+  if (data.m_pResourceLayout == nullptr)
+  {
+    data.m_pResourceLayout = pBuilder->GetResourceFactory()->CreateResourceLayout(layouts[0]);
+    data.m_pResourceLayout->SetDebugName("layout");
+  }
+
+  if (data.m_pResourceSet == nullptr)
+  {
+    spResourceSetDescription setDesc{};
+    setDesc.m_hResourceLayout = data.m_pResourceLayout->GetHandle();
+
+    for (auto& element : layouts[0].m_Elements)
+    {
+      if (element.m_sName == ezTempHashedString("linearSampler"))
+        setDesc.m_BoundResources.PushBack(smp->m_pResource->GetHandle());
+      else if (element.m_sName == ezTempHashedString("tex"))
+        setDesc.m_BoundResources.PushBack(tex->m_pResource->GetHandle());
+      else if (element.m_sName == ezTempHashedString("Settings"))
+        setDesc.m_BoundResources.PushBack(cbo->m_pResource->GetHandle());
+    }
+
+    data.m_pResourceSet = pBuilder->GetResourceFactory()->CreateResourceSet(setDesc);
+    data.m_pResourceSet->SetDebugName("set");
+  }
+
+  if (data.m_pGraphicPipeline == nullptr)
+  {
+    spGraphicPipelineDescription desc{};
+    desc.m_Output = rtt->m_pResource.Downcast<spRenderTarget>()->GetFramebuffer()->GetOutputDescription();
+    desc.m_ePrimitiveTopology = spPrimitiveTopology::Triangles;
+    desc.m_RenderingState.m_BlendState = spBlendState::SingleDisabled;
+    desc.m_RenderingState.m_DepthState = spDepthState::Disabled;
+    desc.m_RenderingState.m_RasterizerState = spRasterizerState::Default;
+    desc.m_RenderingState.m_StencilState = spStencilState::Disabled;
+    desc.m_ShaderPipeline.m_hShaderProgram = data.m_pShaderProgram->GetHandle();
+    desc.m_ShaderPipeline.m_InputLayouts.PushBack(data.m_pInputLayout->GetHandle());
+    desc.m_ResourceLayouts.PushBack(data.m_pResourceLayout->GetHandle());
+
+    data.m_pGraphicPipeline = pBuilder->GetResourceFactory()->CreateGraphicPipeline(desc);
+    data.m_pGraphicPipeline->SetDebugName("gpo");
+  }
+
+  const spRenderPass::ExecuteCallback executeCallback = [=](const spRenderGraphResourcesTable& resources, spRenderingContext* context, ezVariant& passData) -> void
+  {
     spRenderGraphResource* cbo = nullptr;
     resources.TryGetValue(data.m_hConstantBuffer.GetInternalID(), cbo);
 
@@ -412,120 +521,10 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     spRenderGraphResource* vbo = nullptr;
     resources.TryGetValue(data.m_hVertexBuffer.GetInternalID(), vbo);
 
-    spRenderGraphResource* smp = nullptr;
-    resources.TryGetValue(data.m_hSampler.GetInternalID(), smp);
-
     spRenderGraphResource* rtt = nullptr;
     resources.TryGetValue(data.m_hRenderTarget.GetInternalID(), rtt);
 
-    spRenderGraphResource* idb = nullptr;
-    resources.TryGetValue(data.m_hIndirectBuffer.GetInternalID(), idb);
-
-    if (data.m_pVertexShader == nullptr)
-    {
-      spShaderDescription vsDescription{};
-      vsDescription.m_sEntryPoint = ezMakeHashedString("main");
-      vsDescription.m_eShaderStage = spShaderStage::VertexShader;
-      vsDescription.m_Buffer = ezMakeByteArrayPtr(szVertexShader, static_cast<ezUInt32>(sizeof(szVertexShader)));
-
-      data.m_pVertexShader = context->GetDevice()->GetResourceFactory()->CreateShader(vsDescription);
-      data.m_pVertexShader->SetDebugName("vs");
-    }
-
-    if (data.m_pPixelShader == nullptr)
-    {
-      spShaderDescription psDescription{};
-      psDescription.m_sEntryPoint = ezMakeHashedString("main");
-      psDescription.m_eShaderStage = spShaderStage::PixelShader;
-      psDescription.m_Buffer = ezMakeByteArrayPtr(szPixelShader, static_cast<ezUInt32>(sizeof(szPixelShader)));
-
-      data.m_pPixelShader = context->GetDevice()->GetResourceFactory()->CreateShader(psDescription);
-      data.m_pPixelShader->SetDebugName("ps");
-    }
-
-    if (data.m_pShaderProgram == nullptr)
-    {
-      data.m_pShaderProgram = context->GetDevice()->GetResourceFactory()->CreateShaderProgram();
-      data.m_pShaderProgram->Attach(data.m_pVertexShader);
-      data.m_pShaderProgram->Attach(data.m_pPixelShader);
-      data.m_pShaderProgram->SetDebugName("spo");
-    }
-
-    if (data.m_pInputLayout == nullptr)
-    {
-      spInputLayoutDescription inputLayoutDescription{};
-      inputLayoutDescription.m_uiInstanceStepRate = 0;
-      inputLayoutDescription.m_uiStride = sizeof(spVertex);
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("nrm", spInputElementLocationSemantic::Normal, spInputElementFormat::Float3, offsetof(spVertex, m_vNormal)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tgt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float4, offsetof(spVertex, m_vTangent)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("btt", spInputElementLocationSemantic::BiTangent, spInputElementFormat::Float4, offsetof(spVertex, m_vBiTangent)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv0", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord0)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv1", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord1)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl0", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spVertex, m_Color0)));
-      inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl1", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spVertex, m_Color1)));
-
-      data.m_pInputLayout = context->GetDevice()->GetResourceFactory()->CreateInputLayout(inputLayoutDescription, data.m_pVertexShader->GetHandle());
-      data.m_pInputLayout->SetDebugName("input");
-    }
-
-    if (data.m_pResourceLayout == nullptr)
-    {
-      spResourceLayoutDescription resourceLayoutDescription{};
-
-      spResourceLayoutElementDescription rl1{};
-      rl1.m_eShaderStage = spShaderStage::PixelShader;
-      rl1.m_eType = spShaderResourceType::ConstantBuffer;
-      rl1.m_eOptions = spResourceLayoutElementOptions::None;
-      rl1.m_sName = ezMakeHashedString("Settings");
-      resourceLayoutDescription.m_Elements.PushBack(rl1);
-
-      spResourceLayoutElementDescription rl2{};
-      rl2.m_eShaderStage = spShaderStage::PixelShader;
-      rl2.m_eType = spShaderResourceType::ReadOnlyTexture;
-      rl2.m_eOptions = spResourceLayoutElementOptions::None;
-      rl2.m_sName = ezMakeHashedString("tex");
-      resourceLayoutDescription.m_Elements.PushBack(rl2);
-
-      spResourceLayoutElementDescription rl3{};
-      rl3.m_eShaderStage = spShaderStage::PixelShader;
-      rl3.m_eType = spShaderResourceType::Sampler;
-      rl3.m_eOptions = spResourceLayoutElementOptions::None;
-      rl3.m_sName = ezMakeHashedString("linearSampler");
-      resourceLayoutDescription.m_Elements.PushBack(rl3);
-
-      data.m_pResourceLayout = context->GetDevice()->GetResourceFactory()->CreateResourceLayout(resourceLayoutDescription);
-      data.m_pResourceLayout->SetDebugName("layout");
-    }
-
-    if (data.m_pResourceSet == nullptr)
-    {
-      spResourceSetDescription setDesc{};
-      setDesc.m_hResourceLayout = data.m_pResourceLayout->GetHandle();
-      setDesc.m_BoundResources.PushBack(cbo->m_pResource->GetHandle());
-      setDesc.m_BoundResources.PushBack(tex->m_pResource->GetHandle());
-      setDesc.m_BoundResources.PushBack(smp->m_pResource->GetHandle());
-      data.m_pResourceSet = context->GetDevice()->GetResourceFactory()->CreateResourceSet(setDesc);
-      data.m_pResourceSet->SetDebugName("set");
-    }
-
-    if (data.m_pGraphicPipeline == nullptr)
-    {
-      spGraphicPipelineDescription desc{};
-      desc.m_Output = rtt->m_pResource.Downcast<spRenderTarget>()->GetFramebuffer()->GetOutputDescription();
-      desc.m_ePrimitiveTopology = spPrimitiveTopology::Triangles;
-      desc.m_RenderingState.m_BlendState = spBlendState::SingleDisabled;
-      desc.m_RenderingState.m_DepthState = spDepthState::Disabled;
-      desc.m_RenderingState.m_RasterizerState = spRasterizerState::Default;
-      desc.m_RenderingState.m_StencilState = spStencilState::Disabled;
-      desc.m_ShaderPipeline.m_hShaderProgram = data.m_pShaderProgram->GetHandle();
-      desc.m_ShaderPipeline.m_InputLayouts.PushBack(data.m_pInputLayout->GetHandle());
-      desc.m_ResourceLayouts.PushBack(data.m_pResourceLayout->GetHandle());
-
-      data.m_pGraphicPipeline = context->GetDevice()->GetResourceFactory()->CreateGraphicPipeline(desc);
-      data.m_pGraphicPipeline->SetDebugName("gpo");
-    }
-
+    const auto cl = context->GetCommandList();
 
     const auto c = ezAngle::Radian(ezTime::Now().AsFloatInSeconds());
     const auto col = ezColor(ezMath::Sin(c), ezMath::Cos(c), ezMath::Sin(-c), 1.0f);

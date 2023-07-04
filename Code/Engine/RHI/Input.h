@@ -24,7 +24,7 @@ namespace RHI
 
     spInputElementDescription() = default;
 
-    spInputElementDescription(const char* szName, const ezEnum<spInputElementLocationSemantic>& eSemantic, const ezEnum<spInputElementFormat>& eFormat, ezUInt32 uiOffset = 0)
+    spInputElementDescription(ezStringView szName, const ezEnum<spInputElementLocationSemantic>& eSemantic, const ezEnum<spInputElementFormat>& eFormat, ezUInt32 uiOffset = 0)
       : m_eSemantic(eSemantic)
       , m_eFormat(eFormat)
       , m_uiOffset(uiOffset)
@@ -32,7 +32,7 @@ namespace RHI
       m_sName.Assign(szName);
     }
 
-    spInputElementDescription(const char* szName, ezUInt32 uiLocation, const ezEnum<spInputElementFormat>& eFormat, ezUInt32 uiOffset = 0)
+    spInputElementDescription(ezStringView szName, ezUInt32 uiLocation, const ezEnum<spInputElementFormat>& eFormat, ezUInt32 uiOffset = 0)
       : m_eSemantic(static_cast<spInputElementLocationSemantic::Enum>(uiLocation))
       , m_eFormat(eFormat)
       , m_uiOffset(uiOffset)
@@ -85,7 +85,7 @@ namespace RHI
       ezMath::Swap(m_Elements, move.m_Elements);
     }
 
-    EZ_ALWAYS_INLINE spInputLayoutDescription operator=(const spInputLayoutDescription& copy)
+    EZ_ALWAYS_INLINE spInputLayoutDescription& operator=(const spInputLayoutDescription& copy)
     {
       m_uiStride = copy.m_uiStride;
       m_uiInstanceStepRate = copy.m_uiInstanceStepRate;
@@ -95,7 +95,7 @@ namespace RHI
       return *this;
     }
 
-    EZ_ALWAYS_INLINE spInputLayoutDescription operator=(spInputLayoutDescription&& move) noexcept
+    EZ_ALWAYS_INLINE spInputLayoutDescription& operator=(spInputLayoutDescription&& move) noexcept
     {
       ezMath::Swap(m_uiStride, move.m_uiStride);
       ezMath::Swap(m_uiInstanceStepRate, move.m_uiInstanceStepRate);
