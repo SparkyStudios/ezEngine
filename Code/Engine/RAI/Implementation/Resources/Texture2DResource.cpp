@@ -236,7 +236,6 @@ namespace RAI
         1, m, 0);
     }
 
-    ezMemoryUtils::Destruct(descriptor.m_ImageData.GetPtr(), descriptor.m_ImageData.GetCount());
     descriptor.m_ImageData.Clear();
 
     m_RHITexture[m_uiLoadedTextures]->SetDebugName(GetResourceDescription());

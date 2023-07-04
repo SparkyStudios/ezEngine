@@ -28,11 +28,12 @@ namespace RHI
     void DetachAll() override;
     void Use() override;
     EZ_NODISCARD ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const override;
+    EZ_NODISCARD ezDynamicArray<spResourceLayoutDescription> GetResourceLayoutDescriptions() const override;
 
     // spShaderProgramD3D11
 
   public:
-    spShaderProgramD3D11(spDeviceD3D11* pDevice);
+    explicit spShaderProgramD3D11(spDeviceD3D11* pDevice);
     ~spShaderProgramD3D11() override;
 
     EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetVertexShader() const { return m_pVertexShader; }
@@ -43,6 +44,8 @@ namespace RHI
     EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetComputeShader() const { return m_pComputeShader; }
 
   private:
+    void GetResourceLayoutElementsForStage(const ezEnum<spShaderStage>& eStage, ezDynamicArray<spResourceLayoutElementDescription>& out_elements) const;
+
     ID3D11Device* m_pD3D11Device{nullptr};
 
     ezSharedPtr<spShaderD3D11> m_pVertexShader{nullptr};

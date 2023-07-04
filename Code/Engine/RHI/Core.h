@@ -1148,7 +1148,7 @@ namespace RHI
       None = 0,
 
       /// \brief Can be applied to a buffer resource type (\a spShaderResourceType::ReadOnlyBuffer,
-      /// \a spShaderResourceType::ReadWriteBuffer, or \a spShaderResourceType::UniformBuffer), allowing it to be
+      /// \a spShaderResourceType::ReadWriteBuffer, or \a spShaderResourceType::ConstantBuffer), allowing it to be
       /// bound with a dynamic offset using \a spCommandList::SetGraphicsResourceSet(ezUInt32, spResourceSet, ezDynamicArray<ezUInt32>).
       /// Offsets specified this way must be a multiple of \a spDevice::GetConstantBufferMinOffsetAlignment() or
       /// \a spDevice::GetStructuredBufferMinOffsetAlignment().

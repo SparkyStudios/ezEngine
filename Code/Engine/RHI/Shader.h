@@ -171,6 +171,8 @@ namespace RHI
     /// \param [in] eStage The shader stage.
     /// \return The shader resource handle. An invalid handle is returned if the given stage does not exist.
     EZ_NODISCARD virtual ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const = 0;
+
+    EZ_NODISCARD virtual ezDynamicArray<spResourceLayoutDescription> GetResourceLayoutDescriptions() const = 0;
   };
 
   class SP_RHI_DLL spShader : public spDeviceResource

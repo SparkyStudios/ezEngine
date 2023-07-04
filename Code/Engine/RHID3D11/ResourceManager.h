@@ -114,6 +114,7 @@ namespace RHI
         m_InputLayouts.Swap(key.m_InputLayouts);
         m_bOwned = key.m_bOwned;
 
+        key.m_InputLayouts.Clear();
         key.m_bOwned = false;
       }
 
@@ -123,9 +124,9 @@ namespace RHI
           EZ_DEFAULT_DELETE_ARRAY(m_InputLayouts);
       }
 
-      EZ_ALWAYS_INLINE InputLayoutCacheKey operator=(InputLayoutCacheKey&& rhs) noexcept
+      EZ_ALWAYS_INLINE InputLayoutCacheKey& operator=(InputLayoutCacheKey&& rhs) noexcept
       {
-        m_InputLayouts = rhs.m_InputLayouts;
+        m_InputLayouts.Swap(rhs.m_InputLayouts);
         m_bOwned = rhs.m_bOwned;
 
         rhs.m_InputLayouts.Clear();
@@ -134,10 +135,25 @@ namespace RHI
         return *this;
       }
 
-      EZ_ALWAYS_INLINE InputLayoutCacheKey operator=(const InputLayoutCacheKey& rhs)
+      EZ_ALWAYS_INLINE InputLayoutCacheKey& operator=(const InputLayoutCacheKey& rhs)
       {
         m_InputLayouts = EZ_DEFAULT_NEW_ARRAY(spInputLayoutDescription, rhs.m_InputLayouts.GetCount());
-        m_InputLayouts.CopyFrom(rhs.m_InputLayouts);
+        ezMemoryUtils::Construct(m_InputLayouts.GetPtr(), m_InputLayouts.GetCount());
+
+        for (ezUInt32 i = 0, l = rhs.m_InputLayouts.GetCount(); i < l; ++i)
+        {
+          m_InputLayouts[i].m_uiStride = rhs.m_InputLayouts[i].m_uiStride;
+          m_InputLayouts[i].m_uiInstanceStepRate = rhs.m_InputLayouts[i].m_uiInstanceStepRate;
+
+          m_InputLayouts[i].m_Elements.EnsureCount(rhs.m_InputLayouts[i].m_Elements.GetCount());
+          for (ezUInt32 j = 0, m = rhs.m_InputLayouts[i].m_Elements.GetCount(); j < m; ++j)
+          {
+            m_InputLayouts[i].m_Elements[j].m_eFormat = rhs.m_InputLayouts[i].m_Elements[j].m_eFormat;
+            m_InputLayouts[i].m_Elements[j].m_eSemantic = rhs.m_InputLayouts[i].m_Elements[j].m_eSemantic;
+            m_InputLayouts[i].m_Elements[j].m_uiOffset = rhs.m_InputLayouts[i].m_Elements[j].m_uiOffset;
+            m_InputLayouts[i].m_Elements[j].m_sName.Assign(rhs.m_InputLayouts[i].m_Elements[j].m_sName.GetData());
+          }
+        }
 
         m_bOwned = true;
 

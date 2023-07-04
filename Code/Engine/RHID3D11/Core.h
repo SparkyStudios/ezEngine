@@ -201,6 +201,51 @@ namespace RHI
     }
   }
 
+  EZ_ALWAYS_INLINE static ezEnum<spShaderResourceType> spFromD3D11(D3D_SHADER_INPUT_TYPE eType, D3D_SRV_DIMENSION eDimension)
+  {
+    if (eType == D3D_SIT_TEXTURE)
+      return spShaderResourceType::ReadOnlyTexture;
+
+    if (eType == D3D_SIT_UAV_RWTYPED)
+    {
+      switch (eDimension)
+      {
+        case D3D_SRV_DIMENSION::D3D_SRV_DIMENSION_TEXTURE1D:
+        case D3D_SRV_DIMENSION::D3D_SRV_DIMENSION_TEXTURE1DARRAY:
+        case D3D_SRV_DIMENSION::D3D_SRV_DIMENSION_TEXTURE2D:
+        case D3D_SRV_DIMENSION::D3D_SRV_DIMENSION_TEXTURE2DARRAY:
+        case D3D_SRV_DIMENSION::D3D_SRV_DIMENSION_BUFFER:
+        case D3D_SRV_DIMENSION::D3D_SRV_DIMENSION_BUFFEREX:
+          return spShaderResourceType::ReadWriteTexture;
+
+        default:
+          EZ_ASSERT_NOT_IMPLEMENTED;
+          break;
+      }
+    }
+
+    if (eType == D3D_SIT_UAV_RWSTRUCTURED)
+      return spShaderResourceType::ReadWriteStructuredBuffer;
+
+    if (eType == D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER)
+      return spShaderResourceType::ReadWriteStructuredBuffer;
+
+    if (eType == D3D_SIT_UAV_APPEND_STRUCTURED)
+      return spShaderResourceType::ReadWriteStructuredBuffer;
+
+    if (eType == D3D_SIT_UAV_CONSUME_STRUCTURED)
+      return spShaderResourceType::ReadOnlyStructuredBuffer;
+
+    if (eType == D3D_SIT_CBUFFER)
+      return spShaderResourceType::ConstantBuffer;
+
+    if (eType == D3D_SIT_SAMPLER)
+      return spShaderResourceType::Sampler;
+
+    EZ_ASSERT_NOT_IMPLEMENTED;
+    return spShaderResourceType::Default;
+  }
+
   /// \brief Coverts a \a spBufferUsage flags into a \a D3D11_BIND_FLAG.
   EZ_ALWAYS_INLINE static UINT spToD3D11(ezBitflags<spBufferUsage> eUsage)
   {
