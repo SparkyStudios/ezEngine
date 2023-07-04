@@ -653,10 +653,11 @@ namespace RHI
     const auto& resources = pResourceSet->GetResources();
     ezUInt32 uiDynamicOffsetIndex = 0;
 
-    for (ezUInt32 i = 0, l = resources.GetCount(); i < l; ++i)
+    for (auto& pResource : resources)
     {
-      const ezSharedPtr<spShaderResource> pResource = resources[i];
       ezUInt32 uiBufferOffset = 0;
+      const ezUInt32 i = pLayout->GetElementIndex(pResource.key);
+      EZ_ASSERT_DEV(i != ezInvalidIndex, "Unable to find a resource with the name {} in the resource layout", pResource.key);
 
       if (pLayout->IsDynamicBuffer(i))
       {
@@ -669,33 +670,33 @@ namespace RHI
       {
         case spShaderResourceType::ConstantBuffer:
         {
-          const ezSharedPtr<spBufferRangeD3D11> pBufferRange = GetBufferRange(pResource, uiBufferOffset);
+          const ezSharedPtr<spBufferRangeD3D11> pBufferRange = GetBufferRange(pResource.value, uiBufferOffset);
           BindConstantBuffer(pBufferRange, uiConstantBufferBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage);
           break;
         }
         case spShaderResourceType::ReadOnlyStructuredBuffer:
         {
-          const ezSharedPtr<spBufferRangeD3D11> pBufferRange = GetBufferRange(pResource, uiBufferOffset);
+          const ezSharedPtr<spBufferRangeD3D11> pBufferRange = GetBufferRange(pResource.value, uiBufferOffset);
           BindStorageBufferView(pBufferRange, uiTextureBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage);
           break;
         }
         case spShaderResourceType::ReadWriteStructuredBuffer:
         {
-          const ezSharedPtr<spBufferRangeD3D11> pBufferRange = GetBufferRange(pResource, uiBufferOffset);
+          const ezSharedPtr<spBufferRangeD3D11> pBufferRange = GetBufferRange(pResource.value, uiBufferOffset);
           ID3D11UnorderedAccessView* pUAV = pBufferRange->GetBuffer().Downcast<spBufferD3D11>()->GetUnorderedAccessView(pBufferRange->GetOffset(), pBufferRange->GetSize());
           BindUnorderedAccessView(nullptr, pBufferRange->GetBuffer().Downcast<spBufferD3D11>(), pUAV, uiUnorderedAccessViewBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
           break;
         }
         case spShaderResourceType::ReadOnlyTexture:
         {
-          const ezSharedPtr<spTextureViewD3D11> pTextureView = spTextureSamplerManager::GetTextureView(m_pDevice, pResource).Downcast<spTextureViewD3D11>();
+          const ezSharedPtr<spTextureViewD3D11> pTextureView = spTextureSamplerManager::GetTextureView(m_pDevice, pResource.value).Downcast<spTextureViewD3D11>();
           UnbindUAVTexture(pTextureView->GetDescription());
           BindTextureView(pTextureView, uiTextureBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
           break;
         }
         case spShaderResourceType::ReadWriteTexture:
         {
-          const ezSharedPtr<spTextureViewD3D11> pTextureView = spTextureSamplerManager::GetTextureView(m_pDevice, pResource).Downcast<spTextureViewD3D11>();
+          const ezSharedPtr<spTextureViewD3D11> pTextureView = spTextureSamplerManager::GetTextureView(m_pDevice, pResource.value).Downcast<spTextureViewD3D11>();
           const ezSharedPtr<spTextureD3D11> pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(pTextureView->GetTexture());
           UnbindSRVTexture(pTextureView->GetDescription());
           BindUnorderedAccessView(pTexture, nullptr, pTextureView->GetUnorderedAccessView(), uiUnorderedAccessViewBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
@@ -703,7 +704,7 @@ namespace RHI
         }
         case spShaderResourceType::Sampler:
         {
-          const ezSharedPtr<spSamplerD3D11> pSampler = pResource.Downcast<spSamplerD3D11>();
+          const ezSharedPtr<spSamplerD3D11> pSampler = pResource.value.Downcast<spSamplerD3D11>();
           BindSampler(pSampler, uiSamplerBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage);
           break;
         }

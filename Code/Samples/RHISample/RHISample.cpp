@@ -479,15 +479,9 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     spResourceSetDescription setDesc{};
     setDesc.m_hResourceLayout = data.m_pResourceLayout->GetHandle();
 
-    for (auto& element : layouts[0].m_Elements)
-    {
-      if (element.m_sName == ezTempHashedString("linearSampler"))
-        setDesc.m_BoundResources.PushBack(smp->m_pResource->GetHandle());
-      else if (element.m_sName == ezTempHashedString("tex"))
-        setDesc.m_BoundResources.PushBack(tex->m_pResource->GetHandle());
-      else if (element.m_sName == ezTempHashedString("Settings"))
-        setDesc.m_BoundResources.PushBack(cbo->m_pResource->GetHandle());
-    }
+    setDesc.m_BoundResources.Insert(ezMakeHashedString("linearSampler"), smp->m_pResource->GetHandle());
+    setDesc.m_BoundResources.Insert(ezMakeHashedString("tex"), tex->m_pResource->GetHandle());
+    setDesc.m_BoundResources.Insert(ezMakeHashedString("Settings"), cbo->m_pResource->GetHandle());
 
     data.m_pResourceSet = pBuilder->GetResourceFactory()->CreateResourceSet(setDesc);
     data.m_pResourceSet->SetDebugName("set");

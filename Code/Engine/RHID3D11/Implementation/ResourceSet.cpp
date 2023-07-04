@@ -19,7 +19,7 @@ namespace RHI
     m_pLayout.Clear();
 
     for (auto& pResource : m_Resources)
-      pResource.Clear();
+      pResource.value.Clear();
 
     m_pLayout = nullptr;
     m_Resources.Clear();
@@ -41,10 +41,10 @@ namespace RHI
     m_Resources.Reserve(description.m_BoundResources.GetCount());
     for (auto& hResource : description.m_BoundResources)
     {
-      auto pResource = pDevice->GetResourceManager()->GetResource<spShaderResource>(hResource);
+      auto pResource = pDevice->GetResourceManager()->GetResource<spShaderResource>(hResource.value);
       EZ_ASSERT_DEV(pResource != nullptr, "Unable to find a resource for the resource set.");
 
-      m_Resources.PushBack(pResource);
+      m_Resources.Insert(hResource.key, pResource);
     }
   }
 
