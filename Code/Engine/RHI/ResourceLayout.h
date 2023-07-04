@@ -35,6 +35,15 @@ namespace RHI
     /// \brief Gets the number of elements in the layout.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetElementCount() const { return m_Description.m_Elements.GetCount(); }
 
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetElementIndex(const ezHashedString& sName) const
+    {
+      for (ezUInt32 i = 0, l = m_Description.m_Elements.GetCount(); i < l; ++i)
+        if (m_Description.m_Elements[i].m_sName == sName)
+          return i;
+
+      return ezInvalidIndex;
+    }
+
     /// \brief Gets the description used to create the layout.
     EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceLayoutDescription& GetDescription() const { return m_Description; }
 
