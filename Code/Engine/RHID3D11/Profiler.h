@@ -30,7 +30,7 @@ namespace RHI
     // spFrameProfilerD3D11
 
   public:
-    spFrameProfilerD3D11(spDeviceD3D11* pDevice);
+    explicit spFrameProfilerD3D11(spDeviceD3D11* pDevice);
     ~spFrameProfilerD3D11() override;
 
   private:
@@ -62,7 +62,7 @@ namespace RHI
     // spScopeProfilerD3D11
 
   public:
-    spScopeProfilerD3D11(spDeviceD3D11* pDevice);
+    explicit spScopeProfilerD3D11(spDeviceD3D11* pDevice);
     ~spScopeProfilerD3D11() override;
 
     /// \brief Starts the profiler.

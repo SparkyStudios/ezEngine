@@ -8,7 +8,7 @@
 
 namespace RAI
 {
-  /// \brief Handle for
+  /// \brief Handle for a \a spBlendShapeResource
   typedef ezTypedResourceHandle<class spBlendShapeResource> spBlendShapeResourceHandle;
 
   /// \brief A blend shape resource descriptor.

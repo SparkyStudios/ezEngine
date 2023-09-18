@@ -78,6 +78,10 @@ namespace RHI
     spShaderPipeline m_ShaderPipeline;
     spOutputDescription m_Output;
     ezDynamicArray<spResourceHandle> m_ResourceLayouts;
+
+    /// \brief An array of \a spShaderSpecializationConstant used to override specialization constant values
+    /// in the pipeline.
+    ezDynamicArray<spShaderSpecializationConstant> m_Specializations{};
   };
 
   class SP_RHI_DLL spPipeline : public spDeviceResource

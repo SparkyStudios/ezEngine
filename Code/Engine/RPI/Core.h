@@ -6,15 +6,18 @@
 
 #include <Foundation/Containers/IdTable.h>
 
-class spRenderGraphResource;
-
-typedef ezIdTable<RHI::spResourceHandleId, spRenderGraphResource> spRenderGraphResourcesTable;
-
-typedef ezGenericId<24, 8> spRenderViewId;
-
-class spRenderViewHandle
+namespace RPI
 {
-  EZ_DECLARE_HANDLE_TYPE(spRenderViewHandle, spRenderViewId);
+  class spRenderGraphResource;
 
-  friend class ezRenderWorld;
-};
+  typedef ezIdTable<RHI::spResourceHandleId, spRenderGraphResource> spRenderGraphResourcesTable;
+
+  typedef ezGenericId<24, 8> spRenderViewId;
+
+  class spRenderViewHandle
+  {
+    EZ_DECLARE_HANDLE_TYPE(spRenderViewHandle, spRenderViewId);
+
+    friend class ezRenderWorld;
+  };
+} // namespace RPI

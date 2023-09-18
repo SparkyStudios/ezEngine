@@ -160,11 +160,8 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
     m_pWindow->Initialize(WindowCreationDesc).IgnoreResult();
   }
 
-  // Init the rendering thread
-  {
-    m_pRenderingThread = EZ_DEFAULT_NEW(spRenderingThread);
-    m_pRenderingThread->Start();
-  }
+  // Init the rendering system
+  m_pRenderSystem = EZ_DEFAULT_NEW(RPI::spRenderSystem);
 
   // now that we have a window and device, tell the engine to initialize the rendering infrastructure
   ezStartup::StartupHighLevelSystems();
@@ -192,20 +189,19 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
     description.m_eSwapchainDepthPixelFormat = spPixelFormat::D24UNormS8UInt;
     description.m_bPreferDepthRangeZeroToOne = true;
 
-    m_pDevice = spRHIImplementationFactory::CreateDevice(szRendererName, ezDefaultAllocatorWrapper::GetAllocator(), description);
+    auto pDevice = spRHIImplementationFactory::CreateDevice(szRendererName, ezDefaultAllocatorWrapper::GetAllocator(), description);
+    m_pRenderSystem->Startup(pDevice);
   }
 
-  EZ_ASSERT_DEV(m_pDevice != nullptr, "Device creation failed");
+  EZ_ASSERT_DEV(m_pRenderSystem->GetDevice() != nullptr, "Device creation failed");
 
-  auto* pFactory = m_pDevice->GetResourceFactory();
+  auto* pFactory = m_pRenderSystem->GetDevice()->GetResourceFactory();
 
   m_hTexture = ezResourceManager::LoadResource<spTexture2DResource>(":project/textures/ground.spTexture2D");
 
   const ezResourceLock imageResource(m_hTexture, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
   if (!imageResource.IsValid())
     return ezLog::Error("Unable to get the image resource! Make sure to run AssetProcessor first.");
-
-  m_pSceneContext = EZ_NEW(m_pDevice->GetAllocator(), spSceneContext, m_pDevice.Borrow());
 
   m_hMesh = ezResourceManager::LoadResource<spMeshResource>(":project/objects/yemaya_body.spMesh");
   const ezResourceLock resource(m_hMesh, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
@@ -221,9 +217,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   // --- Begin Experimental render graph
 
   // 1. Setup graph
-  graphBuilder = EZ_NEW(m_pDevice->GetAllocator(), spRenderGraphBuilder, m_pDevice.Borrow());
-
-  auto tex = imageResource.GetPointer()->GetRHITexture();
+  graphBuilder = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spRenderGraphBuilder, m_pRenderSystem->GetDevice().Borrow());
 
   spResourceHandle importedTex = graphBuilder->Import(imageResource.GetPointer()->GetRHITexture()); // Import a resource in the graph
   spResourceHandle importedSmp = graphBuilder->Import(imageResource.GetPointer()->GetRHISampler()); // Import a resource in the graph
@@ -232,7 +226,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   spResourceHandle importedIDB = graphBuilder->Import(m_Mesh.GetRHIIndirectBuffer());               // Import a resource in the graph
 
   // 2. Setup graph nodes
-  ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(m_pDevice->GetAllocator(), spTriangleDemoRenderGraphNode, &m_Mesh);
+  ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spTriangleDemoRenderGraphNode, &m_Mesh);
 
   ezHashTable<ezHashedString, spResourceHandle> triangleNodeResources;
   triangleNodeResources.Insert(ezMakeHashedString("tex"), importedTex);
@@ -243,7 +237,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   graphBuilder->AddNode("Triangle", std::move(triangleNode), triangleNodeResources);
 
-  ezUniquePtr<spMainSwapchainRenderGraphNode> swapchainNode = EZ_NEW(m_pDevice->GetAllocator(), spMainSwapchainRenderGraphNode);
+  ezUniquePtr<spMainSwapchainRenderGraphNode> swapchainNode = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spMainSwapchainRenderGraphNode);
   swapchainNode->SetRenderTargetSize(g_uiWindowWidth, g_uiWindowHeight);
 
   ezHashTable<ezHashedString, spResourceHandle> swapchainNodeResources;
@@ -257,7 +251,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   // --- End Experimental render graph
 
 
-  m_pSceneContext->AddPipeline(renderPipeline.Borrow());
+  m_pRenderSystem->GetSceneContext()->AddPipeline(renderPipeline.Borrow());
 };
 
 void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
@@ -267,7 +261,7 @@ void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
   ezStartup::ShutdownHighLevelSystems();
 
   // release pending resources
-  m_pDevice->GetResourceManager()->ReleaseResources();
+  m_pRenderSystem->GetDevice()->GetResourceManager()->ReleaseResources();
 
   // cleanup the render pipeline
   renderPipeline->CleanUp();
@@ -279,18 +273,12 @@ void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
 
   renderPipeline.Clear();
   graphBuilder.Clear();
-
-  m_pRenderingThread->Stop();
-  EZ_DEFAULT_DELETE(m_pRenderingThread);
-
-  m_pSceneContext.Clear();
 }
 
 void ezRHISampleApp::AfterCoreSystemsShutdown()
 {
-  // destroy device
-  m_pDevice->Destroy();
-  m_pDevice.Clear();
+  m_pRenderSystem->Shutdown();
+  m_pRenderSystem = nullptr;
 
   // finally destroy the window
   m_pWindow->Destroy().IgnoreResult();
@@ -299,7 +287,7 @@ void ezRHISampleApp::AfterCoreSystemsShutdown()
 
 void ezRHISampleApp::OnResize(ezUInt32 width, ezUInt32 height)
 {
-  m_pDevice->ResizeSwapchain(width, height);
+  m_pRenderSystem->GetDevice()->ResizeSwapchain(width, height);
 }
 
 ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources)
@@ -455,7 +443,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     inputLayoutDescription.m_uiStride = sizeof(spVertex);
     inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
     inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("nrm", spInputElementLocationSemantic::Normal, spInputElementFormat::Float3, offsetof(spVertex, m_vNormal)));
-    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tgt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float4, offsetof(spVertex, m_vTangent)));
+    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tnt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float4, offsetof(spVertex, m_vTangent)));
     inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("btt", spInputElementLocationSemantic::BiTangent, spInputElementFormat::Float4, offsetof(spVertex, m_vBiTangent)));
     inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv0", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord0)));
     inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv1", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord1)));
@@ -504,7 +492,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     data.m_pGraphicPipeline->SetDebugName("gpo");
   }
 
-  const spRenderPass::ExecuteCallback executeCallback = [=](const spRenderGraphResourcesTable& resources, spRenderingContext* context, ezVariant& passData) -> void
+  const spRenderPass::ExecuteCallback executeCallback = [=](const spRenderGraphResourcesTable& resources, spRenderContext* context, ezVariant& passData) -> void
   {
     spRenderGraphResource* cbo = nullptr;
     resources.TryGetValue(data.m_hConstantBuffer.GetInternalID(), cbo);
@@ -623,15 +611,15 @@ ezApplication::Execution ezRHISampleApp::Run()
   ezInputManager::Update(ezClock::GetGlobalClock()->GetTimeDiff());
 
   // do the rendering
-  m_pRenderingThread->PostAsync([&]() -> void
+  m_pRenderSystem->GetRenderThread()->PostAsync([&]() -> void
     {
-      m_pSceneContext->BeginFrame();
+      m_pRenderSystem->GetSceneContext()->BeginFrame();
       {
-        m_pSceneContext->Draw();
+        m_pRenderSystem->GetSceneContext()->Draw();
       }
-      m_pSceneContext->EndFrame(); });
+      m_pRenderSystem->GetSceneContext()->EndFrame(); });
 
-  m_pSceneContext->WaitForIdle();
+  m_pRenderSystem->GetSceneContext()->WaitForIdle();
 
   // needs to be called once per frame
   ezResourceManager::PerFrameUpdate();

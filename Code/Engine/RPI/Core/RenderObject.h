@@ -1,0 +1,92 @@
+// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#pragma once
+
+#include <RPI/RPIDLL.h>
+
+#include <RPI/Core/RenderGroup.h>
+#include <RPI/Core/VisilityGroup.h>
+
+namespace RPI
+{
+  class spRenderContext;
+
+  /// \brief Base class for render objects. Each implementation must contains all information
+  /// needed to render the data. The \a Draw method is called each time this object is rendered.
+  class SP_RPI_DLL spRenderObject : public ezReflectedClass
+  {
+    EZ_ADD_DYNAMIC_REFLECTION(spRenderObject, ezReflectedClass);
+
+  public:
+    spRenderObject() = default;
+    ~spRenderObject() override = default;
+
+    /// \brief Render data category. This is used by the pipeline to determine which data should
+    /// be rendered by specific rendering passes.
+    struct Category
+    {
+      Category();
+      explicit Category(ezUInt16 uiCategory);
+
+      bool operator==(const Category& rhs) const;
+      bool operator!=(const Category& rhs) const;
+
+      ezUInt16 m_uiCategory{0};
+    };
+
+    /// \brief Specifies the caching method used by the render data.
+    struct Caching
+    {
+      typedef ezUInt8 StorageType;
+
+      enum Enum : StorageType
+      {
+        /// \brief The data is never cached. It will be computed each time on each frames.
+        Never,
+
+        /// \brief The data is cached only if the owner game object is static. This may improve
+        /// performances.
+        OnlyIfStatic,
+
+        /// \brief The data is always cached. Implementations must provide a custom way to
+        /// invalidate the cache.
+        Always
+      };
+    };
+
+  private:
+    ezEnum<spRenderGroup> m_eRenderGroup{spRenderGroup::None};
+    ezBoundingBox m_BoundingBox;
+  };
+
+  /// \brief A collection of \a spRenderObject.
+  class SP_RPI_DLL spRenderObjectCollection
+  {
+  public:
+    explicit spRenderObjectCollection(spVisibilityGroup* pVisibilityGroup);
+
+    void Add(spRenderObject* pRenderObject);
+
+    void Clear();
+
+    EZ_NODISCARD bool Contains(const spRenderObject* pRenderObject) const;
+
+    void Remove(const spRenderObject* pRenderObject);
+
+  private:
+    ezList<spRenderObject*> m_Items;
+    spVisibilityGroup* m_pVisibilityGroup{nullptr};
+  };
+} // namespace RPI
