@@ -53,7 +53,7 @@ namespace RHI
   struct spInputLayoutDescription : ezHashableStruct<spInputLayoutDescription>
   {
     ezUInt32 m_uiStride{0};
-    ezDynamicArray<spInputElementDescription> m_Elements{};
+    ezStaticArray<spInputElementDescription, 16> m_Elements{};
     ezUInt32 m_uiInstanceStepRate{0};
 
     spInputLayoutDescription() = default;

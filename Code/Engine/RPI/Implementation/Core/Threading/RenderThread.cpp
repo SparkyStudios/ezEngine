@@ -1,8 +1,22 @@
+// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <RPI/RPIPCH.h>
 
-#include <RPI/Core/RenderingThread.h>
+#include <RPI/Core/Threading/RenderThread.h>
 
-ezUInt32 spRenderingThread::Run()
+ezUInt32 spRenderThread::Run()
 {
   while (!m_bCancellationRequested)
   {
@@ -33,33 +47,33 @@ ezUInt32 spRenderingThread::Run()
   return 0;
 }
 
-spRenderingThread::spRenderingThread()
+spRenderThread::spRenderThread()
   : ezThread("spRenderingThread")
   , m_ThreadSignal(ezThreadSignal::Mode::AutoReset)
 {
 }
 
-void spRenderingThread::Start()
+void spRenderThread::Start()
 {
   ezThread::Start();
 }
 
-void spRenderingThread::PostSync(WorkerFunction&& action)
+void spRenderThread::PostSync(WorkerFunction&& action)
 {
   Post(std::move(action), {}, false);
 }
 
-void spRenderingThread::PostAsync(WorkerFunction&& action)
+void spRenderThread::PostAsync(WorkerFunction&& action)
 {
   Post(std::move(action), {}, true);
 }
 
-void spRenderingThread::PostAsync(WorkerFunction&& action, WorkerFunction&& onComplete)
+void spRenderThread::PostAsync(WorkerFunction&& action, WorkerFunction&& onComplete)
 {
   Post(std::move(action), std::move(onComplete), true);
 }
 
-void spRenderingThread::Stop()
+void spRenderThread::Stop()
 {
   if (!IsRunning())
     return;
@@ -78,7 +92,7 @@ void spRenderingThread::Stop()
   Join();
 }
 
-void spRenderingThread::Post(WorkerFunction&& action, WorkerFunction&& onComplete, bool bIsAsync)
+void spRenderThread::Post(WorkerFunction&& action, WorkerFunction&& onComplete, bool bIsAsync)
 {
   // If the caller is the same thread, we don't need to block or enqueue
   if (ezThreadUtils::GetCurrentThreadID() == GetThreadID())
@@ -96,7 +110,6 @@ void spRenderingThread::Post(WorkerFunction&& action, WorkerFunction&& onComplet
 
     std::swap(work.m_Action, action);
     std::swap(work.m_Callback, onComplete);
-    work.m_bIsAsync = bIsAsync;
     work.m_pThreadSignal = bIsAsync ? nullptr : &threadSignal; // We can safely pass the pointer here, since we know the object won't get destroyed
   }
 
@@ -109,10 +122,12 @@ void spRenderingThread::Post(WorkerFunction&& action, WorkerFunction&& onComplet
   }
 }
 
-void spRenderingThread::Call(WorkerFunction&& action, WorkerFunction&& onComplete)
+void spRenderThread::Call(WorkerFunction&& action, WorkerFunction&& onComplete)
 {
   action();
 
   if (onComplete.IsValid())
     onComplete();
 }
+
+EZ_STATICLINK_FILE(RPI, RPI_Implementation_Core_RenderThread);

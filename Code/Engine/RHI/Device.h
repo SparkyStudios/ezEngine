@@ -283,7 +283,7 @@ namespace RHI
     /// \param [in] uiSubResource The subresource to map. Subresources are indexed first by mip level, then by array layer. For
     /// buffer resources, this parameter should be \c 0.
     template <typename T>
-    EZ_ALWAYS_INLINE const spMappedResource& Map(ezSharedPtr<spMappableResource> pResource, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubResource)
+    EZ_ALWAYS_INLINE const spMappedResource& Map(ezSharedPtr<spMappableResource> pResource, const ezEnum<spMapAccess>& eAccess, ezUInt32 uiSubResource)
     {
       spMappedResource mappedResource = Map(pResource, eAccess, uiSubResource);
       return spMappedResourceView<T>(mappedResource);

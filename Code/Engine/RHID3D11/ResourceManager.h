@@ -75,7 +75,7 @@ namespace RHI
             key.m_InputLayouts[i].m_Elements[j].m_eFormat = inputLayouts[i].m_Elements[j].m_eFormat;
             key.m_InputLayouts[i].m_Elements[j].m_eSemantic = inputLayouts[i].m_Elements[j].m_eSemantic;
             key.m_InputLayouts[i].m_Elements[j].m_uiOffset = inputLayouts[i].m_Elements[j].m_uiOffset;
-            key.m_InputLayouts[i].m_Elements[j].m_sName.Assign(inputLayouts[i].m_Elements[j].m_sName.GetData());
+            key.m_InputLayouts[i].m_Elements[j].m_sName = inputLayouts[i].m_Elements[j].m_sName;
           }
         }
 
@@ -102,7 +102,7 @@ namespace RHI
             m_InputLayouts[i].m_Elements[j].m_eFormat = key.m_InputLayouts[i].m_Elements[j].m_eFormat;
             m_InputLayouts[i].m_Elements[j].m_eSemantic = key.m_InputLayouts[i].m_Elements[j].m_eSemantic;
             m_InputLayouts[i].m_Elements[j].m_uiOffset = key.m_InputLayouts[i].m_Elements[j].m_uiOffset;
-            m_InputLayouts[i].m_Elements[j].m_sName.Assign(key.m_InputLayouts[i].m_Elements[j].m_sName.GetData());
+            m_InputLayouts[i].m_Elements[j].m_sName = key.m_InputLayouts[i].m_Elements[j].m_sName;
           }
         }
 
@@ -151,7 +151,7 @@ namespace RHI
             m_InputLayouts[i].m_Elements[j].m_eFormat = rhs.m_InputLayouts[i].m_Elements[j].m_eFormat;
             m_InputLayouts[i].m_Elements[j].m_eSemantic = rhs.m_InputLayouts[i].m_Elements[j].m_eSemantic;
             m_InputLayouts[i].m_Elements[j].m_uiOffset = rhs.m_InputLayouts[i].m_Elements[j].m_uiOffset;
-            m_InputLayouts[i].m_Elements[j].m_sName.Assign(rhs.m_InputLayouts[i].m_Elements[j].m_sName.GetData());
+            m_InputLayouts[i].m_Elements[j].m_sName = rhs.m_InputLayouts[i].m_Elements[j].m_sName;
           }
         }
 

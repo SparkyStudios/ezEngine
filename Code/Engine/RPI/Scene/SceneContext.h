@@ -2,41 +2,48 @@
 
 #include <RPI/RPIDLL.h>
 
-#include <RPI/Pipeline/RenderPipeline.h>
+#include <RHI/CommandList.h>
+#include <RHI/Device.h>
+#include <RHI/Fence.h>
 
-class spRenderingContext;
+#include <RPI/Core/RenderContext.h>
 
-class SP_RPI_DLL spSceneContext
+namespace RPI
 {
-public:
-  explicit spSceneContext(RHI::spDevice* pDevice);
+  class spRenderPipeline;
 
-  /// \brief Gets the \a spRenderingContext which stores drawing data for this scene.
-  EZ_NODISCARD EZ_ALWAYS_INLINE spRenderingContext* GetRenderingContext() const { return m_pRenderingContext.Borrow(); }
+  class SP_RPI_DLL spSceneContext
+  {
+  public:
+    explicit spSceneContext(RHI::spDevice* pDevice);
 
-  /// \brief Adds a \a spRenderingPipeline to execute when drawing this \a spSceneContext.
-  void AddPipeline(spRenderPipeline* pPipeline);
+    /// \brief Gets the \a spRenderContext which stores drawing data for this scene.
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezUniquePtr<spRenderContext>& GetRenderContext() const { return m_pRenderContext; }
 
-  /// \brief Begins a draw operation.
-  void BeginFrame();
+    /// \brief Adds a \a spRenderingPipeline to execute when drawing this \a spSceneContext.
+    void AddPipeline(spRenderPipeline* pPipeline);
 
-  /// \brief Draws the current \a spSceneContext on its \a spRenderTarget.
-  void Draw();
+    /// \brief Begins a draw operation.
+    void BeginFrame();
 
-  /// \brief Ends a draw operation.
-  void EndFrame();
+    /// \brief Draws the current \a spSceneContext on its \a spRenderTarget.
+    void Draw();
 
-  /// \brief Blocks the calling thread until this \a spSceneContext
-  /// is idle (all outstanding draw operations are completed).
-  void WaitForIdle();
+    /// \brief Ends a draw operation.
+    void EndFrame();
 
-private:
-  RHI::spDevice* m_pDevice{nullptr};
+    /// \brief Blocks the calling thread until this \a spSceneContext
+    /// is idle (all outstanding draw operations are completed).
+    void WaitForIdle();
 
-  ezSharedPtr<RHI::spCommandList> m_pCommandList{nullptr};
-  ezUniquePtr<spRenderingContext> m_pRenderingContext{nullptr};
+  private:
+    RHI::spDevice* m_pDevice{nullptr};
 
-  ezList<spRenderPipeline*> m_RenderPipelines;
+    ezSharedPtr<RHI::spCommandList> m_pCommandList{nullptr};
+    ezSharedPtr<RHI::spFence> m_pFence{nullptr};
 
-  ezSharedPtr<RHI::spFence> m_pFence{nullptr};
-};
+    ezUniquePtr<spRenderContext> m_pRenderContext{nullptr};
+
+    ezList<spRenderPipeline*> m_RenderPipelines;
+  };
+} // namespace RPI

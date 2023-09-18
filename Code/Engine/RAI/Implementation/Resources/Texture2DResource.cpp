@@ -20,7 +20,7 @@
 
 #include <Foundation/Configuration/CVar.h>
 
-ezCVarBool cvar_AlwaysLoadFullQualityTextures("r.AlwaysLoadFullQualityTextures", false, ezCVarFlags::Save, "Defines if textures should always be loaded with the best available quality.");
+ezCVarBool cvar_AlwaysLoadFullQualityTextures("r.AlwaysLoadFullQualityTextures", true, ezCVarFlags::Save, "Defines if textures should always be loaded with the best available quality.");
 
 namespace RAI
 {

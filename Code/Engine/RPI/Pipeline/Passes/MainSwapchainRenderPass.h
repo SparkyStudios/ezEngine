@@ -6,28 +6,30 @@
 
 #include <RHI/Core.h>
 
-class SP_RPI_DLL spMainSwapchainRenderPass : public spRenderPass
+namespace RPI
 {
-  // spRenderPass
-
-public:
-  void Execute(const spRenderGraphResourcesTable& resources, spRenderingContext* context) override;
-  void CleanUp(const spRenderGraphResourcesTable& resources) override;
-
-  // spMainSwapchainRenderPass
-
-public:
-  struct Data
+  class SP_RPI_DLL spMainSwapchainRenderPass : public spRenderPass
   {
-    EZ_DECLARE_POD_TYPE();
+    // spRenderPass
 
-    RHI::spResourceHandle m_hInputTexture;
+  public:
+    void Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context) override;
+    void CleanUp(const spRenderGraphResourcesTable& resources) override;
+
+    // spMainSwapchainRenderPass
+
+  public:
+    struct Data
+    {
+      EZ_DECLARE_POD_TYPE();
+
+      RHI::spResourceHandle m_hInputTexture;
+    };
+
+    explicit spMainSwapchainRenderPass(Data&& passData);
   };
+} // namespace RPI
 
-  spMainSwapchainRenderPass(Data&& passData);
+EZ_DECLARE_CUSTOM_VARIANT_TYPE(RPI::spMainSwapchainRenderPass::Data);
 
-private:
-  Data m_PassData;
-};
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RPI_DLL, spMainSwapchainRenderPass::Data);
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RPI_DLL, RPI::spMainSwapchainRenderPass::Data);

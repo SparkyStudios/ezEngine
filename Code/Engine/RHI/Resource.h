@@ -201,7 +201,7 @@ namespace RHI
     EZ_NODISCARD EZ_ALWAYS_INLINE ezInt32 GetCount() const { return m_uiCount; }
 
     /// \brief Creates a typed view of the given \a spMappedResource.
-    spMappedResourceView(const spMappedResource& resource)
+    explicit spMappedResourceView(const spMappedResource& resource)
     {
       m_MappedResource = resource;
       m_uiSize = m_MappedResource.GetSize();

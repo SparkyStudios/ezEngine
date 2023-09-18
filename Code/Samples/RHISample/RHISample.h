@@ -6,8 +6,8 @@
 #include <Foundation/Types/UniquePtr.h>
 
 #include <RAI/Mesh.h>
-#include <RAI/Resources/MeshResource.h>
 #include <RAI/Resources/ImageResource.h>
+#include <RAI/Resources/MeshResource.h>
 
 #include <RHI/Buffer.h>
 #include <RHI/CommandList.h>
@@ -19,7 +19,8 @@
 #include <RHI/Swapchain.h>
 #include <RHI/Texture.h>
 
-#include <RPI/Core/RenderingThread.h>
+#include <RPI/Core/RenderSystem.h>
+#include <RPI/Core/Threading/RenderThread.h>
 #include <RPI/Graph/RenderGraph.h>
 #include <RPI/Pipeline/RenderPass.h>
 #include <RPI/Pipeline/RenderPipeline.h>
@@ -29,6 +30,7 @@
 
 using namespace RAI;
 using namespace RHI;
+using namespace RPI;
 
 class ezRHISampleWindow;
 
@@ -163,11 +165,9 @@ public:
   void OnResize(ezUInt32 width, ezUInt32 height);
 
 private:
-  ezRHISampleWindow* m_pWindow{nullptr};
-  spRenderingThread* m_pRenderingThread{nullptr};
+  ezUniquePtr<RPI::spRenderSystem> m_pRenderSystem{nullptr};
 
-  ezSharedPtr<spDevice> m_pDevice{nullptr};
-  ezUniquePtr<spSceneContext> m_pSceneContext{nullptr};
+  ezRHISampleWindow* m_pWindow{nullptr};
 
   ezUniquePtr<spRenderGraphBuilder> graphBuilder;
   ezUniquePtr<spRenderPipeline> renderPipeline;

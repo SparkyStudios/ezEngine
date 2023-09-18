@@ -7,26 +7,29 @@
 
 #include <RHI/Core.h>
 
-class SP_RPI_DLL spMainSwapchainRenderGraphNode final : public spRenderGraphNode
+namespace RPI
 {
-  EZ_ADD_DYNAMIC_REFLECTION(spMainSwapchainRenderGraphNode, spRenderGraphNode);
+  class SP_RPI_DLL spMainSwapchainRenderGraphNode final : public spRenderGraphNode
+  {
+    EZ_ADD_DYNAMIC_REFLECTION(spMainSwapchainRenderGraphNode, spRenderGraphNode);
 
-public:
-  ezResult Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, RHI::spResourceHandle>& resources) override;
-  ezUniquePtr<spRenderPass> Compile(spRenderGraphBuilder* pBuilder) override;
-  bool IsEnabled() const override;
+  public:
+    ezResult Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, RHI::spResourceHandle>& resources) override;
+    ezUniquePtr<spRenderPass> Compile(spRenderGraphBuilder* pBuilder) override;
+    bool IsEnabled() const override;
 
-  // --- spMainSwapchainRenderGraphNode
+    // --- spMainSwapchainRenderGraphNode
 
-public:
-  spMainSwapchainRenderGraphNode();
+  public:
+    spMainSwapchainRenderGraphNode();
 
-  void SetRenderTargetSize(ezSizeU32 size);
+    void SetRenderTargetSize(ezSizeU32 size);
 
-  void SetRenderTargetSize(ezUInt32 uiWidth, ezUInt32 uiHeight);
+    void SetRenderTargetSize(ezUInt32 uiWidth, ezUInt32 uiHeight);
 
-private:
-  spMainSwapchainRenderPass::Data m_PassData;
+  private:
+    spMainSwapchainRenderPass::Data m_PassData;
 
-  ezSizeU32 m_Size;
-};
+    ezSizeU32 m_Size;
+  };
+} // namespace RPI

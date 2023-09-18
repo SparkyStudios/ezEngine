@@ -13,7 +13,7 @@ namespace RHI
   {
     spOutputAttachmentDescription() = default;
 
-    spOutputAttachmentDescription(ezEnum<spPixelFormat> eFormat)
+    explicit spOutputAttachmentDescription(const ezEnum<spPixelFormat>& eFormat)
       : ezHashableStruct()
       , m_eFormat(eFormat)
     {

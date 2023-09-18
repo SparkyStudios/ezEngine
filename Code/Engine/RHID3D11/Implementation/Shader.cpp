@@ -38,14 +38,14 @@ namespace RHI
       case spShaderStage::VertexShader:
         m_pVertexShader = pShader.Downcast<spShaderD3D11>();
         break;
-      case spShaderStage::GeometryShader:
-        m_pGeometryShader = pShader.Downcast<spShaderD3D11>();
-        break;
       case spShaderStage::HullShader:
         m_pHullShader = pShader.Downcast<spShaderD3D11>();
         break;
       case spShaderStage::DomainShader:
         m_pDomainShader = pShader.Downcast<spShaderD3D11>();
+        break;
+      case spShaderStage::GeometryShader:
+        m_pGeometryShader = pShader.Downcast<spShaderD3D11>();
         break;
       case spShaderStage::PixelShader:
         m_pPixelShader = pShader.Downcast<spShaderD3D11>();
@@ -73,14 +73,14 @@ namespace RHI
       case spShaderStage::VertexShader:
         m_pVertexShader.Clear();
         break;
-      case spShaderStage::GeometryShader:
-        m_pGeometryShader.Clear();
-        break;
       case spShaderStage::HullShader:
         m_pHullShader.Clear();
         break;
       case spShaderStage::DomainShader:
         m_pDomainShader.Clear();
+        break;
+      case spShaderStage::GeometryShader:
+        m_pGeometryShader.Clear();
         break;
       case spShaderStage::PixelShader:
         m_pPixelShader.Clear();
@@ -97,9 +97,9 @@ namespace RHI
   void spShaderProgramD3D11::DetachAll()
   {
     m_pVertexShader.Clear();
-    m_pGeometryShader.Clear();
     m_pHullShader.Clear();
     m_pDomainShader.Clear();
+    m_pGeometryShader.Clear();
     m_pPixelShader.Clear();
     m_pComputeShader.Clear();
   }
@@ -115,12 +115,12 @@ namespace RHI
     {
       case spShaderStage::VertexShader:
         return m_pVertexShader;
-      case spShaderStage::GeometryShader:
-        return m_pGeometryShader;
       case spShaderStage::HullShader:
         return m_pHullShader;
       case spShaderStage::DomainShader:
         return m_pDomainShader;
+      case spShaderStage::GeometryShader:
+        return m_pGeometryShader;
       case spShaderStage::PixelShader:
         return m_pPixelShader;
       case spShaderStage::ComputeShader:
@@ -138,10 +138,12 @@ namespace RHI
 
     if (m_pVertexShader != nullptr)
       GetResourceLayoutElementsForStage(spShaderStage::VertexShader, resourceLayoutDescription.m_Elements);
-    if (m_pGeometryShader != nullptr)
-      GetResourceLayoutElementsForStage(spShaderStage::GeometryShader, resourceLayoutDescription.m_Elements);
     if (m_pHullShader != nullptr)
       GetResourceLayoutElementsForStage(spShaderStage::HullShader, resourceLayoutDescription.m_Elements);
+    if (m_pDomainShader != nullptr)
+      GetResourceLayoutElementsForStage(spShaderStage::DomainShader, resourceLayoutDescription.m_Elements);
+    if (m_pGeometryShader != nullptr)
+      GetResourceLayoutElementsForStage(spShaderStage::GeometryShader, resourceLayoutDescription.m_Elements);
     if (m_pPixelShader != nullptr)
       GetResourceLayoutElementsForStage(spShaderStage::PixelShader, resourceLayoutDescription.m_Elements);
     if (m_pComputeShader != nullptr)
@@ -173,25 +175,25 @@ namespace RHI
       m_pVertexShader->EnsureResourceCreated();
       pByteCode = m_pVertexShader->GetShaderByteCode();
     }
-    else if (eStage == spShaderStage::GeometryShader)
-    {
-      m_pGeometryShader->EnsureResourceCreated();
-      pByteCode = m_pGeometryShader->GetShaderByteCode();
-    }
     else if (eStage == spShaderStage::HullShader)
     {
       m_pHullShader->EnsureResourceCreated();
       pByteCode = m_pHullShader->GetShaderByteCode();
     }
-    else if (eStage == spShaderStage::PixelShader)
-    {
-      m_pPixelShader->EnsureResourceCreated();
-      pByteCode = m_pPixelShader->GetShaderByteCode();
-    }
     else if (eStage == spShaderStage::DomainShader)
     {
       m_pDomainShader->EnsureResourceCreated();
       pByteCode = m_pDomainShader->GetShaderByteCode();
+    }
+    else if (eStage == spShaderStage::GeometryShader)
+    {
+      m_pGeometryShader->EnsureResourceCreated();
+      pByteCode = m_pGeometryShader->GetShaderByteCode();
+    }
+    else if (eStage == spShaderStage::PixelShader)
+    {
+      m_pPixelShader->EnsureResourceCreated();
+      pByteCode = m_pPixelShader->GetShaderByteCode();
     }
 
     EZ_ASSERT_DEV(!pByteCode.IsEmpty(), "Unable to find shader byte code for stage {}.", eStage);

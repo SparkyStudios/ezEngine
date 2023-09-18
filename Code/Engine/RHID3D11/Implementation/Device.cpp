@@ -197,9 +197,7 @@ namespace RHI
   void spDeviceD3D11::Present()
   {
     if (m_pMainSwapchain)
-    {
       m_pMainSwapchain->Present();
-    }
   }
 
   ezEnum<spTextureSampleCount> spDeviceD3D11::GetTextureSampleCountLimit(const ezEnum<spPixelFormat>& eFormat, bool bIsDepthFormat)

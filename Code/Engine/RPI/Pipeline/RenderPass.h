@@ -1,33 +1,51 @@
+// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #pragma once
 
 #include <RPI/RPIDLL.h>
 
-#include <RPI/Core/RenderingContext.h>
+#include <RPI/Core/RenderContext.h>
 #include <RPI/Graph/RenderGraph.h>
 
-class SP_RPI_DLL spRenderPass
+namespace RPI
 {
-  EZ_DISALLOW_COPY_AND_ASSIGN(spRenderPass);
-
-public:
-  typedef ezDelegate<void(const spRenderGraphResourcesTable&, spRenderingContext*, ezVariant&)> ExecuteCallback;
-  typedef ezDelegate<void(const spRenderGraphResourcesTable&, ezVariant&)> CleanUpCallback;
-
-  spRenderPass(ExecuteCallback executeCallback, CleanUpCallback cleanUpCallback);
-
-  template <typename T>
-  EZ_ALWAYS_INLINE void SetData(const T& data)
+  class SP_RPI_DLL spRenderPass
   {
-    m_PassData = data;
-  }
+    EZ_DISALLOW_COPY_AND_ASSIGN(spRenderPass);
 
-  virtual void Execute(const spRenderGraphResourcesTable& resources, spRenderingContext* context);
+  public:
+    typedef ezDelegate<void(const spRenderGraphResourcesTable&, spRenderContext*, ezVariant&)> ExecuteCallback;
+    typedef ezDelegate<void(const spRenderGraphResourcesTable&, ezVariant&)> CleanUpCallback;
 
-  virtual void CleanUp(const spRenderGraphResourcesTable& resources);
+    spRenderPass(ExecuteCallback executeCallback, CleanUpCallback cleanUpCallback);
 
-private:
-  ExecuteCallback m_ExecuteCallback;
-  CleanUpCallback m_CleanUpCallback;
+    template <typename T>
+    EZ_ALWAYS_INLINE void SetData(const T& data)
+    {
+      m_PassData = data;
+    }
 
-  ezVariant m_PassData;
-};
+    virtual void Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context);
+
+    virtual void CleanUp(const spRenderGraphResourcesTable& resources);
+
+  protected:
+    ezVariant m_PassData;
+
+  private:
+    ExecuteCallback m_ExecuteCallback;
+    CleanUpCallback m_CleanUpCallback;
+  };
+} // namespace RPI
