@@ -97,7 +97,7 @@ ezAudioTriggerComponentManager::ezAudioTriggerComponentManager(ezWorld* pWorld)
 
     for (auto& pos : s_InSpherePositions)
     {
-      pos = ezVec3::CreateRandomPointInSphere(rngPhi);
+      pos = ezVec3::MakeRandomPointInSphere(rngPhi);
       pos.SetLength(cvar_AudioSystemOcclusionMaxDistance).IgnoreResult();
     }
   }
