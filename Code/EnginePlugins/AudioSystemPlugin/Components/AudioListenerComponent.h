@@ -70,7 +70,7 @@ protected:
 private:
   EZ_NODISCARD const char* _DoNotCall() const;
 
-  ezVec3 m_vListenerPositionOffset{ezVec3::ZeroVector()};
+  ezVec3 m_vListenerPositionOffset{ezVec3::MakeZero()};
 
   ezGameObjectHandle m_hListenerPositionObject;
   ezGameObjectHandle m_hListenerRotationObject;

@@ -234,9 +234,9 @@ void ezAudioAnimationComponent::Update()
 
       ezAudioSystemTransform transform;
       transform.m_vPosition = GetOwner()->GetGlobalPosition();
-      transform.m_vForward = (rotation * ezVec3::UnitXAxis()).GetNormalized();
-      transform.m_vUp = (rotation * ezVec3::UnitZAxis()).GetNormalized();
-      transform.m_vVelocity = GetOwner()->GetVelocity();
+      transform.m_vForward = (rotation * ezVec3::MakeAxisX()).GetNormalized();
+      transform.m_vUp = (rotation * ezVec3::MakeAxisZ()).GetNormalized();
+      transform.m_vVelocity = GetOwner()->GetLinearVelocity();
 
       if (transform == entry.m_LastTransform)
         return;
@@ -282,8 +282,8 @@ void ezAudioAnimationComponent::OnAnimationPoseUpdated(ezMsgAnimationPoseUpdated
 
     ezAudioSystemTransform transform;
     transform.m_vPosition = GetOwner()->GetGlobalPosition() + bone.GetTranslationVector();
-    transform.m_vForward = (boneRot * ezVec3::UnitXAxis()).GetNormalized();
-    transform.m_vUp = (boneRot * ezVec3::UnitZAxis()).GetNormalized();
+    transform.m_vForward = (boneRot * ezVec3::MakeAxisX()).GetNormalized();
+    transform.m_vUp = (boneRot * ezVec3::MakeAxisZ()).GetNormalized();
     transform.m_vVelocity = transform.m_vPosition - entry.m_LastTransform.m_vPosition; // We can just mimic a velocity, since we have not this data in the bone transform
 
     if (transform == entry.m_LastTransform)

@@ -154,10 +154,10 @@ ezVec3 ezAudioListenerComponent::GetListenerVelocity() const
 {
   if (const ezGameObject* pObject = nullptr; GetWorld()->TryGetObject(m_hListenerPositionObject, pObject))
   {
-    return pObject->GetVelocity();
+    return pObject->GetLinearVelocity();
   }
 
-  return GetOwner()->GetVelocity();
+  return GetOwner()->GetLinearVelocity();
 }
 
 ezQuat ezAudioListenerComponent::GetListenerRotation() const
@@ -181,8 +181,8 @@ void ezAudioListenerComponent::Update()
   const auto& rotation = GetListenerRotation();
   const auto& velocity = GetListenerVelocity();
 
-  const auto& fw = (rotation * ezVec3::UnitXAxis()).GetNormalized();
-  const auto& up = (rotation * ezVec3::UnitZAxis()).GetNormalized();
+  const auto& fw = (rotation * ezVec3::MakeAxisX()).GetNormalized();
+  const auto& up = (rotation * ezVec3::MakeAxisZ()).GetNormalized();
 
   {
     ezAudioSystemTransform transform;

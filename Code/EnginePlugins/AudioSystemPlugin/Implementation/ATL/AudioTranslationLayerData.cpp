@@ -5,7 +5,7 @@
 
 ezATLTrigger::~ezATLTrigger()
 {
-  if (m_mEvents.IsEmpty() == false)
+  if (!m_mEvents.IsEmpty())
   {
     auto* pAudioMiddleware = ezSingletonRegistry::GetSingletonInstance<ezAudioMiddleware>();
 

@@ -70,9 +70,9 @@ void ezAudioProxyComponent::Update()
 
     ezAudioSystemTransform transform;
     transform.m_vPosition = GetOwner()->GetGlobalPosition();
-    transform.m_vForward = (rotation * ezVec3::UnitXAxis()).GetNormalized();
-    transform.m_vUp = (rotation * ezVec3::UnitZAxis()).GetNormalized();
-    transform.m_vVelocity = GetOwner()->GetVelocity();
+    transform.m_vForward = (rotation * ezVec3::MakeAxisX()).GetNormalized();
+    transform.m_vUp = (rotation * ezVec3::MakeAxisZ()).GetNormalized();
+    transform.m_vVelocity = GetOwner()->GetLinearVelocity();
 
     if (transform == m_LastTransform)
       return;
