@@ -18,9 +18,28 @@
 
 #include <Foundation/IO/MemoryStream.h>
 
+#include <RHI/Input.h>
+#include <RHI/Shader.h>
+
+#include <RAI/Resources/ShaderVariantResource.h>
+
 namespace RAI
 {
   /// \brief A shader asset.
   ///
-  /// Stores a shader data in binary format
-}
+  /// Reflects an SPSL binary material.
+  class SP_RAI_DLL spShader
+  {
+    friend class spShaderResource;
+    friend class spShaderResourceDescriptor;
+    friend class spShaderResourceLoader;
+
+  public:
+    spShader() = default;
+
+  private:
+    ezStringView m_sName;
+
+    ezDynamicArray<spShaderVariantResourceHandle> m_Variants;
+  };
+} // namespace RAI

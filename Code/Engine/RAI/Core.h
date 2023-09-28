@@ -31,6 +31,7 @@ namespace RAI
   struct spVertex
   {
     EZ_DECLARE_POD_TYPE();
+    EZ_DECLARE_MEM_RELOCATABLE_TYPE();
 
     /// \brief The vertex position.
     ezVec3 m_vPosition;
@@ -58,10 +59,7 @@ namespace RAI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spVertex& other) const
     {
-      return m_vPosition == other.m_vPosition && m_vNormal == other.m_vNormal
-      && m_vTangent == other.m_vTangent && m_vBiTangent == other.m_vBiTangent
-      && m_vTexCoord0 == other.m_vTexCoord0 && m_vTexCoord1 == other.m_vTexCoord1
-      && m_Color0 == other.m_Color0 && m_Color1 == other.m_Color1;
+      return m_vPosition == other.m_vPosition && m_vNormal == other.m_vNormal && m_vTangent == other.m_vTangent && m_vBiTangent == other.m_vBiTangent && m_vTexCoord0 == other.m_vTexCoord0 && m_vTexCoord1 == other.m_vTexCoord1 && m_Color0 == other.m_Color0 && m_Color1 == other.m_Color1;
     }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spVertex& other) const
@@ -70,8 +68,21 @@ namespace RAI
     }
   };
 
+  /// \biref A permutation variable in a shader variant.
+  struct SP_RAI_DLL spPermutationVar
+  {
+    EZ_DECLARE_MEM_RELOCATABLE_TYPE();
 
-  inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const spVertex& vertex)
+    /// \brief The name of the permutation variable.
+    ezHashedString m_sName;
+
+    /// \brief The value of the permutation variable.
+    ezHashedString m_sValue;
+
+    EZ_ALWAYS_INLINE bool operator==(const spPermutationVar& other) const { return m_sName == other.m_sName && m_sValue == other.m_sValue; }
+  };
+
+  EZ_FORCE_INLINE ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const spVertex& vertex)
   {
     inout_stream << vertex.m_vPosition;
     inout_stream << vertex.m_vNormal;
@@ -85,7 +96,7 @@ namespace RAI
     return inout_stream;
   }
 
-  inline ezStreamReader& operator>>(ezStreamReader& inout_stream, spVertex& ref_vertex)
+  EZ_FORCE_INLINE ezStreamReader& operator>>(ezStreamReader& inout_stream, spVertex& ref_vertex)
   {
     inout_stream >> ref_vertex.m_vPosition;
     inout_stream >> ref_vertex.m_vNormal;
@@ -99,4 +110,19 @@ namespace RAI
     return inout_stream;
   }
 
+  EZ_FORCE_INLINE ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const spPermutationVar& permutation)
+  {
+    inout_stream << permutation.m_sName;
+    inout_stream << permutation.m_sValue;
+
+    return inout_stream;
+  }
+
+  EZ_FORCE_INLINE ezStreamReader& operator>>(ezStreamReader& inout_stream, spPermutationVar& ref_permutation)
+  {
+    inout_stream >> ref_permutation.m_sName;
+    inout_stream >> ref_permutation.m_sValue;
+
+    return inout_stream;
+  }
 } // namespace RAI
