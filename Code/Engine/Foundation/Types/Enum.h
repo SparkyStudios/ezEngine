@@ -141,3 +141,31 @@ private:
         return nullptr;                                      \
     }                                                        \
   }
+
+
+#define EZ_ENUM_VALUE_FROM_STRING(name)        \
+  if (sValue.Compare(EZ_STRINGIZE(name)) == 0) \
+    return name;
+
+/// \brief Helper macro to generate a 'FromString' function for enum values.
+///
+/// Usage: EZ_ENUM_FROM_STRING(Value1, Value2, Value3, Value4)
+/// Embed it into a struct (which defines the enums).
+/// Example:
+/// struct ezExampleEnum
+/// {
+///   enum Enum
+///   {
+///     A,
+///     B,
+///     C,
+///   };
+///
+///   EZ_ENUM_FROM_STRING(A, B, C);
+/// };
+#define EZ_ENUM_FROM_STRING(...)                             \
+  static Enum FromString(ezStringView sValue)                \
+  {                                                          \
+    EZ_EXPAND_ARGS(EZ_ENUM_VALUE_FROM_STRING, ##__VA_ARGS__) \
+    else return Default;                                     \
+  }

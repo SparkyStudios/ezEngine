@@ -584,6 +584,8 @@ namespace RHI
       StorageType HullShader : 1;
       StorageType ComputeShader : 1;
     };
+
+    EZ_ENUM_TO_STRING(VertexShader, PixelShader, GeometryShader, DomainShader, HullShader, ComputeShader);
   };
 
   EZ_DECLARE_FLAGS_OPERATORS(spShaderStage);
@@ -719,6 +721,27 @@ namespace RHI
     };
   };
 
+  /// \brief A predefined set of border colors applied to a \a spTexture
+  /// when the sampler address mode is set to \a spSamplerAddressMode::BorderColor.
+  struct SP_RHI_DLL spSamplerBorderColor
+  {
+    typedef ezUInt8 StorageType;
+
+    enum Enum : StorageType
+    {
+      /// \brief Transparent border color.
+      TransparentBlack,
+
+      /// \brief Black border color.
+      OpaqueBlack,
+
+      /// \brief White border color.
+      OpaqueWhite,
+
+      Default = TransparentBlack
+    };
+  };
+
   /// \brief Specifies the filtering mode applied to a \a spSampler.
   struct SP_RHI_DLL spSamplerFilter
   {
@@ -777,6 +800,8 @@ namespace RHI
 
       Default = None
     };
+
+    EZ_ENUM_FROM_STRING(None, Never, Equal, NotEqual, Less, LessEqual, Greater, GreaterEqual, Always);
   };
 
   /// \brief A bitmask describing the permitted uses of a buffer.
@@ -1236,6 +1261,8 @@ namespace RHI
 
       Default = SourceAlpha,
     };
+
+    EZ_ENUM_FROM_STRING(Zero, One, SourceAlpha, InverseSourceAlpha, DestinationAlpha, InverseDestinationAlpha, SourceColor, InverseSourceColor, DestinationColor, InverseDestinationColor, BlendFactor, InverseBlendFactor);
   };
 
   /// \brief A color bitmask representing the components which can be written to.
@@ -1273,6 +1300,8 @@ namespace RHI
       StorageType Blue : 1;
       StorageType Alpha : 1;
     };
+
+    EZ_ENUM_FROM_STRING(None, Red, Green, Blue, Alpha, All);
   };
 
   EZ_DECLARE_FLAGS_OPERATORS(spColorWriteMask);
@@ -1301,6 +1330,8 @@ namespace RHI
 
       Default = Add
     };
+
+    EZ_ENUM_FROM_STRING(Add, Subtract, ReverseSubtract, Minimum, Maximum);
   };
 
   /// \brief Specifies an action taken on samples that pass or fail the stencil test.
@@ -1336,6 +1367,8 @@ namespace RHI
 
       Default = Keep
     };
+
+    EZ_ENUM_FROM_STRING(Keep, Zero, Replace, IncrementClamp, DecrementClamp, Invert, IncrementWrap, DecrementWrap);
   };
 
   /// \brief Indicates which faces will be culled.
@@ -1356,6 +1389,8 @@ namespace RHI
 
       Default = None
     };
+
+    EZ_ENUM_FROM_STRING(None, Front, Back);
   };
 
   /// \brief The winding order used to determine the front face of a primitive.
@@ -1373,6 +1408,8 @@ namespace RHI
 
       Default = Clockwise
     };
+
+    EZ_ENUM_FROM_STRING(Clockwise, CounterClockwise);
   };
 
   /// \brief Indicates how the rasterizer should fill polygons.
@@ -1393,6 +1430,8 @@ namespace RHI
 
       Default = Solid
     };
+
+    EZ_ENUM_FROM_STRING(Solid, Wireframe, Point);
   };
 
   /// \brief The quality of a render target. Can be either in low dynamic range or high dynamic range.

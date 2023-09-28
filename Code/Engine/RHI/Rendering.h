@@ -141,7 +141,7 @@ namespace RHI
     bool m_bDepthTestEnabled{false};
 
     /// \brief The function used for depth comparison.
-    ezEnum<spDepthStencilComparison> m_DepthStencilComparison;
+    ezEnum<spDepthStencilComparison> m_eDepthStencilComparison;
 
     /// \brief Defines whether the renderer can write to the depth mask.
     bool m_bDepthMaskEnabled{false};
@@ -253,16 +253,16 @@ namespace RHI
   struct spRenderingState : ezHashableStruct<spRenderingState>
   {
     /// \brief The \a spBlendState of the rendering state.
-    spBlendState m_BlendState;
+    spBlendState m_BlendState{spBlendState::SingleDisabled};
 
     /// \brief The \a spDepthState of the rendering state.
-    spDepthState m_DepthState;
+    spDepthState m_DepthState{spDepthState::Disabled};
 
     /// \brief The \a spStencilState of the rendering state.
-    spStencilState m_StencilState;
+    spStencilState m_StencilState{spStencilState::Disabled};
 
     /// \brief The \a spRasterizerState of the rendering state.
-    spRasterizerState m_RasterizerState;
+    spRasterizerState m_RasterizerState{spRasterizerState::Default};
   };
 
 #pragma endregion
