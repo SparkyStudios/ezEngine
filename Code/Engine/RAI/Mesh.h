@@ -22,7 +22,9 @@
 
 namespace RAI
 {
-  /// \brief A mesh asset. Stores all needed data to render a mesh.
+  /// \brief A mesh asset.
+  ///
+  /// Stores all needed data to render a mesh.
   class SP_RAI_DLL spMesh
   {
     friend class spMeshResource;
@@ -165,18 +167,18 @@ namespace RAI
     void CreateRHIIndirectBuffer();
 
     /// \brief Gets the RHI buffer resource for the vertex buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIVertexBuffer() const { return m_RHIVertexBuffer; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIVertexBuffer() const { return m_pRHIVertexBuffer; }
 
     /// \brief Gets the RHI buffer resource for the index buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndexBuffer() const { return m_RHIIndexBuffer; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndexBuffer() const { return m_pRHIIndexBuffer; }
 
     /// \brief Gets the RHI buffer resource for the indirect buffer (draw commands).
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndirectBuffer() const { return m_RHIIndirectBuffer; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndirectBuffer() const { return m_pRHIIndirectBuffer; }
 
   private:
-    ezSharedPtr<RHI::spBuffer> m_RHIVertexBuffer{nullptr};
-    ezSharedPtr<RHI::spBuffer> m_RHIIndexBuffer{nullptr};
-    ezSharedPtr<RHI::spBuffer> m_RHIIndirectBuffer{nullptr};
+    ezSharedPtr<RHI::spBuffer> m_pRHIVertexBuffer{nullptr};
+    ezSharedPtr<RHI::spBuffer> m_pRHIIndexBuffer{nullptr};
+    ezSharedPtr<RHI::spBuffer> m_pRHIIndirectBuffer{nullptr};
 
 #pragma endregion
   };

@@ -198,8 +198,8 @@ namespace RAI
       ezHybridArray<ezByteBlobPtr, 32> imageData;
       imageData.SetCount(uiMipCount);
 
-      for (ezUInt8 m = 0; m < uiMipCount; ++m)
-        imageData[m] = pImage->GetImageData(m_uiLoadedMipLevel + m);
+      for (ezUInt8 m = m_uiLoadedMipLevel, l = uiMipCount + m_uiLoadedMipLevel; m < l; ++m)
+        imageData[m] = pImage->GetImageData(m);
 
       desc.m_ImageData = imageData;
     }

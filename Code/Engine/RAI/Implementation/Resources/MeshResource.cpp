@@ -21,10 +21,6 @@
 #include <Foundation/IO/ChunkStream.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
 
-#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-#  include <Foundation/IO/CompressedStreamBrotliG.h>
-#endif
-
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
 #  include <Foundation/IO/CompressedStreamZstd.h>
 #endif
@@ -56,7 +52,7 @@ namespace RAI
     m_uiNumLOD = 0;
     m_LODs.Clear();
     m_LODs.Reserve(SP_RAI_MAX_LOD_COUNT);
-    m_Bounds.SetInvalid();
+    m_Bounds = ezBoundingBoxSphere::MakeInvalid();
   }
 
   const spMesh& spMeshResourceDescriptor::GetLOD(ezUInt32 uiLodIndex) const
@@ -104,14 +100,8 @@ namespace RAI
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     uiCompressionMode = 1;
-    ezCompressedStreamWriterZstd compressor(&inout_stream, ezCompressedStreamWriterZstd::Compression::Average);
+    ezCompressedStreamWriterZstd compressor(&inout_stream, 0, ezCompressedStreamWriterZstd::Compression::Average);
     ezChunkStreamWriter chunk(compressor);
-#elif BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-    uiCompressionMode = 2;
-    ezCompressedStreamWriterBrotliG compressor(&inout_stream);
-    ezChunkStreamWriter chunk(compressor);
-#else
-    ezChunkStreamWriter chunk(inout_stream);
 #endif
 
     inout_stream << uiCompressionMode;
@@ -147,9 +137,6 @@ namespace RAI
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     compressor.FinishCompressedStream().IgnoreResult();
     ezLog::Dev("Compressed mesh data from {0}KB to {1}KB ({2}%%) using Zstd", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
-#elif BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-    compressor.FinishCompressedStream().IgnoreResult();
-    ezLog::Dev("Compressed mesh data from {0}KB to {1}KB ({2}%%) using BrotliG", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
 #endif
 
     return EZ_SUCCESS;
@@ -172,10 +159,6 @@ namespace RAI
     ezCompressedStreamReaderZstd decompressorZstd;
 #endif
 
-#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-    ezCompressedStreamReaderBrotliG decompressorBrotliG;
-#endif
-
     switch (uiCompressionMode)
     {
       case 0:
@@ -188,16 +171,6 @@ namespace RAI
         break;
 #else
         ezLog::Error("Mesh is compressed with zstandard, but support for this compressor is not compiled in.");
-        return EZ_FAILURE;
-#endif
-
-      case 2:
-#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-        decompressorBrotliG.SetInputStream(&inout_stream);
-        pCompressor = &decompressorBrotliG;
-        break;
-#else
-        ezLog::Error("Mesh is compressed with BrotliG, but support for this compressor is not compiled in.");
         return EZ_FAILURE;
 #endif
 
@@ -291,7 +264,7 @@ namespace RAI
   spMeshResource::spMeshResource()
     : ezResource(DoUpdate::OnAnyThread, SP_RAI_MAX_LOD_COUNT)
   {
-    m_Bounds.SetInvalid();
+    m_Bounds = ezBoundingBoxSphere::MakeInvalid();
   }
 
   ezResourceLoadDesc spMeshResource::UnloadData(Unload WhatToUnload)

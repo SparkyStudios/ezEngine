@@ -16,10 +16,6 @@
 
 #include <RAI/Resources/SkeletonResource.h>
 
-#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-#  include <Foundation/IO/CompressedStreamBrotliG.h>
-#endif
-
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
 #  include <Foundation/IO/CompressedStreamZstd.h>
 #endif
@@ -57,11 +53,7 @@ namespace RAI
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     uiCompressionMode = 1;
-    ezCompressedStreamWriterZstd compressor(&inout_stream, ezCompressedStreamWriterZstd::Compression::Average);
-    pWriter = &compressor;
-#elif BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-    uiCompressionMode = 2;
-    ezCompressedStreamWriterBrotliG compressor(&inout_stream);
+    ezCompressedStreamWriterZstd compressor(&inout_stream, 0, ezCompressedStreamWriterZstd::Compression::Average);
     pWriter = &compressor;
 #endif
 
@@ -72,9 +64,6 @@ namespace RAI
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     compressor.FinishCompressedStream().IgnoreResult();
     ezLog::Dev("Compressed skeleton data from {0}KB to {1}KB ({2}%%) using Zstd", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
-#elif BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-    compressor.FinishCompressedStream().IgnoreResult();
-    ezLog::Dev("Compressed skeleton data from {0}KB to {1}KB ({2}%%) using BrotliG", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
 #endif
 
     return EZ_SUCCESS;
@@ -93,10 +82,6 @@ namespace RAI
     ezCompressedStreamReaderZstd decompressorZstd;
 #endif
 
-#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-    ezCompressedStreamReaderBrotliG decompressorBrotliG;
-#endif
-
     switch (uiCompressionMode)
     {
       case 0:
@@ -109,16 +94,6 @@ namespace RAI
         break;
 #else
         ezLog::Error("Asset is compressed with zstandard, but support for this compressor is not compiled in.");
-        return EZ_FAILURE;
-#endif
-
-      case 2:
-#ifdef BUILDSYSTEM_ENABLE_BROTLIG_SUPPORT
-        decompressorBrotliG.SetInputStream(&inout_stream);
-        pReader = &decompressorBrotliG;
-        break;
-#else
-        ezLog::Error("Asset is compressed with BrotliG, but support for this compressor is not compiled in.");
         return EZ_FAILURE;
 #endif
 
