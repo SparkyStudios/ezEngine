@@ -17,20 +17,25 @@
 #include <RPI/RPIDLL.h>
 
 #include <RPI/Composition/CameraSlot.h>
-#include <RPI/Core/RenderSystem.h>
 
 namespace RPI
 {
+  class spRenderSystem;
+  class spRenderContext;
+
   class SP_RPI_DLL spCompositor : public ezRefCounted
   {
     EZ_DISALLOW_COPY_AND_ASSIGN(spCompositor);
 
   public:
-    spCompositor();
+    explicit spCompositor(spRenderSystem* pRenderSystem);
     ~spCompositor() override = default;
 
+    void Render(const spRenderContext* pRenderContext);
+
   private:
-    ezUniquePtr<spRenderSystem> m_pRenderSystem{nullptr};
-    ezHybridArray<spCameraSlot, 8> m_Cameras;
+    spRenderSystem* m_pRenderSystem{nullptr};
+
+    ezDynamicArray<spCameraSlot> m_Cameras;
   };
 } // namespace RPI

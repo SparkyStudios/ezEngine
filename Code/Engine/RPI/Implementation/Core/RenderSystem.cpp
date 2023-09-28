@@ -51,6 +51,9 @@ namespace RPI
 
     m_pSceneContext = EZ_NEW(m_pDevice->GetAllocator(), spSceneContext, m_pDevice.Borrow());
 
+    // TODO: Load the compositor from the resource instead
+    m_pCompositor = EZ_NEW(m_pDevice->GetAllocator(), spCompositor, this);
+
     m_bInitialized = true;
   }
 
@@ -115,9 +118,9 @@ namespace RPI
     s_ExtractEvent.Broadcast(event);
 
     // Extract render data from views
-    //    for (const auto& view : m_RenderViewCollector)
-    //      for (const auto& extractor : m_RenderFeatureExtractorCollector)
-    //        extractor->Extract(pRenderContext, view);
+    for (const auto& view : m_RenderViewCollector)
+      for (const auto& extractor : m_RenderFeatureExtractorCollector)
+        extractor->Extract(pRenderContext, view);
 
     // Trigger the "after extract" event
     event.m_Type = spRenderSystemExtractEvent::Type::AfterExtract;

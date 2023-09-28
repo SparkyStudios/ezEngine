@@ -37,13 +37,12 @@ namespace RPI
 
     virtual void Render(const spRenderContext* pRenderingContext) const = 0;
 
-    /// \brief Called at the initialization of the \a spCompositor to register this feature extractor
-    /// in the \a spRenderSystem.
-    virtual void RegisterExtractor();
+    /// \brief Called at the initialization of the \a spCompositor.
+    /// \param[in] pRenderingContext The rendering context for which the feature is initialized.
+    void Initialize(const spRenderContext* pRenderingContext);
 
-    /// \brief Called at the deinitialization of the \a spCompositor to unregister this feature extractor
-    /// from the \a spRenderSystem.
-    virtual void UnregisterExtractor();
+    /// \brief Called at the deinitialization of the \a spCompositor.
+    void Deinitialize();
 
     /// \brief Gets the name of the feature.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezStringView GetName() const { return m_sName.GetView(); }
@@ -61,10 +60,18 @@ namespace RPI
     /// \param event The event data.
     virtual void OnRenderSystemCollectEvent(const spRenderSystemCollectEvent& event);
 
+    /// \brief Called at the initialization of the feature, after the render context is set.
+    virtual void OnInitialize();
+
+    /// \brief Called at the deinitialization of the feature, before the render context is cleared.
+    virtual void OnDeinitialize();
+
   private:
     ezHashedString m_sName{};
     bool m_bIsActive{false};
+    bool m_bIsInitialized{false};
 
     ezUniquePtr<spRenderFeatureExtractor> m_pExtractor{nullptr};
+    const spRenderContext* m_pRenderContext{nullptr};
   };
 } // namespace RPI
