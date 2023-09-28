@@ -94,78 +94,78 @@ namespace RPI
     Segment* m_pTail{nullptr};
     ezAtomicInteger32 m_uiCount{0};
   };
+
+  template <typename T>
+  typename spConcurrentCollector<T>::iterator begin(spConcurrentCollector<T>& ref_container)
+  {
+    return ref_container.GetItems().GetData();
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::const_iterator begin(const spConcurrentCollector<T>& container)
+  {
+    return container.GetItems().GetData();
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::const_iterator cbegin(const spConcurrentCollector<T>& container)
+  {
+    return container.GetItems().GetData();
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::reverse_iterator rbegin(spConcurrentCollector<T>& ref_container)
+  {
+    return typename spConcurrentCollector<T>::reverse_iterator(ref_container.GetItems().GetData() + ref_container.GetCount() - 1);
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::const_reverse_iterator rbegin(const spConcurrentCollector<T>& container)
+  {
+    return typename spConcurrentCollector<T>::const_reverse_iterator(container.GetItems().GetData() + container.GetCount() - 1);
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::const_reverse_iterator crbegin(const spConcurrentCollector<T>& container)
+  {
+    return typename spConcurrentCollector<T>::const_reverse_iterator(container.GetItems().GetData() + container.GetCount() - 1);
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::iterator end(spConcurrentCollector<T>& ref_container)
+  {
+    return ref_container.GetItems().GetData() + ref_container.GetCount();
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::const_iterator end(const spConcurrentCollector<T>& container)
+  {
+    return container.GetItems().GetData() + container.GetCount();
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::const_iterator cend(const spConcurrentCollector<T>& container)
+  {
+    return container.GetItems().GetData() + container.GetCount();
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::reverse_iterator rend(spConcurrentCollector<T>& ref_container)
+  {
+    return typename spConcurrentCollector<T>::reverse_iterator(ref_container.GetItems().GetData() - 1);
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::const_reverse_iterator rend(const spConcurrentCollector<T>& container)
+  {
+    return typename spConcurrentCollector<T>::const_reverse_iterator(container.GetItems().GetData() - 1);
+  }
+
+  template <typename T>
+  typename spConcurrentCollector<T>::const_reverse_iterator crend(const spConcurrentCollector<T>& container)
+  {
+    return typename spConcurrentCollector<T>::const_reverse_iterator(container.GetItems().GetData() - 1);
+  }
 } // namespace RPI
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::iterator begin(RPI::spConcurrentCollector<T>& ref_container)
-{
-  return ref_container.GetItems().GetData();
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::const_iterator begin(const RPI::spConcurrentCollector<T>& container)
-{
-  return container.GetItems().GetData();
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::const_iterator cbegin(const RPI::spConcurrentCollector<T>& container)
-{
-  return container.GetItems().GetData();
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::reverse_iterator rbegin(RPI::spConcurrentCollector<T>& ref_container)
-{
-  return typename RPI::spConcurrentCollector<T>::reverse_iterator(ref_container.GetItems().GetData() + ref_container.GetCount() - 1);
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::const_reverse_iterator rbegin(const RPI::spConcurrentCollector<T>& container)
-{
-  return typename RPI::spConcurrentCollector<T>::const_reverse_iterator(container.GetItems().GetData() + container.GetCount() - 1);
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::const_reverse_iterator crbegin(const RPI::spConcurrentCollector<T>& container)
-{
-  return typename RPI::spConcurrentCollector<T>::const_reverse_iterator(container.GetItems().GetData() + container.GetCount() - 1);
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::iterator end(RPI::spConcurrentCollector<T>& ref_container)
-{
-  return ref_container.GetItems().GetData() + ref_container.GetCount();
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::const_iterator end(const RPI::spConcurrentCollector<T>& container)
-{
-  return container.GetItems().GetData() + container.GetCount();
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::const_iterator cend(const RPI::spConcurrentCollector<T>& container)
-{
-  return container.GetItems().GetData() + container.GetCount();
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::reverse_iterator rend(RPI::spConcurrentCollector<T>& ref_container)
-{
-  return typename RPI::spConcurrentCollector<T>::reverse_iterator(ref_container.GetItems().GetData() - 1);
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::const_reverse_iterator rend(const RPI::spConcurrentCollector<T>& container)
-{
-  return typename RPI::spConcurrentCollector<T>::const_reverse_iterator(container.GetItems().GetData() - 1);
-}
-
-template <typename T>
-typename RPI::spConcurrentCollector<T>::const_reverse_iterator crend(const RPI::spConcurrentCollector<T>& container)
-{
-  return typename RPI::spConcurrentCollector<T>::const_reverse_iterator(container.GetItems().GetData() - 1);
-}
 
 #include <RPI/Implementation/Core/Threading/ConcurrentCollector_inl.h>

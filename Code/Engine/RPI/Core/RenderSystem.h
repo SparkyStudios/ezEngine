@@ -18,13 +18,13 @@
 
 #include <RHI/Device.h>
 
+#include <RPI/Composition/Compositor.h>
 #include <RPI/Core/RenderStage.h>
 #include <RPI/Core/RenderView.h>
+#include <RPI/Core/Threading/ConcurrentCollector.h>
 #include <RPI/Core/Threading/RenderThread.h>
 #include <RPI/Features/RenderFeatureExtractor.h>
 #include <RPI/Scene/SceneContext.h>
-
-#include <RPI/Core/Threading/ConcurrentCollector.h>
 
 namespace RPI
 {
@@ -131,8 +131,10 @@ namespace RPI
     ezUniquePtr<spRenderThread> m_pRenderThread{nullptr};
     ezUniquePtr<spSceneContext> m_pSceneContext{nullptr};
 
-    spConcurrentCollector<spRenderView*> m_RenderViewCollector{};
-    spConcurrentCollector<spRenderStage*> m_RenderStageCollector{};
-    spConcurrentCollector<spRenderFeatureExtractor*> m_RenderFeatureExtractorCollector{};
+    spConcurrentCollector<spRenderView*> m_RenderViewCollector;
+    spConcurrentCollector<spRenderStage*> m_RenderStageCollector;
+    spConcurrentCollector<spRenderFeatureExtractor*> m_RenderFeatureExtractorCollector;
+
+    ezSharedPtr<spCompositor> m_pCompositor{nullptr};
   };
 } // namespace RPI

@@ -1,3 +1,9 @@
+// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
@@ -8,8 +14,8 @@
 
 #include <RPI/RPIPCH.h>
 
-#include <RPI/Features/RenderFeature.h>
 #include <RPI/Core/RenderSystem.h>
+#include <RPI/Features/RenderFeature.h>
 
 namespace RPI
 {
@@ -37,14 +43,29 @@ namespace RPI
   {
   }
 
-  void spRenderFeature::RegisterExtractor()
+  void spRenderFeature::Initialize(const spRenderContext* pRenderContext)
   {
+    EZ_ASSERT_DEV(pRenderContext != nullptr, "Render context must not be nullptr.");
+
+    if (m_pRenderContext != nullptr)
+      Deinitialize();
+
+    m_pRenderContext = pRenderContext;
+    m_bIsInitialized = true;
+
+    OnInitialize();
+
     spRenderSystem::GetCollectEvent().AddEventHandler(ezMakeDelegate(&spRenderFeature::OnRenderSystemCollectEvent, this));
   }
 
-  void spRenderFeature::UnregisterExtractor()
+  void spRenderFeature::Deinitialize()
   {
     spRenderSystem::GetCollectEvent().RemoveEventHandler(ezMakeDelegate(&spRenderFeature::OnRenderSystemCollectEvent, this));
+
+    OnDeinitialize();
+
+    m_bIsInitialized = false;
+    m_pRenderContext = nullptr;
   }
 
   void spRenderFeature::OnRenderSystemCollectEvent(const spRenderSystemCollectEvent& event)
@@ -54,5 +75,13 @@ namespace RPI
 
     auto* pRenderSystem = ezSingletonRegistry::GetRequiredSingletonInstance<spRenderSystem>();
     pRenderSystem->GetRenderFeatureExtractorCollector().Add(m_pExtractor.Borrow());
+  }
+
+  void spRenderFeature::OnInitialize()
+  {
+  }
+
+  void spRenderFeature::OnDeinitialize()
+  {
   }
 } // namespace RPI
