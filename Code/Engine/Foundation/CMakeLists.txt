@@ -58,10 +58,6 @@ if(EZ_3RDPARTY_ZSTD_SUPPORT)
   target_link_libraries(${PROJECT_NAME} PUBLIC zstd)
 endif()
 
-if(EZ_3RDPARTY_BROTLIG_SUPPORT)
-  target_link_libraries(${PROJECT_NAME} PUBLIC brotlig)
-endif()
-
 if (EZ_3RDPARTY_ZLIB_SUPPORT)
   # ZLIB is required to read the apk on Android.
   target_link_libraries(${PROJECT_NAME} PUBLIC zlib)

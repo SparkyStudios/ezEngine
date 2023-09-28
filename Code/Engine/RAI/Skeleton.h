@@ -20,6 +20,11 @@
 
 namespace RAI
 {
+  /// \brief A skeleton asset.
+  ///
+  /// A skeleton is a collection of joints that can be animated. Each joint
+  /// stores the name of the joint, the parent joint, and the transformation
+  /// matrix of its bind pose.
   class SP_RAI_DLL spSkeleton
   {
     friend class spSkeletonResourceDescriptor;
@@ -29,14 +34,24 @@ namespace RAI
     /// \brief A single joint in the skeleton hierarchy.
     struct Joint
     {
+      /// \brief The index of this joint in the skeleton.
       ezUInt16 m_uiIndex{spSkeletonInvalidJointIndex};
+
+      /// \brief The index of the parent of this joint in the skeleton.
+      /// Set it to \a spSkeletonInvalidJointIndex if this joint is the root joint.
       ezUInt16 m_uiParentIndex{spSkeletonInvalidJointIndex};
+
+      /// \brief The name of this joint.
       ezHashedString m_sName;
+
+      /// \brief The bind pose transformation matrix of this joint.
       ezTransform m_Transform;
     };
 
+    /// \brief Gets the joints of the skeleton.
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<Joint>& GetJoints() const { return m_Joints; }
 
+    /// \brief Gets the joints of the skeleton.
     EZ_ALWAYS_INLINE ezDynamicArray<Joint>& GetJoints() { return m_Joints; }
 
   private:
@@ -44,7 +59,19 @@ namespace RAI
   };
 } // namespace RAI
 
-inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spSkeleton::Joint& joint)
+EZ_FORCE_INLINE ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spSkeleton& skeleton)
+{
+  inout_stream.WriteArray(skeleton.GetJoints()).IgnoreResult();
+  return inout_stream;
+}
+
+EZ_FORCE_INLINE ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spSkeleton& skeleton)
+{
+  inout_stream.ReadArray(skeleton.GetJoints()).IgnoreResult();
+  return inout_stream;
+}
+
+EZ_FORCE_INLINE ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spSkeleton::Joint& joint)
 {
   inout_stream << joint.m_uiIndex;
   inout_stream << joint.m_uiParentIndex;
@@ -54,7 +81,7 @@ inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spSke
   return inout_stream;
 }
 
-inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spSkeleton::Joint& ref_joint)
+EZ_FORCE_INLINE ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spSkeleton::Joint& ref_joint)
 {
   inout_stream >> ref_joint.m_uiIndex;
   inout_stream >> ref_joint.m_uiParentIndex;

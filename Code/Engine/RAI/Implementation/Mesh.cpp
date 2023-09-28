@@ -55,9 +55,9 @@ namespace RAI
     m_Root.m_sName.Clear();
     m_Root.m_Transform = {};
 
-    m_RHIVertexBuffer.Clear();
-    m_RHIIndexBuffer.Clear();
-    m_RHIIndirectBuffer.Clear();
+    m_pRHIVertexBuffer.Clear();
+    m_pRHIIndexBuffer.Clear();
+    m_pRHIIndirectBuffer.Clear();
   }
 
   void spMesh::GetDrawCommands(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands) const
@@ -67,47 +67,47 @@ namespace RAI
 
   void spMesh::CreateRHIVertexBuffer()
   {
-    if (m_RHIVertexBuffer != nullptr)
+    if (m_pRHIVertexBuffer != nullptr)
       return;
 
     EZ_ASSERT_DEV(!m_Data.m_Vertices.IsEmpty(), "Mesh has no vertices.");
     auto* pDevice = ezSingletonRegistry::GetSingletonInstance<RHI::spDevice>();
 
     ezUInt32 uiVertexCount = m_Data.m_Vertices.GetCount();
-    m_RHIVertexBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(uiVertexCount * sizeof(spVertex), RHI::spBufferUsage::VertexBuffer));
+    m_pRHIVertexBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(uiVertexCount * sizeof(spVertex), RHI::spBufferUsage::VertexBuffer));
 
-    pDevice->UpdateBuffer<spVertex>(m_RHIVertexBuffer, 0, m_Data.m_Vertices.GetArrayPtr());
+    pDevice->UpdateBuffer<spVertex>(m_pRHIVertexBuffer, 0, m_Data.m_Vertices.GetArrayPtr());
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
     ezStringBuilder sb;
     sb.Format("{0}__VertexBuffer", m_Root.m_sName);
-    m_RHIVertexBuffer->SetDebugName(sb);
+    m_pRHIVertexBuffer->SetDebugName(sb);
 #endif
   }
 
   void spMesh::CreateRHIIndexBuffer()
   {
-    if (m_RHIIndexBuffer != nullptr)
+    if (m_pRHIIndexBuffer != nullptr)
       return;
 
     EZ_ASSERT_DEV(!m_Data.m_Indices.IsEmpty(), "Mesh has no indices.");
     auto* pDevice = ezSingletonRegistry::GetSingletonInstance<RHI::spDevice>();
 
     ezUInt32 uiIndexCount = m_Data.m_Indices.GetCount();
-    m_RHIIndexBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(uiIndexCount * sizeof(ezUInt32), RHI::spBufferUsage::IndexBuffer));
+    m_pRHIIndexBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(uiIndexCount * sizeof(ezUInt32), RHI::spBufferUsage::IndexBuffer));
 
-    pDevice->UpdateBuffer<ezUInt16>(m_RHIIndexBuffer, 0, m_Data.m_Indices.GetArrayPtr());
+    pDevice->UpdateBuffer<ezUInt16>(m_pRHIIndexBuffer, 0, m_Data.m_Indices.GetArrayPtr());
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
     ezStringBuilder sb;
     sb.Format("{0}__IndexBuffer", m_Root.m_sName);
-    m_RHIIndexBuffer->SetDebugName(sb);
+    m_pRHIIndexBuffer->SetDebugName(sb);
 #endif
   }
 
   void spMesh::CreateRHIIndirectBuffer()
   {
-    if (m_RHIIndirectBuffer != nullptr)
+    if (m_pRHIIndirectBuffer != nullptr)
       return;
 
     auto* pDevice = ezSingletonRegistry::GetSingletonInstance<RHI::spDevice>();
@@ -115,14 +115,14 @@ namespace RAI
     ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper> drawCommands;
     GetDrawCommands(drawCommands);
 
-    m_RHIIndirectBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(sizeof(RHI::spDrawIndexedIndirectCommand) * drawCommands.GetCount(), RHI::spBufferUsage::IndirectBuffer));
+    m_pRHIIndirectBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(sizeof(RHI::spDrawIndexedIndirectCommand) * drawCommands.GetCount(), RHI::spBufferUsage::IndirectBuffer));
 
-    pDevice->UpdateBuffer<RHI::spDrawIndexedIndirectCommand>(m_RHIIndirectBuffer, 0, drawCommands.GetArrayPtr());
+    pDevice->UpdateBuffer<RHI::spDrawIndexedIndirectCommand>(m_pRHIIndirectBuffer, 0, drawCommands.GetArrayPtr());
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
     ezStringBuilder sb;
     sb.Format("{0}__IndirectBuffer", m_Root.m_sName);
-    m_RHIIndirectBuffer->SetDebugName(sb);
+    m_pRHIIndirectBuffer->SetDebugName(sb);
 #endif
   }
 

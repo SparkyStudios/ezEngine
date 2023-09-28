@@ -16,6 +16,5 @@ target_link_libraries(${PROJECT_NAME}
   ozz
 )
 
-ez_link_target_brotlig(${PROJECT_NAME})
 ez_link_target_assimp(${PROJECT_NAME})
 sp_link_target_ktx(${PROJECT_NAME})

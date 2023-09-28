@@ -31,13 +31,11 @@ namespace RAI
   public:
     struct LoadedData
     {
+    public:
       LoadedData()
         : m_Reader(&m_Storage)
       {
       }
-
-      ezContiguousMemoryStreamStorage m_Storage;
-      ezMemoryStreamReader m_Reader;
 
       ezStringView m_sName;
       ezHybridArray<RHI::spInputElementDescription, 8> m_InputElements;
@@ -45,6 +43,12 @@ namespace RAI
       ezMap<RHI::spShaderStage::Enum, ezStringView> m_EntryPoints;
       ezDynamicArray<spPermutationVar> m_Permutations;
       RHI::spRenderingState m_RenderingState;
+
+    private:
+      friend class spShaderResourceLoader;
+
+      ezContiguousMemoryStreamStorage m_Storage;
+      ezMemoryStreamReader m_Reader;
     };
 
     ezResourceLoadData OpenDataStream(const ezResource* pResource) override;
