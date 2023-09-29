@@ -1,3 +1,17 @@
+// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <AssetProcessor/Importers/ImageImporter.h>
 
 #include <RAI/Resources/ImageResource.h>
@@ -485,9 +499,10 @@ static VkFormat toVkFormat(const ezEnum<ezImageFormat>& eFormat)
       return VK_FORMAT_BC7_UNORM_BLOCK;
     case ezImageFormat::BC7_UNORM_SRGB:
       return VK_FORMAT_BC7_SRGB_BLOCK;
-  }
 
-  return VK_FORMAT_UNDEFINED;
+    default:
+      return VK_FORMAT_UNDEFINED;
+  }
 }
 
 static void getFormatFromQualityLevel(const ezEnum<ezImageFormat>& eFormat, const ezEnum<spTextureCompressionLevel>& eQualityLevel, ezEnum<ezImageFormat>& out_eFormat, ezEnum<spPixelFormat>& out_ePixelFormat)
@@ -581,9 +596,11 @@ static void getFormatFromQualityLevel(const ezEnum<ezImageFormat>& eFormat, cons
         out_ePixelFormat = spPixelFormat::Bc4UNorm;
       }
       return;
-  }
 
-  EZ_ASSERT_DEBUG(false, "Unsupported format");
+    default:
+      EZ_ASSERT_DEBUG(false, "Unsupported format");
+      return;
+  }
 }
 
 static void getAddressMode(const ezEnum<spTextureWrapMode>& eMode, ezImageAddressMode::Enum& out_eMode)

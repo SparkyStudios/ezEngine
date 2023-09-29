@@ -1,3 +1,17 @@
+// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <AssetProcessor/Processors/MeshProcessor.h>
 
 #include <assimp/DefaultLogger.hpp>
@@ -138,7 +152,7 @@ static void RecomputeTangents(const ezArrayPtr<spVertex>& vertices, const ezArra
 class aiLogStreamError final : public Assimp::LogStream
 {
 public:
-  void write(const char* message) override { ezLog::Warning("AssImp: {0}", message); }
+  void write(const char* message) override { ezLog::Error("AssImp: {0}", message); }
 };
 
 class aiLogStreamWarning final : public Assimp::LogStream
@@ -171,9 +185,6 @@ ezResult spMeshProcessor::Process(ezStringView sFilename, ezStringView sOutputPa
 
   m_Importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_PRESERVE_PIVOTS, false);
   m_Importer.SetPropertyBool(AI_CONFIG_IMPORT_FBX_OPTIMIZE_EMPTY_ANIMATION_CURVES, false);
-
-  m_sFilePath = sFilename;
-  m_sOutputDir = sOutputPath;
 
   ezUInt32 uiPreset = aiProcess_SplitLargeMeshes | aiProcess_Triangulate | aiProcess_SortByPType | aiProcess_FindDegenerates | aiProcess_FindInstances | aiProcess_FindInvalidData | aiProcess_RemoveComponent | aiProcess_GenUVCoords | aiProcess_TransformUVCoords | aiProcess_GlobalScale;
 
@@ -359,11 +370,11 @@ void spMeshProcessor::ProcessMeshes(const aiNode* pNode, ezUInt32 uiParentIndex,
       spVertex vertex;
 
       vertex.m_vPosition = spFromAssimp(pMesh->mVertices[vertexIndex]);
-      vertex.m_vNormal = pMesh->HasNormals() ? spFromAssimp(pMesh->mNormals[vertexIndex]) : ezVec3::ZeroVector();
-      vertex.m_vTangent = pMesh->HasTangentsAndBitangents() ? spFromAssimp(pMesh->mTangents[vertexIndex]).GetAsVec4(1.0f) : ezVec4::ZeroVector();
-      vertex.m_vBiTangent = pMesh->HasTangentsAndBitangents() ? spFromAssimp(pMesh->mBitangents[vertexIndex]).GetAsVec4(1.0f) : ezVec4::ZeroVector();
-      vertex.m_vTexCoord0 = pMesh->HasTextureCoords(0) ? spFromAssimp(pMesh->mTextureCoords[0][vertexIndex]).GetAsVec2() : ezVec2::ZeroVector();
-      vertex.m_vTexCoord1 = pMesh->HasTextureCoords(1) ? spFromAssimp(pMesh->mTextureCoords[1][vertexIndex]).GetAsVec2() : ezVec2::ZeroVector();
+      vertex.m_vNormal = pMesh->HasNormals() ? spFromAssimp(pMesh->mNormals[vertexIndex]) : ezVec3::MakeZero();
+      vertex.m_vTangent = pMesh->HasTangentsAndBitangents() ? spFromAssimp(pMesh->mTangents[vertexIndex]).GetAsVec4(1.0f) : ezVec4::MakeZero();
+      vertex.m_vBiTangent = pMesh->HasTangentsAndBitangents() ? spFromAssimp(pMesh->mBitangents[vertexIndex]).GetAsVec4(1.0f) : ezVec4::MakeZero();
+      vertex.m_vTexCoord0 = pMesh->HasTextureCoords(0) ? spFromAssimp(pMesh->mTextureCoords[0][vertexIndex]).GetAsVec2() : ezVec2::MakeZero();
+      vertex.m_vTexCoord1 = pMesh->HasTextureCoords(1) ? spFromAssimp(pMesh->mTextureCoords[1][vertexIndex]).GetAsVec2() : ezVec2::MakeZero();
       vertex.m_Color0 = pMesh->HasVertexColors(0) ? spFromAssimp(pMesh->mColors[0][vertexIndex]) : ezColor::White;
       vertex.m_Color1 = pMesh->HasVertexColors(1) ? spFromAssimp(pMesh->mColors[1][vertexIndex]) : ezColor::White;
 
@@ -439,11 +450,11 @@ void spMeshProcessor::ProcessBlendShapes()
         spVertex vertex;
 
         vertex.m_vPosition = spFromAssimp(pAnimMesh->mVertices[uiVertexIndex]);
-        vertex.m_vNormal = pAnimMesh->HasNormals() ? spFromAssimp(pAnimMesh->mNormals[uiVertexIndex]) : ezVec3::ZeroVector();
-        vertex.m_vTangent = pAnimMesh->HasTangentsAndBitangents() ? spFromAssimp(pAnimMesh->mTangents[uiVertexIndex]).GetAsVec4(1.0f) : ezVec4::ZeroVector();
-        vertex.m_vBiTangent = pAnimMesh->HasTangentsAndBitangents() ? spFromAssimp(pAnimMesh->mBitangents[uiVertexIndex]).GetAsVec4(1.0f) : ezVec4::ZeroVector();
-        vertex.m_vTexCoord0 = pAnimMesh->HasTextureCoords(0) ? spFromAssimp(pAnimMesh->mTextureCoords[0][uiVertexIndex]).GetAsVec2() : ezVec2::ZeroVector();
-        vertex.m_vTexCoord1 = pAnimMesh->HasTextureCoords(1) ? spFromAssimp(pAnimMesh->mTextureCoords[1][uiVertexIndex]).GetAsVec2() : ezVec2::ZeroVector();
+        vertex.m_vNormal = pAnimMesh->HasNormals() ? spFromAssimp(pAnimMesh->mNormals[uiVertexIndex]) : ezVec3::MakeZero();
+        vertex.m_vTangent = pAnimMesh->HasTangentsAndBitangents() ? spFromAssimp(pAnimMesh->mTangents[uiVertexIndex]).GetAsVec4(1.0f) : ezVec4::MakeZero();
+        vertex.m_vBiTangent = pAnimMesh->HasTangentsAndBitangents() ? spFromAssimp(pAnimMesh->mBitangents[uiVertexIndex]).GetAsVec4(1.0f) : ezVec4::MakeZero();
+        vertex.m_vTexCoord0 = pAnimMesh->HasTextureCoords(0) ? spFromAssimp(pAnimMesh->mTextureCoords[0][uiVertexIndex]).GetAsVec2() : ezVec2::MakeZero();
+        vertex.m_vTexCoord1 = pAnimMesh->HasTextureCoords(1) ? spFromAssimp(pAnimMesh->mTextureCoords[1][uiVertexIndex]).GetAsVec2() : ezVec2::MakeZero();
         vertex.m_Color0 = pAnimMesh->HasVertexColors(0) ? spFromAssimp(pAnimMesh->mColors[0][uiVertexIndex]) : ezColor::White;
         vertex.m_Color1 = pAnimMesh->HasVertexColors(1) ? spFromAssimp(pAnimMesh->mColors[1][uiVertexIndex]) : ezColor::White;
 
