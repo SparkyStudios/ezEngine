@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <AssetProcessor/Importers/SkeletonImporter.h>
 #include <AssetProcessor/Processors/ImageProcessor.h>
 #include <AssetProcessor/Processors/MeshProcessor.h>
+#include <AssetProcessor/Processors/ShaderProcessor.h>
 
 #include <Foundation/Application/Application.h>
-#include <Foundation/IO/Archive/ArchiveBuilder.h>
-#include <Foundation/IO/FileSystem/DataDirTypeFolder.h>
 #include <Foundation/IO/FileSystem/FileSystem.h>
 #include <Foundation/Logging/ConsoleWriter.h>
 #include <Foundation/Logging/Log.h>
@@ -48,7 +46,17 @@
 
     Example:
       -texture "path/to/texture.tga"
-      -texture "path/to/texture1.tga" "path/to/texture2.png"
+      -texture "path/to/texture1.jpg" "path/to/texture2.png"
+
+-shader <paths>
+    Paths to one or many folders containing compiled SPSL shader variants files and a single .variants.json file.
+
+    It will generate spShader assets from SPSL shader variant files, in the same path, unless
+    the -out option is specified with a different value.
+
+    Example:
+        -shader "path/to/shader"
+        -shader "path/to/shader1" "path/to/shader2"
 
 -out <path>
     The output path of the currently processed assets.
@@ -145,6 +153,25 @@ ezCommandLineOptionEnum opt_Texture_Compression("_AssetProcessor_Texture", "-com
 
 #pragma endregion
 
+#pragma region Shader processing options
+
+ezCommandLineOptionDoc opt_Shaders("_AssetProcessor", "-shader", "<paths>", R"(
+Path to one or many directories containing compiled SPSL shader variants.
+
+It will generate spShaderVariant assets from SPSL files the input directory, in the same path, unless
+the -out option is specified with a different value.
+)",
+  "");
+
+ezCommandLineOptionString opt_Shader_Variants("_AssetProcessor_Shader", "-variants", R"(
+The shader variants to generate.
+
+This argument takes the names of the shader variants to generate, separated by spaces.
+)",
+  "");
+
+#pragma endregion
+
 ezCommandLineOptionPath opt_Out("_AssetProcessor", "-out", R"(
 The output path of the currently processed assets.
 
@@ -173,6 +200,12 @@ public:
     /// This type of asset will generate a *.spTexture file.
     Texture,
 
+    /// \brief A shader asset file.
+    ///
+    /// This type of asset will generate a *.spShader file, and many *.spShaderVariant files
+    /// according to the *.variants.json file.
+    Shader,
+
     Unknown = -1
   };
 
@@ -185,6 +218,8 @@ public:
 
   spImageProcessorConfig m_TextureProcessorConfig;
 
+  spShaderProcessorConfig m_ShaderProcessorConfig;
+
   static const char* GetSortingGroupFromAssetType(AssetType type)
   {
     switch (type)
@@ -193,6 +228,8 @@ public:
         return "_AssetProcessor_Mesh";
       case AssetType::Texture:
         return "_AssetProcessor_Texture";
+      case AssetType::Shader:
+        return "_AssetProcessor_Shader";
       case AssetType::Unknown:
       default:
         return "_AssetProcessor";
@@ -224,15 +261,20 @@ public:
       m_eAssetType = AssetType::Texture;
       EZ_SUCCEED_OR_RETURN(ParseTextureArguments());
     }
+    else if (opt_Shaders.IsOptionSpecified())
+    {
+      m_eAssetType = AssetType::Shader;
+      EZ_SUCCEED_OR_RETURN(ParseShaderArguments());
+    }
 
     m_sOutput = opt_Out.GetOptionValue(ezCommandLineOption::LogMode::Never);
     m_sOutput = ezOSFile::MakePathAbsoluteWithCWD(m_sOutput);
 
     const bool isHelp = cmd.HasOption("-help");
 
-    if (!isHelp && m_sInputs.IsEmpty() && m_sInputs.IsEmpty() && !m_sOutput.IsEmpty())
+    if (!isHelp && m_sInputs.IsEmpty() && !m_sOutput.IsEmpty())
     {
-      ezLog::Error("Asset files not defined. Specify them with either -mesh or -texture.");
+      ezLog::Error("Input asset files not defined. Please Specify them.");
       return EZ_FAILURE;
     }
 
@@ -329,6 +371,35 @@ public:
     return EZ_SUCCESS;
   }
 
+  ezResult ParseShaderArguments()
+  {
+    const ezCommandLineUtils& cmd = *ezCommandLineUtils::GetGlobalInstance();
+
+    if (const ezUInt32 args = cmd.GetStringOptionArguments("-shader"); args > 0)
+    {
+      if (m_eAssetType != AssetType::Shader)
+      {
+        ezLog::Error("Cannot use -shader option with another asset type.");
+        return EZ_FAILURE;
+      }
+
+      for (ezUInt32 a = 0; a < args; ++a)
+      {
+        m_sInputs.PushBack(cmd.GetAbsolutePathOption("-shader", a));
+
+        if (!ezOSFile::ExistsFile(m_sInputs.PeekBack()))
+        {
+          ezLog::Error("-shader input file does not exist: '{}'", m_sInputs.PeekBack());
+          return EZ_FAILURE;
+        }
+      }
+    }
+
+    opt_Shader_Variants.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified).Split(false, m_ShaderProcessorConfig.m_ShaderVariants, " ");
+
+    return EZ_SUCCESS;
+  }
+
   void ProcessMesh(ezHybridArray<ezString, 8>& failedImports)
   {
     for (const auto& input : m_sInputs)
@@ -338,52 +409,6 @@ public:
       if (processor.Process(input, m_sOutput).Failed())
         failedImports.PushBack(input);
     }
-
-
-    /*
-    // Mesh Import
-    if (m_MeshProcessorConfig.m_bImportMeshes)
-    {
-      spMeshImporter importer(m_MeshProcessorConfig.m_AssimpImporterConfig);
-
-      for (const auto& input : m_sInputs)
-      {
-        if (importer.Import(input, m_sOutput).Failed())
-          failedImports.PushBack(input);
-      }
-    }
-
-    // Skeleton Import
-    if (m_MeshProcessorConfig.m_bImportSkeleton)
-    {
-      spSkeletonImporter importer(m_MeshProcessorConfig.m_AssimpImporterConfig);
-
-      for (const auto& input : m_sInputs)
-      {
-        if (importer.Import(input, m_sOutput).Failed())
-          failedImports.PushBack(input);
-      }
-    }
-
-    // Material Import
-    if (m_MeshProcessorConfig.m_bImportMaterials)
-    {
-      // TODO
-    }
-
-    if (m_MeshProcessorConfig.m_bImportMotions)
-    {
-      // Blend shapes Import
-      {
-        // TODO
-      }
-
-      // Animations Import
-      {
-        // TODO
-      }
-    }
-  */
   }
 
   void ProcessTexture(ezHybridArray<ezString, 8>& failedImports)
@@ -391,6 +416,17 @@ public:
     for (const auto& input : m_sInputs)
     {
       spImageProcessor processor(m_TextureProcessorConfig);
+
+      if (processor.Process(input, m_sOutput).Failed())
+        failedImports.PushBack(input);
+    }
+  }
+
+  void ProcessShader(ezHybridArray<ezString, 8>& failedImports)
+  {
+    for (const auto& input : m_sInputs)
+    {
+      spShaderProcessor processor(m_ShaderProcessorConfig);
 
       if (processor.Process(input, m_sOutput).Failed())
         failedImports.PushBack(input);
@@ -432,29 +468,38 @@ public:
       }
     }
 
-    ezStopwatch sw;
-
     ezHybridArray<ezString, 8> failedImports;
 
-    switch (m_eAssetType)
     {
-      case AssetType::Mesh:
+      ezStopwatch sw;
+
+      switch (m_eAssetType)
       {
-        ProcessMesh(failedImports);
-        break;
+        case AssetType::Mesh:
+        {
+          ProcessMesh(failedImports);
+          break;
+        }
+
+        case AssetType::Texture:
+        {
+          ProcessTexture(failedImports);
+          break;
+        }
+
+        case AssetType::Shader:
+        {
+          ProcessShader(failedImports);
+          break;
+        }
+
+        default:
+          break;
       }
 
-      case AssetType::Texture:
-      {
-        ProcessTexture(failedImports);
-        break;
-      }
-
-      default:
-        break;
+      sw.Pause();
+      ezLog::Info("Finished processing {0} assets in {3}ms, {1} assets failed, {2} assets ignored", m_sInputs.GetCount(), failedImports.GetCount(), 0, ezArgF(sw.GetRunningTotal().GetMilliseconds(), 2));
     }
-
-    ezLog::Info("Finished processing {0} assets, {1} assets failed, {2} assets were ignored", m_sInputs.GetCount(), failedImports.GetCount(), 0);
 
     if (!failedImports.IsEmpty())
     {

@@ -131,10 +131,10 @@ namespace RHI
     }
   }
 
-  ezDynamicArray<spResourceLayoutDescription> spShaderProgramD3D11::GetResourceLayoutDescriptions() const
+  void spShaderProgramD3D11::GetResourceLayoutDescriptions(ezDynamicArray<spResourceLayoutDescription>& out_resourceLayouts) const
   {
-    ezDynamicArray<spResourceLayoutDescription> result;
-    auto& resourceLayoutDescription = result.ExpandAndGetRef();
+    out_resourceLayouts.Clear();
+    auto& resourceLayoutDescription = out_resourceLayouts.ExpandAndGetRef();
 
     if (m_pVertexShader != nullptr)
       GetResourceLayoutElementsForStage(spShaderStage::VertexShader, resourceLayoutDescription.m_Elements);
@@ -148,8 +148,6 @@ namespace RHI
       GetResourceLayoutElementsForStage(spShaderStage::PixelShader, resourceLayoutDescription.m_Elements);
     if (m_pComputeShader != nullptr)
       GetResourceLayoutElementsForStage(spShaderStage::ComputeShader, resourceLayoutDescription.m_Elements);
-
-    return result;
   }
 
   spShaderProgramD3D11::spShaderProgramD3D11(spDeviceD3D11* pDevice)
@@ -292,17 +290,20 @@ namespace RHI
       ID3DBlob* pResultBlob = nullptr;
       ID3DBlob* pErrorBlob = nullptr;
 
-      if (SUCCEEDED(D3DCompile(m_Description.m_Buffer.GetPtr(), m_Description.m_Buffer.GetCount(), nullptr, nullptr, nullptr, m_Description.m_sEntryPoint.GetData(), szProfile, D3DCOMPILE_DEBUG | D3DCOMPILE_PREFER_FLOW_CONTROL | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_ENABLE_STRICTNESS, 0, &pResultBlob, &pErrorBlob)))
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
+      UINT flags = D3DCOMPILE_DEBUG | D3DCOMPILE_PREFER_FLOW_CONTROL | D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_ENABLE_STRICTNESS;
+#else
+      UINT flags = D3DCOMPILE_OPTIMIZATION_LEVEL3;
+#endif
+
+      if (SUCCEEDED(D3DCompile(m_Description.m_Buffer.GetPtr(), m_Description.m_Buffer.GetCount(), nullptr, nullptr, nullptr, m_Description.m_sEntryPoint.GetData(), szProfile, flags, 0, &pResultBlob, &pErrorBlob)))
       {
         if (pResultBlob != nullptr)
         {
-          ezDynamicArray<ezUInt8> ByteCode;
-          ByteCode.SetCountUninitialized(static_cast<ezUInt32>(pResultBlob->GetBufferSize()));
-          ezMemoryUtils::Copy(ByteCode.GetData(), static_cast<ezUInt8*>(pResultBlob->GetBufferPointer()), ByteCode.GetCount());
+          const ezUInt32 uiByteCodeSize = static_cast<ezUInt32>(pResultBlob->GetBufferSize());
+          m_pByteCode = EZ_DEFAULT_NEW_ARRAY(ezUInt8, uiByteCodeSize);
+          m_pByteCode.CopyFrom(ezMakeArrayPtr(pResultBlob->GetBufferPointer(), uiByteCodeSize));
           pResultBlob->Release();
-
-          m_pByteCode = EZ_DEFAULT_NEW_ARRAY(ezUInt8, ByteCode.GetCount());
-          m_pByteCode.CopyFrom(ByteCode);
         }
       }
 
@@ -360,7 +361,9 @@ namespace RHI
         break;
     }
 
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
     SetDebugName(m_sDebugName);
+#endif
 
     m_bIsResourceCreated = true;
   }

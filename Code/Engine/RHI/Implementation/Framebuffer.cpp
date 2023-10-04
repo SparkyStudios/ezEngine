@@ -38,6 +38,26 @@ namespace RHI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
+  spResourceHandle spFramebuffer::GetDepthTarget() const
+  {
+    return m_Description.m_DepthTarget.m_hTarget;
+  }
+
+  ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS> spFramebuffer::GetColorTargets() const
+  {
+    ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS> targets;
+    targets.EnsureCount(m_Description.m_ColorTargets.GetCount());
+
+    ezUInt32 uiColorTargetIndex = 0;
+    for (const auto& target : m_Description.m_ColorTargets)
+    {
+      targets[uiColorTargetIndex] = target.m_hTarget;
+      ++uiColorTargetIndex;
+    }
+
+    return targets;
+  }
+
   spFramebuffer::spFramebuffer(spFramebufferDescription description)
     : m_Description(std::move(description))
   {

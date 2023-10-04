@@ -36,6 +36,8 @@ namespace RAI
     m_Buffer.Clear();
     m_InputElements.Clear();
     m_EntryPoints.Clear();
+    m_RenderingState = RHI::spRenderingState();
+    m_eShaderLanguage = RHI::spShaderLanguage::Default;
 
     m_pRHIShaderProgram.Clear();
   }
@@ -51,7 +53,7 @@ namespace RAI
 
     for (const auto& pair : m_EntryPoints)
     {
-      ezEnum<RHI::spShaderStage> eStage = pair.key;
+      ezEnum<RHI::spShaderStage> eStage = pair.Key();
 
       RHI::spShaderDescription desc;
       if (GetRHIShaderDescription(eStage, desc).Failed())
@@ -79,11 +81,12 @@ namespace RAI
 
   ezResult spShaderVariant::GetRHIShaderDescription(const ezEnum<RHI::spShaderStage>& eStage, RHI::spShaderDescription& out_description) const
   {
-    ezUInt32 uiIndex = m_EntryPoints.Find(eStage);
-    if (uiIndex == ezInvalidIndex)
+    if (!m_EntryPoints.Contains(eStage))
       return EZ_FAILURE;
 
-    out_description.m_sEntryPoint = m_EntryPoints.GetValue(uiIndex);
+    if (!m_EntryPoints.TryGetValue(eStage, out_description.m_sEntryPoint))
+      return EZ_FAILURE;
+
     out_description.m_Buffer = m_Buffer;
     out_description.m_eShaderStage = eStage;
 

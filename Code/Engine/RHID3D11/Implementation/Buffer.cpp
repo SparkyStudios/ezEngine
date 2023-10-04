@@ -144,7 +144,9 @@ namespace RHI
 
     PostCreateResource();
 
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
     SetDebugName(m_sDebugName);
+#endif
 
     m_bIsResourceCreated = true;
   }

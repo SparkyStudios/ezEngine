@@ -46,8 +46,12 @@ struct spMeshProcessorConfig
 /// assets from 3D mesh files using Assimp.
 class spMeshProcessor final : public spProcessor<spMeshProcessorConfig>
 {
+  // spProcessor
+
 public:
   ezResult Process(ezStringView sFilename, ezStringView sOutputPath) override;
+
+  // spMeshProcessor
 
 public:
   explicit spMeshProcessor(const spMeshProcessorConfig& config);

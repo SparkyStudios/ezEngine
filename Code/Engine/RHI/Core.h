@@ -19,19 +19,19 @@ namespace RHI
   typedef ezGenericId<24, 8> spContextHandleId;
 
   /// \brief An handle for every resource created by the graphics device.
-  class SP_RHI_DLL spResourceHandle
+  class spResourceHandle
   {
     EZ_DECLARE_HANDLE_TYPE(spResourceHandle, spResourceHandleId);
   };
 
   /// \brief An handle for every context created by the graphics device.
-  class SP_RHI_DLL spContextHandle
+  class spContextHandle
   {
     EZ_DECLARE_HANDLE_TYPE(spContextHandle, spContextHandleId);
   };
 
   /// \brief A viewport used for rendering.
-  struct SP_RHI_DLL spViewport : ezHashableStruct<spViewport>
+  struct spViewport : ezHashableStruct<spViewport>
   {
     EZ_ALWAYS_INLINE static spViewport From(ezRectI32 viewport)
     {
@@ -85,8 +85,8 @@ namespace RHI
     float m_fMaxDepth;
   };
 
-  /// \brief The list of graphics API usable by the spDevice.
-  struct SP_RHI_DLL spGraphicsApi
+  /// \brief The list of graphics API usable by the \a spDevice.
+  struct spGraphicsApi
   {
     typedef ezUInt8 StorageType;
 
@@ -114,9 +114,29 @@ namespace RHI
     };
   };
 
+  /// \brief The list of supported shader languages.
+  struct spShaderLanguage
+  {
+    typedef ezUInt8 StorageType;
+
+    enum Enum : StorageType
+    {
+      /// \brief HLSL shader language. Used by Direct3D11 and Direct3D12 backends.
+      HLSL = 1,
+
+      /// \brief GLSL shader language. Used by OpenGL, OpenGLES and Vulkan backends.
+      GLSL = 2,
+
+      /// \brief MTL shader language. Used by Metal backend.
+      MTL = 3,
+
+      Default = HLSL
+    };
+  };
+
   /// \brief Stores the version of the currently loaded graphics API.
   /// This value should be accessed from the \a spDevice instance.
-  struct SP_RHI_DLL spGraphicsApiVersion
+  struct spGraphicsApiVersion
   {
     spGraphicsApiVersion() = default;
 
@@ -154,17 +174,17 @@ namespace RHI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool operator>(const spGraphicsApiVersion& rhs) const
     {
-      return rhs != *this && rhs < *this;
+      return rhs != *this && !(rhs < *this);
     }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool operator<=(const spGraphicsApiVersion& rhs) const
     {
-      return !(*this > rhs);
+      return *this == rhs || *this < rhs;
     }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool operator>=(const spGraphicsApiVersion& rhs) const
     {
-      return !(*this < rhs);
+      return *this == rhs || *this > rhs;
     }
 
     ezUInt32 m_uiMajor{0};
@@ -179,7 +199,7 @@ namespace RHI
   /// component. The final component identifies the storage type of each component. "Float" identifies a signed, floating-point
   /// type, UNorm identifies an unsigned integer type which is normalized, meaning it occupies the full space of the integer
   /// type. The SRgb suffix for normalized integer formats indicates that the RGB components are stored in sRGB format.
-  struct SP_RHI_DLL spPixelFormat
+  struct spPixelFormat
   {
     typedef ezUInt32 StorageType;
 
@@ -439,7 +459,7 @@ namespace RHI
   };
 
   /// \brief The samples count for a texture.
-  struct SP_RHI_DLL spTextureSampleCount
+  struct spTextureSampleCount
   {
     typedef ezUInt8 StorageType;
 
@@ -466,7 +486,7 @@ namespace RHI
       Default = None
     };
 
-    static Enum GetSampleCount(const StorageType samples)
+    EZ_ALWAYS_INLINE static Enum GetSampleCount(const StorageType samples)
     {
       switch (samples)
       {
@@ -489,7 +509,7 @@ namespace RHI
   };
 
   /// \brief Identifies how a \a spMappedResource will be mapped into CPU address space.
-  struct SP_RHI_DLL spMapAccess
+  struct spMapAccess
   {
     typedef ezUInt8 StorageType;
 
@@ -515,7 +535,7 @@ namespace RHI
   };
 
   /// \brief Specifies the type of \a spShaderResource bound to a resource layout.
-  struct SP_RHI_DLL spShaderResourceType
+  struct spShaderResourceType
   {
     typedef ezUInt8 StorageType;
 
@@ -545,7 +565,7 @@ namespace RHI
 
   /// \brief Specifies the allows shader stage a \a spShaderResource
   /// can be bound to.
-  struct SP_RHI_DLL spShaderStage
+  struct spShaderStage
   {
     typedef ezUInt32 StorageType;
 
@@ -591,7 +611,7 @@ namespace RHI
   EZ_DECLARE_FLAGS_OPERATORS(spShaderStage);
 
   /// \brief The data type of a specialization constant.
-  struct SP_RHI_DLL spShaderSpecializationConstantType
+  struct spShaderSpecializationConstantType
   {
     typedef ezUInt8 StorageType;
 
@@ -629,7 +649,7 @@ namespace RHI
   };
 
   /// \brief A flag that indicates the possible usage for a \a spTexture resource.
-  struct SP_RHI_DLL spTextureUsage
+  struct spTextureUsage
   {
     typedef ezUInt8 StorageType;
 
@@ -676,7 +696,7 @@ namespace RHI
   EZ_DECLARE_FLAGS_OPERATORS(spTextureUsage);
 
   /// \brief Specifies the dimension of a \a spTexture.
-  struct SP_RHI_DLL spTextureDimension
+  struct spTextureDimension
   {
     typedef ezUInt8 StorageType;
 
@@ -696,7 +716,7 @@ namespace RHI
   };
 
   /// \brief Specifies the wrapping mode applied to a \a spSampler.
-  struct SP_RHI_DLL spSamplerAddressMode
+  struct spSamplerAddressMode
   {
     typedef ezUInt8 StorageType;
 
@@ -723,7 +743,7 @@ namespace RHI
 
   /// \brief A predefined set of border colors applied to a \a spTexture
   /// when the sampler address mode is set to \a spSamplerAddressMode::BorderColor.
-  struct SP_RHI_DLL spSamplerBorderColor
+  struct spSamplerBorderColor
   {
     typedef ezUInt8 StorageType;
 
@@ -743,7 +763,7 @@ namespace RHI
   };
 
   /// \brief Specifies the filtering mode applied to a \a spSampler.
-  struct SP_RHI_DLL spSamplerFilter
+  struct spSamplerFilter
   {
     typedef ezUInt8 StorageType;
 
@@ -765,7 +785,7 @@ namespace RHI
 
   /// \brief Specifies how new values are compared with
   /// existing values during depth or stencil comparison.
-  struct SP_RHI_DLL spDepthStencilComparison
+  struct spDepthStencilComparison
   {
     typedef ezUInt8 StorageType;
 
@@ -907,7 +927,7 @@ namespace RHI
   };
 
   /// \brief The possible formats of an input element.
-  struct SP_RHI_DLL spInputElementFormat
+  struct spInputElementFormat
   {
     typedef ezUInt8 StorageType;
 
@@ -1116,7 +1136,7 @@ namespace RHI
   /// \brief The default location semantics used by input elements.
   /// Can be extended by using the \a spInputElementLocationSemantic::Last value
   /// and adding the desired offset.
-  struct SP_RHI_DLL spInputElementLocationSemantic
+  struct spInputElementLocationSemantic
   {
     typedef ezUInt8 StorageType;
 
@@ -1163,7 +1183,7 @@ namespace RHI
   };
 
   /// \brief Defines some options for a \a spResourceLayoutElementDescription
-  struct SP_RHI_DLL spResourceLayoutElementOptions
+  struct spResourceLayoutElementOptions
   {
     typedef ezUInt32 StorageType;
 
@@ -1191,7 +1211,7 @@ namespace RHI
   EZ_DECLARE_FLAGS_OPERATORS(spResourceLayoutElementOptions);
 
   /// \brief Determines how a sequence of vertices is interpreted by the rasterizer.
-  struct SP_RHI_DLL spPrimitiveTopology
+  struct spPrimitiveTopology
   {
     typedef ezUInt8 StorageType;
 
@@ -1217,7 +1237,7 @@ namespace RHI
   };
 
   /// \brief Controls the influence of components in a blend operation.
-  struct SP_RHI_DLL spBlendFactor
+  struct spBlendFactor
   {
     typedef ezUInt8 StorageType;
 
@@ -1266,7 +1286,7 @@ namespace RHI
   };
 
   /// \brief A color bitmask representing the components which can be written to.
-  struct SP_RHI_DLL spColorWriteMask
+  struct spColorWriteMask
   {
     typedef ezUInt8 StorageType;
 
@@ -1307,7 +1327,7 @@ namespace RHI
   EZ_DECLARE_FLAGS_OPERATORS(spColorWriteMask);
 
   /// \brief Controls how the source and destination factors are combined in a blend operation.
-  struct SP_RHI_DLL spBlendFunction
+  struct spBlendFunction
   {
     typedef ezUInt8 StorageType;
 
@@ -1335,7 +1355,7 @@ namespace RHI
   };
 
   /// \brief Specifies an action taken on samples that pass or fail the stencil test.
-  struct SP_RHI_DLL spStencilOperation
+  struct spStencilOperation
   {
     typedef ezUInt8 StorageType;
 
@@ -1372,7 +1392,7 @@ namespace RHI
   };
 
   /// \brief Indicates which faces will be culled.
-  struct SP_RHI_DLL spFaceCullMode
+  struct spFaceCullMode
   {
     typedef ezUInt8 StorageType;
 
@@ -1394,7 +1414,7 @@ namespace RHI
   };
 
   /// \brief The winding order used to determine the front face of a primitive.
-  struct SP_RHI_DLL spFrontFace
+  struct spFrontFace
   {
     typedef ezUInt8 StorageType;
 
@@ -1413,7 +1433,7 @@ namespace RHI
   };
 
   /// \brief Indicates how the rasterizer should fill polygons.
-  struct SP_RHI_DLL spPolygonFillMode
+  struct spPolygonFillMode
   {
     typedef ezUInt8 StorageType;
 
@@ -1435,7 +1455,7 @@ namespace RHI
   };
 
   /// \brief The quality of a render target. Can be either in low dynamic range or high dynamic range.
-  struct SP_RHI_DLL spRenderTargetQuality
+  struct spRenderTargetQuality
   {
     typedef ezUInt8 StorageType;
 

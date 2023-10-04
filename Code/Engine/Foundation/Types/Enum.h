@@ -163,9 +163,9 @@ private:
 ///
 ///   EZ_ENUM_FROM_STRING(A, B, C);
 /// };
-#define EZ_ENUM_FROM_STRING(...)                             \
-  static Enum FromString(ezStringView sValue)                \
-  {                                                          \
-    EZ_EXPAND_ARGS(EZ_ENUM_VALUE_FROM_STRING, ##__VA_ARGS__) \
-    else return Default;                                     \
+#define EZ_ENUM_FROM_STRING(...)                               \
+  EZ_ALWAYS_INLINE static Enum FromString(ezStringView sValue) \
+  {                                                            \
+    EZ_EXPAND_ARGS(EZ_ENUM_VALUE_FROM_STRING, ##__VA_ARGS__)   \
+    else return Default;                                       \
   }

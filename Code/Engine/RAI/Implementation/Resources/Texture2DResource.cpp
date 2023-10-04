@@ -238,7 +238,9 @@ namespace RAI
 
     descriptor.m_ImageData.Clear();
 
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
     m_RHITexture[m_uiLoadedTextures]->SetDebugName(GetResourceDescription());
+#endif
 
     // Calculate the GPU memory used for the texture
     m_uiGPUMemoryUsed[m_uiLoadedTextures] = RHI::spPixelFormatHelper::GetDepthPitch(

@@ -1,7 +1,6 @@
 ez_cmake_init()
 
 sp_requires_ktx()
-sp_requires_mpack()
 ez_requires_assimp()
 
 # Get the name of this folder as the project name
@@ -13,6 +12,7 @@ target_link_libraries(${PROJECT_NAME}
   PUBLIC
   Core
   Texture
+  RHI
 
   PRIVATE
   meshoptimizer
@@ -21,5 +21,4 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 sp_link_target_ktx(${PROJECT_NAME})
-sp_link_target_mpack(${PROJECT_NAME})
 ez_link_target_assimp(${PROJECT_NAME})

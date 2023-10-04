@@ -110,7 +110,4 @@ public:
   ~spImage2DImporter() override = default;
 
   ezResult Import(ezStringView sAssetPath, ezStringView sOutputPath) override;
-
-private:
-  // ezByteBlobPtr CompressBC3(const ezImageView& source);
 };

@@ -138,3 +138,5 @@ namespace RHI
     spInputLayoutDescription m_Description;
   };
 } // namespace RHI
+
+#include <RHI/Implementation/Input_inl.h>

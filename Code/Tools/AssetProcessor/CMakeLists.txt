@@ -15,7 +15,9 @@
 ez_cmake_init()
 
 sp_requires_ktx()
+sp_requires_mpack()
 ez_requires_assimp()
+
 get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME_WE)
 
 ez_create_target(APPLICATION ${PROJECT_NAME})
@@ -32,3 +34,4 @@ target_link_libraries(${PROJECT_NAME}
 
 ez_link_target_assimp(${PROJECT_NAME})
 sp_link_target_ktx(${PROJECT_NAME})
+sp_link_target_mpack(${PROJECT_NAME})

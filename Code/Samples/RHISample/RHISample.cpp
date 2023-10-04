@@ -454,7 +454,8 @@ float4 main(VS_OUTPUT input) : SV_TARGET
     data.m_pInputLayout->SetDebugName("input");
   }
 
-  auto layouts = data.m_pShaderProgram->GetResourceLayoutDescriptions();
+  ezDynamicArray<spResourceLayoutDescription> layouts;
+  data.m_pShaderProgram->GetResourceLayoutDescriptions(layouts);
 
   if (data.m_pResourceLayout == nullptr)
   {
@@ -508,7 +509,7 @@ float4 main(VS_OUTPUT input) : SV_TARGET
 
     const auto cl = context->GetCommandList();
 
-    const auto c = ezAngle::Radian(ezTime::Now().AsFloatInSeconds());
+    const auto c = ezAngle::MakeFromRadian(ezTime::Now().AsFloatInSeconds());
     const auto col = ezColor(ezMath::Sin(c), ezMath::Cos(c), ezMath::Sin(-c), 1.0f);
 
     ezSharedPtr<spScopeProfiler> pTestScopeProfiler;

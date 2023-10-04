@@ -27,7 +27,6 @@ namespace RAI
   class SP_RAI_DLL spShaderResourceDescriptor
   {
     friend class spShaderResource;
-    friend class spShaderResourceLoader;
 
   public:
     spShaderResourceDescriptor();
@@ -40,6 +39,7 @@ namespace RAI
     EZ_ALWAYS_INLINE void SetShader(const spShader& shader) { m_Shader = shader; }
 
     ezResult Save(ezStreamWriter& inout_stream);
+    ezResult Save(ezStringView sFileName);
 
     ezResult Load(ezStreamReader& inout_stream);
     ezResult Load(ezStringView sFileName);
