@@ -135,6 +135,8 @@ namespace RHI
 
 #pragma region spBlendState
 
+  inline const spBlendState spBlendState::Empty = {};
+
   inline const spBlendState spBlendState::SingleOverrideBlend = {
     {},
     ezColorGammaUB(0x00, 0x00, 0x00),

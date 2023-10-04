@@ -14,33 +14,24 @@
 
 #pragma once
 
-#include <RAI/RAIDLL.h>
-
-#include <Foundation/IO/MemoryStream.h>
-
-#include <RHI/Input.h>
-#include <RHI/Shader.h>
+#include <AssetProcessor/Importers/Importer.h>
 
 #include <RAI/Resources/ShaderVariantResource.h>
 
-namespace RAI
+struct spShaderVariantImporterConfiguration
 {
-  /// \brief A shader asset.
-  ///
-  /// Reflects an SPSL binary material.
-  class SP_RAI_DLL spShader
-  {
-    friend class spShaderResource;
-    friend class spShaderResourceDescriptor;
+};
 
-  public:
-    spShader() = default;
+class spShaderImporter : public spImporter<spShaderVariantImporterConfiguration>
+{
+  // spImporter
 
-    void Clear();
+public:
+  ezResult Import(ezStringView sAssetPath, ezStringView sOutputPath) override;
 
-  private:
-    ezStringView m_sName;
+  // spShaderVariantImporter
 
-    ezDynamicArray<spShaderVariantResourceHandle> m_Variants;
-  };
-} // namespace RAI
+public:
+  explicit spShaderImporter(const spShaderVariantImporterConfiguration& config);
+  ~spShaderImporter() override = default;
+};

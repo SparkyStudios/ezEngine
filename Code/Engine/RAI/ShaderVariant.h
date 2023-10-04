@@ -30,7 +30,8 @@ namespace RAI
   class SP_RAI_DLL spShaderVariant
   {
     friend class spShader;
-    friend class spShaderResourceLoader;
+    friend class spShaderVariantResource;
+    friend class spShaderVariantResourceDescriptor;
 
 #pragma region RAI Resource
 
@@ -43,18 +44,19 @@ namespace RAI
 
     void Clear();
 
-  private:
     ezHashedString m_sName;
 
     ezHybridArray<RHI::spInputElementDescription, 8> m_InputElements;
 
-    ezConstByteArrayPtr m_Buffer;
+    ezDynamicArray<ezUInt8> m_Buffer;
 
-    ezArrayMap<RHI::spShaderStage::Enum, ezHashedString> m_EntryPoints;
+    ezMap<ezEnum<RHI::spShaderStage>, ezHashedString> m_EntryPoints;
 
-    ezArrayPtr<const spPermutationVar> m_Permutations;
+    ezHybridArray<spPermutationVar, 16> m_Permutations;
 
     RHI::spRenderingState m_RenderingState;
+
+    ezEnum<RHI::spShaderLanguage> m_eShaderLanguage;
 
 #pragma endregion
 

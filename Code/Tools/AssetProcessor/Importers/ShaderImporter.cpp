@@ -12,51 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <RAI/RAIPCH.h>
-
-#include <RAI/Resources/Loaders/ShaderResourceLoader.h>
-#include <RAI/Resources/ShaderResource.h>
+#include <AssetProcessor/Importers/ShaderImporter.h>
 
 #include <Core/Assets/AssetFileHeader.h>
-
-#include <Foundation/Configuration/Startup.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
+#include <Foundation/IO/FileSystem/FileWriter.h>
 #include <Foundation/IO/OSFile.h>
 
 #include <mpack/mpack.h>
 
 using namespace RAI;
-
-static spShaderResourceLoader s_ShaderResourceLoader;
-
-// clang-format off
-EZ_BEGIN_SUBSYSTEM_DECLARATION(RAI, ShaderResource)
-
-  BEGIN_SUBSYSTEM_DEPENDENCIES
-    "Foundation",
-    "Core"
-  END_SUBSYSTEM_DEPENDENCIES
-
-  ON_CORESYSTEMS_STARTUP
-  {
-    ezResourceManager::SetResourceTypeLoader<spShaderVariantResource>(&s_ShaderResourceLoader);
-  }
-
-  ON_CORESYSTEMS_SHUTDOWN
-  {
-    ezResourceManager::SetResourceTypeLoader<spShaderVariantResource>(nullptr);
-  }
-
-  ON_HIGHLEVELSYSTEMS_STARTUP
-  {
-  }
-
-  ON_HIGHLEVELSYSTEMS_SHUTDOWN
-  {
-  }
-
-EZ_END_SUBSYSTEM_DECLARATION;
-// clang-format on
 
 static ezEnum<RHI::spInputElementLocationSemantic> GetSemanticLocationFromName(const ezStringView& sName)
 {
@@ -121,96 +86,45 @@ static ezEnum<RHI::spShaderStage> GetShaderStageFromIndex(RHI::spShaderStage::St
   }
 }
 
-ezResourceLoadData spShaderResourceLoader::OpenDataStream(const ezResource* pResource)
+static void mpack_node_hstr(const mpack_node_t& node, ezHashedString& out_str)
 {
-  LoadedData* pLoadedData = EZ_DEFAULT_NEW(LoadedData);
+  const ezUInt32 len = mpack_node_strlen(node);
 
-  ezResourceLoadData res;
+  ezDynamicArray<char> str;
+  str.SetCountUninitialized(len + 1);
 
-  ezFileReader file;
-  if (file.Open(pResource->GetResourceID().GetData()).Failed())
-    return res;
+  mpack_node_copy_cstr(node, str.GetData(), str.GetCount());
 
-  const ezStringBuilder sAbsolutePath = file.GetFilePathAbsolute();
-  res.m_sResourceDescription = file.GetFilePathRelative().GetView();
-
-#if EZ_ENABLED(EZ_SUPPORTS_FILE_STATS)
-  {
-    ezFileStats stat;
-    if (ezFileSystem::GetFileStats(pResource->GetResourceID(), stat).Succeeded())
-    {
-      res.m_LoadedFileModificationDate = stat.m_LastModificationTime;
-    }
-  }
-#endif
-
-  if (!sAbsolutePath.HasExtension("spslb"))
-    return res;
-
-  {
-    ezStringBuilder content;
-    content.ReadAll(file);
-
-    mpack_tree_t tree;
-    mpack_tree_init_data(&tree, content.GetData(), content.GetElementCount());
-    mpack_tree_parse(&tree);
-
-    mpack_node_t root = mpack_tree_root(&tree);
-
-    if (DeserializeShader(root, *pLoadedData).Failed())
-      return res;
-
-    if (mpack_tree_destroy(&tree) != mpack_ok)
-      return res;
-  }
-
-  ezMemoryStreamWriter w(&pLoadedData->m_Storage);
-
-  if (w.WriteBytes(&pLoadedData, sizeof(LoadedData*)).Failed())
-    return res;
-
-  res.m_pDataStream = &pLoadedData->m_Reader;
-  res.m_pCustomLoaderData = pLoadedData;
-
-  return res;
+  out_str.Assign(str.GetData());
 }
 
-void spShaderResourceLoader::CloseDataStream(const ezResource* pResource, const ezResourceLoadData& loaderData)
+static ezResult DeserializeInputElement(const mpack_node_t& root, RHI::spInputElementDescription& ref_element)
 {
-  auto* pLoadedData = static_cast<LoadedData*>(loaderData.m_pCustomLoaderData);
+  static constexpr ezUInt32 kSemanticNameIndex = 0;
+  static constexpr ezUInt32 kSemanticIndex = 1;
+  static constexpr ezUInt32 kSemanticFormat = 2;
 
-  pLoadedData->m_InputElements.Clear();
-  pLoadedData->m_Buffer.Clear();
-  pLoadedData->m_EntryPoints.Clear();
-  pLoadedData->m_Permutations.Clear();
+  // Nodes
+  const mpack_node_t& semanticNameNode = mpack_node_array_at(root, kSemanticNameIndex);
+  const mpack_node_t& semanticIndexNode = mpack_node_array_at(root, kSemanticIndex);
+  const mpack_node_t& semanticFormatNode = mpack_node_array_at(root, kSemanticFormat);
 
-  EZ_DEFAULT_DELETE(pLoadedData);
+  if (mpack_node_is_missing(semanticNameNode) || mpack_node_is_missing(semanticIndexNode) || mpack_node_is_missing(semanticFormatNode))
+    return EZ_FAILURE;
+
+  // Element name
+  mpack_node_hstr(semanticNameNode, ref_element.m_sName);
+
+  // Semantic
+  ref_element.m_eSemantic = GetSemanticLocationFromName(ref_element.m_sName);
+
+  // Format
+  ref_element.m_eFormat = GetFormatFromSemantic(ref_element.m_eSemantic);
+
+  return EZ_SUCCESS;
 }
 
-bool spShaderResourceLoader::IsResourceOutdated(const ezResource* pResource) const
-{
-  // Don't try to reload a file that cannot be found
-  ezStringBuilder sAbs;
-  if (ezFileSystem::ResolvePath(pResource->GetResourceID(), &sAbs, nullptr).Failed())
-    return false;
-
-#if EZ_ENABLED(EZ_SUPPORTS_FILE_STATS)
-
-  if (pResource->GetLoadedFileModificationTime().IsValid())
-  {
-    ezFileStats stat;
-    if (ezFileSystem::GetFileStats(pResource->GetResourceID(), stat).Failed())
-      return false;
-
-    return !stat.m_LastModificationTime.Compare(pResource->GetLoadedFileModificationTime(), ezTimestamp::CompareMode::FileTimeEqual);
-  }
-
-#endif
-
-  return true;
-}
-
-ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderResourceLoader::LoadedData& ref_data)
+static ezResult DeserializeShader(const mpack_node_t& root, spShaderVariant& ref_data)
 {
   static constexpr ezUInt32 kShaderNameIndex = 0;
   static constexpr ezUInt32 kShaderInputElementsIndex = 1;
@@ -219,15 +133,17 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
   static constexpr ezUInt32 kShaderEntryPointsIndex = 4;
   static constexpr ezUInt32 kShaderPermutationsIndex = 5;
   static constexpr ezUInt32 kShaderStateIndex = 6;
+  static constexpr ezUInt32 kShaderLangIndex = 7;
 
   // Nodes
-  mpack_node_t shaderNameNode = mpack_node_map_int(root, kShaderNameIndex);
-  mpack_node_t shaderInputElementsNode = mpack_node_map_int(root, kShaderInputElementsIndex);
-  mpack_node_t shaderSamplersNode = mpack_node_map_int(root, kShaderSamplersIndex);
-  mpack_node_t shaderByteCodeNode = mpack_node_map_int(root, kShaderByteCodeIndex);
-  mpack_node_t shaderEntryPointsNode = mpack_node_map_int(root, kShaderEntryPointsIndex);
-  mpack_node_t shaderPermutationsNode = mpack_node_map_int(root, kShaderPermutationsIndex);
-  mpack_node_t shaderStateNode = mpack_node_map_int(root, kShaderStateIndex);
+  const mpack_node_t& shaderNameNode = mpack_node_array_at(root, kShaderNameIndex);
+  const mpack_node_t& shaderInputElementsNode = mpack_node_array_at(root, kShaderInputElementsIndex);
+  const mpack_node_t& shaderSamplersNode = mpack_node_array_at(root, kShaderSamplersIndex);
+  const mpack_node_t& shaderByteCodeNode = mpack_node_array_at(root, kShaderByteCodeIndex);
+  const mpack_node_t& shaderEntryPointsNode = mpack_node_array_at(root, kShaderEntryPointsIndex);
+  const mpack_node_t& shaderPermutationsNode = mpack_node_array_at(root, kShaderPermutationsIndex);
+  const mpack_node_t& shaderStateNode = mpack_node_array_at(root, kShaderStateIndex);
+  const mpack_node_t& shaderLangNode = mpack_node_array_at(root, kShaderLangIndex);
 
   if (mpack_node_is_missing(shaderNameNode) ||
       mpack_node_is_missing(shaderInputElementsNode) ||
@@ -235,13 +151,12 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
       mpack_node_is_missing(shaderByteCodeNode) ||
       mpack_node_is_missing(shaderEntryPointsNode) ||
       mpack_node_is_missing(shaderPermutationsNode) ||
-      mpack_node_is_missing(shaderStateNode))
+      mpack_node_is_missing(shaderStateNode) ||
+      mpack_node_is_missing(shaderLangNode))
     return EZ_FAILURE;
 
   // Material name
-  {
-    ref_data.m_sName = mpack_node_str(shaderNameNode);
-  }
+  mpack_node_hstr(shaderNameNode, ref_data.m_sName);
 
   // Input elements
   {
@@ -250,7 +165,7 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
     for (ezUInt64 i = 0; i < uiElementCount; ++i)
     {
-      mpack_node_t element = mpack_node_array_at(shaderInputElementsNode, i);
+      const mpack_node_t& element = mpack_node_array_at(shaderInputElementsNode, i);
       if (DeserializeInputElement(element, ref_data.m_InputElements[i]).Failed())
         return EZ_FAILURE;
     }
@@ -263,7 +178,7 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
   // Byte code
   {
-    mpack_node_t byteCodeNode = mpack_node_map_int(shaderByteCodeNode, 0);
+    const mpack_node_t& byteCodeNode = mpack_node_array_at(shaderByteCodeNode, 0);
     ezUInt64 uiByteCodeSize = mpack_node_bin_size(byteCodeNode);
     const char* szByteCode = mpack_node_bin_data(byteCodeNode);
 
@@ -277,13 +192,16 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
     for (ezUInt64 i = 0; i < uiEntryPointCount; ++i)
     {
-      mpack_node_t shaderStage = mpack_node_map_key_at(shaderEntryPointsNode, i);
-      mpack_node_t entryPoint = mpack_node_map_value_at(shaderEntryPointsNode, i);
+      const mpack_node_t& shaderStage = mpack_node_map_key_at(shaderEntryPointsNode, i);
+      const mpack_node_t& entryPoint = mpack_node_map_value_at(shaderEntryPointsNode, i);
+
       if (mpack_node_is_missing(shaderStage) || mpack_node_is_missing(entryPoint))
         return EZ_FAILURE;
 
       const ezUInt32 uiShaderStageIndex = mpack_node_int(shaderStage);
-      const ezStringView sEntryPointName = mpack_node_str(entryPoint);
+
+      ezHashedString sEntryPointName;
+      mpack_node_hstr(entryPoint, sEntryPointName);
 
       ref_data.m_EntryPoints.Insert(GetShaderStageFromIndex(uiShaderStageIndex), sEntryPointName);
     }
@@ -296,15 +214,16 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
     for (ezUInt64 i = 0; i < uiPermutationCount; ++i)
     {
-      mpack_node_t permutationNameNode = mpack_node_map_key_at(shaderPermutationsNode, i);
-      mpack_node_t permutationValueNode = mpack_node_map_value_at(shaderPermutationsNode, i);
+      const mpack_node_t& permutationNameNode = mpack_node_map_key_at(shaderPermutationsNode, i);
+      const mpack_node_t& permutationValueNode = mpack_node_map_value_at(shaderPermutationsNode, i);
+
       if (mpack_node_is_missing(permutationNameNode) || mpack_node_is_missing(permutationValueNode))
         return EZ_FAILURE;
 
       auto& permutation = ref_data.m_Permutations[i];
 
-      permutation.m_sName.Assign(mpack_node_str(permutationNameNode));
-      permutation.m_sValue.Assign(mpack_node_str(permutationValueNode));
+      mpack_node_hstr(permutationNameNode, permutation.m_sName);
+      mpack_node_hstr(permutationValueNode, permutation.m_sValue);
     }
 
     // State
@@ -319,19 +238,20 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
       for (ezUInt64 i = 0; i < uiStateCount; ++i)
       {
-        mpack_node_t stateNode = mpack_node_array_at(shaderStateNode, i);
+        const mpack_node_t& stateNode = mpack_node_array_at(shaderStateNode, i);
+
         if (mpack_node_is_missing(stateNode))
           return EZ_FAILURE;
 
-        mpack_node_t stateNameNode = mpack_node_map_int(stateNode, 0);
-        mpack_node_t stateMapNode = mpack_node_map_int(stateNode, 1);
-        mpack_node_t stateValueNode = mpack_node_map_int(stateNode, 2);
-        mpack_node_t stateTypeNode = mpack_node_map_int(stateNode, 3);
+        const mpack_node_t& stateNameNode = mpack_node_array_at(stateNode, 0);
+        const mpack_node_t& stateMapNode = mpack_node_array_at(stateNode, 1);
+        const mpack_node_t& stateValueNode = mpack_node_array_at(stateNode, 2);
+        const mpack_node_t& stateTypeNode = mpack_node_array_at(stateNode, 3);
 
         if (mpack_node_is_missing(stateNameNode) || mpack_node_is_missing(stateMapNode) || mpack_node_is_missing(stateValueNode) || mpack_node_is_missing(stateTypeNode))
           return EZ_FAILURE;
 
-        const ezStringView sStateName = mpack_node_str(stateNameNode);
+        const ezStringView sStateName(mpack_node_str(stateNameNode), mpack_node_strlen(stateNameNode));
         const auto eStateType = static_cast<StateValueMode>(mpack_node_u8(stateTypeNode));
 
         if (sStateName.Compare("BlendState") == 0)
@@ -346,8 +266,11 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
               for (ezUInt64 j = 0; j < uiMapSize; ++j)
               {
-                const ezStringView sKey = mpack_node_str(mpack_node_map_key_at(stateMapNode, j));
-                const ezStringView sValue = mpack_node_str(mpack_node_map_value_at(stateMapNode, j));
+                const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
+                const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
+
+                const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
+                const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
 
                 if (sKey.Compare("BlendColor") == 0)
                 {
@@ -383,7 +306,7 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
             case StateValueMode::String:
             {
-              const ezStringView sStateValue = mpack_node_str(stateValueNode);
+              const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
 
               if (sStateValue.Compare("Empty") == 0)
                 ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::Empty;
@@ -417,8 +340,11 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
               for (ezUInt64 j = 0; j < uiMapSize; ++j)
               {
-                const ezStringView sKey = mpack_node_str(mpack_node_map_key_at(stateMapNode, j));
-                const ezStringView sValue = mpack_node_str(mpack_node_map_value_at(stateMapNode, j));
+                const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
+                const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
+
+                const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
+                const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
 
                 if (sKey.Compare("DepthTestEnabled") == 0)
                   ref_data.m_RenderingState.m_DepthState.m_bDepthTestEnabled = sValue.Compare("true") == 0;
@@ -435,7 +361,7 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
             case StateValueMode::String:
             {
-              const ezStringView sStateValue = mpack_node_str(stateValueNode);
+              const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
 
               if (sStateValue.Compare("Less") == 0)
                 ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::Less;
@@ -475,8 +401,11 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
               for (ezUInt64 j = 0; j < uiMapSize; ++j)
               {
-                const ezStringView sKey = mpack_node_str(mpack_node_map_key_at(stateMapNode, j));
-                const ezStringView sValue = mpack_node_str(mpack_node_map_value_at(stateMapNode, j));
+                const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
+                const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
+
+                const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
+                const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
 
                 if (sKey.Compare("Enabled") == 0)
                   ref_data.m_RenderingState.m_StencilState.m_bEnabled = sValue.Compare("true") == 0;
@@ -538,7 +467,7 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
             case StateValueMode::String:
             {
-              const ezStringView sStateValue = mpack_node_str(stateValueNode);
+              const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
 
               if (sStateValue.Compare("Disabled") == 0)
                 ref_data.m_RenderingState.m_StencilState = RHI::spStencilState::Disabled;
@@ -562,8 +491,11 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
               for (ezUInt64 j = 0; j < uiMapSize; ++j)
               {
-                const ezStringView sKey = mpack_node_str(mpack_node_map_key_at(stateMapNode, j));
-                const ezStringView sValue = mpack_node_str(mpack_node_map_value_at(stateMapNode, j));
+                const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
+                const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
+
+                const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
+                const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
 
                 if (sKey.Compare("FaceCulling") == 0)
                   ref_data.m_RenderingState.m_RasterizerState.m_eFaceCulling = RHI::spFaceCullMode::FromString(sValue);
@@ -586,7 +518,7 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
 
             case StateValueMode::String:
             {
-              const ezStringView sStateValue = mpack_node_str(stateValueNode);
+              const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
 
               if (sStateValue.Compare("Default") == 0)
                 ref_data.m_RenderingState.m_RasterizerState = RHI::spRasterizerState::Default;
@@ -608,33 +540,72 @@ ezResult spShaderResourceLoader::DeserializeShader(mpack_node_t root, spShaderRe
         }
       }
     }
+
+    // Lang
+    {
+      ref_data.m_eShaderLanguage = static_cast<RHI::spShaderLanguage::Enum>(mpack_node_u8(shaderLangNode));
+    }
   }
 
   return EZ_SUCCESS;
 }
 
-ezResult spShaderResourceLoader::DeserializeInputElement(mpack_node_t root, RHI::spInputElementDescription& ref_element)
+ezResult spShaderImporter::Import(ezStringView sAssetPath, ezStringView sOutputPath)
 {
-  static constexpr ezUInt32 kSemanticNameIndex = 0;
-  static constexpr ezUInt32 kSemanticIndex = 1;
-  static constexpr ezUInt32 kSemanticFormat = 2;
+  spShaderVariantResourceDescriptor desc;
 
-  // Nodes
-  mpack_node_t semanticNameNode = mpack_node_map_int(root, kSemanticNameIndex);
-  mpack_node_t semanticIndexNode = mpack_node_map_int(root, kSemanticIndex);
-  mpack_node_t semanticFormatNode = mpack_node_map_int(root, kSemanticFormat);
+  // Parse shader variant file
+  {
+    ezFileReader file;
+    if (file.Open(sAssetPath).Failed())
+      return EZ_FAILURE;
 
-  if (mpack_node_is_missing(semanticNameNode) || mpack_node_is_missing(semanticIndexNode) || mpack_node_is_missing(semanticFormatNode))
-    return EZ_FAILURE;
+    if (!sAssetPath.HasExtension("spslb"))
+      return EZ_FAILURE;
 
-  // Element name
-  ref_element.m_sName.Assign(mpack_node_str(semanticNameNode));
+    ezDynamicArray<ezUInt8> content;
+    content.SetCountUninitialized(file.GetFileSize());
 
-  // Semantic
-  ref_element.m_eSemantic = GetSemanticLocationFromName(ref_element.m_sName);
+    file.ReadBytes(content.GetData(), content.GetCount());
 
-  // Format
-  ref_element.m_eFormat = GetFormatFromSemantic(ref_element.m_eSemantic);
+    mpack_tree_t tree;
+    mpack_tree_init_data(&tree, reinterpret_cast<const char*>(content.GetData()), content.GetCount());
+    mpack_tree_parse(&tree);
+
+    const mpack_node_t& root = mpack_tree_root(&tree);
+
+    if (DeserializeShader(root, desc.GetShaderVariant()).Failed())
+      return EZ_FAILURE;
+
+    if (mpack_tree_destroy(&tree) != mpack_ok)
+      return EZ_FAILURE;
+  }
+
+  ezStringBuilder sOutputFile(sOutputPath);
+  sOutputFile.AppendFormat("/{}.spShaderVariant", sAssetPath.GetFileName());
+
+  // Write shader variant resource
+  {
+    ezFileWriter file;
+    if (file.Open(sOutputFile, 1024 * 1024).Failed())
+    {
+      ezLog::Error("Failed to save mesh asset: '{0}'", sOutputFile);
+      return EZ_FAILURE;
+    }
+
+    // Write asset header
+    ezAssetFileHeader assetHeader;
+    assetHeader.SetGenerator("SparkEngine Asset Processor");
+    assetHeader.SetFileHashAndVersion(ezHashingUtils::xxHash64String(sAssetPath), 1);
+    EZ_SUCCEED_OR_RETURN(assetHeader.Write(file));
+
+    EZ_SUCCEED_OR_RETURN(desc.Save(file));
+  }
 
   return EZ_SUCCESS;
+}
+
+spShaderImporter::spShaderImporter(const spShaderVariantImporterConfiguration& config)
+  : spImporter<spShaderVariantImporterConfiguration>(config)
+{
 }

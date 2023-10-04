@@ -12,35 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <RAI/RAIPCH.h>
 
-#include <RAI/RAIDLL.h>
+#include <RAI/Shader.h>
 
-#include <Foundation/IO/MemoryStream.h>
-
-#include <RHI/Input.h>
-#include <RHI/Shader.h>
-
-#include <RAI/Resources/ShaderVariantResource.h>
+#include <RHI/Device.h>
 
 namespace RAI
 {
-  /// \brief A shader asset.
-  ///
-  /// Reflects an SPSL binary material.
-  class SP_RAI_DLL spShader
+  void spShader::Clear()
   {
-    friend class spShaderResource;
-    friend class spShaderResourceDescriptor;
-
-  public:
-    spShader() = default;
-
-    void Clear();
-
-  private:
-    ezStringView m_sName;
-
-    ezDynamicArray<spShaderVariantResourceHandle> m_Variants;
-  };
+    m_Variants.Clear();
+  }
 } // namespace RAI
+
+EZ_STATICLINK_FILE(RAI, RAI_Implementation_Shader);

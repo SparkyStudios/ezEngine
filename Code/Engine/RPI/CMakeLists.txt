@@ -8,6 +8,6 @@ ez_create_target(LIBRARY ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
   Core
-  RHI
   RAI
+  RHI
 )

@@ -97,7 +97,9 @@ namespace RHI
     m_pSamplerState = EZ_NEW(m_pDevice->GetAllocator(), spSamplerStateD3D11, ezStaticCast<spDeviceD3D11*>(m_pDevice), m_Description);
     m_pDevice->GetResourceManager()->RegisterResource(m_pSamplerState);
 
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
     SetDebugName(m_sDebugName);
+#endif
 
     m_bIsResourceCreated = true;
   }

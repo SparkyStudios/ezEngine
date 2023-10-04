@@ -28,7 +28,7 @@ namespace RHI
     void DetachAll() override;
     void Use() override;
     EZ_NODISCARD ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const override;
-    EZ_NODISCARD ezDynamicArray<spResourceLayoutDescription> GetResourceLayoutDescriptions() const override;
+    void GetResourceLayoutDescriptions(ezDynamicArray<spResourceLayoutDescription>& out_resourceLayouts) const override;
 
     // spShaderProgramD3D11
 

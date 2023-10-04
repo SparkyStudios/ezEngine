@@ -231,7 +231,9 @@ namespace RHI
       EZ_ASSERT_NOT_IMPLEMENTED
     }
 
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
     SetDebugName(m_sDebugName);
+#endif
 
     m_bIsResourceCreated = true;
   }

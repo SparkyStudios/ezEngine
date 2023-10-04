@@ -115,7 +115,7 @@ namespace RHI
   class SP_RHI_DLL spFramebufferAttachment
   {
   public:
-    spFramebufferAttachment(spFramebufferAttachmentDescription description);
+    explicit spFramebufferAttachment(spFramebufferAttachmentDescription description);
 
     /// \brief Gets the render target texture.
     EZ_NODISCARD spResourceHandle GetTarget() const;
@@ -140,18 +140,18 @@ namespace RHI
   public:
     /// \brief Gets the handle to the depth target attachment associated to this framebuffer. May be an invalid
     /// handle if no depth target was attached.
-    EZ_NODISCARD virtual spResourceHandle GetDepthTarget() const = 0;
+    EZ_NODISCARD virtual spResourceHandle GetDepthTarget() const;
 
     /// \brief Gets the array of color targets attachment associated to this framebuffer.
-    EZ_NODISCARD virtual ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS> GetColorTargets() const = 0;
+    EZ_NODISCARD virtual ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS> GetColorTargets() const;
 
     /// \brief Gets a spOutputDescription giving the formats of depth and color targets.
     EZ_NODISCARD virtual const spOutputDescription& GetOutputDescription() const = 0;
 
-    /// \brief Gets the framebuffer's width;
+    /// \brief Gets the framebuffer width;
     EZ_NODISCARD virtual ezUInt32 GetWidth() const = 0;
 
-    /// \brief Gets the framebuffer's height;
+    /// \brief Gets the framebuffer height;
     EZ_NODISCARD virtual ezUInt32 GetHeight() const = 0;
 
     /// \brief Sets the given color target at the given index in the framebuffer.

@@ -43,6 +43,7 @@ namespace RAI
     EZ_ALWAYS_INLINE void SetShaderVariant(const spShaderVariant& shaderVariant) { m_ShaderVariant = shaderVariant; }
 
     ezResult Save(ezStreamWriter& inout_stream);
+    ezResult Save(ezStringView sFileName);
 
     ezResult Load(ezStreamReader& inout_stream);
     ezResult Load(ezStringView sFileName);

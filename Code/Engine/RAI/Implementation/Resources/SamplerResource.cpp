@@ -23,7 +23,7 @@
 
 namespace RAI
 {
-  static constexpr ezUInt16 kSamplerResourceVersion = 1;
+  static constexpr ezTypeVersion kSamplerResourceVersion = 1;
 
   // clang-format off
   EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spSamplerResource, kSamplerResourceVersion, ezRTTIDefaultAllocator<spSamplerResource>)
@@ -46,7 +46,7 @@ namespace RAI
 
   ezResult spSamplerResourceDescriptor::Save(ezStreamWriter& inout_stream)
   {
-    inout_stream << kSamplerResourceVersion;
+    inout_stream.WriteVersion(kSamplerResourceVersion);
     inout_stream << m_Sampler; // Write the sampler description
 
     return EZ_SUCCESS;
@@ -68,12 +68,7 @@ namespace RAI
 
   ezResult spSamplerResourceDescriptor::Load(ezStreamReader& inout_stream)
   {
-    ezUInt16 uiVersion = 0;
-    inout_stream >> uiVersion;
-
-    if (uiVersion == 0 || uiVersion > kSamplerResourceVersion)
-      return EZ_FAILURE;
-
+    inout_stream.ReadVersion(kSamplerResourceVersion);
     inout_stream >> m_Sampler;
 
     return EZ_SUCCESS;
@@ -119,8 +114,6 @@ namespace RAI
 
   ezResourceLoadDesc spSamplerResource::UpdateContent(ezStreamReader* pStream)
   {
-    spSamplerResourceDescriptor desc;
-
     ezResourceLoadDesc res;
     res.m_uiQualityLevelsDiscardable = 0;
     res.m_uiQualityLevelsLoadable = 0;
@@ -130,6 +123,8 @@ namespace RAI
       res.m_State = ezResourceState::LoadedResourceMissing;
       return res;
     }
+
+    spSamplerResourceDescriptor desc;
 
     // skip the absolute file path data that the standard file reader writes into the stream
     {
@@ -159,7 +154,10 @@ namespace RAI
   {
     // Create the RHI sampler resource
     descriptor.m_Sampler.CreateRHISampler();
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEBUG)
     descriptor.m_Sampler.m_RHISampler->SetDebugName(GetResourceDescription());
+#endif
 
     m_Descriptor = std::move(descriptor);
 

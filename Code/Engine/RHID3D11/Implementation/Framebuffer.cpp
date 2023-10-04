@@ -130,26 +130,6 @@ namespace RHI
     }
   }
 
-  spResourceHandle spFramebufferD3D11::GetDepthTarget() const
-  {
-    return m_Description.m_DepthTarget.m_hTarget;
-  }
-
-  ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS> spFramebufferD3D11::GetColorTargets() const
-  {
-    ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS> targets;
-    targets.EnsureCount(m_Description.m_ColorTargets.GetCount());
-
-    ezUInt32 uiColorTargetIndex = 0;
-    for (const auto& target : m_Description.m_ColorTargets)
-    {
-      targets[uiColorTargetIndex] = target.m_hTarget;
-      ++uiColorTargetIndex;
-    }
-
-    return targets;
-  }
-
   void spFramebufferD3D11::SetColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target)
   {
     EZ_ASSERT_DEV(m_ColorTargets.GetCount() > uiIndex, "Invalid color target index. Valid indexes are between 0 and {}.", m_ColorTargets.GetCount());
