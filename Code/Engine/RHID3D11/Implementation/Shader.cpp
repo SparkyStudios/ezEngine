@@ -300,9 +300,9 @@ namespace RHI
       {
         if (pResultBlob != nullptr)
         {
-          const ezUInt32 uiByteCodeSize = static_cast<ezUInt32>(pResultBlob->GetBufferSize());
+          const auto uiByteCodeSize = static_cast<ezUInt32>(pResultBlob->GetBufferSize());
           m_pByteCode = EZ_DEFAULT_NEW_ARRAY(ezUInt8, uiByteCodeSize);
-          m_pByteCode.CopyFrom(ezMakeArrayPtr(pResultBlob->GetBufferPointer(), uiByteCodeSize));
+          m_pByteCode.CopyFrom(ezMakeArrayPtr(static_cast<ezUInt8*>(pResultBlob->GetBufferPointer()), uiByteCodeSize));
           pResultBlob->Release();
         }
       }

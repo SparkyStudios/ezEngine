@@ -194,7 +194,7 @@ namespace RHI
   {
     D3D11_DEPTH_STENCIL_DESC desc;
 
-    desc.DepthFunc = spToD3D11(depthState.m_DepthStencilComparison);
+    desc.DepthFunc = spToD3D11(depthState.m_eDepthStencilComparison);
     desc.DepthEnable = depthState.m_bDepthTestEnabled;
     desc.DepthWriteMask = depthState.m_bDepthMaskEnabled ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
     desc.StencilEnable = stencilState.m_bEnabled;
