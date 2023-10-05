@@ -173,10 +173,10 @@ namespace RHI
 
     ezUInt64 uiTimestamp;
     if (FAILED(pContext->GetData(pQuery, &uiTimestamp, sizeof(uiTimestamp), D3D11_ASYNC_GETDATA_DONOTFLUSH)))
-      return ezTime::Zero();
+      return ezTime::MakeZero();
 
     if (pProfiler->m_fInvTicksPerSecond == 0.0)
-      return ezTime::Zero();
+      return ezTime::MakeZero();
 
     return ezTime::Seconds(static_cast<double>(uiTimestamp) * pProfiler->m_fInvTicksPerSecond) + pProfiler->m_SyncTimeDiff;
   }

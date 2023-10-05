@@ -28,7 +28,7 @@ namespace RHI
 
   bool spFenceD3D11::IsSignaled()
   {
-    return Wait(ezTime::Zero());
+    return Wait(ezTime::MakeZero());
   }
 
   void spFenceD3D11::Reset()
