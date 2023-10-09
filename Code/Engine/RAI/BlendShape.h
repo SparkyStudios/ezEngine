@@ -21,7 +21,8 @@ namespace RAI
     ezHashedString m_sName;
 
     /// \brief The blend shape vertices.
-    ezDynamicArray<spVertex> m_Vertices;
+    ezDynamicArray<ezUInt8, ezAlignedAllocatorWrapper> m_Vertices;
+    ezUInt32 m_uiVertexSize;
 
     /// \brief The blend shape weight. This affects how much the vertices are blended together.
     float m_fWeight{0};
@@ -32,6 +33,7 @@ inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spBle
 {
   inout_stream << blendShape.m_sName;
   inout_stream.WriteArray(blendShape.m_Vertices).AssertSuccess();
+  inout_stream << blendShape.m_uiVertexSize;
   inout_stream << blendShape.m_fWeight;
 
   return inout_stream;
@@ -41,6 +43,7 @@ inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spBlendShap
 {
   inout_stream >> ref_blendShape.m_sName;
   inout_stream.ReadArray(ref_blendShape.m_Vertices).AssertSuccess();
+  inout_stream >> ref_blendShape.m_uiVertexSize;
   inout_stream >> ref_blendShape.m_fWeight;
 
   return inout_stream;

@@ -44,6 +44,7 @@ ezResult spBlendShapeImporter::Import(ezStringView sFilePath, ezStringView sOutp
       spBlendShape entry;
       entry.m_fWeight = blendShapeEntry.m_fWeight;
       entry.m_Vertices = blendShapeEntry.m_BlendShapeData;
+      entry.m_uiVertexSize = blendShapeEntry.m_uiVertexSize;
 
       blendShape.AddBlendShape(m_pContext->m_Meshes[uiMeshIndex].m_sName, entry);
     }

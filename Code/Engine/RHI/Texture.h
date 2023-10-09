@@ -53,6 +53,7 @@ namespace RHI
         case spInputElementFormat::UInt4:
         case spInputElementFormat::Int4:
         case spInputElementFormat::Half4:
+        case spInputElementFormat::R10G10B10A2UNorm:
           return 4;
 
         default:
@@ -228,6 +229,7 @@ namespace RHI
         case spInputElementFormat::Short2:
         case spInputElementFormat::Short2Norm:
         case spInputElementFormat::Half2:
+        case spInputElementFormat::R10G10B10A2UNorm:
           return 4;
 
         case spInputElementFormat::Float2:

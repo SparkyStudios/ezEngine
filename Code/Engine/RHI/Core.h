@@ -1026,6 +1026,9 @@ namespace RHI
       /// \brief Four 16-bit floating point values.
       Half4,
 
+      /// \brief Packed 32-bit unsigned normalized integer.
+      R10G10B10A2UNorm,
+
       Default = Float4
     };
 
@@ -1234,6 +1237,35 @@ namespace RHI
 
       Default = Triangles
     };
+
+    /// \brief Gets the number of indices for the given primitive topology.
+    /// \param [in] eTopology The primitive topology.
+    /// \param [in] uiPrimitivesCount The number of primitives for the specified topology.
+    /// \return The number of indices.
+    EZ_ALWAYS_INLINE static ezUInt32 GetIndicesCount(Enum eTopology, ezUInt32 uiPrimitivesCount)
+    {
+      switch (eTopology)
+      {
+        case Triangles:
+          return 3 * uiPrimitivesCount;
+
+        case TriangleStrip:
+          return 2 + uiPrimitivesCount;
+
+        case Lines:
+          return 2 * uiPrimitivesCount;
+
+        case LineStrip:
+          return 1 + uiPrimitivesCount;
+
+        case Points:
+          return uiPrimitivesCount;
+
+        default:
+          EZ_ASSERT_NOT_IMPLEMENTED;
+          return 0;
+      }
+    }
   };
 
   /// \brief Controls the influence of components in a blend operation.

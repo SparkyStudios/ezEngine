@@ -52,10 +52,10 @@ namespace RAI
     ezVec2 m_vTexCoord1;
 
     /// \brief The vertex color at channel 1.
-    ezColor m_Color0;
+    ezColorLinearUB m_Color0;
 
     /// \brief The vertex color at channel 2.
-    ezColor m_Color1;
+    ezColorLinearUB m_Color1;
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spVertex& other) const
     {

@@ -26,6 +26,30 @@ struct aiAnimMesh;
 struct aiMesh;
 struct aiNode;
 
+/// \brief Precision of a single component in a vertex stream.
+struct spAssimpVertexStreamComponentPrecision
+{
+  typedef ezUInt8 StorageType;
+
+  enum Enum : StorageType
+  {
+    /// \brief 8-bit precision. This represents an unsigned byte.
+    _8Bit = 8,
+
+    /// \brief 10-bit precision. This represents a part of a packed
+    /// 32-bit unsigned integer.
+    _10Bit = 10,
+
+    /// \brief 16-bit precision. This represents an unsigned short.
+    _16Bit = 16,
+
+    /// \brief 32-bit precision. This represents a float.
+    _32Bit = 32,
+
+    Default = _32Bit,
+  };
+};
+
 /// \brief Assimp Importer settings.
 struct spAssimpImporterConfiguration
 {
@@ -33,7 +57,7 @@ struct spAssimpImporterConfiguration
   float m_fScale{1.0f};
 
   /// \brief Specifies if the mesh was exported from a DCC tool using the Spark LOD system specifications.
-  bool m_bHasLODs{true};
+  bool m_bHasLODs{false};
 
   /// \brief Whether to flip UVs.
   bool m_bFlipUVs{false};
@@ -53,13 +77,23 @@ struct spAssimpImporterConfiguration
   /// vertex buffers to reduce the number of data fetch from the GPU. It's highly recommended
   /// to always enable this setting.
   bool m_bOptimizeMesh{true};
+
+  /// \brief The precision of the normal vectors.
+  ezEnum<spAssimpVertexStreamComponentPrecision> m_eNormalPrecision{spAssimpVertexStreamComponentPrecision::Default};
+
+  /// \brief The precision of the texture coordinates.
+  ezEnum<spAssimpVertexStreamComponentPrecision> m_eTexCoordPrecision{spAssimpVertexStreamComponentPrecision::Default};
+
+  /// \brief The precision of the bone weights.
+  ezEnum<spAssimpVertexStreamComponentPrecision> m_eBoneWeightPrecision{spAssimpVertexStreamComponentPrecision::Default};
 };
 
 struct spAssimpBlendShape
 {
   ezUInt32 m_uiParentMeshIndex{ezInvalidIndex};
 
-  ezDynamicArray<RAI::spVertex> m_BlendShapeData;
+  ezDynamicArray<ezUInt8, ezAlignedAllocatorWrapper> m_BlendShapeData;
+  ezUInt32 m_uiVertexSize;
   float m_fWeight{1.0f};
 
   const aiAnimMesh* m_pAnimMesh{nullptr};
@@ -83,7 +117,7 @@ struct spAssimpMesh
 struct spAssimpNode
 {
   ezUInt32 m_uiParentNodeIndex{ezInvalidIndex};
-
+  ezMat4 m_mGlobalTransform;
   ezUInt8 m_uiLODLevel{0};
 
   const aiNode* m_pNode{nullptr};
@@ -93,14 +127,44 @@ struct spAssimpNode
 struct spAssimpImporterContext
 {
   ezUInt8 m_uiLODCount{0};
+  ezUInt32 m_uiVertexCount{0};
+  ezUInt32 m_uiPrimitiveCount{0};
 
   ezHashTable<ezHashedString, ezUInt32> m_MeshesNames;
 
+  RAI::spMeshDataBuilder m_MeshDataBuilder;
+  RAI::spMesh::Data m_MeshData;
+
   ezDynamicArray<spAssimpNode> m_Nodes;
 
-  RAI::spMesh::Data m_MeshData;
   ezDynamicArray<spAssimpMesh> m_Meshes;
   ezDynamicArray<spAssimpBlendShape> m_BlendShapes;
+
+  struct
+  {
+    ezUInt32 m_uiPositionStreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiNormalStreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiTexCoord0StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiTexCoord1StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiTexCoord2StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiTexCoord3StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiTexCoord4StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiTexCoord5StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiTexCoord6StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiTexCoord7StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiColor0StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiColor1StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiColor2StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiColor3StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiColor4StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiColor5StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiColor6StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiColor7StreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiTangentStreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiBiTangentStreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiBoneWeightsStreamIndex{ezInvalidIndex};
+    ezUInt32 m_uiBoneIndicesStreamIndex{ezInvalidIndex};
+  } m_Streams;
 
   const aiScene* m_pScene{nullptr};
 
