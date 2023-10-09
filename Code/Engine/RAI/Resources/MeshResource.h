@@ -35,6 +35,12 @@ namespace RAI
     /// \param uiLodIndex The index of the LOD to get.
     EZ_NODISCARD const spMesh& GetLOD(ezUInt32 uiLodIndex = 0) const;
 
+    /// \brief Gets the LOD at the given index.
+    /// \note An assertion will be thrown if the index is out of bounds during development.
+    /// Therefore, this method will crash on production if called with a wrong index.
+    /// \param uiLodIndex The index of the LOD to get.
+    spMesh& GetLOD(ezUInt32 uiLodIndex = 0);
+
     /// \brief Gets the address of the LOD at the given index.
     /// \note An assertion will be thrown if the index is out of bounds during development.
     /// Therefore, this method will crash on production if called with a wrong index.
@@ -84,6 +90,18 @@ namespace RAI
     spMeshResource();
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const spMeshResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
+
+    /// \brief Gets the LOD at the given index.
+    /// \note An assertion will be thrown if the index is out of bounds during development.
+    /// Therefore, this method will crash on production if called with a wrong index.
+    /// \param uiLodIndex The index of the LOD to get.
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spMesh& GetLOD(ezUInt32 uiLodIndex = 0) const { return m_Descriptor.GetLOD(uiLodIndex); }
+
+    /// \brief Gets the LOD at the given index.
+    /// \note An assertion will be thrown if the index is out of bounds during development.
+    /// Therefore, this method will crash on production if called with a wrong index.
+    /// \param uiLodIndex The index of the LOD to get.
+    EZ_ALWAYS_INLINE spMesh& GetLOD(ezUInt32 uiLodIndex = 0) { return m_Descriptor.GetLOD(uiLodIndex); }
 
   private:
     ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;

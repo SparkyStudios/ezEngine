@@ -63,6 +63,14 @@ namespace RAI
     return m_LODs[uiLodIndex];
   }
 
+  spMesh& spMeshResourceDescriptor::GetLOD(ezUInt32 uiLodIndex)
+  {
+    EZ_ASSERT_DEV(uiLodIndex < SP_RAI_MAX_LOD_COUNT, "Invalid LOD index {0}. Value is greater than the maximum number of LODs.", uiLodIndex);
+    EZ_ASSERT_DEV(uiLodIndex < m_LODs.GetCount(), "Invalid LOD index {0}. Value is greater than the available number of LODs.", uiLodIndex);
+
+    return m_LODs[uiLodIndex];
+  }
+
   spMesh& spMeshResourceDescriptor::WriteLOD(ezUInt32 uiLodIndex)
   {
     EZ_ASSERT_DEV(uiLodIndex < SP_RAI_MAX_LOD_COUNT, "Invalid LOD index {0}. Value is greater than the maximum number of LODs.", uiLodIndex);

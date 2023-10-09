@@ -131,7 +131,7 @@ void spMeshImporter::ImportLODMeshes(ezUInt8 uiLODLevel, spMesh* out_pMesh, ezUI
   lodNodes.PushBack(uiLODLevel);
 
   for (ezUInt32 i = 0, l = m_pContext->m_Nodes.GetCount(); i < l; ++i)
-    if (m_pContext->m_Nodes[i].m_uiParentNodeIndex == uiLODLevel)
+    if (m_pContext->m_Nodes[i].m_uiLODLevel == uiLODLevel)
       lodNodes.PushBack(i);
 
   ezUInt32 uiVerticesUpperBound = 0;
@@ -172,7 +172,7 @@ void spMeshImporter::ImportLODMeshes(ezUInt8 uiLODLevel, spMesh* out_pMesh, ezUI
 
   for (ezUInt32 m = 0, k = m_pContext->m_Meshes.GetCount(); m < k; ++m)
   {
-    if (m_pContext->m_Meshes[m].m_uiParentNodeIndex == uiLODLevel)
+    if (m_pContext->m_Nodes[m_pContext->m_Meshes[m].m_uiParentNodeIndex].m_uiLODLevel == uiLODLevel)
       root.m_Entries.ExpandAndGetRef() = entries[m];
   }
 
