@@ -123,11 +123,11 @@ It's highly recommended to keep this option enabled.
 )",
   true);
 
-ezCommandLineOptionEnum opt_Mesh_NormalPrecision("_AssetProcessor_Mesh", "-p-normals", "The precision of a single component in normal vectors.", "10=10|16=16|32=32", 0);
+ezCommandLineOptionEnum opt_Mesh_NormalPrecision("_AssetProcessor_Mesh", "-p-normals", "The precision of a single component in normal vectors.", "10=10|16=16|32=32", 10);
 
-ezCommandLineOptionEnum opt_Mesh_TexCoordPrecision("_AssetProcessor_Mesh", "-p-uvs", "The precision of a single component in texture coordinates.", "16=16|32=32", 0);
+ezCommandLineOptionEnum opt_Mesh_TexCoordPrecision("_AssetProcessor_Mesh", "-p-uvs", "The precision of a single component in texture coordinates.", "16=16|32=32", 16);
 
-ezCommandLineOptionEnum opt_Mesh_BoneWeightPrecision("_AssetProcessor_Mesh", "-p-weights", "The precision of a single component in bone weights.", "8=8|10=10|16=16|32=32", 0);
+ezCommandLineOptionEnum opt_Mesh_BoneWeightPrecision("_AssetProcessor_Mesh", "-p-weights", "The precision of a single component in bone weights.", "8=8|10=10|16=16|32=32", 8);
 
 #pragma endregion
 

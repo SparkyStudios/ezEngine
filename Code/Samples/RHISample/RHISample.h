@@ -172,7 +172,7 @@ private:
   ezUniquePtr<spRenderGraphBuilder> graphBuilder;
   ezUniquePtr<spRenderPipeline> renderPipeline;
 
-  RAI::spMesh m_Mesh;
+  const RAI::spMesh* m_pMesh{nullptr};
   RAI::spMeshResourceHandle m_hMesh;
 
   RAI::spTexture2DResourceHandle m_hTexture;

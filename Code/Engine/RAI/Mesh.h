@@ -92,13 +92,7 @@ namespace RAI
       EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexBufferSize() const { return m_Indices.GetCount(); }
 
       template <typename T>
-      EZ_ALWAYS_INLINE void SetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex, const T& data)
-      {
-        SetVertexStreamData(uiStreamIndex, uiVertexIndex, &data);
-      }
-
-      template <typename T>
-      void SetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex, const T* pData);
+      EZ_ALWAYS_INLINE void SetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex, const T& data);
 
       /// \brief Gets the vertex data at the given index for the given stream.
       /// \param [in] uiStreamIndex The index of the vertex stream.
@@ -244,7 +238,7 @@ namespace RAI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexCount() const { return m_Data.GetVertexCount(); }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferSize() const { return m_Data.GetIndexBufferSize(); }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferSize() const { return m_Data.GetVertexBufferSize(); }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexCount() const { return m_Data.GetIndexCount(); }
 

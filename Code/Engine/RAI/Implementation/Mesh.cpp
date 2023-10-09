@@ -64,28 +64,6 @@ namespace RAI
       GetDrawCommandsInternal(out_DrawCommands, child);
   }
 
-  void spMesh::Data::SetPrimitiveIndices(ezUInt32 uiPrimitiveIndex, ezUInt32 uiVertex0, ezUInt32 uiVertex1, ezUInt32 uiVertex2)
-  {
-    if (m_eTopology == RHI::spPrimitiveTopology::Points)
-    {
-      ezUInt16* pIndices = reinterpret_cast<ezUInt16*>(m_Indices.GetData() + (uiPrimitiveIndex * sizeof(ezUInt16)));
-      pIndices[0] = uiVertex0;
-    }
-    else if (m_eTopology == RHI::spPrimitiveTopology::Lines)
-    {
-      ezUInt16* pIndices = reinterpret_cast<ezUInt16*>(m_Indices.GetData() + (uiPrimitiveIndex * sizeof(ezUInt16) * 2));
-      pIndices[0] = uiVertex0;
-      pIndices[1] = uiVertex1;
-    }
-    else if (m_eTopology == RHI::spPrimitiveTopology::Triangles)
-    {
-      ezUInt16* pIndices = reinterpret_cast<ezUInt16*>(m_Indices.GetData() + (uiPrimitiveIndex * sizeof(ezUInt16) * 3));
-      pIndices[0] = uiVertex0;
-      pIndices[1] = uiVertex1;
-      pIndices[2] = uiVertex2;
-    }
-  }
-
   spMesh::~spMesh() noexcept
   {
     Clear();

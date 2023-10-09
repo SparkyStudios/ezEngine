@@ -15,7 +15,7 @@
 namespace RAI
 {
   template <typename T>
-  EZ_ALWAYS_INLINE void spMesh::Data::SetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex, const T* pData)
+  EZ_ALWAYS_INLINE void spMesh::Data::SetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex, const T& pData)
   {
     EZ_ASSERT_DEV(uiStreamIndex < m_VertexStreams.GetCount(), "Invalid stream index.");
     EZ_ASSERT_DEV(uiVertexIndex < GetVertexCount(), "Invalid vertex index.");
@@ -64,6 +64,28 @@ namespace RAI
   {
     EZ_ASSERT_DEV(uiVertexIndex < GetVertexCount(), "Invalid vertex index.");
     return ezMakeByteArrayPtr(&m_Vertices[uiVertexIndex * m_uiVertexSize], m_uiVertexSize);
+  }
+
+  EZ_ALWAYS_INLINE void spMesh::Data::SetPrimitiveIndices(ezUInt32 uiPrimitiveIndex, ezUInt32 uiVertex0, ezUInt32 uiVertex1, ezUInt32 uiVertex2)
+  {
+    if (m_eTopology == RHI::spPrimitiveTopology::Points)
+    {
+      auto* pIndices = reinterpret_cast<ezUInt16*>(m_Indices.GetData() + (uiPrimitiveIndex * sizeof(ezUInt16)));
+      pIndices[0] = uiVertex0;
+    }
+    else if (m_eTopology == RHI::spPrimitiveTopology::Lines)
+    {
+      auto* pIndices = reinterpret_cast<ezUInt16*>(m_Indices.GetData() + (uiPrimitiveIndex * sizeof(ezUInt16) * 2));
+      pIndices[0] = uiVertex0;
+      pIndices[1] = uiVertex1;
+    }
+    else if (m_eTopology == RHI::spPrimitiveTopology::Triangles)
+    {
+      auto* pIndices = reinterpret_cast<ezUInt16*>(m_Indices.GetData() + (uiPrimitiveIndex * sizeof(ezUInt16) * 3));
+      pIndices[0] = uiVertex0;
+      pIndices[1] = uiVertex1;
+      pIndices[2] = uiVertex2;
+    }
   }
 
   EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 spMesh::Data::GetStreamOffset(ezUInt32 uiStreamIndex) const

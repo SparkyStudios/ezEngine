@@ -208,11 +208,12 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   if (!resource.IsValid())
     return ezLog::Error("Unable to get the mesh resource! Make sure to run AssetProcessor first.");
 
-  m_Mesh = resource.GetPointer()->GetDescriptor().GetLOD(0);
+  auto& mesh = resource.GetPointerNonConst()->GetLOD(0);
+  m_pMesh = &mesh;
 
-  m_Mesh.CreateRHIVertexBuffer();
-  m_Mesh.CreateRHIIndexBuffer();
-  m_Mesh.CreateRHIIndirectBuffer();
+  mesh.CreateRHIVertexBuffer();
+  mesh.CreateRHIIndexBuffer();
+  mesh.CreateRHIIndirectBuffer();
 
   // --- Begin Experimental render graph
 
@@ -221,12 +222,12 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   spResourceHandle importedTex = graphBuilder->Import(imageResource.GetPointer()->GetRHITexture()); // Import a resource in the graph
   spResourceHandle importedSmp = graphBuilder->Import(imageResource.GetPointer()->GetRHISampler()); // Import a resource in the graph
-  spResourceHandle importedVBO = graphBuilder->Import(m_Mesh.GetRHIVertexBuffer());                 // Import a resource in the graph
-  spResourceHandle importedIBO = graphBuilder->Import(m_Mesh.GetRHIIndexBuffer());                  // Import a resource in the graph
-  spResourceHandle importedIDB = graphBuilder->Import(m_Mesh.GetRHIIndirectBuffer());               // Import a resource in the graph
+  spResourceHandle importedVBO = graphBuilder->Import(m_pMesh->GetRHIVertexBuffer());                 // Import a resource in the graph
+  spResourceHandle importedIBO = graphBuilder->Import(m_pMesh->GetRHIIndexBuffer());                  // Import a resource in the graph
+  spResourceHandle importedIDB = graphBuilder->Import(m_pMesh->GetRHIIndirectBuffer());               // Import a resource in the graph
 
   // 2. Setup graph nodes
-  ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spTriangleDemoRenderGraphNode, &m_Mesh);
+  ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spTriangleDemoRenderGraphNode, m_pMesh);
 
   ezHashTable<ezHashedString, spResourceHandle> triangleNodeResources;
   triangleNodeResources.Insert(ezMakeHashedString("tex"), importedTex);
@@ -266,7 +267,6 @@ void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
   // cleanup the render pipeline
   renderPipeline->CleanUp();
 
-  m_Mesh.Clear();
   m_hMesh.Invalidate();
 
   m_hTexture.Invalidate();
@@ -336,9 +336,8 @@ struct VS_INPUT
   float3 tnt : Tangent;
   float3 btt : BiTangent;
   float2 uv0 : TexCoord0;
-  float2 uv1 : TexCoord1;
-  float4 cl0 : Color0;
-  float4 cl1 : Color1;
+  float4 bw0 : BoneWeights0;
+  uint4 bi1 : BoneIndices0;
 };
 
 struct VS_OUTPUT
@@ -439,16 +438,17 @@ float4 main(VS_OUTPUT input) : SV_TARGET
   if (data.m_pInputLayout == nullptr)
   {
     spInputLayoutDescription inputLayoutDescription{};
-    inputLayoutDescription.m_uiInstanceStepRate = 0;
-    inputLayoutDescription.m_uiStride = sizeof(spVertex);
-    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
-    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("nrm", spInputElementLocationSemantic::Normal, spInputElementFormat::Float3, offsetof(spVertex, m_vNormal)));
-    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tnt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float4, offsetof(spVertex, m_vTangent)));
-    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("btt", spInputElementLocationSemantic::BiTangent, spInputElementFormat::Float4, offsetof(spVertex, m_vBiTangent)));
-    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv0", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord0)));
-    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv1", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord1)));
-    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl0", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spVertex, m_Color0)));
-    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl1", spInputElementLocationSemantic::Color, spInputElementFormat::Float4, offsetof(spVertex, m_Color1)));
+    m_pMesh->GetRHIInputLayoutDescription(inputLayoutDescription);
+//    inputLayoutDescription.m_uiInstanceStepRate = 0;
+//    inputLayoutDescription.m_uiStride = sizeof(spVertex);
+//    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
+//    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("nrm", spInputElementLocationSemantic::Normal, spInputElementFormat::Float3, offsetof(spVertex, m_vNormal)));
+//    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("tnt", spInputElementLocationSemantic::Tangent, spInputElementFormat::Float4, offsetof(spVertex, m_vTangent)));
+//    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("btt", spInputElementLocationSemantic::BiTangent, spInputElementFormat::Float4, offsetof(spVertex, m_vBiTangent)));
+//    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv0", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord0)));
+//    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("uv1", spInputElementLocationSemantic::TexCoord, spInputElementFormat::Float2, offsetof(spVertex, m_vTexCoord1)));
+//    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl0", spInputElementLocationSemantic::Color, spInputElementFormat::Byte4, offsetof(spVertex, m_Color0)));
+//    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl1", spInputElementLocationSemantic::Color, spInputElementFormat::Byte4, offsetof(spVertex, m_Color1)));
 
     data.m_pInputLayout = pBuilder->GetResourceFactory()->CreateInputLayout(inputLayoutDescription, data.m_pVertexShader->GetHandle());
     data.m_pInputLayout->SetDebugName("input");
