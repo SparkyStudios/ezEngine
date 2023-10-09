@@ -62,10 +62,14 @@ private:
 
   void ProcessNodes(const aiNode* pNode, ezUInt32 uiParentIndex, ezUInt8& inout_uiLODCount);
 
-  void ProcessMeshes(const aiNode* pNode, ezUInt32 uiParentIndex, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex);
+  void SetupMeshDataBuilder();
+
+  void CollectMeshes(const aiNode* pNode, ezUInt32 uiParentIndex, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex);
+  void ProcessMeshes();
+
   void ProcessBlendShapes();
 
-  void OptimizeMeshData(float* pVertexBuffer, ezUInt32 uiVertexCount, ezUInt16* pIndexBuffer, ezUInt32 uiIndexCount, ezDynamicArray<ezUInt32>& ref_remap) const;
+  void OptimizeMeshData(ezUInt8* pVertexBuffer, ezUInt32 uiVertexCount, ezUInt32 uiVertexSize, ezUInt8* pIndexBuffer, ezUInt32 uiIndexCount, ezDynamicArray<ezUInt32>& ref_remap) const;
 
   spBlendShapeImporter m_BlendShapeImporter;
   spMeshImporter m_MeshImporter;

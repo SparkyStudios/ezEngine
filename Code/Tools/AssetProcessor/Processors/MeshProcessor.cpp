@@ -32,95 +32,104 @@ static constexpr float kMeshOptimizationThreshold = 1.01f; // allow up to 1% wor
 
 struct spMikkTSpaceContext
 {
-  const ezUInt16* m_pIndices{nullptr};
-  ezUInt32 m_uiNumIndices{0};
+  spMesh::Data* m_pMeshData{nullptr};
 
-  spVertex* m_pVertices{nullptr};
-  ezUInt32 m_uiNumVertices{0};
+  ezUInt32 m_uiPositionStreamIndex;
+  ezUInt32 m_uiNormalStreamIndex;
+  ezUInt32 m_uiTexCoord0StreamIndex;
+  ezUInt32 m_uiTangentStreamIndex;
+  ezUInt32 m_uiBiTangentStreamIndex;
 };
 
 static int MikkTGetNumFaces(const SMikkTSpaceContext* pContext)
 {
-  const auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData);
+  const auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_pMeshData;
+  const auto& uiIndexCount = pMeshData->GetIndexCount();
 
-  const auto fSize = static_cast<float>(pMeshData->m_uiNumIndices) / 3.0f;
-  const auto iSize = static_cast<int>(pMeshData->m_uiNumIndices) / 3;
+  const auto fSize = static_cast<float>(uiIndexCount) / 3.0f;
+  const auto iSize = static_cast<int>(uiIndexCount) / 3;
 
   EZ_ASSERT_DEV(fSize - static_cast<float>(iSize) == 0.0f, "There are faces in the mesh that are not triangles.");
 
   return iSize;
 }
 
-static int MikkTGetNumVerticesOfFace(const SMikkTSpaceContext* context, int iFace)
+static int MikkTGetNumVerticesOfFace(const SMikkTSpaceContext* context, ezInt32 iFace)
 {
   // We only work with triangles
   return 3;
 }
 
-static int MikkTGetVertexIndex(const SMikkTSpaceContext* pContext, int iFace, int iVert)
+static int MikkTGetVertexIndex(const SMikkTSpaceContext* pContext, ezInt32 iFace, ezInt32 iVert)
 {
-  const auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData);
+  auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_pMeshData;
 
   const int iFaceSize = MikkTGetNumVerticesOfFace(pContext, iFace);
   const int iIndicesIndex = iFace * iFaceSize + iVert;
 
-  return pMeshData->m_pIndices[iIndicesIndex];
+  return reinterpret_cast<ezUInt16*>(pMeshData->m_Indices.GetData())[iIndicesIndex];
 }
 
 static void MikkTGetNormal(const SMikkTSpaceContext* pContext, float fvNormOut[], const int iFace, const int iVert)
 {
-  const auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData);
+  const auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_pMeshData;
+  const auto& uiStreamIndex = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_uiNormalStreamIndex;
 
   const int iIndex = MikkTGetVertexIndex(pContext, iFace, iVert);
-  const spVertex vertex = pMeshData->m_pVertices[iIndex];
+  const ezConstByteArrayPtr& pNormal = pMeshData->GetVertexStreamData(uiStreamIndex, iIndex);
 
-  fvNormOut[0] = vertex.m_vNormal.x;
-  fvNormOut[1] = vertex.m_vNormal.y;
-  fvNormOut[2] = vertex.m_vNormal.z;
+  ezVec3* pDest = reinterpret_cast<ezVec3*>(fvNormOut);
+  spMeshDataUtils::DecodeNormal(pNormal, pMeshData->GetStreamFormat(uiStreamIndex), *pDest).IgnoreResult();
 }
 
 static void MikkTGetPosition(const SMikkTSpaceContext* pContext, float fvPosOut[], const int iFace, const int iVert)
 {
-  const auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData);
+  const auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_pMeshData;
+  const auto& uiStreamIndex = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_uiPositionStreamIndex;
 
   const int iIndex = MikkTGetVertexIndex(pContext, iFace, iVert);
-  const spVertex vertex = pMeshData->m_pVertices[iIndex];
+  const ezConstByteArrayPtr& pPosition = pMeshData->GetVertexStreamData(uiStreamIndex, iIndex);
 
-  fvPosOut[0] = vertex.m_vPosition.x;
-  fvPosOut[1] = vertex.m_vPosition.y;
-  fvPosOut[2] = vertex.m_vPosition.z;
+  ezVec3* pDest = reinterpret_cast<ezVec3*>(fvPosOut);
+  spMeshDataUtils::DecodeVec3(pPosition, pMeshData->GetStreamFormat(uiStreamIndex), *pDest).IgnoreResult();
 }
 
 static void MikkTGetTexCoord(const SMikkTSpaceContext* pContext, float fvTexcOut[], const int iFace, const int iVert)
 {
-  const auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData);
+  const auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_pMeshData;
+  const auto& uiStreamIndex = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_uiTexCoord0StreamIndex;
 
   const int iIndex = MikkTGetVertexIndex(pContext, iFace, iVert);
-  const spVertex vertex = pMeshData->m_pVertices[iIndex];
+  const ezConstByteArrayPtr& pTexCoord = pMeshData->GetVertexStreamData(uiStreamIndex, iIndex);
 
-  fvTexcOut[0] = vertex.m_vTexCoord0.x;
-  fvTexcOut[1] = vertex.m_vTexCoord0.y;
+  ezVec2* pDest = reinterpret_cast<ezVec2*>(fvTexcOut);
+  spMeshDataUtils::DecodeVec2(pTexCoord, pMeshData->GetStreamFormat(uiStreamIndex), *pDest).IgnoreResult();
 }
 
 static void MikkTSetTSpace(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fvBiTangent[], const float fMagS, const float fMagT, const tbool bIsOrientationPreserving, const int iFace, const int iVert)
 {
-  auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData);
+  /* */ auto* pMeshData = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_pMeshData;
+  const auto& uiTangentStreamIndex = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_uiTangentStreamIndex;
+  const auto& uiBiTangentStreamIndex = static_cast<spMikkTSpaceContext*>(pContext->m_pUserData)->m_uiBiTangentStreamIndex;
 
-  const auto index = MikkTGetVertexIndex(pContext, iFace, iVert);
-  auto* vertex = &pMeshData->m_pVertices[index];
+  const auto iIndex = MikkTGetVertexIndex(pContext, iFace, iVert);
+  const ezByteArrayPtr& pTangent = pMeshData->GetVertexStreamData(uiTangentStreamIndex, iIndex);
+  const ezByteArrayPtr& pBiTangent = pMeshData->GetVertexStreamData(uiBiTangentStreamIndex, iIndex);
 
-  vertex->m_vTangent.x = fvTangent[0];
-  vertex->m_vTangent.y = fvTangent[1];
-  vertex->m_vTangent.z = fvTangent[2];
-  vertex->m_vTangent.w = fMagS;
+  const ezVec3& vTangent = *reinterpret_cast<const ezVec3*>(fvTangent);
+  const ezVec3& vBiTangent = *reinterpret_cast<const ezVec3*>(fvBiTangent);
 
-  vertex->m_vBiTangent.x = fvBiTangent[0];
-  vertex->m_vBiTangent.y = fvBiTangent[1];
-  vertex->m_vBiTangent.z = fvBiTangent[2];
-  vertex->m_vBiTangent.w = fMagT;
+  spMeshDataUtils::EncodeTangent(vTangent, fMagS, pTangent, pMeshData->GetStreamFormat(uiTangentStreamIndex)).IgnoreResult();
+  spMeshDataUtils::EncodeTangent(vBiTangent, fMagT, pBiTangent, pMeshData->GetStreamFormat(uiBiTangentStreamIndex)).IgnoreResult();
 }
 
-static void RecomputeTangents(const ezArrayPtr<spVertex>& vertices, const ezArrayPtr<ezUInt16>& indices)
+static void RecomputeTangents(
+  spMesh::Data* pMeshData,
+  ezUInt32 uiPositionStreamIndex,
+  ezUInt32 uiNormalStreamIndex,
+  ezUInt32 uiTexCoord0StreamIndex,
+  ezUInt32 uiTangentStreamIndex,
+  ezUInt32 uiBiTangentStreamIndex)
 {
   SMikkTSpaceInterface mkt;
   SMikkTSpaceContext mktContext;
@@ -134,10 +143,12 @@ static void RecomputeTangents(const ezArrayPtr<spVertex>& vertices, const ezArra
   mkt.m_setTSpaceBasic = nullptr;
 
   spMikkTSpaceContext context;
-  context.m_pIndices = indices.GetPtr();
-  context.m_uiNumIndices = indices.GetCount();
-  context.m_pVertices = vertices.GetPtr();
-  context.m_uiNumVertices = vertices.GetCount();
+  context.m_pMeshData = pMeshData;
+  context.m_uiPositionStreamIndex = uiPositionStreamIndex;
+  context.m_uiNormalStreamIndex = uiNormalStreamIndex;
+  context.m_uiTexCoord0StreamIndex = uiTexCoord0StreamIndex;
+  context.m_uiTangentStreamIndex = uiTangentStreamIndex;
+  context.m_uiBiTangentStreamIndex = uiBiTangentStreamIndex;
 
   mktContext.m_pInterface = &mkt;
   mktContext.m_pUserData = &context;
@@ -166,6 +177,74 @@ class aiLogStreamInfo final : public Assimp::LogStream
 public:
   void write(const char* message) override { ezLog::Dev("AssImp: {0}", message); }
 };
+
+#pragma endregion
+
+#pragma region Utilities
+
+static RHI::spInputElementFormat::Enum GetNormalInputFormat(const ezEnum<spAssimpVertexStreamComponentPrecision>& ePrecision)
+{
+  switch (ePrecision)
+  {
+    case spAssimpVertexStreamComponentPrecision::_10Bit:
+      return RHI::spInputElementFormat::R10G10B10A2UNorm;
+
+    case spAssimpVertexStreamComponentPrecision::_16Bit:
+      return RHI::spInputElementFormat::UShort4Norm;
+
+    default:
+    case spAssimpVertexStreamComponentPrecision::_32Bit:
+      return RHI::spInputElementFormat::Float3;
+  }
+}
+
+static RHI::spInputElementFormat::Enum GetTangentInputFormat(const ezEnum<spAssimpVertexStreamComponentPrecision>& ePrecision)
+{
+  switch (ePrecision)
+  {
+    case spAssimpVertexStreamComponentPrecision::_10Bit:
+      return RHI::spInputElementFormat::R10G10B10A2UNorm;
+
+    case spAssimpVertexStreamComponentPrecision::_16Bit:
+      return RHI::spInputElementFormat::UShort4Norm;
+
+    default:
+    case spAssimpVertexStreamComponentPrecision::_32Bit:
+      return RHI::spInputElementFormat::Float4;
+  }
+}
+
+static RHI::spInputElementFormat::Enum GetTexCoordInputFormat(const ezEnum<spAssimpVertexStreamComponentPrecision>& ePrecision)
+{
+  switch (ePrecision)
+  {
+    case spAssimpVertexStreamComponentPrecision::_16Bit:
+      return RHI::spInputElementFormat::Half2;
+
+    default:
+    case spAssimpVertexStreamComponentPrecision::_32Bit:
+      return RHI::spInputElementFormat::Float2;
+  }
+}
+
+static RHI::spInputElementFormat::Enum GetBoneWeightInputFormat(const ezEnum<spAssimpVertexStreamComponentPrecision>& ePrecision)
+{
+  switch (ePrecision)
+  {
+    case spAssimpVertexStreamComponentPrecision::_8Bit:
+      return RHI::spInputElementFormat::Byte4Norm;
+
+    case spAssimpVertexStreamComponentPrecision::_10Bit:
+      return RHI::spInputElementFormat::R10G10B10A2UNorm;
+
+    case spAssimpVertexStreamComponentPrecision::_16Bit:
+      return RHI::spInputElementFormat::UShort4Norm;
+
+    default:
+    case spAssimpVertexStreamComponentPrecision::_32Bit:
+      return RHI::spInputElementFormat::Float4;
+  }
+}
 
 #pragma endregion
 
@@ -264,34 +343,43 @@ ezResult spMeshProcessor::BuildContext()
     m_AssimpContext.m_uiLODCount = uiLODCount + 1;
   }
 
+  // Set up the mesh data builder
+  SetupMeshDataBuilder();
+
   // Process mesh data
   if (m_Configuration.m_bImportMeshes)
   {
     ezUInt32 uiBaseVertex = 0;
     ezUInt32 uiBaseIndex = 0;
 
-    // Read mesh nodes
+    // Collect mesh nodes
     for (ezUInt32 n = 0, l = m_AssimpContext.m_Nodes.GetCount(); n < l; ++n)
-    {
-      ProcessMeshes(m_AssimpContext.m_Nodes[n].m_pNode, n, uiBaseVertex, uiBaseIndex);
-    }
+      CollectMeshes(m_AssimpContext.m_Nodes[n].m_pNode, n, uiBaseVertex, uiBaseIndex);
 
-    // Ensure no memory is wasted
-    m_AssimpContext.m_MeshData.m_Indices.SetCount(uiBaseIndex);
-    m_AssimpContext.m_MeshData.m_Vertices.SetCount(uiBaseVertex);
+    // Allocate mesh data
+    m_AssimpContext.m_MeshDataBuilder.AllocateMeshData(
+      m_AssimpContext.m_MeshData,
+      m_AssimpContext.m_uiVertexCount,
+      RHI::spPrimitiveTopology::Triangles,
+      m_AssimpContext.m_uiPrimitiveCount,
+      true);
 
-    m_AssimpContext.m_MeshData.m_Indices.Compact();
-    m_AssimpContext.m_MeshData.m_Vertices.Compact();
+    // Process mesh data
+    ProcessMeshes();
 
     // Recompute tangent space if required
     if (m_Configuration.m_AssimpImporterConfig.m_bRecomputeTangents)
-      RecomputeTangents(m_AssimpContext.m_MeshData.m_Vertices, m_AssimpContext.m_MeshData.m_Indices);
+      RecomputeTangents(
+        &m_AssimpContext.m_MeshData,
+        m_AssimpContext.m_Streams.m_uiPositionStreamIndex,
+        m_AssimpContext.m_Streams.m_uiNormalStreamIndex,
+        m_AssimpContext.m_Streams.m_uiTexCoord0StreamIndex,
+        m_AssimpContext.m_Streams.m_uiTangentStreamIndex,
+        m_AssimpContext.m_Streams.m_uiBiTangentStreamIndex);
 
     // Process blend shape data
     if (m_Configuration.m_bImportMotions)
-    {
       ProcessBlendShapes();
-    }
   }
 
   return EZ_SUCCESS;
@@ -316,14 +404,103 @@ void spMeshProcessor::ProcessNodes(const aiNode* pNode, ezUInt32 uiParentIndex, 
   if (node.m_uiLODLevel > inout_uiLODCount)
     inout_uiLODCount = node.m_uiLODLevel;
 
+  const ezMat4 mParentTransform = uiParentIndex == ezInvalidIndex ? ezMat4::MakeIdentity() : m_AssimpContext.m_Nodes[uiParentIndex].m_mGlobalTransform;
+  const ezMat4 mLocalTransform = spFromAssimp(pNode->mTransformation);
+  node.m_mGlobalTransform = mParentTransform * mLocalTransform;
+
   const ezUInt32 uiNodeIndex = m_AssimpContext.m_Nodes.GetCount() - 1;
   for (ezUInt32 n = 0; n < pNode->mNumChildren; ++n)
-  {
     ProcessNodes(pNode->mChildren[n], uiNodeIndex, inout_uiLODCount);
-  }
 }
 
-void spMeshProcessor::ProcessMeshes(const aiNode* pNode, ezUInt32 uiParentIndex, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex)
+void spMeshProcessor::SetupMeshDataBuilder()
+{
+  // Default streams, required by the engine
+  m_AssimpContext.m_Streams.m_uiPositionStreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Position, 0, RHI::spInputElementFormat::Float3);
+  m_AssimpContext.m_Streams.m_uiNormalStreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Normal, 0, GetNormalInputFormat(m_Configuration.m_AssimpImporterConfig.m_eNormalPrecision));
+  m_AssimpContext.m_Streams.m_uiTexCoord0StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::TexCoord, 0, GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision));
+  m_AssimpContext.m_Streams.m_uiTangentStreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Tangent, 0, GetTangentInputFormat(m_Configuration.m_AssimpImporterConfig.m_eNormalPrecision));
+  m_AssimpContext.m_Streams.m_uiBiTangentStreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::BiTangent, 0, GetTangentInputFormat(m_Configuration.m_AssimpImporterConfig.m_eNormalPrecision));
+
+  if (m_Configuration.m_bImportSkeleton)
+  {
+    // Needed for skinning
+    m_AssimpContext.m_Streams.m_uiBoneIndicesStreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::BoneIndices, 0, RHI::spInputElementFormat::UShort4);
+    m_AssimpContext.m_Streams.m_uiBoneWeightsStreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::BoneWeights, 0, GetBoneWeightInputFormat(m_Configuration.m_AssimpImporterConfig.m_eBoneWeightPrecision));
+  }
+
+  bool bHasTexCoord1, bHasTexCoord2, bHasTexCoord3, bHasTexCoord4, bHasTexCoord5, bHasTexCoord6, bHasTexCoord7;
+  bool bHasColor0, bHasColor1, bHasColor2, bHasColor3, bHasColor4, bHasColor5, bHasColor6, bHasColor7;
+
+  for (const auto& mesh : m_AssimpContext.m_Meshes)
+  {
+    if (!bHasColor1 && mesh.m_pMesh->HasTextureCoords(1))
+      bHasTexCoord1 = true;
+    if (!bHasColor2 && mesh.m_pMesh->HasTextureCoords(2))
+      bHasTexCoord2 = true;
+    if (!bHasColor3 && mesh.m_pMesh->HasTextureCoords(3))
+      bHasTexCoord3 = true;
+    if (!bHasColor4 && mesh.m_pMesh->HasTextureCoords(4))
+      bHasTexCoord4 = true;
+    if (!bHasColor5 && mesh.m_pMesh->HasTextureCoords(5))
+      bHasTexCoord5 = true;
+    if (!bHasColor6 && mesh.m_pMesh->HasTextureCoords(6))
+      bHasTexCoord6 = true;
+    if (!bHasColor7 && mesh.m_pMesh->HasTextureCoords(7))
+      bHasTexCoord7 = true;
+
+    if (!bHasColor0 && mesh.m_pMesh->HasVertexColors(0))
+      bHasColor0 = true;
+    if (!bHasColor1 && mesh.m_pMesh->HasVertexColors(1))
+      bHasColor1 = true;
+    if (!bHasColor2 && mesh.m_pMesh->HasVertexColors(2))
+      bHasColor2 = true;
+    if (!bHasColor3 && mesh.m_pMesh->HasVertexColors(3))
+      bHasColor3 = true;
+    if (!bHasColor4 && mesh.m_pMesh->HasVertexColors(4))
+      bHasColor4 = true;
+    if (!bHasColor5 && mesh.m_pMesh->HasVertexColors(5))
+      bHasColor5 = true;
+    if (!bHasColor6 && mesh.m_pMesh->HasVertexColors(6))
+      bHasColor6 = true;
+    if (!bHasColor7 && mesh.m_pMesh->HasVertexColors(7))
+      bHasColor7 = true;
+  }
+
+  if (bHasTexCoord1)
+    m_AssimpContext.m_Streams.m_uiTexCoord1StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::TexCoord, 1, GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision));
+  if (bHasTexCoord2)
+    m_AssimpContext.m_Streams.m_uiTexCoord2StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::TexCoord, 2, GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision));
+  if (bHasTexCoord3)
+    m_AssimpContext.m_Streams.m_uiTexCoord3StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::TexCoord, 3, GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision));
+  if (bHasTexCoord4)
+    m_AssimpContext.m_Streams.m_uiTexCoord4StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::TexCoord, 4, GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision));
+  if (bHasTexCoord5)
+    m_AssimpContext.m_Streams.m_uiTexCoord5StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::TexCoord, 5, GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision));
+  if (bHasTexCoord6)
+    m_AssimpContext.m_Streams.m_uiTexCoord6StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::TexCoord, 6, GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision));
+  if (bHasTexCoord7)
+    m_AssimpContext.m_Streams.m_uiTexCoord7StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::TexCoord, 7, GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision));
+
+  if (bHasColor0)
+    m_AssimpContext.m_Streams.m_uiColor0StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Color, 0, RHI::spInputElementFormat::Byte4Norm);
+  if (bHasColor1)
+    m_AssimpContext.m_Streams.m_uiColor1StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Color, 1, RHI::spInputElementFormat::Byte4Norm);
+  if (bHasColor2)
+    m_AssimpContext.m_Streams.m_uiColor2StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Color, 2, RHI::spInputElementFormat::Byte4Norm);
+  if (bHasColor3)
+    m_AssimpContext.m_Streams.m_uiColor3StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Color, 3, RHI::spInputElementFormat::Byte4Norm);
+  if (bHasColor4)
+    m_AssimpContext.m_Streams.m_uiColor4StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Color, 4, RHI::spInputElementFormat::Byte4Norm);
+  if (bHasColor5)
+    m_AssimpContext.m_Streams.m_uiColor5StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Color, 5, RHI::spInputElementFormat::Byte4Norm);
+  if (bHasColor6)
+    m_AssimpContext.m_Streams.m_uiColor6StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Color, 6, RHI::spInputElementFormat::Byte4Norm);
+  if (bHasColor7)
+    m_AssimpContext.m_Streams.m_uiColor7StreamIndex = m_AssimpContext.m_MeshDataBuilder.AddVertexStream(RHI::spInputElementLocationSemantic::Color, 7, RHI::spInputElementFormat::Byte4Norm);
+}
+
+void spMeshProcessor::CollectMeshes(const aiNode* pNode, ezUInt32 uiParentIndex, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex)
 {
   const ezUInt32 uiMeshCount = pNode->mNumMeshes;
 
@@ -343,8 +520,9 @@ void spMeshProcessor::ProcessMeshes(const aiNode* pNode, ezUInt32 uiParentIndex,
     {
       ezStringBuilder sTokenizedMeshName;
       const ezUInt32 uiCount = *m_AssimpContext.m_MeshesNames.GetValue(sMeshName) + 1;
-      sMeshName.Assign(ezFmt("{}_{}", pMesh->mName.C_Str(), uiCount).GetText(sTokenizedMeshName));
       m_AssimpContext.m_MeshesNames[sMeshName] = uiCount;
+
+      sMeshName.Assign(ezFmt("{}_{}", pMesh->mName.C_Str(), uiCount).GetText(sTokenizedMeshName));
     }
 
     spAssimpMesh& meshNode = m_AssimpContext.m_Meshes.ExpandAndGetRef();
@@ -352,70 +530,242 @@ void spMeshProcessor::ProcessMeshes(const aiNode* pNode, ezUInt32 uiParentIndex,
     meshNode.m_sName = sMeshName;
     meshNode.m_uiParentNodeIndex = uiParentIndex;
     meshNode.m_pMesh = pMesh;
-
-    ezUInt32 uiIndexCount = pMesh->mNumFaces * 3; // Import only triangles
-    ezUInt32 uiVertexCount = 0;
-
-    m_AssimpContext.m_MeshData.m_Vertices.EnsureCount(out_uiBaseVertex + pMesh->mNumVertices);
-    m_AssimpContext.m_MeshData.m_Indices.EnsureCount(out_uiBaseIndex + uiIndexCount);
-
     meshNode.m_uiBaseIndex = out_uiBaseIndex;
     meshNode.m_uiBaseVertex = out_uiBaseVertex;
+    meshNode.m_uiIndexCount = RHI::spPrimitiveTopology::GetIndicesCount(RHI::spPrimitiveTopology::Triangles, pMesh->mNumFaces);
+    meshNode.m_uiVertexCount = pMesh->mNumVertices;
 
-    ezMap<ezUInt16, ezUInt16> remappedIndices;
+    out_uiBaseIndex += meshNode.m_uiIndexCount;
+    out_uiBaseVertex += meshNode.m_uiVertexCount;
+
+    m_AssimpContext.m_uiVertexCount = out_uiBaseVertex;
+    m_AssimpContext.m_uiPrimitiveCount += pMesh->mNumFaces;
+  }
+}
+
+void spMeshProcessor::ProcessMeshes()
+{
+  for (const auto& mesh : m_AssimpContext.m_Meshes)
+  {
+    const aiMesh* pMesh = mesh.m_pMesh;
+    const spAssimpNode& meshNode = m_AssimpContext.m_Nodes[mesh.m_uiParentNodeIndex];
+
+    ezMat3 normalsTransform = meshNode.m_mGlobalTransform.GetRotationalPart();
+    if (normalsTransform.Invert(0.0f).Failed())
+    {
+      ezLog::Warning("Couldn't invert a mesh's transform matrix.");
+      normalsTransform.SetIdentity();
+    }
+
+    normalsTransform.Transpose();
 
     // Populate the vertex buffer of the mesh data
     for (ezUInt32 vertexIndex = 0; vertexIndex < pMesh->mNumVertices; ++vertexIndex)
     {
-      spVertex vertex;
+      const ezUInt32 uiFinalVertIndex = mesh.m_uiBaseIndex + vertexIndex;
 
-      vertex.m_vPosition = spFromAssimp(pMesh->mVertices[vertexIndex]);
-      vertex.m_vNormal = pMesh->HasNormals() ? spFromAssimp(pMesh->mNormals[vertexIndex]) : ezVec3::MakeZero();
-      vertex.m_vTangent = pMesh->HasTangentsAndBitangents() ? spFromAssimp(pMesh->mTangents[vertexIndex]).GetAsVec4(1.0f) : ezVec4::MakeZero();
-      vertex.m_vBiTangent = pMesh->HasTangentsAndBitangents() ? spFromAssimp(pMesh->mBitangents[vertexIndex]).GetAsVec4(1.0f) : ezVec4::MakeZero();
-      vertex.m_vTexCoord0 = pMesh->HasTextureCoords(0) ? spFromAssimp(pMesh->mTextureCoords[0][vertexIndex]).GetAsVec2() : ezVec2::MakeZero();
-      vertex.m_vTexCoord1 = pMesh->HasTextureCoords(1) ? spFromAssimp(pMesh->mTextureCoords[1][vertexIndex]).GetAsVec2() : ezVec2::MakeZero();
-      vertex.m_Color0 = pMesh->HasVertexColors(0) ? spFromAssimp(pMesh->mColors[0][vertexIndex]) : ezColor::White;
-      vertex.m_Color1 = pMesh->HasVertexColors(1) ? spFromAssimp(pMesh->mColors[1][vertexIndex]) : ezColor::White;
+      const ezVec3 vPosition = meshNode.m_mGlobalTransform * spFromAssimp(pMesh->mVertices[vertexIndex]);
 
-      if (const ezUInt32 uiFoundVertex = m_AssimpContext.m_MeshData.m_Vertices.IndexOf(vertex, meshNode.m_uiBaseVertex); uiFoundVertex != ezInvalidIndex)
+      m_AssimpContext.m_MeshData.SetVertexStreamData(
+        m_AssimpContext.m_Streams.m_uiPositionStreamIndex,
+        uiFinalVertIndex,
+        vPosition);
+
+      if (m_AssimpContext.m_Streams.m_uiNormalStreamIndex != ezInvalidIndex && pMesh->HasNormals())
       {
-        remappedIndices[vertexIndex] = static_cast<ezUInt16>(uiFoundVertex - meshNode.m_uiBaseVertex);
-        continue;
+        ezVec3 vNormal = normalsTransform * spFromAssimp(pMesh->mNormals[vertexIndex]);
+        vNormal.NormalizeIfNotZero(ezVec3::MakeZero()).IgnoreResult();
+
+        spMeshDataUtils::EncodeNormal(
+          vNormal,
+          m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiNormalStreamIndex, uiFinalVertIndex),
+          GetNormalInputFormat(m_Configuration.m_AssimpImporterConfig.m_eNormalPrecision))
+          .IgnoreResult();
       }
 
-      m_AssimpContext.m_MeshData.m_Vertices[meshNode.m_uiBaseVertex + uiVertexCount] = vertex;
+      if (pMesh->HasTangentsAndBitangents())
+      {
+        ezVec3 vTangent = normalsTransform * spFromAssimp(pMesh->mTangents[uiFinalVertIndex]);
+        vTangent.NormalizeIfNotZero(ezVec3::MakeZero()).IgnoreResult();
 
-      remappedIndices[vertexIndex] = static_cast<ezUInt16>(uiVertexCount);
-      uiVertexCount++;
+        ezVec3 vBitangent = normalsTransform * spFromAssimp(pMesh->mBitangents[uiFinalVertIndex]);
+        vBitangent.NormalizeIfNotZero(ezVec3::MakeZero()).IgnoreResult();
+
+        if (m_AssimpContext.m_Streams.m_uiTangentStreamIndex != ezInvalidIndex)
+        {
+          spMeshDataUtils::EncodeTangent(
+            vTangent,
+            1.0f,
+            m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiTangentStreamIndex, uiFinalVertIndex),
+            GetTangentInputFormat(m_Configuration.m_AssimpImporterConfig.m_eNormalPrecision))
+            .IgnoreResult();
+        }
+
+        if (m_AssimpContext.m_Streams.m_uiBiTangentStreamIndex != ezInvalidIndex)
+        {
+          spMeshDataUtils::EncodeTangent(
+            vBitangent,
+            1.0f,
+            m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiBiTangentStreamIndex, uiFinalVertIndex),
+            GetTangentInputFormat(m_Configuration.m_AssimpImporterConfig.m_eNormalPrecision))
+            .IgnoreResult();
+        }
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiTexCoord0StreamIndex != ezInvalidIndex && pMesh->HasTextureCoords(0))
+      {
+        const ezVec2 vTexCoord = spFromAssimp(pMesh->mTextureCoords[0][uiFinalVertIndex]).GetAsVec2();
+
+        spMeshDataUtils::EncodeTexCoord(
+          vTexCoord,
+          m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiTexCoord0StreamIndex, uiFinalVertIndex),
+          GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision))
+          .IgnoreResult();
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiTexCoord1StreamIndex != ezInvalidIndex && pMesh->HasTextureCoords(1))
+      {
+        const ezVec2 vTexCoord = spFromAssimp(pMesh->mTextureCoords[1][uiFinalVertIndex]).GetAsVec2();
+
+        spMeshDataUtils::EncodeTexCoord(
+          vTexCoord,
+          m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiTexCoord1StreamIndex, uiFinalVertIndex),
+          GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision))
+          .IgnoreResult();
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiTexCoord2StreamIndex != ezInvalidIndex && pMesh->HasTextureCoords(2))
+      {
+        const ezVec2 vTexCoord = spFromAssimp(pMesh->mTextureCoords[2][uiFinalVertIndex]).GetAsVec2();
+
+        spMeshDataUtils::EncodeTexCoord(
+          vTexCoord,
+          m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiTexCoord2StreamIndex, uiFinalVertIndex),
+          GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision))
+          .IgnoreResult();
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiTexCoord3StreamIndex != ezInvalidIndex && pMesh->HasTextureCoords(3))
+      {
+        const ezVec2 vTexCoord = spFromAssimp(pMesh->mTextureCoords[3][uiFinalVertIndex]).GetAsVec2();
+
+        spMeshDataUtils::EncodeTexCoord(
+          vTexCoord,
+          m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiTexCoord3StreamIndex, uiFinalVertIndex),
+          GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision))
+          .IgnoreResult();
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiTexCoord4StreamIndex != ezInvalidIndex && pMesh->HasTextureCoords(4))
+      {
+        const ezVec2 vTexCoord = spFromAssimp(pMesh->mTextureCoords[4][uiFinalVertIndex]).GetAsVec2();
+
+        spMeshDataUtils::EncodeTexCoord(
+          vTexCoord,
+          m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiTexCoord4StreamIndex, uiFinalVertIndex),
+          GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision))
+          .IgnoreResult();
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiTexCoord5StreamIndex != ezInvalidIndex && pMesh->HasTextureCoords(5))
+      {
+        const ezVec2 vTexCoord = spFromAssimp(pMesh->mTextureCoords[5][uiFinalVertIndex]).GetAsVec2();
+
+        spMeshDataUtils::EncodeTexCoord(
+          vTexCoord,
+          m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiTexCoord5StreamIndex, uiFinalVertIndex),
+          GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision))
+          .IgnoreResult();
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiTexCoord6StreamIndex != ezInvalidIndex && pMesh->HasTextureCoords(6))
+      {
+        const ezVec2 vTexCoord = spFromAssimp(pMesh->mTextureCoords[6][uiFinalVertIndex]).GetAsVec2();
+
+        spMeshDataUtils::EncodeTexCoord(
+          vTexCoord,
+          m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiTexCoord6StreamIndex, uiFinalVertIndex),
+          GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision))
+          .IgnoreResult();
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiTexCoord7StreamIndex != ezInvalidIndex && pMesh->HasTextureCoords(7))
+      {
+        const ezVec2 vTexCoord = spFromAssimp(pMesh->mTextureCoords[7][uiFinalVertIndex]).GetAsVec2();
+
+        spMeshDataUtils::EncodeTexCoord(
+          vTexCoord,
+          m_AssimpContext.m_MeshData.GetVertexStreamData(m_AssimpContext.m_Streams.m_uiTexCoord7StreamIndex, uiFinalVertIndex),
+          GetTexCoordInputFormat(m_Configuration.m_AssimpImporterConfig.m_eTexCoordPrecision))
+          .IgnoreResult();
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiColor0StreamIndex != ezInvalidIndex && pMesh->HasVertexColors(0))
+      {
+        const ezColorLinearUB color = spFromAssimp(pMesh->mColors[0][uiFinalVertIndex]);
+        m_AssimpContext.m_MeshData.SetVertexStreamData(m_AssimpContext.m_Streams.m_uiColor0StreamIndex, uiFinalVertIndex, color);
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiColor1StreamIndex != ezInvalidIndex && pMesh->HasVertexColors(1))
+      {
+        const ezColorLinearUB color = spFromAssimp(pMesh->mColors[1][uiFinalVertIndex]);
+        m_AssimpContext.m_MeshData.SetVertexStreamData(m_AssimpContext.m_Streams.m_uiColor1StreamIndex, uiFinalVertIndex, color);
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiColor2StreamIndex != ezInvalidIndex && pMesh->HasVertexColors(2))
+      {
+        const ezColorLinearUB color = spFromAssimp(pMesh->mColors[2][uiFinalVertIndex]);
+        m_AssimpContext.m_MeshData.SetVertexStreamData(m_AssimpContext.m_Streams.m_uiColor2StreamIndex, uiFinalVertIndex, color);
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiColor3StreamIndex != ezInvalidIndex && pMesh->HasVertexColors(3))
+      {
+        const ezColorLinearUB color = spFromAssimp(pMesh->mColors[3][uiFinalVertIndex]);
+        m_AssimpContext.m_MeshData.SetVertexStreamData(m_AssimpContext.m_Streams.m_uiColor3StreamIndex, uiFinalVertIndex, color);
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiColor4StreamIndex != ezInvalidIndex && pMesh->HasVertexColors(4))
+      {
+        const ezColorLinearUB color = spFromAssimp(pMesh->mColors[4][uiFinalVertIndex]);
+        m_AssimpContext.m_MeshData.SetVertexStreamData(m_AssimpContext.m_Streams.m_uiColor4StreamIndex, uiFinalVertIndex, color);
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiColor5StreamIndex != ezInvalidIndex && pMesh->HasVertexColors(5))
+      {
+        const ezColorLinearUB color = spFromAssimp(pMesh->mColors[5][uiFinalVertIndex]);
+        m_AssimpContext.m_MeshData.SetVertexStreamData(m_AssimpContext.m_Streams.m_uiColor5StreamIndex, uiFinalVertIndex, color);
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiColor6StreamIndex != ezInvalidIndex && pMesh->HasVertexColors(6))
+      {
+        const ezColorLinearUB color = spFromAssimp(pMesh->mColors[6][uiFinalVertIndex]);
+        m_AssimpContext.m_MeshData.SetVertexStreamData(m_AssimpContext.m_Streams.m_uiColor6StreamIndex, uiFinalVertIndex, color);
+      }
+
+      if (m_AssimpContext.m_Streams.m_uiColor7StreamIndex != ezInvalidIndex && pMesh->HasVertexColors(7))
+      {
+        const ezColorLinearUB color = spFromAssimp(pMesh->mColors[7][uiFinalVertIndex]);
+        m_AssimpContext.m_MeshData.SetVertexStreamData(m_AssimpContext.m_Streams.m_uiColor7StreamIndex, uiFinalVertIndex, color);
+      }
     }
 
     // Populate the index buffer of the mesh data
-    for (uiIndexCount = 0; uiIndexCount < pMesh->mNumFaces; ++uiIndexCount)
+    for (ezUInt32 faceIndex = 0; faceIndex < pMesh->mNumFaces; ++faceIndex)
     {
-      m_AssimpContext.m_MeshData.m_Indices[meshNode.m_uiBaseIndex + uiIndexCount * 3 + 0] = remappedIndices[static_cast<ezUInt16>(pMesh->mFaces[uiIndexCount].mIndices[0])];
-      m_AssimpContext.m_MeshData.m_Indices[meshNode.m_uiBaseIndex + uiIndexCount * 3 + 1] = remappedIndices[static_cast<ezUInt16>(pMesh->mFaces[uiIndexCount].mIndices[1])];
-      m_AssimpContext.m_MeshData.m_Indices[meshNode.m_uiBaseIndex + uiIndexCount * 3 + 2] = remappedIndices[static_cast<ezUInt16>(pMesh->mFaces[uiIndexCount].mIndices[2])];
+      m_AssimpContext.m_MeshData.SetPrimitiveIndices(
+        (mesh.m_uiBaseIndex / 3) + faceIndex,
+        pMesh->mFaces[faceIndex].mIndices[0],
+        pMesh->mFaces[faceIndex].mIndices[1],
+        pMesh->mFaces[faceIndex].mIndices[2]);
     }
 
-    uiIndexCount *= 3;
-
-    // Clear memory
-    remappedIndices.Clear();
-
     // Perform mesh optimization if required
-    OptimizeMeshData(
-      (m_AssimpContext.m_MeshData.m_Vertices.GetData() + meshNode.m_uiBaseVertex)->m_vPosition.GetData(),
-      uiVertexCount,
-      m_AssimpContext.m_MeshData.m_Indices.GetData() + meshNode.m_uiBaseIndex,
-      uiIndexCount,
-      meshNode.m_MeshOptRemap);
-
-    meshNode.m_uiIndexCount = uiIndexCount;
-    meshNode.m_uiVertexCount = uiVertexCount;
-
-    out_uiBaseIndex += uiIndexCount;
-    out_uiBaseVertex += uiVertexCount;
+    //    OptimizeMeshData(
+    //      (m_AssimpContext.m_MeshData.m_Vertices.GetData() + meshNode.m_uiBaseVertex)->m_vPosition.GetData(),
+    //      uiVertexCount,
+    //      m_AssimpContext.m_MeshData.m_Indices.GetData() + meshNode.m_uiBaseIndex,
+    //      uiIndexCount,
+    //      meshNode.m_MeshOptRemap);
   }
 }
 
@@ -423,11 +773,38 @@ void spMeshProcessor::ProcessBlendShapes()
 {
   const ezUInt32 uiMeshCount = m_AssimpContext.m_Meshes.GetCount();
 
+  const auto& ePositionStreamFormat = m_AssimpContext.m_MeshData.GetStreamFormat(m_AssimpContext.m_Streams.m_uiPositionStreamIndex);
+  const auto& eNormalStreamFormat = m_AssimpContext.m_MeshData.GetStreamFormat(m_AssimpContext.m_Streams.m_uiNormalStreamIndex);
+  const auto& eTangentStreamFormat = m_AssimpContext.m_MeshData.GetStreamFormat(m_AssimpContext.m_Streams.m_uiTangentStreamIndex);
+  const auto& eBiTangentStreamFormat = m_AssimpContext.m_MeshData.GetStreamFormat(m_AssimpContext.m_Streams.m_uiBiTangentStreamIndex);
+
+  const ezUInt32 uiPositionStreamSize = RHI::spPixelFormatHelper::GetSizeInBytes(ePositionStreamFormat);
+  const ezUInt32 uiNormalStreamSize = RHI::spPixelFormatHelper::GetSizeInBytes(eNormalStreamFormat);
+  const ezUInt32 uiTangentStreamSize = RHI::spPixelFormatHelper::GetSizeInBytes(eTangentStreamFormat);
+  const ezUInt32 uiBiTangentStreamSize = RHI::spPixelFormatHelper::GetSizeInBytes(eBiTangentStreamFormat);
+
+  const ezUInt32 uiPositionStreamOffset = 0;
+  const ezUInt32 uiNormalStreamOffset = uiPositionStreamSize;
+  const ezUInt32 uiTangentStreamOffset = uiPositionStreamSize + uiNormalStreamSize;
+  const ezUInt32 uiBiTangentStreamOffset = uiPositionStreamSize + uiNormalStreamSize + uiTangentStreamSize;
+
+  const ezUInt32 uiBlendShapeVertexSize = uiPositionStreamSize + uiNormalStreamSize + uiTangentStreamSize + uiBiTangentStreamSize;
+
   // Read this node mesh data
   for (ezUInt32 uiMeshIndex = 0; uiMeshIndex < uiMeshCount; ++uiMeshIndex)
   {
-    const spAssimpMesh& assimpMesh = m_AssimpContext.m_Meshes[uiMeshIndex];
-    const aiMesh* pMesh = assimpMesh.m_pMesh;
+    const spAssimpMesh& mesh = m_AssimpContext.m_Meshes[uiMeshIndex];
+    const spAssimpNode& meshNode = m_AssimpContext.m_Nodes[mesh.m_uiParentNodeIndex];
+    const aiMesh* pMesh = mesh.m_pMesh;
+
+    ezMat3 normalsTransform = meshNode.m_mGlobalTransform.GetRotationalPart();
+    if (normalsTransform.Invert(0.0f).Failed())
+    {
+      ezLog::Warning("Couldn't invert a mesh's transform matrix.");
+      normalsTransform.SetIdentity();
+    }
+
+    normalsTransform.Transpose();
 
     // Process blend shape data
     for (ezUInt32 uiBlendShapeIndex = 0; uiBlendShapeIndex < pMesh->mNumAnimMeshes; ++uiBlendShapeIndex)
@@ -438,58 +815,85 @@ void spMeshProcessor::ProcessBlendShapes()
       blendShapeNode.m_uiParentMeshIndex = uiMeshIndex;
       blendShapeNode.m_fWeight = pAnimMesh->mWeight;
       blendShapeNode.m_pAnimMesh = pAnimMesh;
+      blendShapeNode.m_uiVertexSize = uiBlendShapeVertexSize;
 
-      ezUInt32 uiIndexCount = 0;
-      ezUInt32 uiVertexCount = 0;
+      const ezUInt32 uiVertexCount = pAnimMesh->mNumVertices;
 
-      blendShapeNode.m_BlendShapeData.EnsureCount(pAnimMesh->mNumVertices);
+      blendShapeNode.m_BlendShapeData.SetCount(uiVertexCount * uiBlendShapeVertexSize);
 
       // Populate the vertex buffer of the mesh data
-      for (ezUInt32 uiVertexIndex = 0; uiVertexIndex < pAnimMesh->mNumVertices; ++uiVertexIndex)
+      for (ezUInt32 vertexIndex = 0; vertexIndex < uiVertexCount; ++vertexIndex)
       {
-        spVertex vertex;
+        const ezVec3 vPosition = meshNode.m_mGlobalTransform * spFromAssimp(pAnimMesh->mVertices[vertexIndex]);
 
-        vertex.m_vPosition = spFromAssimp(pAnimMesh->mVertices[uiVertexIndex]);
-        vertex.m_vNormal = pAnimMesh->HasNormals() ? spFromAssimp(pAnimMesh->mNormals[uiVertexIndex]) : ezVec3::MakeZero();
-        vertex.m_vTangent = pAnimMesh->HasTangentsAndBitangents() ? spFromAssimp(pAnimMesh->mTangents[uiVertexIndex]).GetAsVec4(1.0f) : ezVec4::MakeZero();
-        vertex.m_vBiTangent = pAnimMesh->HasTangentsAndBitangents() ? spFromAssimp(pAnimMesh->mBitangents[uiVertexIndex]).GetAsVec4(1.0f) : ezVec4::MakeZero();
-        vertex.m_vTexCoord0 = pAnimMesh->HasTextureCoords(0) ? spFromAssimp(pAnimMesh->mTextureCoords[0][uiVertexIndex]).GetAsVec2() : ezVec2::MakeZero();
-        vertex.m_vTexCoord1 = pAnimMesh->HasTextureCoords(1) ? spFromAssimp(pAnimMesh->mTextureCoords[1][uiVertexIndex]).GetAsVec2() : ezVec2::MakeZero();
-        vertex.m_Color0 = pAnimMesh->HasVertexColors(0) ? spFromAssimp(pAnimMesh->mColors[0][uiVertexIndex]) : ezColor::White;
-        vertex.m_Color1 = pAnimMesh->HasVertexColors(1) ? spFromAssimp(pAnimMesh->mColors[1][uiVertexIndex]) : ezColor::White;
+        spMeshDataUtils::SetVertexStreamData(blendShapeNode.m_BlendShapeData, vertexIndex, uiBlendShapeVertexSize, uiPositionStreamOffset, ePositionStreamFormat, vPosition);
 
-        if (const ezUInt32 uiFoundVertex = blendShapeNode.m_BlendShapeData.IndexOf(vertex); uiFoundVertex != ezInvalidIndex)
-          continue;
+        if (m_AssimpContext.m_Streams.m_uiNormalStreamIndex != ezInvalidIndex && pMesh->HasNormals())
+        {
+          ezVec3 vNormal = normalsTransform * spFromAssimp(pAnimMesh->mNormals[vertexIndex]);
+          vNormal.NormalizeIfNotZero(ezVec3::MakeZero()).IgnoreResult();
 
-        blendShapeNode.m_BlendShapeData[uiVertexCount] = vertex;
-        uiVertexCount++;
+          spMeshDataUtils::EncodeNormal(
+            vNormal,
+            ezMakeByteArrayPtr(spMeshDataUtils::GetVertexStreamData(blendShapeNode.m_BlendShapeData, vertexIndex, uiBlendShapeVertexSize, uiNormalStreamOffset), uiNormalStreamSize),
+            GetTangentInputFormat(m_Configuration.m_AssimpImporterConfig.m_eNormalPrecision))
+            .IgnoreResult();
+        }
+
+        if (pMesh->HasTangentsAndBitangents())
+        {
+          ezVec3 vTangent = normalsTransform * spFromAssimp(pAnimMesh->mTangents[vertexIndex]);
+          vTangent.NormalizeIfNotZero(ezVec3::MakeZero()).IgnoreResult();
+
+          ezVec3 vBitangent = normalsTransform * spFromAssimp(pAnimMesh->mBitangents[vertexIndex]);
+          vBitangent.NormalizeIfNotZero(ezVec3::MakeZero()).IgnoreResult();
+
+          if (m_AssimpContext.m_Streams.m_uiTangentStreamIndex != ezInvalidIndex)
+          {
+            spMeshDataUtils::EncodeTangent(
+              vTangent,
+              1.0f,
+              ezMakeByteArrayPtr(spMeshDataUtils::GetVertexStreamData(blendShapeNode.m_BlendShapeData, vertexIndex, uiBlendShapeVertexSize, uiTangentStreamOffset), uiTangentStreamSize),
+              GetTangentInputFormat(m_Configuration.m_AssimpImporterConfig.m_eNormalPrecision))
+              .IgnoreResult();
+          }
+
+          if (m_AssimpContext.m_Streams.m_uiBiTangentStreamIndex != ezInvalidIndex)
+          {
+            spMeshDataUtils::EncodeTangent(
+              vBitangent,
+              1.0f,
+              ezMakeByteArrayPtr(spMeshDataUtils::GetVertexStreamData(blendShapeNode.m_BlendShapeData, vertexIndex, uiBlendShapeVertexSize, uiBiTangentStreamOffset), uiBiTangentStreamSize),
+              GetTangentInputFormat(m_Configuration.m_AssimpImporterConfig.m_eNormalPrecision))
+              .IgnoreResult();
+          }
+        }
       }
-
-      blendShapeNode.m_BlendShapeData.SetCount(uiVertexCount);
-      blendShapeNode.m_BlendShapeData.Compact();
 
       // Perform mesh optimization if required
       if (m_Configuration.m_AssimpImporterConfig.m_bOptimizeMesh)
       {
         meshopt_remapVertexBuffer(
-          blendShapeNode.m_BlendShapeData.GetData()->m_vPosition.GetData(),
-          blendShapeNode.m_BlendShapeData.GetData()->m_vPosition.GetData(),
+          blendShapeNode.m_BlendShapeData.GetData(),
+          blendShapeNode.m_BlendShapeData.GetData(),
           uiVertexCount,
-          sizeof(spVertex),
-          assimpMesh.m_MeshOptRemap.GetData());
+          uiBlendShapeVertexSize,
+          mesh.m_MeshOptRemap.GetData());
       }
 
       // Recompute tangent space if required
       if (m_Configuration.m_AssimpImporterConfig.m_bRecomputeTangents)
       {
-        const auto& indices = m_AssimpContext.m_MeshData.m_Indices.GetArrayPtr().GetSubArray(assimpMesh.m_uiBaseIndex, assimpMesh.m_uiIndexCount);
-        RecomputeTangents(blendShapeNode.m_BlendShapeData, indices);
+        const auto& indices = m_AssimpContext.m_MeshData.m_Indices.GetArrayPtr().GetSubArray(mesh.m_uiBaseIndex, mesh.m_uiIndexCount);
+//        RecomputeTangents(
+//          &blendShapeNode.m_BlendShapeData,
+//          uiPositionStreamOffset);
       }
     }
   }
 }
 
-void spMeshProcessor::OptimizeMeshData(float* pVertexBuffer, ezUInt32 uiVertexCount, ezUInt16* pIndexBuffer, ezUInt32 uiIndexCount, ezDynamicArray<ezUInt32>& ref_remap) const
+void spMeshProcessor::OptimizeMeshData(ezUInt8* pVertexBuffer, ezUInt32 uiVertexCount, ezUInt32 uiVertexSize, ezUInt8* pIndexBuffer, ezUInt32 uiIndexCount, ezDynamicArray<ezUInt32>& ref_remap) const
 {
   if (!m_Configuration.m_AssimpImporterConfig.m_bOptimizeMesh)
     return;
@@ -497,29 +901,29 @@ void spMeshProcessor::OptimizeMeshData(float* pVertexBuffer, ezUInt32 uiVertexCo
   ref_remap.SetCountUninitialized(uiVertexCount);
 
   meshopt_optimizeVertexCache(
-    pIndexBuffer,
-    pIndexBuffer,
+    reinterpret_cast<ezUInt16*>(pIndexBuffer),
+    reinterpret_cast<ezUInt16*>(pIndexBuffer),
     uiIndexCount,
     uiVertexCount);
 
   meshopt_optimizeOverdraw(
-    pIndexBuffer,
-    pIndexBuffer,
+    reinterpret_cast<ezUInt16*>(pIndexBuffer),
+    reinterpret_cast<ezUInt16*>(pIndexBuffer),
     uiIndexCount,
-    pVertexBuffer,
+    reinterpret_cast<float*>(pVertexBuffer),
     uiVertexCount,
-    sizeof(spVertex),
+    uiVertexSize,
     kMeshOptimizationThreshold);
 
   meshopt_optimizeVertexFetchRemap(
     ref_remap.GetData(),
-    pIndexBuffer,
+    reinterpret_cast<ezUInt16*>(pIndexBuffer),
     uiIndexCount,
     uiVertexCount);
 
   meshopt_remapIndexBuffer(
-    pIndexBuffer,
-    pIndexBuffer,
+    reinterpret_cast<ezUInt16*>(pIndexBuffer),
+    reinterpret_cast<ezUInt16*>(pIndexBuffer),
     uiIndexCount,
     ref_remap.GetData());
 
@@ -527,6 +931,6 @@ void spMeshProcessor::OptimizeMeshData(float* pVertexBuffer, ezUInt32 uiVertexCo
     pVertexBuffer,
     pVertexBuffer,
     uiVertexCount,
-    sizeof(spVertex),
+    uiVertexSize,
     ref_remap.GetData());
 }

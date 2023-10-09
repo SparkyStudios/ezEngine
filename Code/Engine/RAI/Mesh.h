@@ -29,18 +29,120 @@ namespace RAI
   {
     friend class spMeshResource;
     friend class spMeshResourceDescriptor;
+    friend class spMeshDataBuilder;
 
 #pragma region RAI Resource
 
   public:
+    /// \brief Describes a single vertex stream in the raw vertices data.
+    ///
+    /// Each vertex stream contains a single vertex attribute. All the streams
+    /// are interleaved in the raw vertices data. The offset of each stream is
+    /// specified in the stream descriptor by the VertexStream::m_uiOffset field.
+    struct VertexStream : ezHashableStruct<VertexStream>
+    {
+      EZ_DECLARE_POD_TYPE();
+
+      /// \brief The offset of the vertex stream in a single attributes array.
+      ezUInt32 m_uiOffset{0};
+
+      /// \brief The semantic of the vertex stream.
+      ezEnum<RHI::spInputElementLocationSemantic> m_eSemantic;
+
+      /// \brief The semantic index of the vertex stream.
+      ezUInt32 m_uiSemanticIndex{0};
+
+      /// \brief The format of the vertex stream.
+      ezEnum<RHI::spInputElementFormat> m_eFormat;
+
+      EZ_ALWAYS_INLINE bool operator<(const VertexStream& rhs) const
+      {
+        return m_eSemantic != rhs.m_eSemantic ? m_eSemantic < rhs.m_eSemantic : m_uiSemanticIndex < rhs.m_uiSemanticIndex;
+      }
+
+      EZ_ALWAYS_INLINE bool operator==(const VertexStream& rhs) const
+      {
+        return m_eSemantic == rhs.m_eSemantic && m_uiSemanticIndex == rhs.m_uiSemanticIndex;
+      }
+    };
+
     /// \brief The mesh data. Stores all the vertices and indices.
     struct Data
     {
-      /// \brief The mesh vertices.
-      ezDynamicArray<spVertex> m_Vertices;
+      /// \brief The mesh vertices raw data.
+      ezDynamicArray<ezUInt8, ezAlignedAllocatorWrapper> m_Vertices;
 
-      /// \brief The mesh indices.
-      ezDynamicArray<ezUInt16> m_Indices;
+      /// \brief The mesh indices raw data.
+      ezDynamicArray<ezUInt8, ezAlignedAllocatorWrapper> m_Indices;
+
+      ezHybridArray<VertexStream, 24> m_VertexStreams;
+
+      /// \brief The mesh topology.
+      ezEnum<RHI::spPrimitiveTopology> m_eTopology;
+
+      /// \brief The size of a single vertex in bytes.
+      ezUInt32 m_uiVertexSize{0};
+
+      EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexCount() const { return m_Vertices.GetCount() / m_uiVertexSize; }
+
+      EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferSize() const { return m_Vertices.GetCount(); }
+
+      EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexCount() const { return m_Indices.GetCount() / sizeof(ezUInt16); }
+
+      EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexBufferSize() const { return m_Indices.GetCount(); }
+
+      template <typename T>
+      EZ_ALWAYS_INLINE void SetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex, const T& data)
+      {
+        SetVertexStreamData(uiStreamIndex, uiVertexIndex, &data);
+      }
+
+      template <typename T>
+      void SetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex, const T* pData);
+
+      /// \brief Gets the vertex data at the given index for the given stream.
+      /// \param [in] uiStreamIndex The index of the vertex stream.
+      /// \param [in] uiVertexIndex The index of the vertex.
+      /// \return The vertex stream data.
+      ezByteArrayPtr GetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex);
+
+      /// \brief Gets the vertex data at the given index for the given stream.
+      /// \param [in] uiStreamIndex The index of the vertex stream.
+      /// \param [in] uiVertexIndex The index of the vertex.
+      /// \return The vertex stream data.
+      EZ_NODISCARD ezConstByteArrayPtr GetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex) const;
+
+      /// \brief Copies the vertex data from the given source buffer.
+      /// \param [in] uiVertexIndex The index of the destination vertex.
+      /// \param [in] pData The source buffer.
+      void SetVertexData(ezUInt32 uiVertexIndex, ezConstByteArrayPtr pData);
+
+      /// \brief Gets the data of the vertex at the given index.
+      /// \param [in] uiVertexIndex The index of the vertex.
+      /// \return A pointer to the data of the vertex at the given index.
+      ezByteArrayPtr GetVertexData(ezUInt32 uiVertexIndex);
+
+      /// \brief Gets the data of the vertex at the given index.
+      /// \param [in] uiVertexIndex The index of the vertex.
+      /// \return A pointer to the data of the vertex at the given index.
+      EZ_NODISCARD ezConstByteArrayPtr GetVertexData(ezUInt32 uiVertexIndex) const;
+
+      /// \brief Sets the indices of the primitive at the given index.
+      /// \param [in] uiPrimitiveIndex The index of the primitive.
+      /// \param [in] uiVertex0 The index of the first vertex.
+      /// \param [in] uiVertex1 The index of the second vertex. Only used for lines and triangles.
+      /// \param [in] uiVertex2 The index of the third vertex. Only used for triangles.
+      void SetPrimitiveIndices(ezUInt32 uiPrimitiveIndex, ezUInt32 uiVertex0, ezUInt32 uiVertex1 = 0, ezUInt32 uiVertex2 = 0);
+
+      /// \brief Gets the offset of the stream at the given index.
+      /// \param [in] uiStreamIndex The index of the stream.
+      /// \return The offset of the stream at the given index.
+      EZ_NODISCARD ezUInt32 GetStreamOffset(ezUInt32 uiStreamIndex) const;
+
+      /// \brief Gets the format of the stream at the given index.
+      /// \param [in] uiStreamIndex The index of the stream.
+      /// \return The format of the stream at the given index.
+      EZ_NODISCARD RHI::spInputElementFormat::Enum GetStreamFormat(ezUInt32 uiStreamIndex) const;
     };
 
     /// \brief An entry (sub-mesh) in the mesh.
@@ -123,7 +225,7 @@ namespace RAI
 
     /// \brief Sets the data of this mesh asset.
     /// \param [in] data The mesh data.
-    EZ_ALWAYS_INLINE void SetData(const Data& data) { m_Data = data; }
+    void SetData(const Data& data);
 
     /// \brief Gets the root node of this mesh asset.
     EZ_NODISCARD EZ_ALWAYS_INLINE const Node& GetRootNode() const { return m_Root; }
@@ -138,9 +240,19 @@ namespace RAI
     /// \brief Clear the mesh data.
     void Clear();
 
-    /// \brief Generate draw commands.
-    /// \param [out] out_DrawCommands The generated array of draw commands.
-    void GetDrawCommands(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands) const;
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexSize() const { return m_Data.m_uiVertexSize; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexCount() const { return m_Data.GetVertexCount(); }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferSize() const { return m_Data.GetIndexBufferSize(); }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexCount() const { return m_Data.GetIndexCount(); }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexBufferSize() const { return m_Data.GetIndexBufferSize(); }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezConstByteArrayPtr GetVertexBuffer() const { return m_Data.m_Vertices; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezConstByteArrayPtr GetIndexBuffer() const { return m_Data.m_Indices; }
 
   private:
     void ReadData(ezStreamReader& inout_stream);
@@ -175,6 +287,12 @@ namespace RAI
     /// \brief Gets the RHI buffer resource for the indirect buffer (draw commands).
     EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndirectBuffer() const { return m_pRHIIndirectBuffer; }
 
+    void GetRHIInputLayoutDescription(RHI::spInputLayoutDescription& out_InputLayoutDescription) const;
+
+    /// \brief Generate draw commands.
+    /// \param [out] out_DrawCommands The generated array of draw commands.
+    void GetDrawCommands(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands) const;
+
   private:
     ezSharedPtr<RHI::spBuffer> m_pRHIVertexBuffer{nullptr};
     ezSharedPtr<RHI::spBuffer> m_pRHIIndexBuffer{nullptr};
@@ -182,66 +300,67 @@ namespace RAI
 
 #pragma endregion
   };
+
+  /// \brief A mesh data builder.
+  class SP_RAI_DLL spMeshDataBuilder
+  {
+  public:
+    /// \brief Adds a new vertex stream in the mesh.
+    /// \param [in] stream The vertex stream to add.
+    /// \return The index of the vertex stream in streams array.
+    ezUInt32 AddVertexStream(const spMesh::VertexStream& stream);
+
+    /// \brief Adds a new vertex stream in the mesh.
+    /// \param [in] eSemantic The semantic of the vertex stream.
+    /// \param [in] uiSemanticIndex The semantic index of the vertex stream.
+    /// \param [in] eFormat The format of the vertex stream.
+    /// \return The index of the vertex stream in the streams array.
+    ezUInt32 AddVertexStream(const ezEnum<RHI::spInputElementLocationSemantic>& eSemantic, ezUInt32 uiSemanticIndex, const ezEnum<RHI::spInputElementFormat>& eFormat);
+
+    /// \brief Allocates the required memory for the mesh data with the configured streams.
+    /// \param [out] ref_MeshData The mesh data instance in which the data will be stored.
+    /// \param [in] uiMaxVertexCount The maximum number of vertices.
+    /// \param [in] eTopology The primitive topology.
+    /// \param [in] uiNumPrimitives The number of primitives.
+    /// \param [in] bZeroFill If true, the vertex data will be zero filled.
+    void AllocateMeshData(spMesh::Data& ref_MeshData, ezUInt32 uiMaxVertexCount, const ezEnum<RHI::spPrimitiveTopology>& eTopology, ezUInt32 uiNumPrimitives, bool bZeroFill = false);
+
+  private:
+    ezDynamicArray<spMesh::VertexStream> m_VertexStreams;
+
+    /// \brief The size of a single vertex in bytes.
+    ezUInt32 m_uiVertexSize{0};
+  };
+
+  class SP_RAI_DLL spMeshDataUtils
+  {
+  public:
+    template <typename T>
+    static void SetVertexStreamData(ezDynamicArray<ezUInt8, ezAlignedAllocatorWrapper>& ref_VertexData, ezUInt32 uiVertexIndex, ezUInt32 uiVertexSize, ezUInt32 uiStreamOffset, RHI::spInputElementFormat::Enum eFormat, const T& vertexData);
+
+    static ezUInt8* GetVertexStreamData(ezDynamicArray<ezUInt8, ezAlignedAllocatorWrapper>& in_VertexData, ezUInt32 uiVertexIndex, ezUInt32 uiVertexSize, ezUInt32 uiStreamOffset);
+    static const ezUInt8* GetVertexStreamData(const ezDynamicArray<ezUInt8, ezAlignedAllocatorWrapper>& vertexData, ezUInt32 uiVertexIndex, ezUInt32 uiVertexSize, ezUInt32 uiStreamOffset);
+
+    static ezResult EncodeNormal(const ezVec3& vNormal, ezByteArrayPtr pDest, RHI::spInputElementFormat::Enum eFormat);
+    static ezResult EncodeTangent(const ezVec3& vTangent, float fMagnitude, ezByteArrayPtr pDest, RHI::spInputElementFormat::Enum eFormat);
+    static ezResult EncodeTexCoord(const ezVec2& vTexCoord, ezByteArrayPtr pDest, RHI::spInputElementFormat::Enum eFormat);
+    static ezResult EncodeBoneWeights(const ezVec4& vWeights, ezByteArrayPtr pDest, RHI::spInputElementFormat::Enum eFormat);
+    static ezResult EncodeColor(const ezColor& vColor, ezByteArrayPtr pDest, RHI::spInputElementFormat::Enum eFormat);
+
+    static ezResult DecodeNormal(const ezConstByteArrayPtr& pSource, RHI::spInputElementFormat::Enum eFormat, ezVec3& ref_vDestNormal);
+    static ezResult DecodeTangent(const ezConstByteArrayPtr& pSource, RHI::spInputElementFormat::Enum eFormat, ezVec3& ref_vDestTangent, float& ref_fMagnitude);
+    static ezResult DecodeTexCoord(const ezConstByteArrayPtr& pSource, RHI::spInputElementFormat::Enum eFormat, ezVec2& ref_vDestTexCoord);
+
+    static ezResult EncodeFloat(const float& fSource, ezByteArrayPtr pDest, RHI::spInputElementFormat::Enum eFormat);
+    static ezResult EncodeVec2(const ezVec2& vSource, ezByteArrayPtr pDest, RHI::spInputElementFormat::Enum eFormat);
+    static ezResult EncodeVec3(const ezVec3& vSource, ezByteArrayPtr pDest, RHI::spInputElementFormat::Enum eFormat);
+    static ezResult EncodeVec4(const ezVec4& vSource, ezByteArrayPtr pDest, RHI::spInputElementFormat::Enum eFormat);
+
+    static ezResult DecodeFloat(const ezConstByteArrayPtr& pSource, RHI::spInputElementFormat::Enum eFormat, float& ref_fDest);
+    static ezResult DecodeVec2(const ezConstByteArrayPtr& psource, RHI::spInputElementFormat::Enum eFormat, ezVec2& ref_vDest);
+    static ezResult DecodeVec3(const ezConstByteArrayPtr& psource, RHI::spInputElementFormat::Enum eFormat, ezVec3& ref_vDest);
+    static ezResult DecodeVec4(const ezConstByteArrayPtr& psource, RHI::spInputElementFormat::Enum eFormat, ezVec4& ref_vDest);
+  };
 } // namespace RAI
 
-inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spMesh::Transform& transform)
-{
-  inout_stream << transform.m_vPosition;
-  inout_stream << transform.m_vScale;
-  inout_stream << transform.m_vRotation;
-
-  return inout_stream;
-}
-
-inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spMesh::Transform& ref_transform)
-{
-  inout_stream >> ref_transform.m_vPosition;
-  inout_stream >> ref_transform.m_vScale;
-  inout_stream >> ref_transform.m_vRotation;
-
-  return inout_stream;
-}
-
-inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spMesh::Entry& meshEntry)
-{
-  inout_stream << meshEntry.m_sName;
-  inout_stream << meshEntry.m_uiBaseIndex;
-  inout_stream << meshEntry.m_uiIndexCount;
-  inout_stream << meshEntry.m_uiBaseVertex;
-  inout_stream << meshEntry.m_uiVertexCount;
-
-  return inout_stream;
-}
-
-inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spMesh::Entry& ref_meshEntry)
-{
-  inout_stream >> ref_meshEntry.m_sName;
-  inout_stream >> ref_meshEntry.m_uiBaseIndex;
-  inout_stream >> ref_meshEntry.m_uiIndexCount;
-  inout_stream >> ref_meshEntry.m_uiBaseVertex;
-  inout_stream >> ref_meshEntry.m_uiVertexCount;
-
-  return inout_stream;
-}
-
-inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RAI::spMesh::Node& meshNode)
-{
-  inout_stream << meshNode.m_sName;
-  inout_stream << meshNode.m_Transform;
-  inout_stream << meshNode.m_sMaterial;
-  inout_stream.WriteArray(meshNode.m_Entries).AssertSuccess();
-  inout_stream.WriteArray(meshNode.m_Children).AssertSuccess();
-
-  return inout_stream;
-}
-
-inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RAI::spMesh::Node& ref_meshNode)
-{
-  inout_stream >> ref_meshNode.m_sName;
-  inout_stream >> ref_meshNode.m_Transform;
-  inout_stream >> ref_meshNode.m_sMaterial;
-  inout_stream.ReadArray(ref_meshNode.m_Entries).AssertSuccess();
-  inout_stream.ReadArray(ref_meshNode.m_Children).AssertSuccess();
-
-  return inout_stream;
-}
+#include <RAI/Implementation/Mesh_inl.h>

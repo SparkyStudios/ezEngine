@@ -105,7 +105,7 @@ Specifies if the mesh support the Spark LOD system.
 LODs will be detected and processed. The mesh need to be exported following the specifications
 of the Spark LOD system for this option to work.
 )",
-  true);
+  false);
 
 ezCommandLineOptionBool opt_Mesh_FlipUVs("_AssetProcessor_Mesh", "-flip-uvs", "Flips the vertex UVs.", false);
 
@@ -122,6 +122,12 @@ This will reorder the index and vertex buffers to reduce the number of data fetc
 It's highly recommended to keep this option enabled.
 )",
   true);
+
+ezCommandLineOptionEnum opt_Mesh_NormalPrecision("_AssetProcessor_Mesh", "-p-normals", "The precision of a single component in normal vectors.", "10=10|16=16|32=32", 0);
+
+ezCommandLineOptionEnum opt_Mesh_TexCoordPrecision("_AssetProcessor_Mesh", "-p-uvs", "The precision of a single component in texture coordinates.", "16=16|32=32", 0);
+
+ezCommandLineOptionEnum opt_Mesh_BoneWeightPrecision("_AssetProcessor_Mesh", "-p-weights", "The precision of a single component in bone weights.", "8=8|10=10|16=16|32=32", 0);
 
 #pragma endregion
 
@@ -331,6 +337,9 @@ public:
     m_MeshProcessorConfig.m_AssimpImporterConfig.m_bRecomputeTangents = opt_Mesh_RecomputeTangents.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
     m_MeshProcessorConfig.m_AssimpImporterConfig.m_bFlipWindingNormals = opt_Mesh_FlipWindingNormals.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
     m_MeshProcessorConfig.m_AssimpImporterConfig.m_bOptimizeMesh = opt_Mesh_Optimize.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified);
+    m_MeshProcessorConfig.m_AssimpImporterConfig.m_eNormalPrecision = static_cast<spAssimpVertexStreamComponentPrecision::Enum>(opt_Mesh_NormalPrecision.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified));
+    m_MeshProcessorConfig.m_AssimpImporterConfig.m_eTexCoordPrecision = static_cast<spAssimpVertexStreamComponentPrecision::Enum>(opt_Mesh_TexCoordPrecision.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified));
+    m_MeshProcessorConfig.m_AssimpImporterConfig.m_eBoneWeightPrecision = static_cast<spAssimpVertexStreamComponentPrecision::Enum>(opt_Mesh_BoneWeightPrecision.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified));
 
     return EZ_SUCCESS;
   }

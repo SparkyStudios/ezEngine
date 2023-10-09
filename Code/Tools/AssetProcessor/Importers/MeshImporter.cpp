@@ -87,7 +87,11 @@ ezResult spMeshImporter::Import(ezStringView sFilePath, ezStringView sOutputPath
 
     ComputeMeshHierarchy(entries, ezInvalidIndex, root);
 
-    mesh.SetLOD(0, {m_pContext->m_MeshData, root});
+    spMesh lod;
+    lod.SetData(m_pContext->m_MeshData);
+    lod.SetRootNode(root);
+
+    mesh.SetLOD(0, lod);
   }
 
   ezStringBuilder sOutputFile(sOutputPath);
