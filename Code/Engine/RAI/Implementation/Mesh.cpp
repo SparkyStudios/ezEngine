@@ -181,9 +181,9 @@ namespace RAI
     ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper> drawCommands;
     GetDrawCommands(drawCommands);
 
-    m_pRHIIndirectBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(sizeof(RHI::spDrawIndexedIndirectCommand) * drawCommands.GetCount(), RHI::spBufferUsage::IndirectBuffer));
+    m_pRHIIndirectBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(pDevice->GetIndexedIndirectCommandSize() * drawCommands.GetCount(), RHI::spBufferUsage::IndirectBuffer));
 
-    pDevice->UpdateBuffer<RHI::spDrawIndexedIndirectCommand>(m_pRHIIndirectBuffer, 0, drawCommands.GetArrayPtr());
+    pDevice->UpdateIndexedIndirectBuffer(m_pRHIIndirectBuffer, drawCommands.GetArrayPtr());
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
     ezStringBuilder sb;

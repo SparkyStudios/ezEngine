@@ -45,6 +45,11 @@ EZ_END_DYNAMIC_REFLECTED_TYPE;
   {
   }
 
+  ezSharedPtr<spTextureView> spTextureSamplerManager::GetTextureView(const spDevice* pDevice, spResourceHandle hResource)
+  {
+    return GetTextureView(pDevice, pDevice->GetResourceManager()->GetResource<spShaderResource>(hResource));
+  }
+
   ezSharedPtr<spTextureView> spTextureSamplerManager::GetTextureView(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource)
   {
     if (pResource->IsInstanceOf<spTexture>())

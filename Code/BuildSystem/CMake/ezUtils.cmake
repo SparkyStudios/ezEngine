@@ -312,6 +312,7 @@ endfunction()
 # #####################################
 function(ez_glob_source_files ROOT_DIR RESULT_ALL_SOURCES)
 	file(GLOB_RECURSE RELEVANT_FILES
+		"${ROOT_DIR}/*.mm"
 		"${ROOT_DIR}/*.cpp"
 		"${ROOT_DIR}/*.cc"
 		"${ROOT_DIR}/*.h"
@@ -406,6 +407,13 @@ endmacro()
 # #####################################
 macro(ez_requires_desktop)
 	ez_requires_one_of(EZ_CMAKE_PLATFORM_WINDOWS_DESKTOP EZ_CMAKE_PLATFORM_LINUX)
+endmacro()
+
+# #####################################
+# ## ez_requires_osx()
+# #####################################
+macro(ez_requires_osx)
+	ez_requires(EZ_CMAKE_PLATFORM_OSX)
 endmacro()
 
 # #####################################

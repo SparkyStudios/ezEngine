@@ -1,0 +1,207 @@
+#pragma once
+
+#include <RHIMTL/RHIMTLDLL.h>
+
+#include <RHI/CommandList.h>
+
+#include <Foundation/Containers/List.h>
+
+namespace RHI
+{
+  class spBufferMTL;
+  class spDeviceMTL;
+  class spComputePipelineMTL;
+  class spFramebufferMTL;
+  class spFramebufferMTLBase;
+  class spGraphicPipelineMTL;
+  class spBufferRangeMTL;
+  class spSamplerMTL;
+  class spTextureMTL;
+  class spTextureViewMTL;
+  class spSwapchainMTL;
+  class spScopeProfilerMTL;
+
+  class SP_RHIMTL_DLL spCommandListMTL final : public spCommandList
+  {
+    friend class spDeviceMTL;
+
+    EZ_ADD_DYNAMIC_REFLECTION(spCommandListMTL, spCommandList);
+
+    // spDeviceResource
+
+  public:
+    void ReleaseResource() override;
+    bool IsReleased() const override;
+
+    // spCommandList
+
+  public:
+    void Begin() override;
+    void Dispatch(ezUInt32 uiGroupCountX, ezUInt32 uiGroupCountY, ezUInt32 uiGroupCountZ) override;
+    void SetComputePipeline(ezSharedPtr<spComputePipeline> pComputePipeline) override;
+    void SetGraphicPipeline(ezSharedPtr<spGraphicPipeline> pGraphicPipeline) override;
+    void SetScissorRect(ezUInt32 uiSlot, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiWidth, ezUInt32 uiHeight) override;
+    void SetViewport(ezUInt32 uiSlot, const spViewport& viewport) override;
+    void PushProfileScope(ezStringView sName) override;
+    void PopProfileScope(ezSharedPtr<spScopeProfiler>& scopeProfiler) override;
+    void PushDebugGroup(ezStringView sName) override;
+    void PopDebugGroup() override;
+    void InsertDebugMarker(ezStringView sName) override;
+    void End() override;
+    void Reset() override;
+
+  protected:
+    void ClearColorTargetInternal(ezUInt32 uiIndex, ezColor clearColor) override;
+    void ClearDepthStencilTargetInternal(float fClearDepth, ezUInt8 uiClearStencil) override;
+    void DrawInternal(ezUInt32 uiVertexCount, ezUInt32 uiInstanceCount, ezUInt32 uiVertexStart, ezUInt32 uiInstanceStart) override;
+    void DrawIndexedInternal(ezUInt32 uiIndexCount, ezUInt32 uiInstanceCount, ezUInt32 uiIndexStart, ezUInt32 uiVertexOffset, ezUInt32 uiInstanceStart) override;
+    void DrawIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride) override;
+    void DrawIndexedIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride) override;
+    void DispatchIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset) override;
+    void ResolveTextureInternal(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination) override;
+    void SetFramebufferInternal(ezSharedPtr<spFramebuffer> pFramebuffer) override;
+    void SetIndexBufferInternal(ezSharedPtr<spBuffer> pIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset) override;
+    void SetComputeResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) override;
+    void SetGraphicResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) override;
+    void SetVertexBufferInternal(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer, ezUInt32 uiOffset) override;
+    void UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize) override;
+    void CopyBufferInternal(ezSharedPtr<spBuffer> pSourceBuffer, ezUInt32 uiSourceOffset, ezSharedPtr<spBuffer> pDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize) override;
+    void CopyTextureInternal(ezSharedPtr<spTexture> pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, ezSharedPtr<spTexture> pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount) override;
+    void GenerateMipmapsInternal(ezSharedPtr<spTexture> pTexture) override;
+
+    // spCommandListMTL
+
+  public:
+    spCommandListMTL(spDeviceMTL* pDeviceMTL, const spCommandListDescription& description);
+    ~spCommandListMTL() override;
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::CommandBuffer* GetMTLCommandBuffer() const { return m_pCommandBuffer; }
+
+    MTL::CommandBuffer* Commit();
+
+  private:
+    static constexpr ezUInt32 s_uiMaxCachedConstantBuffers = 16;
+    static constexpr ezUInt32 s_uiMaxCachedTextureViews = 16;
+    static constexpr ezUInt32 s_uiMaxCachedSamplerStates = 4;
+    static constexpr ezUInt32 s_uiMaxCachedUnorderedAccessViews = 8;
+
+    struct BoundTextureInfo
+    {
+      ezUInt32 m_uiSlot{0};
+      ezBitflags<spShaderStage> m_eStages;
+      ezUInt32 m_uiResourceSet{0};
+    };
+
+    bool PreDraw();
+    void PreDispatch();
+
+    void EnsureNoRenderPass();
+    void EndCurrentRenderPass();
+    void EnsureNoBlitEncoder();
+    void EnsureNoComputeEncoder();
+
+    bool EnsureRenderPass();
+    void EnsureBlitEncoder();
+    void EnsureComputeEncoder();
+
+    bool BeginCurrentRenderPass();
+
+    void FlushViewports();
+    void FlushScissorRects();
+
+    void ActivateGraphicResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet);
+    void ActivateComputeResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet);
+    void ActivateResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet);
+
+    void BindBuffer(ezSharedPtr<spBufferRangeMTL> pBuffer, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages);
+    void BindTexture(ezSharedPtr<spTextureViewMTL> pTextureView, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages);
+    void BindSampler(ezSharedPtr<spSamplerMTL> pSampler, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages);
+
+    ezUInt32 GetBufferBase(ezUInt32 uiSet, bool bIsGraphics);
+    ezUInt32 GetTextureBase(ezUInt32 uiSet, bool bIsGraphics);
+    ezUInt32 GetSamplerBase(ezUInt32 uiSet, bool bIsGraphics);
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsRenderCommandEncoderActive() const { return m_pRenderCommandEncoder != nullptr; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsBlitCommandEncoderActive() const { return m_pBlitCommandEncoder != nullptr; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsComputeCommandEncoderActive() const { return m_pComputeCommandEncoder != nullptr; }
+
+    MTL::Device* m_pMTLDevice{nullptr};
+
+    MTL::CommandBuffer* m_pCommandBuffer{nullptr};
+
+    bool m_bHasStarted{false};
+
+    // ezSharedPtr<spScopeProfilerMTL> m_pCurrentScopeProfiler{nullptr};
+    bool m_bIsInDebugGroup{false};
+    ezStringView m_sDebugGroupName;
+
+    ezSharedPtr<spFramebufferMTLBase> m_pFramebuffer{nullptr};
+    bool m_bCurrentFramebufferEverActive{false};
+
+    bool m_bViewportsChanged{false};
+    ezDynamicArray<MTL::Viewport> m_Viewports;
+
+    bool m_bScissorRectsChanged{false};
+    ezDynamicArray<MTL::ScissorRect> m_ScissorRects;
+
+    // --- Command Encoders ---
+
+    MTL::RenderCommandEncoder* m_pRenderCommandEncoder{nullptr};
+    MTL::BlitCommandEncoder* m_pBlitCommandEncoder{nullptr};
+    MTL::ComputeCommandEncoder* m_pComputeCommandEncoder{nullptr};
+
+    // --- Cached Pipeline State ---
+
+    ezSharedPtr<spBufferMTL> m_pIndexBuffer{nullptr};
+    ezUInt32 m_uiIndexBufferOffset{0};
+    MTL::IndexType m_eIndexType{MTL::IndexTypeUInt16};
+
+    ezDynamicArray<ezColor> m_ClearColors;
+    float m_fClearDepth{ezMath::NaN<float>()};
+    ezUInt8 m_uiClearStencil{0};
+
+    ezColor m_BlendFactor;
+
+    ezUInt32 m_uiStencilRef{0};
+
+    ezDynamicArray<ezSharedPtr<spBufferMTL>> m_VertexBuffers;
+    ezUInt32 m_uiNumVertexBuffers{0};
+    ezDynamicArray<ezUInt32> m_VertexStrides;
+    ezDynamicArray<ezUInt32> m_VertexOffsets;
+    ezDynamicArray<bool> m_ActiveVertexBuffers;
+
+    ezDynamicArray<spCommandListResourceSet> m_GraphicResourceSets;
+    ezDynamicArray<bool> m_ActiveGraphicResourceSets;
+    bool m_bGraphicPipelineChanged{false};
+
+    ezDynamicArray<spCommandListResourceSet> m_ComputeResourceSets;
+    ezDynamicArray<bool> m_ActiveComputeResourceSets;
+    bool m_bComputePipelineChanged{false};
+
+    bool m_bIsVertexBindingsDirty{false};
+    ezStaticArray<ezUInt32, 1> m_FirstConstantBufferRef;
+    ezStaticArray<ezUInt32, 1> m_ConstantBuffersRefCounts;
+
+    // --- Cached Resources ---
+
+    ezStaticArray<ezSharedPtr<spBufferRangeMTL>, s_uiMaxCachedConstantBuffers> m_CachedVertexConstantBuffers;
+    ezStaticArray<ezSharedPtr<spBufferRangeMTL>, s_uiMaxCachedConstantBuffers> m_CachedPixelConstantBuffers;
+
+    ezStaticArray<ezSharedPtr<spTextureViewMTL>, s_uiMaxCachedTextureViews> m_CachedVertexTextureViews;
+    ezStaticArray<ezSharedPtr<spTextureViewMTL>, s_uiMaxCachedTextureViews> m_CachedPixelTextureViews;
+
+    ezStaticArray<ezSharedPtr<spSamplerMTL>, s_uiMaxCachedSamplerStates> m_CachedVertexSamplerStates;
+    ezStaticArray<ezSharedPtr<spSamplerMTL>, s_uiMaxCachedSamplerStates> m_CachedPixelSamplerStates;
+
+    ezArrayMap<spTextureViewDescription, BoundTextureInfo> m_BoundSRVs;
+    ezArrayMap<spTextureViewDescription, BoundTextureInfo> m_BoundUAVs;
+
+    ezStaticArray<std::pair<ezSharedPtr<spBufferMTL>, ezInt32>, s_uiMaxCachedUnorderedAccessViews> m_CachedComputeUAVBuffers;
+    ezStaticArray<std::pair<ezSharedPtr<spBufferMTL>, ezInt32>, s_uiMaxCachedUnorderedAccessViews> m_CachedGraphicUAVBuffers;
+
+    ezList<ezSharedPtr<spBufferMTL>> m_FreeBuffers;
+    ezList<ezSharedPtr<spBufferMTL>> m_SubmittedStagingBuffers;
+
+    ezList<ezSharedPtr<spSwapchainMTL>> m_ReferencedSwapchainList;
+  };
+} // namespace RHI

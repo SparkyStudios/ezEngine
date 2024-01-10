@@ -53,7 +53,7 @@ namespace RHI
   struct spInputLayoutDescription : ezHashableStruct<spInputLayoutDescription>
   {
     ezUInt32 m_uiStride{0};
-    ezStaticArray<spInputElementDescription, 16> m_Elements{};
+    ezStaticArray<spInputElementDescription, 32> m_Elements{};
     ezUInt32 m_uiInstanceStepRate{0};
 
     spInputLayoutDescription() = default;
@@ -71,10 +71,11 @@ namespace RHI
       m_Elements.EnsureCount(copy.m_Elements.GetCount());
       for (ezUInt32 i = 0, l = m_Elements.GetCount(); i < l; ++i)
       {
-        m_Elements[i].m_eFormat = copy.m_Elements[i].m_eFormat;
-        m_Elements[i].m_eSemantic = copy.m_Elements[i].m_eSemantic;
-        m_Elements[i].m_uiOffset = copy.m_Elements[i].m_uiOffset;
-        m_Elements[i].m_sName = copy.m_Elements[i].m_sName;
+        const auto& element = copy.m_Elements[i];
+        m_Elements[i].m_eFormat = element.m_eFormat;
+        m_Elements[i].m_eSemantic = element.m_eSemantic;
+        m_Elements[i].m_uiOffset = element.m_uiOffset;
+        m_Elements[i].m_sName = element.m_sName;
       }
     }
 

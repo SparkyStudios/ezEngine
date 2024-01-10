@@ -82,7 +82,7 @@ namespace RHI
 
   void spCommandList::ClearDepthStencilTarget(float fClearDepth, ezUInt8 uiClearStencil)
   {
-    EZ_ASSERT_DEV(m_pFramebuffer != nullptr, "Cannot use ClearColorTarget without a framebuffer");
+    EZ_ASSERT_DEV(m_pFramebuffer != nullptr, "Cannot use ClearDepthStencilTarget without a framebuffer");
     EZ_ASSERT_DEV(!m_pFramebuffer->GetDepthTarget().IsInvalidated(), "The current framebuffer has no depth target attached.");
 
     ClearDepthStencilTargetInternal(fClearDepth, uiClearStencil);
@@ -143,7 +143,7 @@ namespace RHI
     EZ_ASSERT_DEV(m_pDevice->GetCapabilities().m_bDrawIndirect, "Indirect drawing is not supported on this device.");
     EZ_ASSERT_DEV(pIndirectBuffer->GetUsage().IsSet(spBufferUsage::IndirectBuffer), "The buffer must have been created with the IndirectBuffer usage flag.");
     EZ_ASSERT_DEV(uiOffset % 4 == 0, "Offset must be aligned to 4 bytes");
-    EZ_ASSERT_DEV(uiStride >= sizeof(spDrawIndexedIndirectCommand) && (uiStride % 4 == 0), "Stride must be aligned to 4 bytes and be larger than the size of the command structure.");
+    EZ_ASSERT_DEV(uiStride >= m_pDevice->GetIndexedIndirectCommandSize() && (uiStride % 4 == 0), "Stride must be aligned to 4 bytes and be larger than the size of the command structure.");
     DrawValidation();
 #endif
 
@@ -412,16 +412,16 @@ namespace RHI
     ezUInt32 uiSrcWidth = 0, uiSrcHeight = 0, uiSrcDepth = 0;
     spTextureHelper::GetMipDimensions(pSourceTexture, uiSourceMipLevel, uiSrcWidth, uiSrcHeight, uiSrcDepth);
     const ezUInt32 uiSrcBlockSize = spPixelFormatHelper::IsCompressedFormat(pSourceTexture->GetFormat()) ? 4u : 1u;
-    const ezUInt32 uiRoundedSrcWidth = (uiSrcWidth + uiSrcBlockSize - 1) / (uiSrcBlockSize * uiSrcBlockSize);
-    const ezUInt32 uiRoundedSrcHeight = (uiSrcHeight + uiSrcBlockSize - 1) / (uiSrcBlockSize * uiSrcBlockSize);
-    EZ_ASSERT_DEV(uiSourceX + uiWidth <= uiRoundedSrcWidth && uiSourceY + uiHeight <= uiRoundedSrcHeight, "Source region is too large.");
+    const ezUInt32 uiRoundedSrcWidth = (uiSrcWidth + uiSrcBlockSize - 1) / uiSrcBlockSize * uiSrcBlockSize;
+    const ezUInt32 uiRoundedSrcHeight = (uiSrcHeight + uiSrcBlockSize - 1) / uiSrcBlockSize * uiSrcBlockSize;
+    EZ_ASSERT_DEV(uiSourceX + uiWidth <= uiRoundedSrcWidth && uiSourceY + uiHeight <= uiRoundedSrcHeight && uiSourceZ + uiDepth <= uiSrcDepth, "Source region is too large.");
 
     ezUInt32 uiDstWidth = 0, uiDstHeight = 0, uiDstDepth = 0;
     spTextureHelper::GetMipDimensions(pDestinationTexture, uiDestMipLevel, uiDstWidth, uiDstHeight, uiDstDepth);
     const ezUInt32 uiDstBlockSize = spPixelFormatHelper::IsCompressedFormat(pDestinationTexture->GetFormat()) ? 4u : 1u;
-    const ezUInt32 uiRoundedDstWidth = (uiDstWidth + uiDstBlockSize - 1) / (uiDstBlockSize * uiDstBlockSize);
-    const ezUInt32 uiRoundedDstHeight = (uiDstHeight + uiDstBlockSize - 1) / (uiDstBlockSize * uiDstBlockSize);
-    EZ_ASSERT_DEV(uiDestX + uiWidth <= uiRoundedDstWidth && uiDestY + uiHeight <= uiRoundedDstHeight, "Destination region is too large.");
+    const ezUInt32 uiRoundedDstWidth = (uiDstWidth + uiDstBlockSize - 1) / uiDstBlockSize * uiDstBlockSize;
+    const ezUInt32 uiRoundedDstHeight = (uiDstHeight + uiDstBlockSize - 1) / uiDstBlockSize * uiDstBlockSize;
+    EZ_ASSERT_DEV(uiDestX + uiWidth <= uiRoundedDstWidth && uiDestY + uiHeight <= uiRoundedDstHeight && uiDestZ + uiDepth <= uiDstDepth, "Destination region is too large.");
 
     EZ_ASSERT_DEV(uiSourceMipLevel < pSourceTexture->GetMipCount(), "Source mip level is out of bounds.");
     EZ_ASSERT_DEV(uiDestMipLevel < pDestinationTexture->GetMipCount(), "Destination mip level is out of bounds.");

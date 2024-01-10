@@ -556,8 +556,8 @@ namespace RHI
   class SP_RHI_DLL spResourceHelper
   {
   public:
-    static spBufferRange* GetBufferRange(const spDevice* pDevice, spResourceHandle hResource, ezUInt32 uiOffset);
-    static spBufferRange* GetBufferRange(const spDevice* pDevice, spShaderResource* pResource, ezUInt32 uiOffset);
+    static ezSharedPtr<spBufferRange> GetBufferRange(const spDevice* pDevice, spResourceHandle hResource, ezUInt32 uiOffset);
+    static ezSharedPtr<spBufferRange> GetBufferRange(const spDevice* pDevice, spShaderResource* pResource, ezUInt32 uiOffset);
   };
 } // namespace RHI
 

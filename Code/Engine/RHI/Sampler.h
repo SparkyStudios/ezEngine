@@ -77,7 +77,7 @@ namespace RHI
     ezEnum<spSamplerAddressMode> m_eAddressModeR{spSamplerAddressMode::Default};
 
     /// \brief The border color when the wrapping mode is set to \a spSamplerWrapMode::BorderColor
-    ezColor m_BorderColor{ezColor::Black};
+    ezEnum<spSamplerBorderColor> m_BorderColor{spSamplerBorderColor::Default};
 
     /// \brief The maximum anisotropy.
     ezUInt8 m_uiMaxAnisotropy{0};

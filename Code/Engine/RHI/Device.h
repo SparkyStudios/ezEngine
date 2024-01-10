@@ -18,6 +18,7 @@
 
 #include <RHI/Memory/StagingMemoryPool.h>
 
+#include <RHI/CommandList.h>
 #include <RHI/Buffer.h>
 #include <RHI/Profiler.h>
 #include <RHI/RenderTarget.h>
@@ -413,6 +414,24 @@ namespace RHI
     {
       UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(source.GetPtr()), source.GetCount() * sizeof(T));
     }
+
+    /// \brief Updates the \a spBuffer with indexed indirect draw commands. This method allows platform implementations to use
+    /// the platform specific command struct to upload data to GPU.
+    /// \param pBuffer The \a spBuffer to update.
+    /// \param source The array of commands to upload to the GPU.
+    virtual void UpdateIndexedIndirectBuffer(ezSharedPtr<spBuffer> pBuffer, const ezArrayPtr<spDrawIndexedIndirectCommand>& source) = 0;
+
+    /// \brief Updates the \a spBuffer with indirect draw commands. This method allows platform implementations to use
+    /// the platform specific command struct to upload data to GPU.
+    /// \param pBuffer The \a spBuffer to update.
+    /// \param source The array of commands to upload to the GPU.
+    virtual void UpdateIndirectBuffer(ezSharedPtr<spBuffer> pBuffer, const ezArrayPtr<spDrawIndirectCommand>& source) = 0;
+
+    /// \brief Gets the size of a single indexed indirect draw command.
+    virtual ezUInt32 GetIndexedIndirectCommandSize() = 0;
+
+    /// \brief Gets the size of a single indirect draw command.
+    virtual ezUInt32 GetIndirectCommandSize() = 0;
 
     /// \brief Copy a texture content from the \a hSource to the \a hDestination.
     /// \param pSource The resource handle of the source texture.
