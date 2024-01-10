@@ -32,7 +32,7 @@ namespace RHI
     }
 
     /// \brief The format of the output attachment.
-    ezEnum<spPixelFormat> m_eFormat;
+    ezEnum<spPixelFormat> m_eFormat{spPixelFormat::Unknown};
   };
 
   /// \brief Describes a set of output attachments and their formats.

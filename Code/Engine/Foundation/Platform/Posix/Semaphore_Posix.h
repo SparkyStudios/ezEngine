@@ -8,6 +8,27 @@ EZ_FOUNDATION_INTERNAL_HEADER
 #include <fcntl.h>
 #include <semaphore.h>
 #include <sys/stat.h>
+#include <time.h>
+
+#if EZ_ENABLED(EZ_PLATFORM_OSX) || EZ_ENABLED(EZ_PLATFORM_IOS)
+int sem_timedwait(sem_t* sem, const struct timespec* abs_timeout)
+{
+  struct timespec ts;
+  int result;
+
+  while ((result = sem_trywait(sem)) == -1 && errno == EAGAIN)
+  {
+    clock_gettime(CLOCK_REALTIME, &ts);
+    if (ts.tv_sec > abs_timeout->tv_sec ||
+        (ts.tv_sec == abs_timeout->tv_sec && ts.tv_nsec > abs_timeout->tv_nsec))
+    {
+      errno = ETIMEDOUT;
+      break;
+    }
+  }
+  return result;
+}
+#endif
 
 EZ_WARNING_PUSH()
 // On OSX sem_destroy and sem_init are deprecated
@@ -100,8 +121,16 @@ ezResult ezSemaphore::TryAcquireToken(ezTime timeout)
   clock_gettime(CLOCK_REALTIME, &ts);
   ts.tv_sec += timeout.AsFloatInSeconds();
 
-  if (sem_timedwait(m_hSemaphore.m_pNamedOrUnnamed, &ts) == 0)
-    return EZ_SUCCESS;
+  if (timeout.IsZero())
+  {
+    if (sem_trywait(m_hSemaphore.m_pNamedOrUnnamed) == 0)
+      return EZ_SUCCESS;
+  }
+  else
+  {
+    if (sem_timedwait(m_hSemaphore.m_pNamedOrUnnamed, &ts) == 0)
+      return EZ_SUCCESS;
+  }
 
   return EZ_FAILURE;
 }

@@ -568,6 +568,8 @@ namespace RHI
   public:
     virtual ~spTextureSamplerManager() = default;
 
+    static ezSharedPtr<spTextureView> GetTextureView(const spDevice* pDevice, spResourceHandle hResource);
+
     static ezSharedPtr<spTextureView> GetTextureView(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource);
 
     /// \brief Gets a texture view resource for the specified texture resource.

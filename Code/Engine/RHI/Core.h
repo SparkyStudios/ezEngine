@@ -454,6 +454,10 @@ namespace RHI
       /// This is an sRGB format.
       Bc7UNormSRgb,
 
+      /// \biref An unknown format.
+      /// Used when the pixel format is not known, not set, or not supported.
+      Unknown,
+
       Default = R8G8B8A8UNorm
     };
   };

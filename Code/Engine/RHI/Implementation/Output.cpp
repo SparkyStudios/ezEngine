@@ -10,6 +10,8 @@ namespace RHI
 
   spOutputDescription spOutputDescription::CreateFromFramebuffer(const spFramebuffer* pFramebuffer)
   {
+    EZ_ASSERT_DEV(pFramebuffer != nullptr, "Trying to get an unregistered framebuffer from the device.");
+
     ezEnum<spTextureSampleCount> eSampleCount = spTextureSampleCount::None;
     spOutputAttachmentDescription depthAttachment;
     bool bUseDepthAttachment = false;
@@ -51,8 +53,6 @@ namespace RHI
 
   spOutputDescription spOutputDescription::CreateFromFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer)
   {
-    EZ_ASSERT_DEV(pFramebuffer != nullptr, "Trying to get an unregistered framebuffer from the device.");
-
     return CreateFromFramebuffer(pFramebuffer.Borrow());
   }
 
