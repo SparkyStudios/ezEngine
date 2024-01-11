@@ -80,18 +80,6 @@ namespace RHI
     MTL::CommandBuffer* Commit();
 
   private:
-    static constexpr ezUInt32 s_uiMaxCachedConstantBuffers = 16;
-    static constexpr ezUInt32 s_uiMaxCachedTextureViews = 16;
-    static constexpr ezUInt32 s_uiMaxCachedSamplerStates = 4;
-    static constexpr ezUInt32 s_uiMaxCachedUnorderedAccessViews = 8;
-
-    struct BoundTextureInfo
-    {
-      ezUInt32 m_uiSlot{0};
-      ezBitflags<spShaderStage> m_eStages;
-      ezUInt32 m_uiResourceSet{0};
-    };
-
     bool PreDraw();
     void PreDispatch();
 
@@ -160,13 +148,8 @@ namespace RHI
     float m_fClearDepth{ezMath::NaN<float>()};
     ezUInt8 m_uiClearStencil{0};
 
-    ezColor m_BlendFactor;
-
-    ezUInt32 m_uiStencilRef{0};
-
     ezDynamicArray<ezSharedPtr<spBufferMTL>> m_VertexBuffers;
     ezUInt32 m_uiNumVertexBuffers{0};
-    ezDynamicArray<ezUInt32> m_VertexStrides;
     ezDynamicArray<ezUInt32> m_VertexOffsets;
     ezDynamicArray<bool> m_ActiveVertexBuffers;
 
@@ -177,31 +160,5 @@ namespace RHI
     ezDynamicArray<spCommandListResourceSet> m_ComputeResourceSets;
     ezDynamicArray<bool> m_ActiveComputeResourceSets;
     bool m_bComputePipelineChanged{false};
-
-    bool m_bIsVertexBindingsDirty{false};
-    ezStaticArray<ezUInt32, 1> m_FirstConstantBufferRef;
-    ezStaticArray<ezUInt32, 1> m_ConstantBuffersRefCounts;
-
-    // --- Cached Resources ---
-
-    ezStaticArray<ezSharedPtr<spBufferRangeMTL>, s_uiMaxCachedConstantBuffers> m_CachedVertexConstantBuffers;
-    ezStaticArray<ezSharedPtr<spBufferRangeMTL>, s_uiMaxCachedConstantBuffers> m_CachedPixelConstantBuffers;
-
-    ezStaticArray<ezSharedPtr<spTextureViewMTL>, s_uiMaxCachedTextureViews> m_CachedVertexTextureViews;
-    ezStaticArray<ezSharedPtr<spTextureViewMTL>, s_uiMaxCachedTextureViews> m_CachedPixelTextureViews;
-
-    ezStaticArray<ezSharedPtr<spSamplerMTL>, s_uiMaxCachedSamplerStates> m_CachedVertexSamplerStates;
-    ezStaticArray<ezSharedPtr<spSamplerMTL>, s_uiMaxCachedSamplerStates> m_CachedPixelSamplerStates;
-
-    ezArrayMap<spTextureViewDescription, BoundTextureInfo> m_BoundSRVs;
-    ezArrayMap<spTextureViewDescription, BoundTextureInfo> m_BoundUAVs;
-
-    ezStaticArray<std::pair<ezSharedPtr<spBufferMTL>, ezInt32>, s_uiMaxCachedUnorderedAccessViews> m_CachedComputeUAVBuffers;
-    ezStaticArray<std::pair<ezSharedPtr<spBufferMTL>, ezInt32>, s_uiMaxCachedUnorderedAccessViews> m_CachedGraphicUAVBuffers;
-
-    ezList<ezSharedPtr<spBufferMTL>> m_FreeBuffers;
-    ezList<ezSharedPtr<spBufferMTL>> m_SubmittedStagingBuffers;
-
-    ezList<ezSharedPtr<spSwapchainMTL>> m_ReferencedSwapchainList;
   };
 } // namespace RHI
