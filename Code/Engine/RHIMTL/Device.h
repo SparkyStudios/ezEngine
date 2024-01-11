@@ -94,7 +94,6 @@ namespace RHI
     MTL::ComputePipelineState* m_pUnalignedBufferCopyPipelineState{nullptr};
     ezMutex m_UnalignedBufferCopyPipelineStateMutex;
 
-    MTL::CommandBuffer* m_pCurrentCommandBuffer{nullptr};
     MTL::CommandBuffer* m_pLastSubmittedCommandBuffer{nullptr};
 
     ezMutex m_SubmittedCommandsMutex;

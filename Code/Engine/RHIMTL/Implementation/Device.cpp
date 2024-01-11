@@ -566,11 +566,11 @@ kernel void copy_bytes(
         m_SubmittedCommands.Remove(pCommandBuffer);
       }
 
-      if (m_pLastSubmittedCommandBuffer == m_pCurrentCommandBuffer)
+      if (m_pLastSubmittedCommandBuffer == pCommandBuffer)
         m_pLastSubmittedCommandBuffer = nullptr;
     }
 
-    SP_RHI_MTL_RELEASE(m_pCurrentCommandBuffer);
+    SP_RHI_MTL_RELEASE(pCommandBuffer);
   }
 
 #pragma endregion

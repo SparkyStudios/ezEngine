@@ -46,17 +46,14 @@ namespace RHI
 
     auto* pDevice = static_cast<spDeviceMTL*>(m_pDevice);
 
-    {
-      spScopedMTLResource autoReleasePool(NS::AutoreleasePool::alloc()->init());
-      m_pCommandBuffer = pDevice->GetCommandQueue()->commandBuffer();
+    m_pCommandBuffer = pDevice->GetCommandQueue()->commandBuffer();
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-      spScopedMTLResource nsString(NS::String::string("RHI Metal Command List Buffer", NS::UTF8StringEncoding));
-      m_pCommandBuffer->setLabel(*nsString);
+      {
+        spScopedMTLResource nsString(NS::String::string("RHI Metal Command List Buffer", NS::UTF8StringEncoding));
+        m_pCommandBuffer->setLabel(*nsString);
+      }
 #endif
-
-      SP_RHI_MTL_RETAIN(m_pCommandBuffer);
-    }
 
     ClearCachedState();
   }

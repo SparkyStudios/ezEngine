@@ -62,9 +62,15 @@ namespace RHI
 
       @autoreleasepool
       {
-        MTL::CommandBuffer* submitCB = pDevice->GetCommandQueue()->commandBuffer();
-        submitCB->presentDrawable(m_pMetalDrawable);
-        submitCB->commit();
+        MTL::CommandBuffer* pPresentationCommandBuffer = pDevice->GetCommandQueue()->commandBuffer();
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+        auto* nsString = NS::String::string("RHI Metal Presentation Buffer", NS::UTF8StringEncoding);
+        pPresentationCommandBuffer->setLabel(nsString);
+#endif
+
+        pPresentationCommandBuffer->presentDrawable(m_pMetalDrawable);
+        pPresentationCommandBuffer->commit();
       }
     }
   }

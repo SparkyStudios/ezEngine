@@ -257,8 +257,10 @@ namespace RHI
     if (m_pDrawableTexture != nullptr && m_pDrawableTexture->GetMTLTexture() == pTexture)
       return;
 
+    m_pDrawableTexture.Clear();
+
     spTextureDescription drawableTextureDescription;
-    m_pDrawableTexture = spTextureMTL::FromNative(static_cast<spDeviceMTL*>(m_pDevice), m_pParentSwapchain->GetDrawable()->texture(), drawableTextureDescription);
+    m_pDrawableTexture = spTextureMTL::FromNative(static_cast<spDeviceMTL*>(m_pDevice), pTexture, drawableTextureDescription);
 
     m_Description.m_ColorTargets.SetCount(1);
     m_Description.m_ColorTargets[0] = spFramebufferAttachmentDescription(m_pDrawableTexture->GetHandle());
