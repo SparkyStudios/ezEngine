@@ -29,6 +29,7 @@ namespace RPI
     m_pFence = pDevice->GetResourceFactory()->CreateFence(spFenceDescription(false));
 
     m_pRenderContext = EZ_NEW(pDevice->GetAllocator(), spRenderContext, pDevice);
+    m_pRenderContext->SetCommandList(m_pCommandList);
   }
 
   void spSceneContext::AddPipeline(spRenderPipeline* pPipeline)
@@ -40,7 +41,6 @@ namespace RPI
   {
     m_pDevice->BeginFrame();
 
-    m_pRenderContext->SetCommandList(m_pCommandList);
     m_pRenderContext->BeginFrame();
   }
 
@@ -52,11 +52,10 @@ namespace RPI
 
   void spSceneContext::EndFrame()
   {
-    m_pRenderContext->EndFrame();
+    m_pRenderContext->EndFrame(m_pFence);
     m_pRenderContext->Reset();
 
     m_pDevice->EndFrame();
-    m_pDevice->RaiseFence(m_pFence);
   }
 
   void spSceneContext::WaitForIdle()

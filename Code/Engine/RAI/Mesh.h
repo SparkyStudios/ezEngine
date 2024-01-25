@@ -75,6 +75,7 @@ namespace RAI
       /// \brief The mesh indices raw data.
       ezDynamicArray<ezUInt8, ezAlignedAllocatorWrapper> m_Indices;
 
+      /// \brief The array of vertex streams.
       ezHybridArray<VertexStream, 24> m_VertexStreams;
 
       /// \brief The mesh topology.

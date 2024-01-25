@@ -21,9 +21,7 @@ EZ_BEGIN_SUBSYSTEM_DECLARATION(RHID3D11, DeviceFactory)
   ON_CORESYSTEMS_STARTUP
   {
     const spRHIImplementationDescription desc{
-      spGraphicsApi::Direct3D11,
-      "DX11_SM50",
-      "ezShaderCompilerHLSL"
+      spGraphicsApi::Direct3D11
     };
 
     spRHIImplementationFactory::RegisterImplementation("D3D11", &CreateRHID3D11Device, desc);

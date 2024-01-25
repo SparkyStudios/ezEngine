@@ -14,27 +14,27 @@
 
 namespace RPI
 {
-  template <typename T>
-  spConcurrentCollector<T>::spConcurrentCollector(ezUInt32 uiInitialCapacity)
+  template <typename T, typename TAllocatorWrapper>
+  spConcurrentCollector<T, TAllocatorWrapper>::spConcurrentCollector(ezUInt32 uiInitialCapacity)
   {
-    m_pTail = m_pHead = EZ_DEFAULT_NEW(Segment, uiInitialCapacity);
+    m_pTail = m_pHead = EZ_NEW(TAllocatorWrapper::GetAllocator(), Segment, uiInitialCapacity);
   }
 
-  template <typename T>
-  spConcurrentCollector<T>::~spConcurrentCollector()
+  template <typename T, typename TAllocatorWrapper>
+  spConcurrentCollector<T, TAllocatorWrapper>::~spConcurrentCollector()
   {
     Segment* pSegment = m_pHead;
     while (pSegment != nullptr)
     {
       pSegment->m_Items.Clear();
       Segment* pNext = pSegment->m_pNext;
-      EZ_DEFAULT_DELETE(pSegment);
+      EZ_DELETE(TAllocatorWrapper::GetAllocator(), pSegment);
       pSegment = pNext;
     }
   }
 
-  template <typename T>
-  void spConcurrentCollector<T>::Close()
+  template <typename T, typename TAllocatorWrapper>
+  void spConcurrentCollector<T, TAllocatorWrapper>::Close()
   {
     if (m_pHead->m_pNext == nullptr)
       return;
@@ -51,7 +51,7 @@ namespace RPI
       Segment* pNext = pSegment->m_pNext;
 
       if (pSegment != m_pHead)
-        EZ_DEFAULT_DELETE(pSegment);
+        EZ_DELETE(TAllocatorWrapper::GetAllocator(), pSegment);
 
       pSegment = pNext;
     }
@@ -62,8 +62,8 @@ namespace RPI
     m_pTail = m_pHead;
   }
 
-  template <typename T>
-  ezInt32 spConcurrentCollector<T>::Add(const T& item)
+  template <typename T, typename TAllocatorWrapper>
+  ezInt32 spConcurrentCollector<T, TAllocatorWrapper>::Add(const T& item)
   {
     const ezInt32 uiIndex = m_uiCount.Increment();
 
@@ -74,7 +74,7 @@ namespace RPI
 
       if (uiIndex >= m_pTail->m_uiOffset + m_pTail->m_Items.GetCount())
       {
-        m_pTail->m_pNext = EZ_DEFAULT_NEW(Segment, pSegment->m_Items.GetCount() * 2);
+        m_pTail->m_pNext = EZ_NEW(TAllocatorWrapper::GetAllocator(), Segment, pSegment->m_Items.GetCount() * 2);
         m_pTail->m_pNext->m_uiOffset = pSegment->m_uiOffset + pSegment->m_Items.GetCount();
         m_pTail->m_pPrev = m_pTail;
 
@@ -92,8 +92,8 @@ namespace RPI
     return uiIndex;
   }
 
-  template <typename T>
-  void spConcurrentCollector<T>::AddRange(const ezArrayPtr<T>& items)
+  template <typename T, typename TAllocatorWrapper>
+  void spConcurrentCollector<T, TAllocatorWrapper>::AddRange(const ezArrayPtr<T>& items)
   {
     const ezInt32 uiNewCount = m_uiCount.Add(items.GetCount());
 
@@ -107,7 +107,7 @@ namespace RPI
         const ezUInt32 uiNewCapacity = m_pTail->m_uiOffset + m_pTail->m_Items.GetCount();
         const ezUInt32 uiSize = ezMath::Max(uiNewCapacity, uiNewCount - uiNewCapacity);
 
-        m_pTail->m_pNext = EZ_DEFAULT_NEW(Segment, uiSize);
+        m_pTail->m_pNext = EZ_NEW(TAllocatorWrapper::GetAllocator(), Segment, uiSize);
         m_pTail->m_pNext->m_uiOffset = uiNewCapacity;
         m_pTail->m_pPrev = m_pTail;
 
@@ -131,23 +131,23 @@ namespace RPI
     }
   }
 
-  template <typename T>
-  void spConcurrentCollector<T>::Clear()
+  template <typename T, typename TAllocatorWrapper>
+  void spConcurrentCollector<T, TAllocatorWrapper>::Clear()
   {
     Close();
     GetItems().Clear();
     m_uiCount.Set(0);
   }
 
-  template <typename T>
-  EZ_ALWAYS_INLINE const T& spConcurrentCollector<T>::operator[](ezUInt32 uiIndex) const
+  template <typename T, typename TAllocatorWrapper>
+  EZ_ALWAYS_INLINE const T& spConcurrentCollector<T, TAllocatorWrapper>::operator[](ezUInt32 uiIndex) const
   {
     EZ_ASSERT_DEBUG(uiIndex < m_uiCount, "Index out of bounds");
     return GetItems()[uiIndex];
   }
 
-  template <typename T>
-  EZ_ALWAYS_INLINE T& spConcurrentCollector<T>::operator[](ezUInt32 uiIndex)
+  template <typename T, typename TAllocatorWrapper>
+  EZ_ALWAYS_INLINE T& spConcurrentCollector<T, TAllocatorWrapper>::operator[](ezUInt32 uiIndex)
   {
     EZ_ASSERT_DEBUG(uiIndex < m_uiCount, "Index out of bounds");
     return GetItems()[uiIndex];

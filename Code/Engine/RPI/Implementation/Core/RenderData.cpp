@@ -20,7 +20,6 @@ namespace RPI
 {
   // clang-format off
   EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderObject, 1, ezRTTINoAllocator)
-  {}
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 }

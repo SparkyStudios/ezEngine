@@ -42,7 +42,7 @@ namespace RPI
     ezVec2 m_RenderSize;
     ezVec2 m_InverseRenderSize;
 
-    ezColor m_ClearColor;
+    ezColorLinearUB m_ClearColor;
 
     ezMat4 m_Projection;
     ezMat4 m_InverseProjection;
@@ -52,7 +52,7 @@ namespace RPI
   };
 
   /// \brief Specifies how the render view should cull render objects.
-  struct SP_RPI_DLL spRenderViewCullingMode
+  struct spRenderViewCullingMode
   {
     typedef ezUInt8 StorageType;
 
@@ -65,6 +65,32 @@ namespace RPI
       Frustum = 1,
 
       Default = Frustum
+    };
+  };
+
+  /// \brief Specifies for which purpose the render view should be used.
+  struct spRenderViewUsage
+  {
+    typedef ezUInt8 StorageType;
+
+    enum Enum : StorageType
+    {
+      /// \brief The render view will be used for the main rendering.
+      Main = EZ_BIT(0),
+
+      /// \brief The render view will be used for shadow map rendering.
+      ShadowMapping = EZ_BIT(1),
+
+      /// \brief The render view will be used for all types of rendering.
+      All = ShadowMapping | Main,
+
+      Default = Main
+    };
+
+    struct Bits
+    {
+      StorageType Main : 1;
+      StorageType ShadowMapping : 1;
     };
   };
 
@@ -101,5 +127,6 @@ namespace RPI
     ezInt32 m_iIndex{-1};
     ezBitflags<spRenderGroupMask> m_eRenderGroup{spRenderGroupMask::Default};
     ezEnum<spRenderViewCullingMode> m_eCullingMode{spRenderViewCullingMode::Default};
+    ezBitflags<spRenderViewUsage> m_eUsage{spRenderViewUsage::Default};
   };
 } // namespace RPI

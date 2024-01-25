@@ -22,6 +22,8 @@ namespace RPI
   // clang-format off
   EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderFeature, 1, ezRTTINoAllocator)
   {
+    flags.Add(ezTypeFlags::Abstract);
+
     EZ_BEGIN_PROPERTIES
     {
       EZ_MEMBER_PROPERTY("Active", m_bIsActive)->AddAttributes(new ezDefaultValueAttribute(true)),
@@ -32,6 +34,7 @@ namespace RPI
     EZ_BEGIN_ATTRIBUTES
     {
       new ezColorAttribute(ezColorScheme::DarkUI(ezColorScheme::Red)),
+      new ezCategoryAttribute("Features"),
     }
     EZ_END_ATTRIBUTES;
   }
@@ -68,13 +71,76 @@ namespace RPI
     m_pRenderContext = nullptr;
   }
 
+  void spRenderFeature::Extract(const spRenderContext* pRenderContext, const spRenderView* pRenderView) const
+  {
+    m_pExtractor->Extract(pRenderContext, pRenderView);
+  }
+
+  bool spRenderFeature::TryAddRenderObject(spRenderObject* pRenderObject)
+  {
+    EZ_ASSERT_DEV(pRenderObject != nullptr, "Render object must not be nullptr.");
+
+    pRenderObject->m_pRenderFeature = this;
+    pRenderObject->m_RenderFeatureReference = spRenderNodeReference(m_RenderObjects.GetCount());
+
+    m_RenderObjects.PushBack(pRenderObject);
+
+    return true;
+  }
+
+  void spRenderFeature::RemoveRenderObject(spRenderObject* pRenderObject)
+  {
+    EZ_ASSERT_DEV(pRenderObject != nullptr, "Render object must not be nullptr");
+    EZ_ASSERT_DEV(pRenderObject->m_pRenderFeature == this, "Render object must match the render feature");
+
+    const auto iObjectRef = pRenderObject->m_RenderFeatureReference.GetRef();
+
+    pRenderObject->m_RenderFeatureReference = spRenderNodeReference::MakeInvalid();
+
+    m_RenderObjects.RemoveAtAndSwap(iObjectRef);
+
+    if (iObjectRef < m_RenderObjects.GetCount())
+      m_RenderObjects[iObjectRef]->m_RenderFeatureReference = spRenderNodeReference(iObjectRef);
+
+    pRenderObject->m_pRenderFeature = nullptr;
+  }
+
+  bool spRenderFeature::TryAddRenderComponent(spRenderComponent* pRenderComponent)
+  {
+    EZ_ASSERT_DEV(pRenderComponent != nullptr, "Render component must not be nullptr.");
+
+    pRenderComponent->m_pRenderFeature = this;
+    pRenderComponent->m_RenderFeatureReference = spRenderNodeReference(m_RenderComponents.GetCount());
+
+    m_RenderComponents.PushBack(pRenderComponent);
+
+    return true;
+  }
+
+  void spRenderFeature::RemoveRenderComponent(spRenderComponent* pRenderComponent)
+  {
+    EZ_ASSERT_DEV(pRenderComponent != nullptr, "Render component must not be nullptr.");
+    EZ_ASSERT_DEV(pRenderComponent->m_pRenderFeature == this, "Render component must match the render feature");
+
+    const auto iComponentRef = pRenderComponent->m_RenderFeatureReference.GetRef();
+
+    pRenderComponent->m_RenderFeatureReference = spRenderNodeReference::MakeInvalid();
+
+    m_RenderComponents.RemoveAtAndSwap(iComponentRef);
+
+    if (iComponentRef < m_RenderComponents.GetCount())
+      m_RenderComponents[iComponentRef]->m_RenderFeatureReference = spRenderNodeReference(iComponentRef);
+
+    pRenderComponent->m_pRenderFeature = nullptr;
+  }
+
   void spRenderFeature::OnRenderSystemCollectEvent(const spRenderSystemCollectEvent& event)
   {
     if (!m_bIsActive || m_pExtractor == nullptr)
       return;
 
     auto* pRenderSystem = ezSingletonRegistry::GetRequiredSingletonInstance<spRenderSystem>();
-    pRenderSystem->GetRenderFeatureExtractorCollector().Add(m_pExtractor.Borrow());
+    pRenderSystem->GetRenderFeatureCollector().Add(this);
   }
 
   void spRenderFeature::OnInitialize()

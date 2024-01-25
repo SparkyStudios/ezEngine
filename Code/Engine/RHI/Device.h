@@ -18,8 +18,8 @@
 
 #include <RHI/Memory/StagingMemoryPool.h>
 
-#include <RHI/CommandList.h>
 #include <RHI/Buffer.h>
+#include <RHI/CommandList.h>
 #include <RHI/Profiler.h>
 #include <RHI/RenderTarget.h>
 #include <RHI/Resource.h>
@@ -342,7 +342,7 @@ namespace RHI
     template <typename T>
     EZ_ALWAYS_INLINE void UpdateTexture(ezSharedPtr<spTexture> pTexture, const ezArrayPtr<T> data, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
     {
-      const ezUInt32 uiSize = data.GetCount() * sizeof(T);
+      const ezUInt64 uiSize = data.GetCount() * sizeof(T);
       UpdateTexture(pTexture, reinterpret_cast<void*>(data.GetPtr()), uiSize, uiX, uiY, uiZ, uiWidth, uiHeight, uiDepth, uiMipLevel, uiArrayLayer);
     }
 
@@ -362,7 +362,7 @@ namespace RHI
     template <typename T>
     EZ_ALWAYS_INLINE void UpdateTexture(ezSharedPtr<spTexture> pTexture, const ezBlobPtr<T> data, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
     {
-      const ezUInt32 uiSize = data.GetCount() * sizeof(T);
+      const ezUInt64 uiSize = data.GetCount() * sizeof(T);
       UpdateTexture(pTexture, reinterpret_cast<void*>(data.GetPtr()), uiSize, uiX, uiY, uiZ, uiWidth, uiHeight, uiDepth, uiMipLevel, uiArrayLayer);
     }
 
@@ -398,21 +398,21 @@ namespace RHI
     /// \param pBuffer The handle to the \a spBuffer to update.
     /// \param uiOffset The offset in elements from the beginning of the buffer's storage, at which the data will be uploaded.
     /// \param source The data array to upload in the buffer.
-    /// \param uiCount The number of elements in the array to upload in the buffer.
     template <typename T>
-    void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const ezArrayPtr<T>& source, ezUInt32 uiCount)
+    void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const ezArrayPtr<T>& source)
     {
-      UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(source.GetPtr()), uiCount * sizeof(T));
+      UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(source.GetPtr()), source.GetCount() * sizeof(T));
     }
 
     /// \brief Updates the \a spBuffer region with new data.
     /// \param pBuffer The handle to the \a spBuffer to update.
     /// \param uiOffset The offset in elements from the beginning of the buffer's storage, at which the data will be uploaded.
     /// \param source The data array to upload in the buffer.
+    /// \param uiCount The number of elements in the array to upload in the buffer.
     template <typename T>
-    void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const ezArrayPtr<T>& source)
+    void UpdateBuffer(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const ezArrayPtr<T>& source, ezUInt32 uiCount)
     {
-      UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(source.GetPtr()), source.GetCount() * sizeof(T));
+      UpdateBuffer(pBuffer, uiOffset * sizeof(T), reinterpret_cast<const void*>(source.GetPtr()), uiCount * sizeof(T));
     }
 
     /// \brief Updates the \a spBuffer with indexed indirect draw commands. This method allows platform implementations to use
@@ -482,6 +482,16 @@ namespace RHI
     ezAllocatorBase* m_pAllocator;
 
     ezUInt32 m_uiFrameCounter{0};
+  };
+
+  /// \brief A wrapper around an \a ezAllocatorBase that can be used to allocate RHI device memory.
+  struct spDeviceAllocatorWrapper
+  {
+    EZ_ALWAYS_INLINE static ezAllocatorBase* GetAllocator()
+    {
+      const auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
+      return pDevice == nullptr ? ezDefaultAllocatorWrapper::GetAllocator() : pDevice->GetAllocator();
+    }
   };
 } // namespace RHI
 

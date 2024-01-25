@@ -20,8 +20,8 @@ namespace RPI
 {
   /// \brief A collector that allows for concurrent adding of items,
   /// as well as non-thread-safe clearing and accessing of the underlying collection.
-  template <typename T>
-  class SP_RPI_DLL spConcurrentCollector
+  template <typename T, typename TAllocatorWrapper = ezDefaultAllocatorWrapper>
+  class spConcurrentCollector
   {
   public:
     /// \brief Constructor.
@@ -32,7 +32,7 @@ namespace RPI
 
     /// \brief Gets a contiguous range of items. It is valid to call this method
     /// only after the collection is closed.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezStaticArray<T, 16>& GetItems() const
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezHybridArray<T, 16, TAllocatorWrapper>& GetItems() const
     {
       EZ_ASSERT_DEBUG(m_pHead != m_pTail, "The collection is not yet closed.");
       return m_pHead->m_Items;
@@ -40,7 +40,7 @@ namespace RPI
 
     /// \brief Gets a contiguous range of items. It is valid to call this method
     /// only after the collection is closed.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezStaticArray<T, 16>& GetItems()
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezHybridArray<T, 16, TAllocatorWrapper>& GetItems()
     {
       EZ_ASSERT_DEBUG(m_pHead != m_pTail, "The collection is not yet closed.");
       return m_pHead->m_Items;
@@ -82,7 +82,7 @@ namespace RPI
         m_Items.SetCountUninitialized(uiInitialCapacity);
       }
 
-      ezStaticArray<T, 16> m_Items;
+      ezHybridArray<T, 16, TAllocatorWrapper> m_Items;
       ezUInt32 m_uiOffset{0};
       Segment* m_pNext{nullptr};
       Segment* m_pPrev{nullptr};

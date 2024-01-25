@@ -156,7 +156,10 @@ namespace RPI
 
   const spRenderGraphNode* spRenderGraphBuilder::GetNode(ezStringView sName) const
   {
-    if (ezUniquePtr<spRenderGraphNode>* pNode = nullptr; m_Nodes.TryGetValue(sName, pNode))
+    ezHashedString sNameHash;
+    sNameHash.Assign(sName);
+
+    if (ezUniquePtr<spRenderGraphNode>* pNode = nullptr; m_Nodes.TryGetValue(sNameHash, pNode))
       return pNode->Borrow();
 
     return nullptr;

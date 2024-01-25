@@ -33,7 +33,7 @@ namespace RHI
     }
 
     /// \brief The signaled state of the Fence.
-    /// \note This value is not used on OpenGL backed.
+    /// \note This value is not used on OpenGL backend.
     bool m_bSignaled{false};
   };
 

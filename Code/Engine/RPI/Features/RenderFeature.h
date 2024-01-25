@@ -23,9 +23,13 @@ namespace RPI
   struct spRenderSystemCollectEvent;
 
   class spRenderContext;
+  class spRenderComponent;
 
   class SP_RPI_DLL spRenderFeature : public ezReflectedClass
   {
+    friend class spRenderSystem;
+    friend class spRenderComponent;
+
     EZ_ADD_DYNAMIC_REFLECTION(spRenderFeature, ezReflectedClass);
     EZ_DISALLOW_COPY_AND_ASSIGN(spRenderFeature);
 
@@ -38,8 +42,8 @@ namespace RPI
     virtual void Render(const spRenderContext* pRenderingContext) const = 0;
 
     /// \brief Called at the initialization of the \a spCompositor.
-    /// \param[in] pRenderingContext The rendering context for which the feature is initialized.
-    void Initialize(const spRenderContext* pRenderingContext);
+    /// \param[in] pRenderContext The rendering context for which the feature is initialized.
+    void Initialize(const spRenderContext* pRenderContext);
 
     /// \brief Called at the deinitialization of the \a spCompositor.
     void Deinitialize();
@@ -55,9 +59,36 @@ namespace RPI
         m_sName.Assign(sName);
     }
 
+    /// \brief Extracts a specific set of render objects from the given view.
+    /// \param [in] pRenderContext The rendering context in which the extraction occurs.
+    /// \param [in] pRenderView The render view from which extract render objects.
+    void Extract(const spRenderContext* pRenderContext, const spRenderView* pRenderView) const;
+
   protected:
+    /// \brief Tries to add a \a spRenderObject in the feature.
+    /// \note The default implementation always add the render object to the feature
+    /// and returns true.
+    /// \param [in] pRenderObject The render object to add to the feature.
+    /// \return \c true if the render object was added to the feature, \c false otherwise.
+    virtual bool TryAddRenderObject(spRenderObject* pRenderObject);
+
+    /// \brief Removes a \a spRenderObject from the feature.
+    /// \param [in] pRenderObject The render object to remove from the feature.
+    virtual void RemoveRenderObject(spRenderObject* pRenderObject);
+
+    /// \brief Tries to add a \a spRenderComponent in the feature.
+    /// \note The default implementation always add the render component to the feature
+    /// and returns true.
+    /// \param [in] pRenderComponent The render component to add to the feature.
+    /// \return \c true if the render component was added to the feature, \c false otherwise.
+    virtual bool TryAddRenderComponent(spRenderComponent* pRenderComponent);
+
+    /// \brief Removes a \a spRenderComponent from the feature.
+    /// \param [in] pRenderComponent The render component to remove from the feature.
+    virtual void RemoveRenderComponent(spRenderComponent* pRenderComponent);
+
     /// \brief Event handler for the "collect" event of the \a spRenderSystem.
-    /// \param event The event data.
+    /// \param [in] event The event data.
     virtual void OnRenderSystemCollectEvent(const spRenderSystemCollectEvent& event);
 
     /// \brief Called at the initialization of the feature, after the render context is set.
@@ -73,5 +104,9 @@ namespace RPI
 
     ezUniquePtr<spRenderFeatureExtractor> m_pExtractor{nullptr};
     const spRenderContext* m_pRenderContext{nullptr};
+
+    ezDynamicArray<spRenderObject*> m_RenderObjects;
+
+    ezDynamicArray<spRenderComponent*> m_RenderComponents;
   };
 } // namespace RPI
