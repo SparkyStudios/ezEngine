@@ -22,13 +22,33 @@ namespace RPI
 {
   class spRenderSystem;
   class spRenderContext;
+  class spRenderFeature;
 
-  class SP_RPI_DLL spCompositor : public ezRefCounted
+  class SP_RPI_DLL spCompositorEntryPoint : public ezReflectedClass
   {
+    EZ_ADD_DYNAMIC_REFLECTION(spCompositorEntryPoint, ezReflectedClass);
+
+  public:
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsConnected() const
+    {
+      return m_iPinIndex != -1;
+    }
+
+    ezResult Serialize(ezStreamWriter& inout_stream) const;
+    ezResult Deserialize(ezStreamReader& inout_stream);
+
+  protected:
+    ezInt16 m_iPinIndex{-1};
+    ezUInt8 m_uiNumConnections{0};
+  };
+
+  class SP_RPI_DLL spCompositor : public ezReflectedClass, public ezRefCounted
+  {
+    EZ_ADD_DYNAMIC_REFLECTION(spCompositor, ezReflectedClass);
     EZ_DISALLOW_COPY_AND_ASSIGN(spCompositor);
 
   public:
-    explicit spCompositor(spRenderSystem* pRenderSystem);
+    spCompositor();
     ~spCompositor() override = default;
 
     void Render(const spRenderContext* pRenderContext);
@@ -36,6 +56,11 @@ namespace RPI
   private:
     spRenderSystem* m_pRenderSystem{nullptr};
 
-    ezDynamicArray<spCameraSlot> m_Cameras;
+    ezDynamicArray<spCameraSlot*> m_Cameras;
+    ezDynamicArray<spRenderFeature*> m_RenderFeatures;
+
+    spCompositorEntryPoint m_GameEntryPoint;
+    spCompositorEntryPoint m_EditorEntryPoint;
+    spCompositorEntryPoint m_PreviewEntryPoint;
   };
 } // namespace RPI

@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <RPI/RPIPCH.h>
+#pragma once
 
-#include <RPI/Features/RenderFeatureExtractor.h>
+#include <RPI/RPIDLL.h>
+
+#include <RPI/Core/RenderObject.h>
 
 namespace RPI
 {
-  // clang-format off
-  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderFeatureExtractor, 1, ezRTTINoAllocator)
-  EZ_END_DYNAMIC_REFLECTED_TYPE
-  // clang-format on
-
-  void spRenderFeatureExtractor::Extract(const spRenderContext* pRenderContext, const spRenderView* pRenderView)
+  struct alignas(16) spMeshRenderObjectData
   {
-  }
-} // namespace RPI
 
-EZ_STATICLINK_FILE(RPI, RPI_Implementation_Features_RenderFeatureExtractor);
+  };
+
+  class SP_RHI_DLL spMeshRenderObject final : public spRenderObject
+  {
+    EZ_ADD_DYNAMIC_REFLECTION(spMeshRenderObject, spRenderObject);
+  };
+}

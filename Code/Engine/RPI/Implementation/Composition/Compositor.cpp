@@ -18,9 +18,45 @@
 #include <RPI/Core/RenderContext.h>
 #include <RPI/Core/RenderSystem.h>
 
+#include <RHI/Device.h>
+
 namespace RPI
 {
-  spCompositor::spCompositor(RPI::spRenderSystem* pRenderSystem)
-    : m_pRenderSystem(pRenderSystem)
-  {}
-}
+  typedef ezRTTIDefaultAllocator<spCompositor, RHI::spDeviceAllocatorWrapper> spRTTICompositorAllocator;
+
+  // clang-format off
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spCompositorEntryPoint, 1, ezRTTINoAllocator)
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
+
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spCompositor, 1, spRTTICompositorAllocator)
+  {
+    EZ_BEGIN_PROPERTIES
+    {
+      EZ_MEMBER_PROPERTY("Game", m_GameEntryPoint),
+      EZ_MEMBER_PROPERTY("Editor", m_EditorEntryPoint),
+      EZ_MEMBER_PROPERTY("Preview", m_PreviewEntryPoint),
+      EZ_ARRAY_MEMBER_PROPERTY("Camera Slots", m_Cameras),
+    }
+    EZ_END_PROPERTIES;
+  }
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
+  // clang-format on
+
+  spCompositor::spCompositor()
+  {
+  }
+
+  ezResult spCompositorEntryPoint::Serialize(ezStreamWriter& inout_stream) const
+  {
+    inout_stream << m_iPinIndex;
+    inout_stream << m_uiNumConnections;
+    return EZ_SUCCESS;
+  }
+
+  ezResult spCompositorEntryPoint::Deserialize(ezStreamReader& inout_stream)
+  {
+    inout_stream >> m_iPinIndex;
+    inout_stream >> m_uiNumConnections;
+    return EZ_SUCCESS;
+  }
+} // namespace RPI

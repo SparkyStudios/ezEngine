@@ -46,13 +46,13 @@ public:
   void PostSync(WorkerFunction&& action);
 
   /// \brief Post a function to be executed asynchronously in the render thread.
-  /// The function will be pushed in a poll an executed later. This will not block
+  /// The function will be pushed in a pool and executed later. This will not block
   /// the caller thread.
   /// \param action The function to execute.
   void PostAsync(WorkerFunction&& action);
 
   /// \brief Post a function to be executed asynchronously in the render thread.
-  /// The function will be pushed in a poll an executed later. This will not block
+  /// The function will be pushed in a pool and executed later. This will not block
   /// the caller thread.
   /// \param action The function to execute.
   /// \param onComplete An optional action to executed when the function has been

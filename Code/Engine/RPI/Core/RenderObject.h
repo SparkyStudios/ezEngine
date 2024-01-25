@@ -17,16 +17,23 @@
 #include <RPI/RPIDLL.h>
 
 #include <RPI/Core/RenderGroup.h>
-#include <RPI/Core/VisilityGroup.h>
+#include <RPI/Core/RenderSystem.h>
+#include <RPI/Core/VisibilityGroup.h>
 
 namespace RPI
 {
   class spRenderContext;
+  class spRenderFeature;
 
   /// \brief Base class for render objects. Each implementation must contains all information
   /// needed to render the data. The \a Draw method is called each time this object is rendered.
   class SP_RPI_DLL spRenderObject : public ezReflectedClass
   {
+    friend class spRenderSystem;
+    friend class spRenderFeature;
+    friend class spRenderObjectCollection;
+    friend class spVisibilityGroup;
+
     EZ_ADD_DYNAMIC_REFLECTION(spRenderObject, ezReflectedClass);
 
   public:
@@ -69,11 +76,18 @@ namespace RPI
   private:
     ezEnum<spRenderGroup> m_eRenderGroup{spRenderGroup::None};
     ezBoundingBox m_BoundingBox;
+
+    spRenderFeature* m_pRenderFeature{nullptr};
+
+    spRenderNodeReference m_VisibilityGroupReference{spRenderNodeReference::MakeInvalid()};
+    spRenderNodeReference m_RenderFeatureReference{spRenderNodeReference::MakeInvalid()};
   };
 
   /// \brief A collection of \a spRenderObject.
   class SP_RPI_DLL spRenderObjectCollection
   {
+    friend class spVisibilityGroup;
+
   public:
     explicit spRenderObjectCollection(spVisibilityGroup* pVisibilityGroup);
 
@@ -86,7 +100,7 @@ namespace RPI
     void Remove(const spRenderObject* pRenderObject);
 
   private:
-    ezList<spRenderObject*> m_Items;
+    ezHybridArray<spRenderObject*, 64> m_Items;
     spVisibilityGroup* m_pVisibilityGroup{nullptr};
   };
 } // namespace RPI

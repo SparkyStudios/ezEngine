@@ -105,7 +105,7 @@ namespace RPI
       Group28 = EZ_BIT(28),
       Group29 = EZ_BIT(29),
       Group30 = EZ_BIT(30),
-      Group31 = (ezUInt32)EZ_BIT(31),
+      Group31 = static_cast<ezUInt32>(EZ_BIT(31)),
 
       All = UINT32_MAX,
 

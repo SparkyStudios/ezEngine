@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -10,24 +10,15 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
-// limitations under  the License.
+// limitations under the License.
 
 #pragma once
 
-#include <RPI/RPIDLL.h>
-
-#include <RHI/Device.h>
-
 namespace RPI
 {
-  class spRenderSystem;
-
-  /// \brief Stores a collection of \a spRenderObject visible within a \a spRenderView.
-  class SP_RPI_DLL spVisibilityGroup
+  class SP_RHI_DLL spMeshComponent
   {
-  private:
-    bool m_bNeedRenderStageEvaluation;
-
-    spRenderSystem* m_pRenderSystem{nullptr};
+  public:
+    virtual ~spMeshComponent() = default;
   };
 } // namespace RPI

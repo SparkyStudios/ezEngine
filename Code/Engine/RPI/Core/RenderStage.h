@@ -24,7 +24,7 @@ namespace RPI
   class spRenderView;
   class spRenderStage;
 
-  /// \brief Specifies how to filter \see spRenderObject from a \see spRenderStage.
+  /// \brief Specifies how to filter \a spRenderObject from a \a spRenderStage.
   class SP_RPI_DLL spRenderStageFilter
   {
   public:

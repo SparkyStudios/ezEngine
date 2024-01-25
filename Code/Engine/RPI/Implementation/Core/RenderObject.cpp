@@ -20,13 +20,12 @@ namespace RPI
 {
   spRenderObjectCollection::spRenderObjectCollection(spVisibilityGroup* pVisibilityGroup)
     : m_pVisibilityGroup(pVisibilityGroup)
-    , m_Items()
   {
   }
 
   void spRenderObjectCollection::Add(spRenderObject* pRenderObject)
   {
-    // m_pVisibilityGroup->AddRenderObject(pRenderObject);
+    m_pVisibilityGroup->AddRenderObject(this, pRenderObject);
   }
 
   void spRenderObjectCollection::Clear()
@@ -36,22 +35,11 @@ namespace RPI
 
   bool spRenderObjectCollection::Contains(const spRenderObject* pRenderObject) const
   {
-    for (auto it = m_Items.GetIterator(); it.IsValid(); it.Next())
-      if (*it == pRenderObject)
-        return true;
-
-    return false;
+    return m_Items.Contains(const_cast<spRenderObject*>(pRenderObject));
   }
 
   void spRenderObjectCollection::Remove(const spRenderObject* pRenderObject)
   {
-    for (auto it = m_Items.GetIterator(); it.IsValid(); it.Next())
-    {
-      if (*it == pRenderObject)
-      {
-        m_Items.Remove(it);
-        break;
-      }
-    }
+    // TODO
   }
 } // namespace RPI

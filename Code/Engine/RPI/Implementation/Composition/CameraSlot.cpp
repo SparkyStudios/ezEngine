@@ -14,18 +14,23 @@
 
 #include <RPI/RPIPCH.h>
 
-#include <RPI/Features/RenderFeatureExtractor.h>
+#include <RPI/Composition/CameraSlot.h>
+
+#include <RHI/Device.h>
 
 namespace RPI
 {
+  typedef ezRTTIDefaultAllocator<spCameraSlot, RHI::spDeviceAllocatorWrapper> spRTTICameraSlotAllocator;
+
   // clang-format off
-  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderFeatureExtractor, 1, ezRTTINoAllocator)
-  EZ_END_DYNAMIC_REFLECTED_TYPE
-  // clang-format on
-
-  void spRenderFeatureExtractor::Extract(const spRenderContext* pRenderContext, const spRenderView* pRenderView)
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spCameraSlot, 1, spRTTICameraSlotAllocator)
   {
+    EZ_BEGIN_PROPERTIES
+    {
+      EZ_ACCESSOR_PROPERTY("Name", GetName, SetName)
+    }
+    EZ_END_PROPERTIES;
   }
-} // namespace RPI
-
-EZ_STATICLINK_FILE(RPI, RPI_Implementation_Features_RenderFeatureExtractor);
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
+  // clang-format on
+}

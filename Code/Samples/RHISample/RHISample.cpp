@@ -166,73 +166,73 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   }
 
   // Init the rendering system
-  m_pRenderSystem = EZ_DEFAULT_NEW(RPI::spRenderSystem);
+  {
+    m_pRenderSystem = EZ_DEFAULT_NEW(RPI::spRenderSystem);
+
+    if (eApiType == spGraphicsApi::Direct3D11)
+    {
+#if EZ_ENABLED(EZ_PLATFORM_WINDOWS_DESKTOP)
+      spRenderingSurfaceWin32 renderSurface(ezMinWindows::ToNative(m_pWindow->GetNativeWindowHandle()), nullptr, m_pWindow->IsFullscreenWindow());
+
+      spDeviceDescriptionD3D11 description{};
+      description.m_bDebug = true;
+      description.m_bSyncV = false;
+      description.m_bUsSrgbFormat = true;
+      description.m_uiWidth = g_uiWindowWidth;
+      description.m_uiHeight = g_uiWindowHeight;
+      description.m_bHasMainSwapchain = true;
+      description.m_MainSwapchainDescription.m_uiWidth = g_uiWindowWidth;
+      description.m_MainSwapchainDescription.m_uiHeight = g_uiWindowHeight;
+      description.m_MainSwapchainDescription.m_bUseSrgb = false;
+      description.m_MainSwapchainDescription.m_bVSync = false;
+      description.m_MainSwapchainDescription.m_bUseDepthTexture = true;
+      description.m_MainSwapchainDescription.m_pRenderingSurface = &renderSurface;
+      description.m_MainSwapchainDescription.m_eDepthFormat = spPixelFormat::D24UNormS8UInt;
+      description.m_bMainSwapchainHasDepth = true;
+      description.m_eSwapchainDepthPixelFormat = spPixelFormat::D24UNormS8UInt;
+      description.m_bPreferDepthRangeZeroToOne = true;
+
+      auto pDevice = spRHIImplementationFactory::CreateDevice(szRendererName, ezDefaultAllocatorWrapper::GetAllocator(), description);
+      m_pRenderSystem->Startup(pDevice);
+#else
+      EZ_ASSERT_ALWAYS(false, "Direct3D11 is not supported on this platform.");
+#endif
+    }
+    else if (eApiType == spGraphicsApi::Metal)
+    {
+#if EZ_ENABLED(EZ_PLATFORM_OSX)
+      spRenderingSurfaceNSWindow renderSurface(m_pWindow->GetNativeWindowHandle());
+
+      spDeviceDescription description{};
+      description.m_bDebug = true;
+      description.m_bSyncV = false;
+      description.m_bUsSrgbFormat = true;
+      description.m_uiWidth = g_uiWindowWidth;
+      description.m_uiHeight = g_uiWindowHeight;
+      description.m_bHasMainSwapchain = true;
+      description.m_MainSwapchainDescription.m_uiWidth = g_uiWindowWidth;
+      description.m_MainSwapchainDescription.m_uiHeight = g_uiWindowHeight;
+      description.m_MainSwapchainDescription.m_bUseSrgb = false;
+      description.m_MainSwapchainDescription.m_bVSync = false;
+      description.m_MainSwapchainDescription.m_bUseDepthTexture = true;
+      description.m_MainSwapchainDescription.m_pRenderingSurface = &renderSurface;
+      description.m_MainSwapchainDescription.m_eDepthFormat = spPixelFormat::D32FloatS8UInt;
+      description.m_bMainSwapchainHasDepth = true;
+      description.m_eSwapchainDepthPixelFormat = spPixelFormat::D32FloatS8UInt;
+      description.m_bPreferDepthRangeZeroToOne = true;
+
+      auto pDevice = spRHIImplementationFactory::CreateDevice(szRendererName, ezDefaultAllocatorWrapper::GetAllocator(), description);
+      m_pRenderSystem->Startup(pDevice);
+#else
+      EZ_ASSERT_ALWAYS(false, "Metal is not supported on this platform.");
+#endif
+    }
+
+    EZ_ASSERT_DEV(m_pRenderSystem->GetDevice() != nullptr, "Device creation failed");
+  }
 
   // now that we have a window and device, tell the engine to initialize the rendering infrastructure
   ezStartup::StartupHighLevelSystems();
-
-  if (eApiType == spGraphicsApi::Direct3D11)
-  {
-#if EZ_ENABLED(EZ_PLATFORM_WINDOWS_DESKTOP)
-    spRenderingSurfaceWin32 renderSurface(ezMinWindows::ToNative(m_pWindow->GetNativeWindowHandle()), nullptr, m_pWindow->IsFullscreenWindow());
-
-    spDeviceDescriptionD3D11 description{};
-    description.m_bDebug = true;
-    description.m_bHasMainSwapchain = false;
-    description.m_bSyncV = false;
-    description.m_bUsSrgbFormat = true;
-    description.m_uiWidth = g_uiWindowWidth;
-    description.m_uiHeight = g_uiWindowHeight;
-    description.m_bHasMainSwapchain = true;
-    description.m_MainSwapchainDescription.m_uiWidth = g_uiWindowWidth;
-    description.m_MainSwapchainDescription.m_uiHeight = g_uiWindowHeight;
-    description.m_MainSwapchainDescription.m_bUseSrgb = false;
-    description.m_MainSwapchainDescription.m_bVSync = false;
-    description.m_MainSwapchainDescription.m_bUseDepthTexture = true;
-    description.m_MainSwapchainDescription.m_pRenderingSurface = &renderSurface;
-    description.m_MainSwapchainDescription.m_eDepthFormat = spPixelFormat::D24UNormS8UInt;
-    description.m_bMainSwapchainHasDepth = true;
-    description.m_eSwapchainDepthPixelFormat = spPixelFormat::D24UNormS8UInt;
-    description.m_bPreferDepthRangeZeroToOne = true;
-
-    auto pDevice = spRHIImplementationFactory::CreateDevice(szRendererName, ezDefaultAllocatorWrapper::GetAllocator(), description);
-    m_pRenderSystem->Startup(pDevice);
-#else
-    EZ_ASSERT_ALWAYS(false, "Direct3D11 is not supported on this platform.");
-#endif
-  }
-  else if (eApiType == spGraphicsApi::Metal)
-  {
-#if EZ_ENABLED(EZ_PLATFORM_OSX)
-    spRenderingSurfaceNSWindow renderSurface(m_pWindow->GetNativeWindowHandle());
-
-    spDeviceDescription description{};
-    description.m_bDebug = true;
-    description.m_bHasMainSwapchain = false;
-    description.m_bSyncV = false;
-    description.m_bUsSrgbFormat = true;
-    description.m_uiWidth = g_uiWindowWidth;
-    description.m_uiHeight = g_uiWindowHeight;
-    description.m_bHasMainSwapchain = true;
-    description.m_MainSwapchainDescription.m_uiWidth = g_uiWindowWidth;
-    description.m_MainSwapchainDescription.m_uiHeight = g_uiWindowHeight;
-    description.m_MainSwapchainDescription.m_bUseSrgb = false;
-    description.m_MainSwapchainDescription.m_bVSync = false;
-    description.m_MainSwapchainDescription.m_bUseDepthTexture = true;
-    description.m_MainSwapchainDescription.m_pRenderingSurface = &renderSurface;
-    description.m_MainSwapchainDescription.m_eDepthFormat = spPixelFormat::D32FloatS8UInt;
-    description.m_bMainSwapchainHasDepth = true;
-    description.m_eSwapchainDepthPixelFormat = spPixelFormat::D32FloatS8UInt;
-    description.m_bPreferDepthRangeZeroToOne = true;
-
-    auto pDevice = spRHIImplementationFactory::CreateDevice(szRendererName, ezDefaultAllocatorWrapper::GetAllocator(), description);
-    m_pRenderSystem->Startup(pDevice);
-#else
-    EZ_ASSERT_ALWAYS(false, "Metal is not supported on this platform.");
-#endif
-  }
-
-  EZ_ASSERT_DEV(m_pRenderSystem->GetDevice() != nullptr, "Device creation failed");
 
   auto* pFactory = m_pRenderSystem->GetDevice()->GetResourceFactory();
 
@@ -290,18 +290,17 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   // --- End Experimental render graph
 
-
   m_pRenderSystem->GetSceneContext()->AddPipeline(renderPipeline.Borrow());
 };
 
 void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
 {
+  // release pending resources
+  m_pRenderSystem->GetDevice()->GetResourceManager()->ReleaseResources();
+
   // tell the engine that we are about to destroy window and graphics device,
   // and that it therefore needs to cleanup anything that depends on that
   ezStartup::ShutdownHighLevelSystems();
-
-  // release pending resources
-  m_pRenderSystem->GetDevice()->GetResourceManager()->ReleaseResources();
 
   // cleanup the render pipeline
   renderPipeline->CleanUp();

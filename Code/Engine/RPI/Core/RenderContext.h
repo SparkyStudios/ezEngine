@@ -21,6 +21,8 @@
 
 #include <RPI/Core/RenderContextData.h>
 
+class ezWorld;
+
 namespace RPI
 {
   class SP_RPI_DLL spRenderContext
@@ -42,6 +44,9 @@ namespace RPI
 
     /// \brief Gets the device used by this context.
     EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spDevice* GetDevice() const { return m_pDevice; }
+
+    /// \brief Gets the world associated with this context.
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezWorld* GetWorld() const { return m_pWorld; }
 
     /// \brief Marks the beginning of a render process.
     /// Render passes will be executed after this call and commands will be collected
@@ -65,7 +70,11 @@ namespace RPI
 
   private:
     RHI::spDevice* m_pDevice{nullptr};
+
     ezSharedPtr<RHI::spCommandList> m_pCommandList{nullptr};
+    ezSharedPtr<RHI::spBuffer> m_pRenderViewBuffer{nullptr};
+
+    ezWorld* m_pWorld{nullptr};
 
     ezMutex m_CommandListLock;
 

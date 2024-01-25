@@ -1,6 +1,6 @@
 ez_cmake_init()
 
-ez_requires_osx()
+sp_rhi_requires_metal()
 
 # Get the name of this folder as the project name
 get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME_WE)
@@ -17,7 +17,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 set(THIRDPARTY_DIR "${CMAKE_SOURCE_DIR}/${EZ_SUBMODULE_PREFIX_PATH}/Code/ThirdParty")
-target_include_directories(${PROJECT_NAME} PUBLIC "${THIRDPARTY_DIR}/metal-cpp")
+target_include_directories(${PROJECT_NAME} PRIVATE "${THIRDPARTY_DIR}/metal-cpp")
 
 find_library(METAL Metal)
-target_include_directories(${PROJECT_NAME} PUBLIC ${METAL}/Headers)
+target_include_directories(${PROJECT_NAME} PRIVATE ${METAL}/Headers)

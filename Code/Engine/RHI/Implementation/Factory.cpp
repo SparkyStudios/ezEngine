@@ -5,8 +5,7 @@
 struct FactoryInfo
 {
   spRHIImplementationFactory::Factory m_Func;
-  ezString m_sShaderModel;
-  ezString m_sShaderCompiler;
+  ezEnum<RHI::spGraphicsApi> m_API;
 };
 
 static ezHashTable<ezStringView, FactoryInfo> s_Factories;
@@ -43,8 +42,7 @@ void spRHIImplementationFactory::RegisterImplementation(ezStringView szName, con
 {
   FactoryInfo info;
   info.m_Func = func;
-  info.m_sShaderModel = description.m_sShaderModel;
-  info.m_sShaderCompiler = description.m_sShaderCompiler;
+  info.m_API = description.m_API;
 
   EZ_VERIFY(s_Factories.Insert(szName, info) == false, "Implementation already registered.");
 }

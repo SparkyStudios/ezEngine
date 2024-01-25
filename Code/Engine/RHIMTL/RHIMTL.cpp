@@ -27,9 +27,7 @@ EZ_BEGIN_SUBSYSTEM_DECLARATION(RHIMTL, DeviceFactory)
   ON_CORESYSTEMS_STARTUP
   {
     const spRHIImplementationDescription desc{
-      spGraphicsApi::Metal,
-      "",
-      "ezShaderCompilerMTL"
+      spGraphicsApi::Metal
     };
 
     spRHIImplementationFactory::RegisterImplementation("MTL", &CreateRHIMTLDevice, desc);

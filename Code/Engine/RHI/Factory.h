@@ -11,12 +11,6 @@ struct spRHIImplementationDescription
 {
   /// \brief The graphics API provided by the implementation.
   ezEnum<RHI::spGraphicsApi> m_API;
-
-  /// \brief The supported shader model of the implementation.
-  ezString m_sShaderModel;
-
-  /// \brief The shader compiler library used by the implementation.
-  ezString m_sShaderCompiler;
 };
 
 struct SP_RHI_DLL spRHIImplementationFactory

@@ -21,7 +21,7 @@ namespace RPI
   typedef ezGenericId<24, 8> spCameraSlotHandleId;
 
   /// \brief A handle to a \a spCameraSlot.
-  class SP_RPI_DLL spCameraSlotHandle
+  class spCameraSlotHandle
   {
     EZ_DECLARE_HANDLE_TYPE(spCameraSlotHandle, spCameraSlotHandleId);
   };
@@ -41,6 +41,9 @@ namespace RPI
     EZ_ADD_DYNAMIC_REFLECTION(spCameraSlot, ezReflectedClass);
 
   public:
+    spCameraSlot() = default;
+    ~spCameraSlot() override = default;
+
     /// \brief Gets the handle of this slot.
     EZ_NODISCARD EZ_ALWAYS_INLINE spCameraSlotHandle GetHandle() const { return m_Handle; }
 

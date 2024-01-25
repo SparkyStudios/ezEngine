@@ -74,6 +74,57 @@ namespace RPI
     Type m_Type;
   };
 
+  /// \brief A struct used to create and hold references to render nodes.
+  /// Theses references are most of the time indices to a render node from
+  /// an array.
+  struct SP_RHI_DLL spRenderNodeReference
+  {
+  public:
+    EZ_DECLARE_POD_TYPE();
+
+    /// \brief Makes an invalid reference.
+    static spRenderNodeReference MakeInvalid();
+
+    /// \brief Makes a reference to a node.
+    /// \param [in] iReference The reference to the node.
+    explicit spRenderNodeReference(ezInt32 iReference);
+
+    /// \brief Gets the reference. It's typically the index of the render node
+    /// in the collection it is associated with.
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezInt32 GetRef() const { return m_iRef; }
+
+    /// \brief Checks if the reference is invalid.
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsInvalid() const { return m_iRef == -1; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spRenderNodeReference& rhs) const
+    {
+      return m_iRef == rhs.m_iRef;
+    }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spRenderNodeReference& rhs) const
+    {
+      return m_iRef != rhs.m_iRef;
+    }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator<(const spRenderNodeReference& rhs) const
+    {
+      return m_iRef < rhs.m_iRef;
+    }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderNodeReference operator+(const ezInt32 rhs) const
+    {
+      return spRenderNodeReference(m_iRef + rhs);
+    }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderNodeReference operator*(const ezInt32 rhs) const
+    {
+      return spRenderNodeReference(m_iRef * rhs);
+    }
+
+  private:
+    ezInt32 m_iRef{-1};
+  };
+
   class SP_RPI_DLL spRenderSystem
   {
     EZ_DECLARE_SINGLETON(spRenderSystem);
@@ -112,11 +163,16 @@ namespace RPI
 
     void Reset();
 
+    void AddRenderObject(spRenderObject* pRenderObject);
+    void RemoveRenderObject(spRenderObject* pRenderObject);
+
     EZ_ALWAYS_INLINE spConcurrentCollector<spRenderView*>& GetRenderViewCollector() { return m_RenderViewCollector; }
     EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderView*>& GetRenderViewCollector() const { return m_RenderViewCollector; }
 
-    EZ_ALWAYS_INLINE spConcurrentCollector<spRenderFeatureExtractor*>& GetRenderFeatureExtractorCollector() { return m_RenderFeatureExtractorCollector; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderFeatureExtractor*>& GetRenderFeatureExtractorCollector() const { return m_RenderFeatureExtractorCollector; }
+    EZ_ALWAYS_INLINE spConcurrentCollector<spRenderFeature*>& GetRenderFeatureCollector() { return m_RenderFeatureCollector; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderFeature*>& GetRenderFeatureCollector() const { return m_RenderFeatureCollector; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spCompositor> GetCompositor() const { return m_pCompositor; }
 
   private:
     static ezEvent<const spRenderSystemCollectEvent&, ezMutex> s_CollectEvent;
@@ -133,7 +189,7 @@ namespace RPI
 
     spConcurrentCollector<spRenderView*> m_RenderViewCollector;
     spConcurrentCollector<spRenderStage*> m_RenderStageCollector;
-    spConcurrentCollector<spRenderFeatureExtractor*> m_RenderFeatureExtractorCollector;
+    spConcurrentCollector<spRenderFeature*> m_RenderFeatureCollector;
 
     ezSharedPtr<spCompositor> m_pCompositor{nullptr};
   };
