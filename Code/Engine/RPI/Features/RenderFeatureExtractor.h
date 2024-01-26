@@ -16,6 +16,7 @@
 
 #include <RPI/RPIDLL.h>
 
+#include <RPI/Core/RenderSystem.h>
 #include <RPI/Core/RenderObject.h>
 
 namespace RPI

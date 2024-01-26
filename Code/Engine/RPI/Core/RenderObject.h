@@ -18,12 +18,12 @@
 
 #include <RPI/Core/RenderGroup.h>
 #include <RPI/Core/RenderSystem.h>
-#include <RPI/Core/VisibilityGroup.h>
 
 namespace RPI
 {
   class spRenderContext;
   class spRenderFeature;
+  class spVisibilityGroup;
 
   /// \brief Base class for render objects. Each implementation must contains all information
   /// needed to render the data. The \a Draw method is called each time this object is rendered.
@@ -33,25 +33,13 @@ namespace RPI
     friend class spRenderFeature;
     friend class spRenderObjectCollection;
     friend class spVisibilityGroup;
+    friend class spSceneContext;
 
     EZ_ADD_DYNAMIC_REFLECTION(spRenderObject, ezReflectedClass);
 
   public:
     spRenderObject() = default;
     ~spRenderObject() override = default;
-
-    /// \brief Render data category. This is used by the pipeline to determine which data should
-    /// be rendered by specific rendering passes.
-    struct Category
-    {
-      Category();
-      explicit Category(ezUInt16 uiCategory);
-
-      bool operator==(const Category& rhs) const;
-      bool operator!=(const Category& rhs) const;
-
-      ezUInt16 m_uiCategory{0};
-    };
 
     /// \brief Specifies the caching method used by the render data.
     struct Caching

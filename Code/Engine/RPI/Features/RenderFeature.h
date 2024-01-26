@@ -20,7 +20,7 @@
 
 namespace RPI
 {
-  struct spRenderSystemCollectEvent;
+  struct spSceneContextCollectEvent;
 
   class spRenderContext;
   class spRenderComponent;
@@ -29,6 +29,7 @@ namespace RPI
   {
     friend class spRenderSystem;
     friend class spRenderComponent;
+    friend class spSceneContext;
 
     EZ_ADD_DYNAMIC_REFLECTION(spRenderFeature, ezReflectedClass);
     EZ_DISALLOW_COPY_AND_ASSIGN(spRenderFeature);
@@ -89,7 +90,7 @@ namespace RPI
 
     /// \brief Event handler for the "collect" event of the \a spRenderSystem.
     /// \param [in] event The event data.
-    virtual void OnRenderSystemCollectEvent(const spRenderSystemCollectEvent& event);
+    virtual void OnRenderSystemCollectEvent(const spSceneContextCollectEvent& event);
 
     /// \brief Called at the initialization of the feature, after the render context is set.
     virtual void OnInitialize();

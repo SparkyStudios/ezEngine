@@ -18,4 +18,11 @@
 
 namespace RPI
 {
-}
+  // clang-format off
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderView, 1, ezRTTINoAllocator)
+  {
+    flags.Add(ezTypeFlags::Abstract);
+  }
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
+  // clang-format on
+} // namespace RPI

@@ -53,6 +53,7 @@ public:
 
 private:
   ezUniquePtr<RPI::spRenderSystem> m_pRenderSystem{nullptr};
+  ezUniquePtr<spSceneContext> m_pSceneContext{nullptr};
 
   ezRHISampleWindow* m_pWindow{nullptr};
 
@@ -65,10 +66,10 @@ private:
   RAI::spTexture2DResourceHandle m_hTexture;
 };
 
-class spTriangleDemoRenderGraphNode final : public spRenderGraphNode
+class spDemoRenderGraphNode final : public spRenderGraphNode
 {
 public:
-  explicit spTriangleDemoRenderGraphNode(const RAI::spMesh* pMesh)
+  explicit spDemoRenderGraphNode(const RAI::spMesh* pMesh)
     : spRenderGraphNode("TrianglePass")
     , m_pMesh(pMesh)
   {
@@ -108,17 +109,17 @@ private:
   PassData m_PassData;
 };
 
-EZ_DECLARE_REFLECTABLE_TYPE(EZ_NO_LINKAGE, spTriangleDemoRenderGraphNode::PassData);
-EZ_DECLARE_CUSTOM_VARIANT_TYPE(spTriangleDemoRenderGraphNode::PassData);
+EZ_DECLARE_REFLECTABLE_TYPE(EZ_NO_LINKAGE, spDemoRenderGraphNode::PassData);
+EZ_DECLARE_CUSTOM_VARIANT_TYPE(spDemoRenderGraphNode::PassData);
 
-void operator<<(ezStreamWriter& Stream, const spTriangleDemoRenderGraphNode::PassData& Value);
-void operator>>(ezStreamReader& Stream, spTriangleDemoRenderGraphNode::PassData& Value);
-bool operator==(const spTriangleDemoRenderGraphNode::PassData& lhs, const spTriangleDemoRenderGraphNode::PassData& rhs);
+void operator<<(ezStreamWriter& Stream, const spDemoRenderGraphNode::PassData& Value);
+void operator>>(ezStreamReader& Stream, spDemoRenderGraphNode::PassData& Value);
+bool operator==(const spDemoRenderGraphNode::PassData& lhs, const spDemoRenderGraphNode::PassData& rhs);
 
 template <>
-struct ezHashHelper<spTriangleDemoRenderGraphNode::PassData>
+struct ezHashHelper<spDemoRenderGraphNode::PassData>
 {
-  EZ_ALWAYS_INLINE static ezUInt32 Hash(const spTriangleDemoRenderGraphNode::PassData& value)
+  EZ_ALWAYS_INLINE static ezUInt32 Hash(const spDemoRenderGraphNode::PassData& value)
   {
     ezUInt32 uiHash = 0;
 
@@ -128,5 +129,5 @@ struct ezHashHelper<spTriangleDemoRenderGraphNode::PassData>
     return uiHash;
   }
 
-  EZ_ALWAYS_INLINE static bool Equal(const spTriangleDemoRenderGraphNode::PassData& a, const spTriangleDemoRenderGraphNode::PassData& b) { return a == b; }
+  EZ_ALWAYS_INLINE static bool Equal(const spDemoRenderGraphNode::PassData& a, const spDemoRenderGraphNode::PassData& b) { return a == b; }
 };

@@ -24,8 +24,10 @@ namespace RPI
   class spRenderView;
 
   /// \brief Specifies the sort mode for \a spRenderObject.
-  class SP_RPI_DLL spSortMode
+  class SP_RPI_DLL spSortMode : public ezReflectedClass
   {
+    EZ_ADD_DYNAMIC_REFLECTION(spSortMode, ezReflectedClass);
+
   public:
     virtual ~spSortMode() = default;
 

@@ -14,7 +14,6 @@ EZ_END_STATIC_REFLECTED_TYPE;
 namespace RPI
 {
   spMainSwapchainRenderPass::spMainSwapchainRenderPass(Data&& passData)
-    : spRenderPass({}, {})
   {
     SetData(passData);
   }
@@ -22,16 +21,20 @@ namespace RPI
   void spMainSwapchainRenderPass::Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context)
   {
     const auto cl = context->GetCommandList();
+    const auto& data = m_PassData.Get<Data>();
 
     spRenderGraphResource* input = nullptr;
-    resources.TryGetValue(m_PassData.Get<Data>().m_hInputTexture.GetInternalID(), input);
+    resources.TryGetValue(data.m_hInputTexture.GetInternalID(), input);
 
-    auto const output = context->GetDevice()->GetResourceManager()->GetResource<spTexture>(context->GetDevice()->GetMainSwapchain()->GetFramebuffer()->GetColorTargets()[0]);
+    auto pDevice = context->GetDevice();
+    auto pFramebuffer = pDevice->GetMainSwapchain()->GetFramebuffer();
+
+    auto const output = pDevice->GetResourceManager()->GetResource<spTexture>(pFramebuffer->GetColorTargets()[data.m_uiColorAttachmentIndex]);
 
     cl->PushDebugGroup("Main Swapchain Pass");
     {
-      cl->SetFramebuffer(context->GetDevice()->GetMainSwapchain()->GetFramebuffer());
-      cl->CopyTexture(input->m_pResource.Downcast<spRenderTarget>()->GetTexture(), output);
+      cl->SetFramebuffer(pFramebuffer);
+      cl->CopyTexture(input->m_pRHIResource.Downcast<spRenderTarget>()->GetTexture(), output);
     }
     cl->PopDebugGroup();
   }

@@ -41,7 +41,7 @@
 
 #include <RHISample/RHISample.h>
 
-typedef spTriangleDemoRenderGraphNode::PassData spTriangleDemoRenderGraphNodePassData;
+typedef spDemoRenderGraphNode::PassData spTriangleDemoRenderGraphNodePassData;
 
 // clang-format off
 EZ_BEGIN_STATIC_REFLECTED_TYPE(spTriangleDemoRenderGraphNodePassData, ezNoBase, 1, ezRTTIDefaultAllocator<spTriangleDemoRenderGraphNodePassData>)
@@ -229,6 +229,10 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
     }
 
     EZ_ASSERT_DEV(m_pRenderSystem->GetDevice() != nullptr, "Device creation failed");
+
+    // Create a scene context
+    // Since this sample is to showcase how to use the RHI, we need to manually create a scene context here.
+    m_pSceneContext = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spSceneContext, m_pRenderSystem->GetDevice().Borrow());
   }
 
   // now that we have a window and device, tell the engine to initialize the rendering infrastructure
@@ -266,31 +270,35 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   spResourceHandle importedIDB = graphBuilder->Import(m_pMesh->GetRHIIndirectBuffer());             // Import a resource in the graph
 
   // 2. Setup graph nodes
-  ezUniquePtr<spTriangleDemoRenderGraphNode> triangleNode = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spTriangleDemoRenderGraphNode, m_pMesh);
+  {
+    ezUniquePtr<spDemoRenderGraphNode> triangleNode = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spDemoRenderGraphNode, m_pMesh);
 
-  ezHashTable<ezHashedString, spResourceHandle> triangleNodeResources;
-  triangleNodeResources.Insert(ezMakeHashedString("tex"), importedTex);
-  triangleNodeResources.Insert(ezMakeHashedString("smp"), importedSmp);
-  triangleNodeResources.Insert(ezMakeHashedString("vbo"), importedVBO);
-  triangleNodeResources.Insert(ezMakeHashedString("ibo"), importedIBO);
-  triangleNodeResources.Insert(ezMakeHashedString("idb"), importedIDB);
+    ezHashTable<ezHashedString, spResourceHandle> triangleNodeResources;
+    triangleNodeResources.Insert(ezMakeHashedString("tex"), importedTex);
+    triangleNodeResources.Insert(ezMakeHashedString("smp"), importedSmp);
+    triangleNodeResources.Insert(ezMakeHashedString("vbo"), importedVBO);
+    triangleNodeResources.Insert(ezMakeHashedString("ibo"), importedIBO);
+    triangleNodeResources.Insert(ezMakeHashedString("idb"), importedIDB);
 
-  graphBuilder->AddNode("Triangle", std::move(triangleNode), triangleNodeResources);
+    graphBuilder->AddNode("Triangle", std::move(triangleNode), triangleNodeResources);
+  }
 
-  ezUniquePtr<spMainSwapchainRenderGraphNode> swapchainNode = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spMainSwapchainRenderGraphNode);
-  swapchainNode->SetRenderTargetSize(g_uiWindowWidth, g_uiWindowHeight);
+  {
+    ezUniquePtr<spMainSwapchainRenderGraphNode> swapchainNode = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spMainSwapchainRenderGraphNode);
+    swapchainNode->SetRenderTargetSize(g_uiWindowWidth, g_uiWindowHeight);
 
-  ezHashTable<ezHashedString, spResourceHandle> swapchainNodeResources;
-  swapchainNodeResources.Insert(ezMakeHashedString("Input"), static_cast<const spTriangleDemoRenderGraphNode*>(graphBuilder->GetNode("Triangle"))->GetTarget());
+    ezHashTable<ezHashedString, spResourceHandle> swapchainNodeResources;
+    swapchainNodeResources.Insert(ezMakeHashedString("Input"), static_cast<const spDemoRenderGraphNode*>(graphBuilder->GetNode("Triangle"))->GetTarget());
 
-  graphBuilder->AddNode("Swapchain", std::move(swapchainNode), swapchainNodeResources);
+    graphBuilder->AddNode("Swapchain", std::move(swapchainNode), swapchainNodeResources);
+  }
 
   // 3. Compile graph
   renderPipeline = graphBuilder->Compile();
 
   // --- End Experimental render graph
 
-  m_pRenderSystem->GetSceneContext()->AddPipeline(renderPipeline.Borrow());
+  m_pSceneContext->AddPipeline(renderPipeline.Borrow());
 };
 
 void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
@@ -315,6 +323,8 @@ void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
 
 void ezRHISampleApp::AfterCoreSystemsShutdown()
 {
+  m_pSceneContext = nullptr;
+
   m_pRenderSystem->Shutdown();
   m_pRenderSystem = nullptr;
 
@@ -328,7 +338,7 @@ void ezRHISampleApp::OnResize(ezUInt32 width, ezUInt32 height)
   m_pRenderSystem->GetDevice()->ResizeSwapchain(width, height);
 }
 
-ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources)
+ezResult spDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources)
 {
   if (!resources.TryGetValue("tex", m_PassData.m_hGridTexture))
     return EZ_FAILURE;
@@ -361,7 +371,7 @@ ezResult spTriangleDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, co
   return EZ_SUCCESS;
 }
 
-ezUniquePtr<spRenderPass> spTriangleDemoRenderGraphNode::Compile(spRenderGraphBuilder* pBuilder)
+ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* pBuilder)
 {
   auto& data = m_PassData;
   const auto& resources = pBuilder->GetResources();
@@ -475,11 +485,11 @@ fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture
 
   spRenderGraphResource* tex = nullptr;
   resources.TryGetValue(data.m_hGridTexture.GetInternalID(), tex);
-  tex->m_pResource->SetDebugName("grid_texture");
+  tex->m_pRHIResource->SetDebugName("grid_texture");
 
   spRenderGraphResource* cbo = nullptr;
   resources.TryGetValue(data.m_hConstantBuffer.GetInternalID(), cbo);
-  cbo->m_pResource->SetDebugName("color_buffer");
+  cbo->m_pRHIResource->SetDebugName("color_buffer");
 
   spRenderGraphResource* ibo = nullptr;
   resources.TryGetValue(data.m_hIndexBuffer.GetInternalID(), ibo);
@@ -489,11 +499,11 @@ fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture
 
   spRenderGraphResource* smp = nullptr;
   resources.TryGetValue(data.m_hSampler.GetInternalID(), smp);
-  smp->m_pResource->SetDebugName("linear_sampler");
+  smp->m_pRHIResource->SetDebugName("linear_sampler");
 
   spRenderGraphResource* rtt = nullptr;
   resources.TryGetValue(data.m_hRenderTarget.GetInternalID(), rtt);
-  rtt->m_pResource->SetDebugName("main_render_target");
+  rtt->m_pRHIResource->SetDebugName("main_render_target");
 
   spRenderGraphResource* idb = nullptr;
   resources.TryGetValue(data.m_hIndirectBuffer.GetInternalID(), idb);
@@ -587,9 +597,9 @@ fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture
     spResourceSetDescription setDesc{};
     setDesc.m_hResourceLayout = data.m_pResourceLayout->GetHandle();
 
-    setDesc.m_BoundResources.Insert(ezMakeHashedString("linearSampler"), smp->m_pResource->GetHandle());
-    setDesc.m_BoundResources.Insert(ezMakeHashedString("tex"), tex->m_pResource->GetHandle());
-    setDesc.m_BoundResources.Insert(ezMakeHashedString("settings"), cbo->m_pResource->GetHandle());
+    setDesc.m_BoundResources.Insert(ezMakeHashedString("linearSampler"), smp->m_pRHIResource->GetHandle());
+    setDesc.m_BoundResources.Insert(ezMakeHashedString("tex"), tex->m_pRHIResource->GetHandle());
+    setDesc.m_BoundResources.Insert(ezMakeHashedString("settings"), cbo->m_pRHIResource->GetHandle());
 
     data.m_pResourceSet = pBuilder->GetResourceFactory()->CreateResourceSet(setDesc);
     data.m_pResourceSet->SetDebugName("set");
@@ -598,7 +608,7 @@ fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture
   if (data.m_pGraphicPipeline == nullptr)
   {
     spGraphicPipelineDescription desc{};
-    desc.m_Output = rtt->m_pResource.Downcast<spRenderTarget>()->GetFramebuffer()->GetOutputDescription();
+    desc.m_Output = rtt->m_pRHIResource.Downcast<spRenderTarget>()->GetFramebuffer()->GetOutputDescription();
     desc.m_ePrimitiveTopology = spPrimitiveTopology::Triangles;
     desc.m_RenderingState.m_BlendState = spBlendState::SingleDisabled;
     desc.m_RenderingState.m_DepthState = spDepthState::Disabled;
@@ -612,7 +622,7 @@ fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture
     data.m_pGraphicPipeline->SetDebugName("gpo");
   }
 
-  const spRenderPass::ExecuteCallback executeCallback = [=](const spRenderGraphResourcesTable& resources, spRenderContext* context, ezVariant& passData) -> void
+  const spCallbackRenderPass::ExecuteCallback executeCallback = [=](const spRenderGraphResourcesTable& resources, spRenderContext* context, ezVariant& passData) -> void
   {
     spRenderGraphResource* cbo = nullptr;
     resources.TryGetValue(data.m_hConstantBuffer.GetInternalID(), cbo);
@@ -637,7 +647,7 @@ fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture
     {
       cl->SetGraphicPipeline(data.m_pGraphicPipeline);
 
-      cl->SetFramebuffer(rtt->m_pResource.Downcast<spRenderTarget>()->GetFramebuffer());
+      cl->SetFramebuffer(rtt->m_pRHIResource.Downcast<spRenderTarget>()->GetFramebuffer());
 
       cl->SetFullViewport(0);
       cl->SetFullScissorRect(0);
@@ -645,44 +655,44 @@ fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture
       cl->ClearColorTarget(0, ezColor::Black);
       // cl->ClearDepthStencilTarget(1.0f, 0);
 
-      cl->SetVertexBuffer(0, vbo->m_pResource.Downcast<spBuffer>());
-      cl->SetIndexBuffer(ibo->m_pResource.Downcast<spBuffer>(), spIndexFormat::UInt16);
+      cl->SetVertexBuffer(0, vbo->m_pRHIResource.Downcast<spBuffer>());
+      cl->SetIndexBuffer(ibo->m_pRHIResource.Downcast<spBuffer>(), spIndexFormat::UInt16);
 
-      cl->UpdateBuffer<ezColor>(cbo->m_pResource.Downcast<spBuffer>(), 0, col);
+      cl->UpdateBuffer<ezColor>(cbo->m_pRHIResource.Downcast<spBuffer>(), 0, col);
 
       cl->SetGraphicResourceSet(0, data.m_pResourceSet);
 
-      cl->DrawIndexedIndirect(idb->m_pResource.Downcast<spBuffer>(), 0, m_PassData.m_DrawCommands.GetCount(), context->GetDevice()->GetIndexedIndirectCommandSize());
+      cl->DrawIndexedIndirect(idb->m_pRHIResource.Downcast<spBuffer>(), 0, m_PassData.m_DrawCommands.GetCount(), context->GetDevice()->GetIndexedIndirectCommandSize());
     }
     cl->PopProfileScope(pTestScopeProfiler);
 
     // Swap buffers - This will use the next buffer range for the next rendering pass
-    cbo->m_pResource.Downcast<spBuffer>()->SwapBuffers();
+    cbo->m_pRHIResource.Downcast<spBuffer>()->SwapBuffers();
   };
 
-  const spRenderPass::CleanUpCallback cleanUpCallback = [](const spRenderGraphResourcesTable& resources, ezVariant& passData) -> void
+  const spCallbackRenderPass::CleanUpCallback cleanUpCallback = [](const spRenderGraphResourcesTable& resources, ezVariant& passData) -> void
   {
     auto& data = passData.GetWritable<PassData>();
 
     spRenderGraphResource* cbo = nullptr;
     if (resources.TryGetValue(data.m_hConstantBuffer.GetInternalID(), cbo))
-      cbo->m_pResource.Clear();
+      cbo->m_pRHIResource.Clear();
 
     spRenderGraphResource* ibo = nullptr;
     resources.TryGetValue(data.m_hIndexBuffer.GetInternalID(), ibo);
-    ibo->m_pResource.Clear();
+    ibo->m_pRHIResource.Clear();
 
     spRenderGraphResource* vbo = nullptr;
     resources.TryGetValue(data.m_hVertexBuffer.GetInternalID(), vbo);
-    vbo->m_pResource.Clear();
+    vbo->m_pRHIResource.Clear();
 
     spRenderGraphResource* smp = nullptr;
     resources.TryGetValue(data.m_hSampler.GetInternalID(), smp);
-    smp->m_pResource.Clear();
+    smp->m_pRHIResource.Clear();
 
     spRenderGraphResource* rtt = nullptr;
     resources.TryGetValue(data.m_hRenderTarget.GetInternalID(), rtt);
-    rtt->m_pResource.Clear();
+    rtt->m_pRHIResource.Clear();
 
     data.m_pGraphicPipeline.Clear();
     data.m_pResourceSet.Clear();
@@ -693,26 +703,26 @@ fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture
     data.m_pVertexShader.Clear();
   };
 
-  ezUniquePtr<spRenderPass> pPass = EZ_NEW(pBuilder->GetAllocator(), spRenderPass, executeCallback, cleanUpCallback);
+  ezUniquePtr<spRenderPass> pPass = EZ_NEW(pBuilder->GetAllocator(), spCallbackRenderPass, executeCallback, cleanUpCallback);
   pPass->SetData(m_PassData);
 
   return pPass;
 }
 
-bool spTriangleDemoRenderGraphNode::IsEnabled() const
+bool spDemoRenderGraphNode::IsEnabled() const
 {
   return true;
 }
 
-void operator<<(ezStreamWriter& Stream, const spTriangleDemoRenderGraphNode::PassData& Value)
+void operator<<(ezStreamWriter& Stream, const spDemoRenderGraphNode::PassData& Value)
 {
 }
 
-void operator>>(ezStreamReader& Stream, spTriangleDemoRenderGraphNode::PassData& Value)
+void operator>>(ezStreamReader& Stream, spDemoRenderGraphNode::PassData& Value)
 {
 }
 
-bool operator==(const spTriangleDemoRenderGraphNode::PassData& lhs, const spTriangleDemoRenderGraphNode::PassData& rhs)
+bool operator==(const spDemoRenderGraphNode::PassData& lhs, const spDemoRenderGraphNode::PassData& rhs)
 {
   return lhs.m_hConstantBuffer == rhs.m_hConstantBuffer && lhs.m_hIndexBuffer == rhs.m_hIndexBuffer && lhs.m_hVertexBuffer == rhs.m_hVertexBuffer && lhs.m_hRenderTarget == rhs.m_hRenderTarget && lhs.m_hGridTexture == rhs.m_hGridTexture && lhs.m_hSampler == rhs.m_hSampler;
 }
@@ -733,13 +743,13 @@ ezApplication::Execution ezRHISampleApp::Run()
   // do the rendering
   m_pRenderSystem->GetRenderThread()->PostAsync([&]() -> void
     {
-      m_pRenderSystem->GetSceneContext()->BeginFrame();
+      m_pSceneContext->BeginFrame();
       {
-        m_pRenderSystem->GetSceneContext()->Draw();
+        m_pSceneContext->Draw();
       }
-      m_pRenderSystem->GetSceneContext()->EndFrame(); });
+      m_pSceneContext->EndFrame(); });
 
-  m_pRenderSystem->GetSceneContext()->WaitForIdle();
+  m_pSceneContext->WaitForIdle();
 
   // needs to be called once per frame
   ezResourceManager::PerFrameUpdate();

@@ -24,7 +24,6 @@ EZ_END_STATIC_REFLECTED_TYPE;
 namespace RPI
 {
   spClusteredDeferredClustersComputeRenderPass::spClusteredDeferredClustersComputeRenderPass(Data&& passData)
-    : spRenderPass({}, {})
   {
     SetData(passData);
   }
@@ -36,6 +35,6 @@ namespace RPI
 
   void spClusteredDeferredClustersComputeRenderPass::CleanUp(const spRenderGraphResourcesTable& resources)
   {
-    spRenderPass::CleanUp(resources);
+    // noop
   }
 } // namespace RPI

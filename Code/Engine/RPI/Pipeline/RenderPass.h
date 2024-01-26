@@ -26,10 +26,8 @@ namespace RPI
     EZ_DISALLOW_COPY_AND_ASSIGN(spRenderPass);
 
   public:
-    typedef ezDelegate<void(const spRenderGraphResourcesTable&, spRenderContext*, ezVariant&)> ExecuteCallback;
-    typedef ezDelegate<void(const spRenderGraphResourcesTable&, ezVariant&)> CleanUpCallback;
-
-    spRenderPass(ExecuteCallback executeCallback, CleanUpCallback cleanUpCallback);
+    spRenderPass() = default;
+    virtual ~spRenderPass() = default;
 
     template <typename T>
     EZ_ALWAYS_INLINE void SetData(const T& data)
@@ -37,12 +35,25 @@ namespace RPI
       m_PassData = data;
     }
 
-    virtual void Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context);
-
-    virtual void CleanUp(const spRenderGraphResourcesTable& resources);
+    virtual void Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context) = 0;
+    virtual void CleanUp(const spRenderGraphResourcesTable& resources) = 0;
 
   protected:
     ezVariant m_PassData;
+  };
+
+  class SP_RPI_DLL spCallbackRenderPass : public spRenderPass
+  {
+
+  public:
+    typedef ezDelegate<void(const spRenderGraphResourcesTable&, spRenderContext*, ezVariant&)> ExecuteCallback;
+    typedef ezDelegate<void(const spRenderGraphResourcesTable&, ezVariant&)> CleanUpCallback;
+
+    spCallbackRenderPass(ExecuteCallback executeCallback, CleanUpCallback cleanUpCallback);
+    ~spCallbackRenderPass() override = default;
+
+    void Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context) override;
+    void CleanUp(const spRenderGraphResourcesTable& resources) override;
 
   private:
     ExecuteCallback m_ExecuteCallback;

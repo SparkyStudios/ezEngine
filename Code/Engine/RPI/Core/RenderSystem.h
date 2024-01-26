@@ -19,60 +19,13 @@
 #include <RHI/Device.h>
 
 #include <RPI/Composition/Compositor.h>
-#include <RPI/Core/RenderStage.h>
-#include <RPI/Core/RenderView.h>
-#include <RPI/Core/Threading/ConcurrentCollector.h>
 #include <RPI/Core/Threading/RenderThread.h>
-#include <RPI/Features/RenderFeatureExtractor.h>
-#include <RPI/Scene/SceneContext.h>
+
+class ezWorld;
 
 namespace RPI
 {
-  struct spRenderSystemCollectEvent
-  {
-    enum class Type
-    {
-      Collect,
-      AfterCollect
-    };
-
-    Type m_Type;
-    const spRenderContext* m_pRenderContext;
-  };
-
-  struct spRenderSystemExtractEvent
-  {
-    enum class Type
-    {
-      BeforeExtract,
-      AfterExtract
-    };
-
-    Type m_Type;
-    const spRenderContext* m_pRenderContext;
-  };
-
-  struct spRenderSystemPrepareEvent
-  {
-    enum class Type
-    {
-      BeforePrepare,
-      AfterPrepare
-    };
-
-    Type m_Type;
-  };
-
-  struct spRenderSystemDrawEvent
-  {
-    enum class Type
-    {
-      BeforeDraw,
-      AfterDraw
-    };
-
-    Type m_Type;
-  };
+  class spSceneContext;
 
   /// \brief A struct used to create and hold references to render nodes.
   /// Theses references are most of the time indices to a render node from
@@ -130,8 +83,6 @@ namespace RPI
     EZ_DECLARE_SINGLETON(spRenderSystem);
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE static const ezEvent<const spRenderSystemCollectEvent&, ezMutex>& GetCollectEvent() { return s_CollectEvent; }
-
     EZ_NODISCARD static bool IsMultiThreadedRendering();
 
     EZ_NODISCARD EZ_ALWAYS_INLINE static ezUInt64 GetFrameCount() { return s_uiFrameCount; }
@@ -147,50 +98,23 @@ namespace RPI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezUniquePtr<RHI::spDevice>& GetDevice() const { return m_pDevice; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezUniquePtr<spSceneContext>& GetSceneContext() const { return m_pSceneContext; }
-
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezUniquePtr<spRenderThread>& GetRenderThread() const { return m_pRenderThread; }
-
-    void Collect(const spRenderContext* pRenderContext);
-
-    void Extract(const spRenderContext* pRenderContext);
-
-    void Prepare(spRenderContext* pRenderContext);
-
-    void Draw(spRenderContext* pRenderContext);
-
-    void Flush(spRenderContext* pRenderContext);
-
-    void Reset();
-
-    void AddRenderObject(spRenderObject* pRenderObject);
-    void RemoveRenderObject(spRenderObject* pRenderObject);
-
-    EZ_ALWAYS_INLINE spConcurrentCollector<spRenderView*>& GetRenderViewCollector() { return m_RenderViewCollector; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderView*>& GetRenderViewCollector() const { return m_RenderViewCollector; }
-
-    EZ_ALWAYS_INLINE spConcurrentCollector<spRenderFeature*>& GetRenderFeatureCollector() { return m_RenderFeatureCollector; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderFeature*>& GetRenderFeatureCollector() const { return m_RenderFeatureCollector; }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spCompositor> GetCompositor() const { return m_pCompositor; }
 
-  private:
-    static ezEvent<const spRenderSystemCollectEvent&, ezMutex> s_CollectEvent;
-    static ezEvent<const spRenderSystemExtractEvent&, ezMutex> s_ExtractEvent;
+    EZ_NODISCARD spSceneContext* GetSceneContextFromWorld(const ezWorld* pWorld) const;
 
+    void RegisterSceneForWorld(const ezWorld* pWorld, spSceneContext* pSceneContext);
+
+  private:
     static ezUInt64 s_uiFrameCount;
 
     bool m_bInitialized{false};
 
     ezUniquePtr<RHI::spDevice> m_pDevice{nullptr};
-
     ezUniquePtr<spRenderThread> m_pRenderThread{nullptr};
-    ezUniquePtr<spSceneContext> m_pSceneContext{nullptr};
-
-    spConcurrentCollector<spRenderView*> m_RenderViewCollector;
-    spConcurrentCollector<spRenderStage*> m_RenderStageCollector;
-    spConcurrentCollector<spRenderFeature*> m_RenderFeatureCollector;
-
     ezSharedPtr<spCompositor> m_pCompositor{nullptr};
+
+    ezArrayMap<const ezWorld*, spSceneContext*> m_RegisteredWorldScenes;
   };
 } // namespace RPI
