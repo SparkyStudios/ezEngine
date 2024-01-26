@@ -52,7 +52,7 @@ namespace RPI
   class SP_RPI_DLL spRenderGraphResource : public ezRefCounted
   {
   public:
-    ezSharedPtr<RHI::spDeviceResource> m_pResource{nullptr};
+    ezSharedPtr<RHI::spDeviceResource> m_pRHIResource{nullptr};
     ezEnum<spRenderGraphResourceBindType> m_eBindType{spRenderGraphResourceBindType::Transient};
     ezEnum<spRenderGraphResourceType> m_eType{spRenderGraphResourceType::Unknown};
     spRenderGraphNode* m_pProducer{nullptr};

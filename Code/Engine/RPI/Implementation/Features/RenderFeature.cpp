@@ -16,6 +16,7 @@
 
 #include <RPI/Core/RenderSystem.h>
 #include <RPI/Features/RenderFeature.h>
+#include <RPI/Scene/SceneContext.h>
 
 namespace RPI
 {
@@ -58,12 +59,12 @@ namespace RPI
 
     OnInitialize();
 
-    spRenderSystem::GetCollectEvent().AddEventHandler(ezMakeDelegate(&spRenderFeature::OnRenderSystemCollectEvent, this));
+    spSceneContext::GetCollectEvent().AddEventHandler(ezMakeDelegate(&spRenderFeature::OnRenderSystemCollectEvent, this));
   }
 
   void spRenderFeature::Deinitialize()
   {
-    spRenderSystem::GetCollectEvent().RemoveEventHandler(ezMakeDelegate(&spRenderFeature::OnRenderSystemCollectEvent, this));
+    spSceneContext::GetCollectEvent().RemoveEventHandler(ezMakeDelegate(&spRenderFeature::OnRenderSystemCollectEvent, this));
 
     OnDeinitialize();
 
@@ -134,13 +135,12 @@ namespace RPI
     pRenderComponent->m_pRenderFeature = nullptr;
   }
 
-  void spRenderFeature::OnRenderSystemCollectEvent(const spRenderSystemCollectEvent& event)
+  void spRenderFeature::OnRenderSystemCollectEvent(const spSceneContextCollectEvent& event)
   {
     if (!m_bIsActive || m_pExtractor == nullptr)
       return;
 
-    auto* pRenderSystem = ezSingletonRegistry::GetRequiredSingletonInstance<spRenderSystem>();
-    pRenderSystem->GetRenderFeatureCollector().Add(this);
+    event.m_pSceneContext->GetRenderFeatureCollector().Add(this);
   }
 
   void spRenderFeature::OnInitialize()

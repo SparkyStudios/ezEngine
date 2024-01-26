@@ -19,9 +19,9 @@
 
 namespace RPI
 {
-  spVisibilityGroup::spVisibilityGroup(spRenderSystem* pRenderSystem)
+  spVisibilityGroup::spVisibilityGroup(spSceneContext* pSceneContext)
     : m_RenderObjectsWithoutFeatures()
-    , m_pRenderSystem(pRenderSystem)
+    , m_pSceneContext(pSceneContext)
   {
   }
 
@@ -54,7 +54,7 @@ namespace RPI
     pRenderObject->m_VisibilityGroupReference = spRenderNodeReference(pCollection->m_Items.GetCount());
     pCollection->m_Items.PushBack(pRenderObject);
 
-    m_pRenderSystem->AddRenderObject(pRenderObject);
+    m_pSceneContext->AddRenderObject(pRenderObject);
 
     if (pRenderObject->m_pRenderFeature == nullptr)
       m_RenderObjectsWithoutFeatures.PushBack(pRenderObject);
@@ -69,7 +69,7 @@ namespace RPI
     if (pRenderObject->m_pRenderFeature == nullptr)
       m_RenderObjectsWithoutFeatures.RemoveAndSwap(pRenderObject);
 
-    m_pRenderSystem->RemoveRenderObject(pRenderObject);
+    m_pSceneContext->RemoveRenderObject(pRenderObject);
   }
 
   void spVisibilityGroup::EvaluateActiveRenderStages(spRenderObject* pRenderObject)

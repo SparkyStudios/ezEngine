@@ -31,8 +31,6 @@ namespace RPI
     spExtractMeshRenderObjectMessage message;
     message.m_pRenderContext = pRenderContext;
     message.m_pRenderView = pRenderView;
-
-    EZ_LOCK(pRenderContext->GetWorld()->GetReadMarker());
   }
 } // namespace RPI
 

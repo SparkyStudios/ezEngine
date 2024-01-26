@@ -16,6 +16,7 @@
 
 #include <RPI/Core/RenderSystem.h>
 #include <RPI/Features/RenderComponent.h>
+#include <RPI/Scene/SceneContext.h>
 
 namespace RPI
 {
@@ -33,7 +34,11 @@ namespace RPI
   {
     ezComponent::OnActivated();
 
-    for (auto&& pFeature : m_pRenderSystem->GetRenderFeatureCollector())
+    spSceneContext* pSceneContext = m_pRenderSystem->GetSceneContextFromWorld(GetWorld());
+    if (pSceneContext == nullptr)
+      return;
+
+    for (auto&& pFeature : pSceneContext->GetRenderFeatureCollector())
     {
       if (pFeature->IsInstanceOf(m_pRenderFeatureType) && pFeature->TryAddRenderComponent(this))
       {

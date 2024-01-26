@@ -26,15 +26,15 @@ namespace RPI
 
   spRenderPipeline::~spRenderPipeline()
   {
-    for (const auto& pass : m_OrderedPasses)
-      RemovePass(pass);
+    for (auto it = m_OrderedPasses.GetIterator(); it.IsValid(); it.Next())
+      RemovePass(*it);
   }
 
   void spRenderPipeline::Execute(spRenderContext* pContext)
   {
-    for (const auto& pass : m_OrderedPasses)
+    for (auto it = m_OrderedPasses.GetIterator(); it.IsValid(); it.Next())
     {
-      const ezUniquePtr<spRenderPass>* pPass = m_Passes.GetValue(pass);
+      const ezUniquePtr<spRenderPass>* pPass = m_Passes.GetValue(*it);
 
       BeginPass(pPass->Borrow(), pContext);
       ExecutePass(pPass->Borrow(), pContext);
@@ -66,14 +66,17 @@ namespace RPI
   void spRenderPipeline::RemovePass(ezHashedString sName)
   {
     m_Passes.Remove(sName);
-    m_OrderedPasses.RemoveAndCopy(sName);
+
+    for (auto it = m_OrderedPasses.GetIterator(); it.IsValid(); it.Next())
+      if (*it == sName)
+        m_OrderedPasses.Remove(it);
   }
 
   void spRenderPipeline::CleanUp()
   {
-    for (const auto& pass : m_OrderedPasses)
+    for (auto it = m_OrderedPasses.GetIterator(); it.IsValid(); it.Next())
     {
-      const ezUniquePtr<spRenderPass>* pPass = m_Passes.GetValue(pass);
+      const ezUniquePtr<spRenderPass>* pPass = m_Passes.GetValue(*it      );
       (*pPass)->CleanUp(m_PipelineResources);
     }
   }

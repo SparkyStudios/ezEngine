@@ -14,6 +14,8 @@
 
 #include <RPI/RPIPCH.h>
 
+#include <Core/World/World.h>
+
 #include <Foundation/Configuration/CVar.h>
 
 #include <RPI/Core/RenderSystem.h>
@@ -34,9 +36,6 @@ namespace RPI
     : m_iRef(iReference)
   {
   }
-
-  ezEvent<const spRenderSystemCollectEvent&, ezMutex> spRenderSystem::s_CollectEvent;
-  ezEvent<const spRenderSystemExtractEvent&, ezMutex> spRenderSystem::s_ExtractEvent;
 
   ezUInt64 spRenderSystem::s_uiFrameCount = 0;
 
@@ -60,8 +59,6 @@ namespace RPI
     m_pRenderThread = EZ_DEFAULT_NEW(spRenderThread);
     m_pRenderThread->Start();
 
-    m_pSceneContext = EZ_NEW(m_pDevice->GetAllocator(), spSceneContext, m_pDevice.Borrow());
-
     // TODO: Load the compositor from the resource instead
     m_pCompositor = EZ_NEW(m_pDevice->GetAllocator(), spCompositor);
 
@@ -78,8 +75,6 @@ namespace RPI
     m_pCompositor.Clear();
     m_pCompositor = nullptr;
 
-    m_pSceneContext = nullptr;
-
     m_pRenderThread->Stop();
     m_pRenderThread = nullptr;
 
@@ -87,82 +82,17 @@ namespace RPI
     m_pDevice = nullptr;
   }
 
-  void spRenderSystem::Collect(const spRenderContext* pRenderContext)
+  spSceneContext* spRenderSystem::GetSceneContextFromWorld(const ezWorld* pWorld) const
   {
-    EZ_ASSERT_DEV(pRenderContext != nullptr, "Render context must not be nullptr.");
+    const auto uiIndex = m_RegisteredWorldScenes.Find(pWorld);
+    if (uiIndex == ezInvalidIndex)
+      return nullptr;
 
-    m_RenderViewCollector.Clear();
-    m_RenderStageCollector.Clear();
-    m_RenderFeatureCollector.Clear();
-
-    // Collect render views and extractors from providers
-    spRenderSystemCollectEvent event{};
-    event.m_Type = spRenderSystemCollectEvent::Type::Collect;
-    event.m_pRenderContext = pRenderContext;
-    s_CollectEvent.Broadcast(event);
-
-    // Close the collectors
-    m_RenderViewCollector.Close();
-    m_RenderStageCollector.Close();
-    m_RenderFeatureCollector.Close();
-
-    // Trigger the "after collect" event
-    event.m_Type = spRenderSystemCollectEvent::Type::AfterCollect;
-    s_CollectEvent.Broadcast(event);
+    return m_RegisteredWorldScenes.GetValue(uiIndex);
   }
 
-  void spRenderSystem::Extract(const spRenderContext* pRenderContext)
+  void spRenderSystem::RegisterSceneForWorld(const ezWorld* pWorld, spSceneContext* pSceneContext)
   {
-    EZ_ASSERT_DEV(pRenderContext != nullptr, "Render context must not be nullptr.");
-
-    // Prepare views
-    for (ezInt32 index = 0; index < m_RenderViewCollector.GetCount(); index++)
-    {
-      // Update view index
-      spRenderView* view = m_RenderViewCollector[index];
-      view->SetIndex(index);
-    }
-
-    // Trigger the "before extract" event
-    spRenderSystemExtractEvent event{};
-    event.m_Type = spRenderSystemExtractEvent::Type::BeforeExtract;
-    event.m_pRenderContext = pRenderContext;
-    s_ExtractEvent.Broadcast(event);
-
-    // Extract render data from views
-    for (const auto& view : m_RenderViewCollector)
-      for (const auto& feature : m_RenderFeatureCollector)
-        feature->Extract(pRenderContext, view);
-
-    // Trigger the "after extract" event
-    event.m_Type = spRenderSystemExtractEvent::Type::AfterExtract;
-    s_ExtractEvent.Broadcast(event);
-  }
-
-  void spRenderSystem::AddRenderObject(spRenderObject* pRenderObject)
-  {
-    EZ_ASSERT_DEV(pRenderObject != nullptr, "RenderObject cannot be nullptr");
-
-    for (const auto& feature : m_RenderFeatureCollector)
-    {
-      ezHybridArray<const ezRTTI*, 8> supportedTypes;
-      feature->GetSupportedRenderObjectTypes(supportedTypes);
-
-      if (!supportedTypes.Contains(pRenderObject->GetDynamicRTTI()))
-        continue;
-
-      if (feature->TryAddRenderObject(pRenderObject))
-        break;
-    }
-  }
-
-  void spRenderSystem::RemoveRenderObject(spRenderObject* pRenderObject)
-  {
-    EZ_ASSERT_DEV(pRenderObject != nullptr, "RenderObject cannot be nullptr");
-
-    if (pRenderObject->m_pRenderFeature == nullptr)
-      return;
-
-    pRenderObject->m_pRenderFeature->RemoveRenderObject(pRenderObject);
+    m_RegisteredWorldScenes[pWorld] = pSceneContext;
   }
 } // namespace RPI

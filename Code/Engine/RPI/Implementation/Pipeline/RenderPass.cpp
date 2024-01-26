@@ -18,18 +18,18 @@
 
 namespace RPI
 {
-  spRenderPass::spRenderPass(ExecuteCallback executeCallback, CleanUpCallback cleanUpCallback)
+  spCallbackRenderPass::spCallbackRenderPass(RPI::spCallbackRenderPass::ExecuteCallback executeCallback, RPI::spCallbackRenderPass::CleanUpCallback cleanUpCallback)
     : m_ExecuteCallback(std::move(executeCallback))
     , m_CleanUpCallback(std::move(cleanUpCallback))
   {
   }
 
-  void spRenderPass::Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context)
+  void spCallbackRenderPass::Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context)
   {
     m_ExecuteCallback(resources, context, m_PassData);
   }
 
-  void spRenderPass::CleanUp(const spRenderGraphResourcesTable& resources)
+  void spCallbackRenderPass::CleanUp(const spRenderGraphResourcesTable& resources)
   {
     m_CleanUpCallback(resources, m_PassData);
   }

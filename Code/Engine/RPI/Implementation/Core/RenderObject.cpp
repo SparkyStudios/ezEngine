@@ -15,6 +15,7 @@
 #include <RPI/RPIPCH.h>
 
 #include <RPI/Core/RenderObject.h>
+#include <RPI/Core/VisibilityGroup.h>
 
 namespace RPI
 {

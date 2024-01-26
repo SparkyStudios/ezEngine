@@ -71,6 +71,6 @@ namespace RPI
     spRenderGraphResourcesTable m_PipelineResources;
 
     ezHashTable<ezHashedString, ezUniquePtr<spRenderPass>> m_Passes;
-    ezDynamicArray<ezHashedString> m_OrderedPasses;
+    ezList<ezHashedString> m_OrderedPasses;
   };
 } // namespace RPI

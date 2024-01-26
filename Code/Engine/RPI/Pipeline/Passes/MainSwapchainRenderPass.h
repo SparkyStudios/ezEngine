@@ -24,6 +24,7 @@ namespace RPI
       EZ_DECLARE_POD_TYPE();
 
       RHI::spResourceHandle m_hInputTexture;
+      ezUInt8 m_uiColorAttachmentIndex{0};
     };
 
     explicit spMainSwapchainRenderPass(Data&& passData);

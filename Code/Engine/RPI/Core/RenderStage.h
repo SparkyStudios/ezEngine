@@ -25,8 +25,10 @@ namespace RPI
   class spRenderStage;
 
   /// \brief Specifies how to filter \a spRenderObject from a \a spRenderStage.
-  class SP_RPI_DLL spRenderStageFilter
+  class SP_RPI_DLL spRenderStageFilter : public ezReflectedClass
   {
+    EZ_ADD_DYNAMIC_REFLECTION(spRenderStageFilter, ezReflectedClass);
+
   public:
     virtual ~spRenderStageFilter() = default;
 
@@ -37,10 +39,11 @@ namespace RPI
     virtual bool IsVisible(const spRenderObject& renderObject, const spRenderView& renderView, const spRenderStage& renderStage) = 0;
   };
 
-  class SP_RPI_DLL spRenderStage
+  class SP_RPI_DLL spRenderStage : public ezReflectedClass
   {
-  public:
+    EZ_ADD_DYNAMIC_REFLECTION(spRenderStage, ezReflectedClass);
 
+  public:
   private:
     ezHashedString m_sName;
 

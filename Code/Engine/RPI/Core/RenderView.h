@@ -94,8 +94,10 @@ namespace RPI
     };
   };
 
-  class SP_RPI_DLL spRenderView
+  class SP_RPI_DLL spRenderView : public ezReflectedClass
   {
+    EZ_ADD_DYNAMIC_REFLECTION(spRenderView, ezReflectedClass);
+
   public:
     spRenderView() = default;
     ~spRenderView() = default;

@@ -35,7 +35,7 @@ namespace RPI
       EZ_MEMBER_PROPERTY("Game", m_GameEntryPoint),
       EZ_MEMBER_PROPERTY("Editor", m_EditorEntryPoint),
       EZ_MEMBER_PROPERTY("Preview", m_PreviewEntryPoint),
-      EZ_ARRAY_MEMBER_PROPERTY("Camera Slots", m_Cameras),
+      EZ_ARRAY_MEMBER_PROPERTY("CameraSlots", m_Cameras),
     }
     EZ_END_PROPERTIES;
   }

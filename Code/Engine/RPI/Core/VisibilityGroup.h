@@ -17,6 +17,7 @@
 #include <RPI/RPIDLL.h>
 
 #include <RHI/Device.h>
+#include <RPI/Scene/SceneContext.h>
 
 namespace RPI
 {
@@ -31,7 +32,7 @@ namespace RPI
     friend class spRenderObjectCollection;
 
   public:
-    explicit spVisibilityGroup(spRenderSystem* pRenderSystem);
+    explicit spVisibilityGroup(spSceneContext* pSceneContext);
     ~spVisibilityGroup();
 
     void Reset();
@@ -49,6 +50,6 @@ namespace RPI
     bool m_bNeedRenderStageEvaluation{false};
     ezDynamicArray<spRenderObject*> m_RenderObjectsWithoutFeatures{nullptr};
 
-    spRenderSystem* m_pRenderSystem{nullptr};
+    spSceneContext* m_pSceneContext{nullptr};
   };
 } // namespace RPI

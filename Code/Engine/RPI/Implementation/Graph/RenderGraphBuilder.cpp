@@ -245,25 +245,25 @@ namespace RPI
     for (const auto& pending : m_PendingTextures)
     {
       if (spRenderGraphResource* resource = nullptr; m_GraphResources.TryGetValue(pending.key.GetInternalID(), resource))
-        resource->m_pResource = m_pDevice->GetResourceFactory()->CreateTexture(pending.value);
+        resource->m_pRHIResource = m_pDevice->GetResourceFactory()->CreateTexture(pending.value);
     }
 
     for (const auto& pending : m_PendingRenderTargets)
     {
       if (spRenderGraphResource* resource = nullptr; m_GraphResources.TryGetValue(pending.key.GetInternalID(), resource))
-        resource->m_pResource = m_pDevice->GetResourceFactory()->CreateRenderTarget(pending.value);
+        resource->m_pRHIResource = m_pDevice->GetResourceFactory()->CreateRenderTarget(pending.value);
     }
 
     for (const auto& pending : m_PendingBuffers)
     {
       if (spRenderGraphResource* resource = nullptr; m_GraphResources.TryGetValue(pending.key.GetInternalID(), resource))
-        resource->m_pResource = m_pDevice->GetResourceFactory()->CreateBuffer(pending.value);
+        resource->m_pRHIResource = m_pDevice->GetResourceFactory()->CreateBuffer(pending.value);
     }
 
     for (const auto& pending : m_PendingSamplers)
     {
       if (spRenderGraphResource* resource = nullptr; m_GraphResources.TryGetValue(pending.key.GetInternalID(), resource))
-        resource->m_pResource = m_pDevice->GetResourceFactory()->CreateSampler(pending.value);
+        resource->m_pRHIResource = m_pDevice->GetResourceFactory()->CreateSampler(pending.value);
     }
 
     // --- Compile nodes and setup pipeline passes
@@ -290,7 +290,7 @@ namespace RPI
     spRenderGraphResource resource;
     resource.m_eBindType = spRenderGraphResourceBindType::Imported;
     resource.m_eType = eType;
-    resource.m_pResource = pResource;
+    resource.m_pRHIResource = pResource;
 
     return spResourceHandle(m_GraphResources.Insert(std::move(resource)));
   }

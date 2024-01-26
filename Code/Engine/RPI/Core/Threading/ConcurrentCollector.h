@@ -34,7 +34,7 @@ namespace RPI
     /// only after the collection is closed.
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezHybridArray<T, 16, TAllocatorWrapper>& GetItems() const
     {
-      EZ_ASSERT_DEBUG(m_pHead != m_pTail, "The collection is not yet closed.");
+      EZ_ASSERT_DEBUG(m_pHead == m_pTail, "The collection is not yet closed.");
       return m_pHead->m_Items;
     }
 
@@ -42,7 +42,7 @@ namespace RPI
     /// only after the collection is closed.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezHybridArray<T, 16, TAllocatorWrapper>& GetItems()
     {
-      EZ_ASSERT_DEBUG(m_pHead != m_pTail, "The collection is not yet closed.");
+      EZ_ASSERT_DEBUG(m_pHead == m_pTail, "The collection is not yet closed.");
       return m_pHead->m_Items;
     }
 
