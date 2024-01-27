@@ -30,7 +30,7 @@ namespace RPI
   /// \brief A struct used to create and hold references to render nodes.
   /// Theses references are most of the time indices to a render node from
   /// an array.
-  struct SP_RHI_DLL spRenderNodeReference
+  struct SP_RPI_DLL spRenderNodeReference
   {
   public:
     EZ_DECLARE_POD_TYPE();

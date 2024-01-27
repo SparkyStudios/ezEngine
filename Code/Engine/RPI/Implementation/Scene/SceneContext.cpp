@@ -125,13 +125,13 @@ namespace RPI
 
   void spSceneContext::EndFrame()
   {
-    Flush();
-
     m_pRenderContext->EndFrame(m_pFence);
 
-    Reset();
+    Flush();
 
     m_pDevice->EndFrame();
+
+    Reset();
   }
 
   void spSceneContext::Flush()

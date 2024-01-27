@@ -17,6 +17,9 @@ EZ_IMPLEMENT_SINGLETON(RHI::spDeviceD3D11);
 
 EZ_BEGIN_STATIC_REFLECTED_TYPE(RHI::spDeviceD3D11, RHI::spDevice, 1, ezRTTINoAllocator)
 EZ_END_STATIC_REFLECTED_TYPE;
+
+EZ_DEFINE_AS_POD_TYPE(D3D11_DRAW_INDEXED_INSTANCED_INDIRECT_ARGS);
+EZ_DEFINE_AS_POD_TYPE(D3D11_DRAW_INSTANCED_INDIRECT_ARGS);
 // clang-format on
 
 static bool SdkLayersAvailable()
@@ -259,6 +262,51 @@ namespace RHI
     }
   }
 
+  void spDeviceD3D11::UpdateIndexedIndirectBuffer(ezSharedPtr<spBuffer> pBuffer, const ezArrayPtr<spDrawIndexedIndirectCommand>& source)
+  {
+    ezDynamicArray<D3D11_DRAW_INDEXED_INSTANCED_INDIRECT_ARGS> args;
+    args.SetCount(source.GetCount());
+
+    for (ezUInt32 i = 0, l = args.GetCount(); i < l; i++) {
+      auto& arg = args[i];
+      const auto& command = source[i];
+      arg.IndexCountPerInstance = command.m_uiCount;
+      arg.InstanceCount = command.m_uiInstanceCount;
+      arg.StartIndexLocation = command.m_uiFirstIndex;
+      arg.BaseVertexLocation = command.m_uiBaseVertex;
+      arg.StartInstanceLocation = command.m_uiBaseInstance;
+    }
+
+    UpdateBuffer(pBuffer, 0, args.GetData(), args.GetCount());
+  }
+
+  void spDeviceD3D11::UpdateIndirectBuffer(ezSharedPtr<spBuffer> pBuffer, const ezArrayPtr<spDrawIndirectCommand>& source)
+  {
+    ezDynamicArray<D3D11_DRAW_INSTANCED_INDIRECT_ARGS> args;
+    args.SetCount(source.GetCount());
+
+    for (ezUInt32 i = 0, l = args.GetCount(); i < l; i++) {
+      auto& arg = args[i];
+      const auto& command = source[i];
+      arg.VertexCountPerInstance = command.m_uiCount;
+      arg.InstanceCount = command.m_uiInstanceCount;
+      arg.StartVertexLocation = command.m_uiFirstIndex;
+      arg.StartInstanceLocation = command.m_uiBaseInstance;
+    }
+
+    UpdateBuffer(pBuffer, 0, args.GetData(), args.GetCount());
+  }
+
+  ezUInt32 spDeviceD3D11::GetIndexedIndirectCommandSize()
+  {
+    return sizeof(D3D11_DRAW_INDEXED_INSTANCED_INDIRECT_ARGS);
+  }
+
+  ezUInt32 spDeviceD3D11::GetIndirectCommandSize()
+  {
+    return sizeof(D3D11_DRAW_INSTANCED_INDIRECT_ARGS);
+  }
+
   void spDeviceD3D11::ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination)
   {
     // TODO
@@ -301,8 +349,7 @@ namespace RHI
 
   void spDeviceD3D11::WaitForIdleInternal()
   {
-    m_pResourceManager->ReleaseResources();
-    m_pD3D11ImmediateContext->Flush();
+    // noop
   }
 
   const spMappedResource& spDeviceD3D11::MapInternal(ezSharedPtr<spBuffer> pBuffer, ezEnum<spMapAccess> eAccess)

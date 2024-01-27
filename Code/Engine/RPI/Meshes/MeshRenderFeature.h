@@ -22,7 +22,7 @@ namespace RPI
 {
   class spMeshRenderFeatureExtractor;
 
-  class SP_RHI_DLL spMeshRenderFeature final : spRenderFeature
+  class SP_RPI_DLL spMeshRenderFeature final : spRenderFeature
   {
     EZ_ADD_DYNAMIC_REFLECTION(spMeshRenderFeature, spRenderFeature);
 
@@ -36,7 +36,7 @@ namespace RPI
 
   public:
     spMeshRenderFeature();
-    ~spMeshRenderFeature() override;
+    ~spMeshRenderFeature() override = default;
 
   private:
 

@@ -25,7 +25,7 @@ namespace RPI
 
   };
 
-  class SP_RHI_DLL spMeshRenderObject final : public spRenderObject
+  class SP_RPI_DLL spMeshRenderObject final : public spRenderObject
   {
     EZ_ADD_DYNAMIC_REFLECTION(spMeshRenderObject, spRenderObject);
   };

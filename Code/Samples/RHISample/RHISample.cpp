@@ -413,7 +413,7 @@ struct VS_OUTPUT
 
 SamplerState linearSampler : register(s0);
 
-cbuffer Settings : register(b0)
+cbuffer settings : register(b0)
 {
   float4 color;
 };
@@ -582,7 +582,7 @@ fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture
     rl1.m_eShaderStage = spShaderStage::PixelShader;
     rl1.m_eType = spShaderResourceType::ConstantBuffer;
     rl1.m_eOptions = spResourceLayoutElementOptions::None;
-    rl1.m_sName = ezMakeHashedString("Settings");
+    rl1.m_sName = ezMakeHashedString("settings");
     resourceLayoutDescription.m_Elements.PushBack(rl1);
 
     data.m_pResourceLayout = pBuilder->GetResourceFactory()->CreateResourceLayout(resourceLayoutDescription);

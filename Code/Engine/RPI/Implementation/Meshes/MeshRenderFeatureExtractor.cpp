@@ -21,6 +21,19 @@
 
 namespace RPI
 {
+  typedef ezRTTIDefaultAllocator<spExtractMeshRenderObjectMessage, RHI::spDeviceAllocatorWrapper> spRTTIExtractMeshRenderObjectMessageAllocator;
+  typedef ezRTTIDefaultAllocator<spMeshRenderFeatureExtractor, RHI::spDeviceAllocatorWrapper> spRTTIMeshRenderFeatureExtractorAllocator;
+
+  // clang-format off
+  EZ_IMPLEMENT_MESSAGE_TYPE(spExtractMeshRenderObjectMessage);
+
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spExtractMeshRenderObjectMessage, 1, spRTTIExtractMeshRenderObjectMessageAllocator)
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
+
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spMeshRenderFeatureExtractor, 1, spRTTIMeshRenderFeatureExtractorAllocator)
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
+  // clang-format on
+
   ezResult spExtractMeshRenderObjectMessage::AddMeshResource(const ezTransform& transform, RAI::spMeshResourceHandle hMeshResource)
   {
     return ezResult(EZ_SUCCESS);
