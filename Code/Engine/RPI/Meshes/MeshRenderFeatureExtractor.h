@@ -26,7 +26,7 @@
 namespace RPI
 {
   /// \brief A message to extract a \a spMeshRenderObject from a game object.
-  struct SP_RHI_DLL spExtractMeshRenderObjectMessage : public ezMessage
+  struct SP_RPI_DLL spExtractMeshRenderObjectMessage : public ezMessage
   {
     EZ_DECLARE_MESSAGE_TYPE(spExtractMeshRenderObjectMessage, ezMessage);
 
@@ -44,7 +44,7 @@ namespace RPI
   };
 
   /// \breif An extractor implementation to collect mesh objects from game objects
-  class SP_RHI_DLL spMeshRenderFeatureExtractor final : public spRenderFeatureExtractor
+  class SP_RPI_DLL spMeshRenderFeatureExtractor final : public spRenderFeatureExtractor
   {
     friend class spMeshRenderFeature;
 

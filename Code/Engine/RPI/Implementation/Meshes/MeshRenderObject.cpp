@@ -12,15 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <RPI/RPIPCH.h>
 
-#include <RPI/RPIDLL.h>
+#include <RPI/Meshes/MeshRenderObject.h>
 
 namespace RPI
 {
-  class SP_RPI_DLL spMeshComponent
-  {
-  public:
-    virtual ~spMeshComponent() = default;
-  };
-} // namespace RPI
+  // clang-format off
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spMeshRenderObject, 1, ezRTTINoAllocator)
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
+  // clang-format on
+}

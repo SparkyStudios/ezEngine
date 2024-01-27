@@ -532,7 +532,6 @@ namespace RHI
       }
     }
 
-    EZ_ASSERT_NOT_IMPLEMENTED;
     return D3D11_FILTER_MIN_MAG_MIP_POINT;
   }
 

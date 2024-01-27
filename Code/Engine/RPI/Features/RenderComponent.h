@@ -23,7 +23,7 @@
 namespace RPI
 {
   /// \brief Base class for components that can render to the screen.
-  class SP_RHI_DLL spRenderComponent : public ezComponent
+  class SP_RPI_DLL spRenderComponent : public ezComponent
   {
     friend class spRenderFeature;
 

@@ -28,10 +28,28 @@ namespace RHI
     desc.MaxAnisotropy = description.m_uiMaxAnisotropy;
     desc.ComparisonFunc = spToD3D11(description.m_eSamplerComparison);
     desc.MipLODBias = description.m_fLodBias;
-    desc.BorderColor[0] = description.m_BorderColor.r;
-    desc.BorderColor[1] = description.m_BorderColor.g;
-    desc.BorderColor[2] = description.m_BorderColor.b;
-    desc.BorderColor[3] = description.m_BorderColor.a;
+
+    if (description.m_BorderColor == spSamplerBorderColor::OpaqueBlack)
+    {
+      desc.BorderColor[0] = 0;
+      desc.BorderColor[1] = 0;
+      desc.BorderColor[2] = 0;
+      desc.BorderColor[3] = 1;
+    }
+    else if (description.m_BorderColor == spSamplerBorderColor::OpaqueWhite)
+    {
+      desc.BorderColor[0] = 1;
+      desc.BorderColor[1] = 1;
+      desc.BorderColor[2] = 1;
+      desc.BorderColor[3] = 1;
+    }
+    else if (description.m_BorderColor == spSamplerBorderColor::TransparentBlack)
+    {
+      desc.BorderColor[0] = 0;
+      desc.BorderColor[1] = 0;
+      desc.BorderColor[2] = 0;
+      desc.BorderColor[3] = 0;
+    }
 
     const HRESULT res = pDevice->GetD3D11Device()->CreateSamplerState(&desc, &m_pSamplerState);
     EZ_ASSERT_DEV(SUCCEEDED(res), "Failed to create a D3D11 sampler state. Error Code: {}", (ezUInt32)HRESULT_CODE(res));
