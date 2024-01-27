@@ -116,10 +116,13 @@ namespace RHI
     if (IsReleased())
       return;
 
+    if (m_bFromNative)
+      m_pTexture->Release();
+    else
+      SP_RHI_DX11_RELEASE(m_pTexture);
+
     if (m_pParentTexture != nullptr)
       m_pParentTexture.Clear();
-    else if (m_bFromNative)
-      m_pTexture->Release();
 
     m_pTexture = nullptr;
     m_pParentTexture = nullptr;

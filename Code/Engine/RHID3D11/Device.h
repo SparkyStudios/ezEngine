@@ -12,7 +12,7 @@ namespace RHI
   class spSwapchainD3D11;
   class spBufferD3D11;
 
-  struct SP_RHID3D11_DLL spDeviceDescriptionD3D11 : spDeviceDescription
+  struct SP_RHID3D11_DLL spDeviceDescriptionD3D11 : public spDeviceDescription
   {
     IDXGIAdapter* m_pD3D11Adapter{nullptr};
     ezUInt32 m_uiCreationFlags{0};

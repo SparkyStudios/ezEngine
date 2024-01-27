@@ -14,7 +14,7 @@ namespace RHI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
 
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS_UWP)
-  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderingSurfaceWin32, 1, ezRTTINoAllocator)
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderingSurfaceUWP, 1, ezRTTINoAllocator)
   EZ_END_DYNAMIC_REFLECTED_TYPE;
 #endif
 
@@ -146,7 +146,7 @@ namespace RHI
 
       const spFramebufferDescription desc(m_pDepthTexture != nullptr ? m_pDepthTexture->GetHandle() : spResourceHandle(), m_pBackBufferTexture->GetHandle());
       m_pFramebuffer = m_pDevice->GetResourceFactory()->CreateFramebuffer(desc).Downcast<spFramebufferD3D11>();
-      m_pFramebuffer->m_pParentSwapchain = this;
+      m_pFramebuffer->m_pParentSwapchain = m_pDevice->GetResourceManager()->GetResource<spSwapchainD3D11>(GetHandle());
 
       // Need to create the frame buffer here, so the output description is available.
       m_pFramebuffer->EnsureResourceCreated();

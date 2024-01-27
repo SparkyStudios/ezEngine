@@ -47,7 +47,7 @@ namespace RHI
     EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DepthStencilView* GetDepthStencilView() const { return m_pDepthTarget; }
 
     EZ_NODISCARD ezSharedPtr<spTextureD3D11> GetColorTarget(ezUInt32 uiColorTargetIndex) const;
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spSwapchainD3D11> GetParentSwapchain() const { return {m_pParentSwapchain, m_pDevice->GetAllocator()}; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spSwapchainD3D11> GetParentSwapchain() const { return m_pParentSwapchain; }
 
   private:
     void ApplyColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target);
@@ -57,7 +57,7 @@ namespace RHI
     ezStaticArray<ID3D11RenderTargetView*, SP_RHI_MAX_COLOR_TARGETS> m_ColorTargets;
     ID3D11DepthStencilView* m_pDepthTarget{nullptr};
 
-    spSwapchainD3D11* m_pParentSwapchain{nullptr};
+    ezSharedPtr<spSwapchainD3D11> m_pParentSwapchain{nullptr};
 
     spOutputDescription m_OutputDescription;
     ezUInt32 m_uiWidth{0};
