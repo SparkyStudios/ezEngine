@@ -66,11 +66,11 @@ namespace RPI
   void spSceneContext::Extract()
   {
     // Prepare views
-    for (ezInt32 index = 0; index < m_RenderViewCollector.GetCount(); index++)
+    for (ezUInt32 i = 0, l = m_RenderViewCollector.GetCount(); i < l; i++)
     {
       // Update view index
-      spRenderView* view = m_RenderViewCollector[index];
-      view->SetIndex(index);
+      spRenderView* view = m_RenderViewCollector[i];
+      view->SetIndex(i);
     }
 
     // Trigger the "before extract" event

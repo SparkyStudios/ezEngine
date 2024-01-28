@@ -91,6 +91,11 @@ namespace RPI
     return m_RegisteredWorldScenes.GetValue(uiIndex);
   }
 
+  void spRenderSystem::CreateSceneForWorld(const ezWorld* pWorld)
+  {
+    m_RegisteredWorldScenes[pWorld] = EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spSceneContext, m_pDevice.Borrow());
+  }
+
   void spRenderSystem::RegisterSceneForWorld(const ezWorld* pWorld, spSceneContext* pSceneContext)
   {
     m_RegisteredWorldScenes[pWorld] = pSceneContext;
