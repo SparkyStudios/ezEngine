@@ -39,7 +39,7 @@ namespace RPI
     }
     EZ_END_ATTRIBUTES;
   }
-  EZ_END_DYNAMIC_REFLECTED_TYPE
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
   spRenderFeature::spRenderFeature(ezInternal::NewInstance<spRenderFeatureExtractor> pExtractor)
@@ -81,6 +81,9 @@ namespace RPI
   {
     EZ_ASSERT_DEV(pRenderObject != nullptr, "Render object must not be nullptr.");
 
+    if (pRenderObject->m_pRenderFeature != nullptr && pRenderObject->m_pRenderFeature != this)
+      pRenderObject->m_pRenderFeature->RemoveRenderObject(pRenderObject);
+
     pRenderObject->m_pRenderFeature = this;
     pRenderObject->m_RenderFeatureReference = spRenderNodeReference(m_RenderObjects.GetCount());
 
@@ -109,6 +112,9 @@ namespace RPI
   bool spRenderFeature::TryAddRenderComponent(spRenderComponent* pRenderComponent)
   {
     EZ_ASSERT_DEV(pRenderComponent != nullptr, "Render component must not be nullptr.");
+
+    if (pRenderComponent->m_pRenderFeature != nullptr && pRenderComponent->m_pRenderFeature != this)
+      pRenderComponent->m_pRenderFeature->RemoveRenderComponent(pRenderComponent);
 
     pRenderComponent->m_pRenderFeature = this;
     pRenderComponent->m_RenderFeatureReference = spRenderNodeReference(m_RenderComponents.GetCount());
