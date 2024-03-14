@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,17 +40,16 @@ namespace RPI
 
   public:
     explicit spRenderComponent(ezRTTI* pRenderFeatureType);
-    ~spRenderComponent();
+    ~spRenderComponent() override;
 
   protected:
     spRenderFeature* m_pRenderFeature{nullptr};
+    spRenderNodeReference m_RenderFeatureReference{spRenderNodeReference::MakeInvalid()};
 
     bool m_bHasFeatureAvailable{false};
     spRenderSystem* m_pRenderSystem{nullptr};
 
   private:
     ezRTTI* m_pRenderFeatureType{nullptr};
-
-    spRenderNodeReference m_RenderFeatureReference{spRenderNodeReference::MakeInvalid()};
   };
 } // namespace RPI

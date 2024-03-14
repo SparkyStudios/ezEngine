@@ -25,6 +25,8 @@ namespace RPI
   class spRenderContext;
   class spRenderComponent;
 
+  typedef ezDynamicArray<spRenderObject*> spRenderPacket;
+
   class SP_RPI_DLL spRenderFeature : public ezReflectedClass
   {
     friend class spRenderSystem;

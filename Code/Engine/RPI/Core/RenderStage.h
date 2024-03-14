@@ -30,7 +30,7 @@ namespace RPI
     EZ_ADD_DYNAMIC_REFLECTION(spRenderStageFilter, ezReflectedClass);
 
   public:
-    virtual ~spRenderStageFilter() = default;
+    ~spRenderStageFilter() override = default;
 
     /// \brief Returns true if the render object should be visible in the given rendering view.
     /// \param renderObject The render object to check.
@@ -39,11 +39,28 @@ namespace RPI
     virtual bool IsVisible(const spRenderObject& renderObject, const spRenderView& renderView, const spRenderStage& renderStage) = 0;
   };
 
+  /// \brief A single stage in a rendering feature.
+  ///
+  /// A stage specifies how to render a set of render objects from a single rendering view.
+  /// For example, the \a spMeshRenderFeature renders objects using the GBuffer stage to
+  /// render opaque objects, and an Opacity stage to render the transparent objects.
+  ///
+  /// The render stage also filter the render objects eligible for the stage from a given
+  /// rendering view and sort them using a \a spSortMode.
+  ///
+  /// \see spRenderFeature
+  /// \see spRenderView
+  /// \see spRenderObject
+  /// \see spSortMode
+  /// \see spRenderStageFilter
   class SP_RPI_DLL spRenderStage : public ezReflectedClass
   {
     EZ_ADD_DYNAMIC_REFLECTION(spRenderStage, ezReflectedClass);
 
   public:
+    virtual void Filter(const spRenderView& renderView, const ezArrayPtr<spRenderObject>& renderObjects, ezArrayPtr<spRenderObject>& out_filteredRenderObjects, ezArrayPtr<spRenderObject>& out_unfilteredRenderObjects) = 0;
+    virtual void Sort(const spRenderView& renderView, const ezArrayPtr<spRenderObject>& renderObjects, ezArrayPtr<spRenderObject>& out_sortedRenderObjects) = 0;
+
   private:
     ezHashedString m_sName;
 
