@@ -1,7 +1,6 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg/master/scripts/vcpkg.schema.json",
   "name": "spark-engine",
-  "builtin-baseline": "80ecf32496c3806c5bb79bb80f029f83d058930e",
+  "builtin-baseline": "e38b936343030e167a207ee4eddc3c6086caec56",
   "description": "A cross-platform C++ game engine.",
   "version": "1.0",
   "dependencies": [
@@ -11,15 +10,11 @@
     },
     {
       "name": "ktx",
-      "version>=": "4.1.0"
+      "version>=": "4.3.1"
     },
     {
       "name": "joltphysics",
-      "version>=": "3.0.1"
-    },
-    {
-      "name": "vulkan-hpp",
-      "version>=": "1.3.231#2"
+      "version>=": "4.0.0"
     },
     {
       "name": "vulkan-memory-allocator-hpp",
@@ -27,19 +22,19 @@
     },
     {
       "name": "meshoptimizer",
-      "version>=": "0.18#1"
+      "version>=": "0.20"
     },
     {
       "name": "assimp",
-      "version>=": "5.2.5"
+      "version>=": "5.3.1#4"
     },
     {
       "name": "zstd",
-      "version>=": "1.5.5"
+      "version>=": "1.5.5#2"
     },
     {
       "name": "tinyexr",
-      "version>=": "1.0.1"
+      "version>=": "1.0.5"
     },
     {
       "name": "stb",
@@ -51,15 +46,15 @@
     },
     {
       "name": "recastnavigation",
-      "version>=": "1.6.0"
+      "version>=": "1.6.0#1"
     },
     {
       "name": "imgui",
-      "version>=": "1.89.6#1"
+      "version>=": "1.90.2"
     },
     {
       "name": "glfw3",
-      "version>=": "3.3.8#2"
+      "version>=": "3.4"
     }
   ]
 }
