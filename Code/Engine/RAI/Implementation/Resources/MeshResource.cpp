@@ -52,7 +52,6 @@ namespace RAI
     m_uiNumLOD = 0;
     m_LODs.Clear();
     m_LODs.Reserve(SP_RAI_MAX_LOD_COUNT);
-    m_Bounds = ezBoundingBoxSphere::MakeInvalid();
   }
 
   const spMesh& spMeshResourceDescriptor::GetLOD(ezUInt32 uiLodIndex) const
@@ -120,9 +119,6 @@ namespace RAI
       {
         // Number of mesh LODs
         chunk << m_uiNumLOD;
-
-        // Mesh bounds
-        chunk << m_Bounds;
       }
       chunk.EndChunk();
 
@@ -189,7 +185,7 @@ namespace RAI
 
     ezChunkStreamReader chunk(*pCompressor);
 
-    ezUInt16 uiStreamVersion = chunk.BeginStream();
+    [[maybe_unused]] ezUInt16 uiStreamVersion = chunk.BeginStream();
     {
       while (chunk.GetCurrentChunk().m_bValid)
       {
@@ -208,9 +204,6 @@ namespace RAI
           chunk >> m_uiNumLOD;
 
           m_LODs.SetCount(m_uiNumLOD);
-
-          // Mesh bounds
-          chunk >> m_Bounds;
         }
 
         // LODs Data chunk
@@ -272,7 +265,6 @@ namespace RAI
   spMeshResource::spMeshResource()
     : ezResource(DoUpdate::OnAnyThread, SP_RAI_MAX_LOD_COUNT)
   {
-    m_Bounds = ezBoundingBoxSphere::MakeInvalid();
   }
 
   ezResourceLoadDesc spMeshResource::UnloadData(Unload WhatToUnload)
@@ -347,9 +339,6 @@ namespace RAI
   EZ_RESOURCE_IMPLEMENT_CREATEABLE(spMeshResource, spMeshResourceDescriptor)
   {
     m_Descriptor = descriptor;
-
-    m_Bounds = descriptor.m_Bounds;
-    // EZ_ASSERT_DEV(m_Bounds.IsValid(), "The mesh bounds are invalid. Make sure to call ezMeshResourceDescriptor::ComputeBounds()");
 
     ezResourceLoadDesc res;
     res.m_uiQualityLevelsDiscardable = 0;

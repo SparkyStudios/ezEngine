@@ -55,6 +55,7 @@ ezResult spMeshImporter::Import(ezStringView sFilePath, ezStringView sOutputPath
     {
       spMesh m;
       ImportLODMeshes(i, &m, uiVerticesBaseIndex, uiIndicesBaseIndex);
+      m.ComputeBounds();
 
       mesh.SetLOD(m_pContext->m_Nodes[i].m_uiLODLevel, m);
     }
@@ -90,6 +91,7 @@ ezResult spMeshImporter::Import(ezStringView sFilePath, ezStringView sOutputPath
     spMesh lod;
     lod.SetData(m_pContext->m_MeshData);
     lod.SetRootNode(root);
+    lod.ComputeBounds();
 
     mesh.SetLOD(0, lod);
   }
