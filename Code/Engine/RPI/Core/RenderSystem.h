@@ -104,9 +104,11 @@ namespace RPI
 
     EZ_NODISCARD spSceneContext* GetSceneContextFromWorld(const ezWorld* pWorld) const;
 
-    void CreateSceneForWorld(const ezWorld* pWorld);
+    spSceneContext* CreateSceneForWorld(const ezWorld* pWorld);
 
     void RegisterSceneForWorld(const ezWorld* pWorld, spSceneContext* pSceneContext);
+
+    void UnregisterSceneForWorld(const ezWorld* pWorld);
 
   private:
     static ezUInt64 s_uiFrameCount;

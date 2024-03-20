@@ -36,6 +36,6 @@ namespace RPI
     /// \brief Extracts a specific set of render objects from the given view.
     /// \param [in] pRenderContext The rendering context in which the extraction occurs.
     /// \param [in] pRenderView The render view from which extract render objects.
-    virtual void Extract(const spRenderContext* pRenderContext, const spRenderView* pRenderView);
+    virtual void Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext, const spRenderView* pRenderView);
   };
 } // namespace RPI

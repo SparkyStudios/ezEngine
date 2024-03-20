@@ -24,12 +24,12 @@
 #include <RPI/Core/RenderStage.h>
 #include <RPI/Core/RenderView.h>
 #include <RPI/Core/Threading/ConcurrentCollector.h>
+#include <RPI/Pipeline/RenderPipeline.h>
 
 #include <RPI/Features/RenderFeature.h>
 
 namespace RPI
 {
-  class spRenderPipeline;
   class spSceneContext;
 
   struct spSceneContextCollectEvent
@@ -93,7 +93,7 @@ namespace RPI
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezUniquePtr<spRenderContext>& GetRenderContext() const { return m_pRenderContext; }
 
     /// \brief Adds a \a spRenderingPipeline to execute when drawing this \a spSceneContext.
-    void AddPipeline(spRenderPipeline* pPipeline);
+    void AddPipeline(ezUniquePtr<spRenderPipeline> pPipeline);
 
     void Collect();
 
@@ -107,6 +107,8 @@ namespace RPI
     /// \brief Draws the current \a spSceneContext on its \a spRenderTarget.
     void Draw();
 
+    void Present();
+
     /// \brief Ends a draw operation.
     void EndFrame();
 
@@ -117,6 +119,8 @@ namespace RPI
     /// \brief Blocks the calling thread until this \a spSceneContext
     /// is idle (all outstanding draw operations are completed).
     void WaitForIdle();
+
+    void CleanUp();
 
     EZ_ALWAYS_INLINE spConcurrentCollector<spRenderView*>& GetRenderViewCollector() { return m_RenderViewCollector; }
     EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderView*>& GetRenderViewCollector() const { return m_RenderViewCollector; }
@@ -144,6 +148,6 @@ namespace RPI
     spConcurrentCollector<spRenderStage*> m_RenderStageCollector;
     spConcurrentCollector<spRenderFeature*> m_RenderFeatureCollector;
 
-    ezList<spRenderPipeline*> m_RenderPipelines;
+    ezDynamicArray<ezUniquePtr<spRenderPipeline>> m_RenderPipelines;
   };
 } // namespace RPI

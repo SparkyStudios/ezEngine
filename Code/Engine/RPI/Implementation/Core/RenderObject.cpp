@@ -39,8 +39,8 @@ namespace RPI
     return m_Items.Contains(const_cast<spRenderObject*>(pRenderObject));
   }
 
-  void spRenderObjectCollection::Remove(const spRenderObject* pRenderObject)
+  void spRenderObjectCollection::Remove(spRenderObject* pRenderObject)
   {
-    // TODO
+    m_pVisibilityGroup->RemoveRenderObject(this, pRenderObject);
   }
 } // namespace RPI

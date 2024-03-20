@@ -25,8 +25,8 @@ ezUInt32 spRenderThread::Run()
 
       if (!m_WorkQueue.IsEmpty())
       {
-        m_CurrentWork = m_WorkQueue.PeekBack();
-        m_WorkQueue.PopBack();
+        m_CurrentWork = m_WorkQueue.PeekFront();
+        m_WorkQueue.PopFront();
       }
     }
 
@@ -40,8 +40,11 @@ ezUInt32 spRenderThread::Run()
       m_CurrentWork = {};
     }
 
-    // Wait for new tasks
-    m_ThreadSignal.WaitForSignal();
+    if (m_WorkQueue.IsEmpty())
+    {
+      // Wait for new tasks
+      m_ThreadSignal.WaitForSignal();
+    }
   }
 
   return 0;
@@ -78,13 +81,13 @@ void spRenderThread::Stop()
   if (!IsRunning())
     return;
 
-  m_bCancellationRequested.TestAndSet(false, true);
-  m_ThreadSignal.RaiseSignal();
-
   {
     EZ_LOCK(m_QueueMutex);
     m_WorkQueue.Clear();
   }
+
+  m_bCancellationRequested.TestAndSet(false, true);
+  m_ThreadSignal.RaiseSignal();
 
   if (ezThreadUtils::GetCurrentThreadID() == GetThreadID())
     return;

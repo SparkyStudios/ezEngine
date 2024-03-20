@@ -294,11 +294,9 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   }
 
   // 3. Compile graph
-  renderPipeline = graphBuilder->Compile();
+  m_pSceneContext->AddPipeline(graphBuilder->Compile());
 
   // --- End Experimental render graph
-
-  m_pSceneContext->AddPipeline(renderPipeline.Borrow());
 };
 
 void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
@@ -311,13 +309,12 @@ void ezRHISampleApp::BeforeHighLevelSystemsShutdown()
   ezStartup::ShutdownHighLevelSystems();
 
   // cleanup the render pipeline
-  renderPipeline->CleanUp();
+  m_pSceneContext->CleanUp();
 
   m_hMesh.Invalidate();
 
   m_hTexture.Invalidate();
 
-  renderPipeline.Clear();
   graphBuilder.Clear();
 }
 
@@ -746,6 +743,7 @@ ezApplication::Execution ezRHISampleApp::Run()
       m_pSceneContext->BeginFrame();
       {
         m_pSceneContext->Draw();
+        m_pSceneContext->Present();
       }
       m_pSceneContext->EndFrame(); });
 

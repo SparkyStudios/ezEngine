@@ -15,6 +15,7 @@
 #include <RPI/RPIPCH.h>
 
 #include <RPI/Core/RenderContext.h>
+#include <RPI/Core/VisibilityGroup.h>
 #include <RPI/Meshes/MeshRenderFeatureExtractor.h>
 
 #include <Core/World/World.h>
@@ -28,6 +29,13 @@ namespace RPI
   EZ_IMPLEMENT_MESSAGE_TYPE(spExtractMeshRenderObjectMessage);
 
   EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spExtractMeshRenderObjectMessage, 1, spRTTIExtractMeshRenderObjectMessageAllocator)
+  {
+    EZ_BEGIN_ATTRIBUTES
+    {
+      new ezExcludeFromScript()
+    }
+    EZ_END_ATTRIBUTES;
+  }
   EZ_END_DYNAMIC_REFLECTED_TYPE;
 
   EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spMeshRenderFeatureExtractor, 1, spRTTIMeshRenderFeatureExtractorAllocator)
@@ -39,11 +47,16 @@ namespace RPI
     return ezResult(EZ_SUCCESS);
   }
 
-  void spMeshRenderFeatureExtractor::Extract(const spRenderContext* pRenderContext, const spRenderView* pRenderView)
+  void spMeshRenderFeatureExtractor::Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext, const spRenderView* pRenderView)
   {
+    spVisibilityGroup visibilityGroup(pSceneContext);
+
     spExtractMeshRenderObjectMessage message;
     message.m_pRenderContext = pRenderContext;
     message.m_pRenderView = pRenderView;
+    message.m_Objects = EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spRenderObjectCollection, &visibilityGroup);
+
+    // TODO: Handle caching if game object is static or render object caching behavior is set to always
   }
 } // namespace RPI
 

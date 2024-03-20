@@ -21,7 +21,7 @@
 #include <RPI/Core/RenderSystem.h>
 #include <RPI/Features/RenderFeature.h>
 
-ezCVarBool cvar_RenderingMultithreading("Rendering.Multithreading", true, ezCVarFlags::Default, "Enables multi-threaded data update and rendering.");
+ezCVarBool cvar_RenderingMultiThreaded("Rendering.MultiThreaded", true, ezCVarFlags::Default, "Enables multi-threaded data update and rendering.");
 
 namespace RPI
 {
@@ -41,7 +41,7 @@ namespace RPI
 
   bool spRenderSystem::IsMultiThreadedRendering()
   {
-    return cvar_RenderingMultithreading;
+    return cvar_RenderingMultiThreaded;
   }
 
   spRenderSystem::spRenderSystem()
@@ -91,13 +91,19 @@ namespace RPI
     return m_RegisteredWorldScenes.GetValue(uiIndex);
   }
 
-  void spRenderSystem::CreateSceneForWorld(const ezWorld* pWorld)
+  spSceneContext* spRenderSystem::CreateSceneForWorld(const ezWorld* pWorld)
   {
     m_RegisteredWorldScenes[pWorld] = EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spSceneContext, m_pDevice.Borrow());
+    return m_RegisteredWorldScenes[pWorld];
   }
 
   void spRenderSystem::RegisterSceneForWorld(const ezWorld* pWorld, spSceneContext* pSceneContext)
   {
     m_RegisteredWorldScenes[pWorld] = pSceneContext;
+  }
+
+  void spRenderSystem::UnregisterSceneForWorld(const ezWorld* pWorld)
+  {
+    m_RegisteredWorldScenes.RemoveAndCopy(pWorld);
   }
 } // namespace RPI

@@ -22,17 +22,30 @@ namespace RPI
 {
   // clang-format off
   EZ_BEGIN_ABSTRACT_COMPONENT_TYPE(spRenderComponent, 1)
+  {
+    EZ_BEGIN_ATTRIBUTES
+    {
+      new ezCategoryAttribute("Rendering"),
+    }
+    EZ_END_ATTRIBUTES;
+
+    EZ_BEGIN_MESSAGEHANDLERS
+    {
+      EZ_MESSAGE_HANDLER(ezMsgUpdateLocalBounds, OnUpdateLocalBounds)
+    }
+    EZ_END_MESSAGEHANDLERS;
+  }
   EZ_END_ABSTRACT_COMPONENT_TYPE;
   // clang-format on
 
   void spRenderComponent::Deinitialize()
   {
-    ezComponent::Deinitialize();
+    SUPER::Deinitialize();
   }
 
   void spRenderComponent::OnActivated()
   {
-    ezComponent::OnActivated();
+    SUPER::OnActivated();
 
     spSceneContext* pSceneContext = m_pRenderSystem->GetSceneContextFromWorld(GetWorld());
     if (pSceneContext == nullptr)
@@ -46,11 +59,15 @@ namespace RPI
         break;
       }
     }
+
+    TriggerLocalBoundsUpdate();
   }
 
   void spRenderComponent::OnDeactivated()
   {
-    ezComponent::OnDeactivated();
+    SUPER::OnDeactivated();
+
+    GetOwner()->UpdateLocalBounds();
 
     if (!m_bHasFeatureAvailable)
       return;
@@ -58,7 +75,7 @@ namespace RPI
     m_pRenderFeature->RemoveRenderComponent(this);
   }
 
-  spRenderComponent::spRenderComponent(ezRTTI* pRenderFeatureType)
+  spRenderComponent::spRenderComponent(const ezRTTI* pRenderFeatureType)
     : m_pRenderFeatureType(pRenderFeatureType)
   {
     m_pRenderSystem = spRenderSystem::GetSingleton();
@@ -71,4 +88,36 @@ namespace RPI
     m_pRenderFeature = nullptr;
     m_bHasFeatureAvailable = false;
   }
+
+  void spRenderComponent::TriggerLocalBoundsUpdate()
+  {
+    if (IsActiveAndInitialized())
+    {
+      GetOwner()->UpdateLocalBounds();
+    }
+  }
+
+  void spRenderComponent::OnUpdateLocalBounds(ezMsgUpdateLocalBounds& msg)
+  {
+    ezBoundingBoxSphere bounds = ezBoundingBoxSphere::MakeInvalid();
+
+    bool bAlwaysVisible = false;
+
+    if (GetLocalBounds(bounds, bAlwaysVisible).Succeeded())
+    {
+      ezSpatialData::Category category = GetOwner()->IsDynamic() ? ezDefaultSpatialDataCategories::RenderDynamic : ezDefaultSpatialDataCategories::RenderStatic;
+
+      if (bounds.IsValid())
+      {
+        msg.AddBounds(bounds, category);
+      }
+
+      if (bAlwaysVisible)
+      {
+        msg.SetAlwaysVisible(category);
+      }
+    }
+  }
 } // namespace RPI
+
+EZ_STATICLINK_FILE(RPI, RPI_Implementation_Features_RenderComponent);

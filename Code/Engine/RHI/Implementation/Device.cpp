@@ -143,8 +143,6 @@ namespace RHI
     if (IsDebugEnabled())
       m_pFrameProfiler->End();
 
-    Present();
-
     m_uiFrameCounter++;
   }
 

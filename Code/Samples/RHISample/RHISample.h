@@ -58,7 +58,6 @@ private:
   ezRHISampleWindow* m_pWindow{nullptr};
 
   ezUniquePtr<spRenderGraphBuilder> graphBuilder;
-  ezUniquePtr<spRenderPipeline> renderPipeline;
 
   const RAI::spMesh* m_pMesh{nullptr};
   RAI::spMeshResourceHandle m_hMesh;

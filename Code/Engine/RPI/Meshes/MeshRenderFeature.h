@@ -17,12 +17,11 @@
 #include <RPI/RPIDLL.h>
 
 #include <RPI/Features/RenderFeature.h>
+#include <RPI/Meshes/MeshRenderFeatureExtractor.h>
 
 namespace RPI
 {
-  class spMeshRenderFeatureExtractor;
-
-  class SP_RPI_DLL spMeshRenderFeature final : spRenderFeature
+  class SP_RPI_DLL spMeshRenderFeature final : public spRenderFeature
   {
     EZ_ADD_DYNAMIC_REFLECTION(spMeshRenderFeature, spRenderFeature);
 

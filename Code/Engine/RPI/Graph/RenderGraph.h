@@ -16,7 +16,7 @@ namespace RPI
   class spRenderGraphNode;
   class spRenderGraphBuilder;
 
-  struct SP_RPI_DLL spRenderGraphResourceBindType
+  struct spRenderGraphResourceBindType
   {
     typedef ezUInt8 StorageType;
 
@@ -32,7 +32,7 @@ namespace RPI
     };
   };
 
-  struct SP_RPI_DLL spRenderGraphResourceType
+  struct spRenderGraphResourceType
   {
     typedef ezUInt8 StorageType;
 
@@ -117,7 +117,7 @@ namespace RPI
 
     // --- spRenderGraphNode management
 
-    void AddNode(ezStringView sName, ezUniquePtr<spRenderGraphNode>&& node, const ezHashTable<ezHashedString, RHI::spResourceHandle>& resources);
+    void AddNode(ezStringView sName, ezUniquePtr<spRenderGraphNode>&& node, const ezHashTable<ezHashedString, RHI::spResourceHandle>& resources = {});
 
     const spRenderGraphNode* GetNode(ezStringView sName) const;
 
