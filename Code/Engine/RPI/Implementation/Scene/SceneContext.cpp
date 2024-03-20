@@ -36,9 +36,9 @@ namespace RPI
     m_pRenderContext = EZ_NEW(pDevice->GetAllocator(), spRenderContext, pDevice);
   }
 
-  void spSceneContext::AddPipeline(spRenderPipeline* pPipeline)
+  void spSceneContext::AddPipeline(ezUniquePtr<spRenderPipeline> pPipeline)
   {
-    m_RenderPipelines.PushBack(pPipeline);
+    m_RenderPipelines.PushBack(std::move(pPipeline));
   }
 
   void spSceneContext::Collect()
@@ -82,7 +82,7 @@ namespace RPI
     // Extract render data from views
     for (const auto& view : m_RenderViewCollector)
       for (const auto& feature : m_RenderFeatureCollector)
-        feature->Extract(m_pRenderContext.Borrow(), view);
+        feature->Extract(this, m_pRenderContext.Borrow(), view);
 
     // Trigger the "after extract" event
     event.m_Type = spSceneContextExtractEvent::Type::AfterExtract;
@@ -115,12 +115,17 @@ namespace RPI
     event.m_pSceneContext = this;
     s_DrawEvent.Broadcast(event);
 
-    for (auto it = m_RenderPipelines.GetIterator(); it.IsValid(); it.Next())
-      (*it)->Execute(m_pRenderContext.Borrow());
+    for (ezUInt32 i = 0, l = m_RenderPipelines.GetCount(); i < l; i++)
+      m_RenderPipelines[i]->Execute(m_pRenderContext.Borrow());
 
     // Trigger the "after draw" event
     event.m_Type = spSceneContextDrawEvent::Type::AfterDraw;
     s_DrawEvent.Broadcast(event);
+  }
+
+  void spSceneContext::Present()
+  {
+    m_pDevice->Present();
   }
 
   void spSceneContext::EndFrame()
@@ -149,6 +154,12 @@ namespace RPI
     m_pDevice->WaitForIdle();
 
     m_pDevice->ResetFence(m_pFence);
+  }
+
+  void spSceneContext::CleanUp()
+  {
+    for (auto& pipeline : m_RenderPipelines)
+      pipeline->CleanUp();
   }
 
   void spSceneContext::AddRenderObject(spRenderObject* pRenderObject)

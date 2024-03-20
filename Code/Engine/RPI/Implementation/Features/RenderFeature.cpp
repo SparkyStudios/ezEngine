@@ -72,9 +72,9 @@ namespace RPI
     m_pRenderContext = nullptr;
   }
 
-  void spRenderFeature::Extract(const spRenderContext* pRenderContext, const spRenderView* pRenderView) const
+  void spRenderFeature::Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext, const spRenderView* pRenderView) const
   {
-    m_pExtractor->Extract(pRenderContext, pRenderView);
+    m_pExtractor->Extract(pSceneContext, pRenderContext, pRenderView);
   }
 
   bool spRenderFeature::TryAddRenderObject(spRenderObject* pRenderObject)

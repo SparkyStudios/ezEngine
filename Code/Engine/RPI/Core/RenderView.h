@@ -23,6 +23,7 @@
 namespace RPI
 {
   /// \brief Render View Data.
+  ///
   /// This struct contains all the data needed to render a single view. Data is
   /// shared with shaders.
   struct alignas(16) spRenderViewData
@@ -106,10 +107,10 @@ namespace RPI
 
     EZ_ALWAYS_INLINE void SetData(const spRenderViewData& data) { m_Data = data; }
 
-    /// \brief Gets the index of this view in the list of collected views in the \a spRenderSystem.
+    /// \brief Gets the index of this view in the list of collected views in the \a spSceneContext.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezInt32 GetIndex() const { return m_iIndex; }
 
-    /// \brief Sets the index this view has in the list of collected views in the \a spRenderSystem.
+    /// \brief Sets the index this view has in the list of collected views in the \a spSceneContext.
     EZ_ALWAYS_INLINE void SetIndex(ezInt32 index) { m_iIndex = index; }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezBitflags<spRenderGroupMask>& GetRenderGroup() const { return m_eRenderGroup; }

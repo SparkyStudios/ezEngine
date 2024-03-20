@@ -16,11 +16,64 @@
 
 #include <RPI/RPIDLL.h>
 
+#include <RAI/Resources/MeshResource.h>
+
+#include <RPI/Features/RenderComponent.h>
+#include <RPI/Meshes/MeshRenderFeature.h>
+
 namespace RPI
 {
-  class SP_RPI_DLL spMeshComponent
+  class spMeshComponentManager : public ezComponentManager<class spMeshComponent, ezBlockStorageType::FreeList>
   {
   public:
+    explicit spMeshComponentManager(ezWorld* pWorld);
+    ~spMeshComponentManager() override;
+  };
+
+  class SP_RPI_DLL spMeshComponent : public spRenderComponent
+  {
+    EZ_DECLARE_COMPONENT_TYPE(spMeshComponent, spRenderComponent, spMeshComponentManager);
+
+    // ezComponent
+
+  public:
+    void SerializeComponent(ezWorldWriter& inout_stream) const override;
+    void DeserializeComponent(ezWorldReader& in_stream) override;
+
+    // spRenderComponent
+
+  public:
+    ezResult GetLocalBounds(ezBoundingBoxSphere& ref_bounds, bool& ref_bAlwaysVisible) const override;
+
+    // spMeshComponent
+
+  public:
+    spMeshComponent();
     virtual ~spMeshComponent() = default;
+
+#pragma region Methods
+
+    void SetMesh(const RAI::spMeshResourceHandle& hMeshResource);
+    EZ_ALWAYS_INLINE const RAI::spMeshResourceHandle& GetMesh() const { return m_hMeshResource; }
+
+#pragma region Messages
+
+    void OnMsgExtract(spExtractMeshRenderObjectMessage& ref_msg) const;
+
+#pragma endregion
+
+#pragma region Properties
+
+    void SetMeshFile(const char* szMeshFile);
+    [[nodiscard]] const char* GetMeshFile() const;
+
+    void SetSortingOrder(float fSortingOrder);
+    [[nodiscard]] float GetSortingOrder() const;
+
+#pragma endregion
+
+  private:
+    RAI::spMeshResourceHandle m_hMeshResource;
+    float m_fSortingOrder{0.0f};
   };
 } // namespace RPI

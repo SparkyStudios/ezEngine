@@ -40,7 +40,7 @@ namespace RPI
     const spRenderView* m_pRenderView{nullptr};
 
     /// \brief The \a spRenderObjectCollection in which mesh render objects are filled.
-    ezDynamicArray<spMeshRenderObject*> m_Objects{nullptr};
+    spRenderObjectCollection* m_Objects{nullptr};
   };
 
   /// \breif An extractor implementation to collect mesh objects from game objects
@@ -53,6 +53,6 @@ namespace RPI
     // spRenderFeatureExtractor
 
   public:
-    void Extract(const spRenderContext* pRenderContext, const spRenderView* pRenderView) override;
+    void Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext, const spRenderView* pRenderView) override;
   };
 } // namespace RPI

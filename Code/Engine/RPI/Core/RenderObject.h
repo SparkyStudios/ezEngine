@@ -41,8 +41,8 @@ namespace RPI
     spRenderObject() = default;
     ~spRenderObject() override = default;
 
-    /// \brief Specifies the caching method used by the render data.
-    struct Caching
+    /// \brief Specifies the caching behavior used by the render object.
+    struct CachingBehavior
     {
       typedef ezUInt8 StorageType;
 
@@ -62,6 +62,7 @@ namespace RPI
     };
 
   private:
+    ezEnum<CachingBehavior> m_eCachingBehavior{CachingBehavior::OnlyIfStatic};
     ezEnum<spRenderGroup> m_eRenderGroup{spRenderGroup::None};
     ezBoundingBox m_BoundingBox;
 
@@ -85,7 +86,7 @@ namespace RPI
 
     EZ_NODISCARD bool Contains(const spRenderObject* pRenderObject) const;
 
-    void Remove(const spRenderObject* pRenderObject);
+    void Remove(spRenderObject* pRenderObject);
 
   private:
     ezHybridArray<spRenderObject*, 64> m_Items;

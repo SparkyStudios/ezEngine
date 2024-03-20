@@ -18,6 +18,7 @@
 
 #include <RPI/Features/RenderFeature.h>
 
+#include <Core/Messages/UpdateLocalBoundsMessage.h>
 #include <Core/World/World.h>
 
 namespace RPI
@@ -39,8 +40,29 @@ namespace RPI
     // spRenderComponent
 
   public:
-    explicit spRenderComponent(ezRTTI* pRenderFeatureType);
+    explicit spRenderComponent(const ezRTTI* pRenderFeatureType);
     ~spRenderComponent() override;
+
+#pragma region Methods
+
+  public:
+    /// \brief Gets the local space bounding box of this component.
+    /// This method is used when the bounds of the rendered item needs to be updated.
+    /// If \see ezResultEnum::EZ_SUCCESS is returned, the bounding box is guaranteed to be valid and the values of
+    /// \a ref_bounds and \a ref_bAlwaysVisible are propagated to the \see ezMsgUpdateLocalBounds message.
+    virtual ezResult GetLocalBounds(ezBoundingBoxSphere& ref_bounds, bool& ref_bAlwaysVisible) const = 0;
+
+    /// \brief Triggers an update of the local space bounding box of this component.
+    void TriggerLocalBoundsUpdate();
+
+#pragma endregion
+
+#pragma region Messages
+
+  private:
+    void OnUpdateLocalBounds(ezMsgUpdateLocalBounds& msg);
+
+#pragma endregion
 
   protected:
     spRenderFeature* m_pRenderFeature{nullptr};
@@ -50,6 +72,6 @@ namespace RPI
     spRenderSystem* m_pRenderSystem{nullptr};
 
   private:
-    ezRTTI* m_pRenderFeatureType{nullptr};
+    const ezRTTI* m_pRenderFeatureType{nullptr};
   };
 } // namespace RPI
