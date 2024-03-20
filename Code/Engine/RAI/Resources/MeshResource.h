@@ -75,8 +75,6 @@ namespace RAI
     ezUInt8 m_uiNumLOD{0};
 
     ezStaticArray<spMesh, SP_RAI_MAX_LOD_COUNT> m_LODs;
-
-    ezBoundingBoxSphere m_Bounds;
   };
 
   /// \brief A resource encapsulating a mesh asset.
@@ -109,6 +107,5 @@ namespace RAI
     void UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage) override;
 
     spMeshResourceDescriptor m_Descriptor;
-    ezBoundingBoxSphere m_Bounds;
   };
 } // namespace RAI

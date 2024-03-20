@@ -20,6 +20,8 @@
 
 #include <RHI/CommandList.h>
 
+#include <Foundation/Math/BoundingBoxSphere.h>
+
 namespace RAI
 {
   /// \brief A mesh asset.
@@ -232,21 +234,34 @@ namespace RAI
     /// \param [in] rootNode The root node.
     EZ_ALWAYS_INLINE void SetRootNode(const Node& rootNode) { m_Root = rootNode; }
 
+    /// \brief Gets the bounds of this mesh asset.
+    EZ_ALWAYS_INLINE const ezBoundingBoxSphere& GetBounds() const { return m_Bounds; }
+
     /// \brief Clear the mesh data.
     void Clear();
 
+    /// \brief Computes the bounding box of the mesh.
+    void ComputeBounds();
+
+    /// \brief Gets the size in bytes of a single vertex in the mesh.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexSize() const { return m_Data.m_uiVertexSize; }
 
+    /// \brief Gets the number of vertices in the mesh.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexCount() const { return m_Data.GetVertexCount(); }
 
+    /// \brief Gets the size in bytes of the entire vertex buffer in the mesh.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferSize() const { return m_Data.GetVertexBufferSize(); }
 
+    /// \brief Gets the number of indices in the mesh.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexCount() const { return m_Data.GetIndexCount(); }
 
+    /// \brief Gets the size in bytes of the entire index buffer in the mesh.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexBufferSize() const { return m_Data.GetIndexBufferSize(); }
 
+    /// \brief Gets the vertex buffer of the mesh.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezConstByteArrayPtr GetVertexBuffer() const { return m_Data.m_Vertices; }
 
+    /// \brief Gets the index buffer of the mesh.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezConstByteArrayPtr GetIndexBuffer() const { return m_Data.m_Indices; }
 
   private:
@@ -255,6 +270,7 @@ namespace RAI
 
     Data m_Data;
     Node m_Root;
+    ezBoundingBoxSphere m_Bounds;
 
 #pragma endregion
 

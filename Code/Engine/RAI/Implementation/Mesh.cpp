@@ -86,6 +86,28 @@ namespace RAI
     m_pRHIIndirectBuffer.Clear();
   }
 
+  void spMesh::ComputeBounds()
+  {
+    m_Bounds = ezBoundingBoxSphere::MakeInvalid();
+
+    for (ezUInt32 i = 0; i < m_Data.m_VertexStreams.GetCount(); ++i)
+    {
+      if (m_Data.m_VertexStreams[i].m_eSemantic == RHI::spInputElementLocationSemantic::Position)
+      {
+        EZ_ASSERT_DEBUG(m_Data.m_VertexStreams[i].m_eFormat == RHI::spInputElementFormat::Float3, "Position format is not usable");
+
+        const ezUInt32 offset = m_Data.m_VertexStreams[i].m_uiOffset;
+
+        if (!m_Data.m_Vertices.IsEmpty())
+        {
+          m_Bounds = ezBoundingBoxSphere::MakeFromPoints(reinterpret_cast<const ezVec3*>(&m_Data.m_Vertices[offset]), m_Data.GetVertexCount(), m_Data.m_uiVertexSize);
+        }
+
+        break;
+      }
+    }
+  }
+
   void spMesh::ReadData(ezStreamReader& inout_stream)
   {
     ezDynamicArray<ezUInt8> vertexData;
@@ -110,6 +132,10 @@ namespace RAI
     const ezUInt32 uiResVb = meshopt_decodeVertexBuffer(m_Data.m_Vertices.GetData(), uiVertexCount, m_Data.m_uiVertexSize, vertexData.GetData(), vertexData.GetCount());
     const ezUInt32 uiResIb = meshopt_decodeIndexBuffer(reinterpret_cast<ezUInt16*>(m_Data.m_Indices.GetData()), uiIndexCount, indexData.GetData(), indexData.GetCount());
     EZ_ASSERT_DEV(uiResIb == 0 && uiResVb == 0, "Invalid mesh asset");
+
+    inout_stream >> m_Bounds;
+    if (!m_Bounds.IsValid())
+      ComputeBounds();
   }
 
   void spMesh::WriteData(ezStreamWriter& inout_stream) const
@@ -131,6 +157,8 @@ namespace RAI
 
     inout_stream.WriteArray(vertexData).AssertSuccess();
     inout_stream.WriteArray(indexData).AssertSuccess();
+
+    inout_stream << m_Bounds;
   }
 
   void spMesh::CreateRHIVertexBuffer()
