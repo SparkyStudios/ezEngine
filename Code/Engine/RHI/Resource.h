@@ -279,7 +279,7 @@ namespace RHI
   private:
     static const constexpr ezUInt64 SizeOfT = sizeof(T);
 
-    EZ_ALWAYS_INLINE T& GetAt(ezUInt32 x, ezUInt32 y = 0, ezUInt32 z = 0) const
+    EZ_ALWAYS_INLINE T& GetAt(ezUInt32 x, ezUInt32 y = 0, ezUInt32 z = 0)
     {
       ezUInt8* ptr = static_cast<ezUInt8*>(m_MappedResource.GetData()) + (z * m_MappedResource.GetDepthPitch()) + (y * m_MappedResource.GetRowPitch()) + (x * SizeOfT);
       return *reinterpret_cast<T*>(ptr);
