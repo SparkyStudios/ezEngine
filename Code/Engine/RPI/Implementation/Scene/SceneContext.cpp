@@ -91,12 +91,20 @@ namespace RPI
 
   void spSceneContext::Prepare()
   {
+    spSceneContextPrepareEvent event{};
+    event.m_Type = spSceneContextPrepareEvent::Type::BeforePrepare;
+    event.m_pSceneContext = this;
+    s_PrepareEvent.Broadcast(event);
+
+    // TODO
+
+    // Trigger the "after prepare" event
+    event.m_Type = spSceneContextPrepareEvent::Type::AfterPrepare;
+    s_PrepareEvent.Broadcast(event);
   }
 
   void spSceneContext::BeginFrame()
   {
-    Collect();
-
     m_pDevice->BeginFrame();
 
     Extract();

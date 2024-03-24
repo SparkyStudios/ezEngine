@@ -143,7 +143,7 @@ namespace RPI
 
   void spRenderFeature::OnRenderSystemCollectEvent(const spSceneContextCollectEvent& event)
   {
-    if (!m_bIsActive || m_pExtractor == nullptr)
+    if (!m_bIsActive || m_pExtractor == nullptr || event.m_Type != spSceneContextCollectEvent::Type::Collect)
       return;
 
     event.m_pSceneContext->GetRenderFeatureCollector().Add(this);
