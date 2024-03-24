@@ -102,7 +102,7 @@ namespace RPI
 
   private:
     ezHashedString m_sName{};
-    bool m_bIsActive{false};
+    bool m_bIsActive{true};
     bool m_bIsInitialized{false};
 
     ezUniquePtr<spRenderFeatureExtractor> m_pExtractor{nullptr};
