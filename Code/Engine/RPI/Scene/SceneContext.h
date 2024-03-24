@@ -83,14 +83,22 @@ namespace RPI
   class SP_RPI_DLL spSceneContext
   {
     friend class spVisibilityGroup;
+    friend class spRenderSystem;
 
   public:
     EZ_NODISCARD EZ_ALWAYS_INLINE static const ezEvent<const spSceneContextCollectEvent&, ezMutex>& GetCollectEvent() { return s_CollectEvent; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE static const ezEvent<const spSceneContextExtractEvent&, ezMutex>& GetExtractEvent() { return s_ExtractEvent; }
 
     explicit spSceneContext(RHI::spDevice* pDevice);
 
     /// \brief Gets the \a spRenderContext which stores drawing data for this scene.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezUniquePtr<spRenderContext>& GetRenderContext() const { return m_pRenderContext; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderContext* GetRenderContext() const { return m_pRenderContext.Borrow(); }
+
+    /// \brief Gets the \a spRenderContext which stores drawing data for this scene.
+    EZ_ALWAYS_INLINE spRenderContext* GetRenderContext() { return m_pRenderContext.Borrow(); }
+
+    /// \brief Get the \a ezWorld which this scene belongs to.
+    EZ_ALWAYS_INLINE ezWorld* GetWorld() const { return m_pWorld; }
 
     /// \brief Adds a \a spRenderingPipeline to execute when drawing this \a spSceneContext.
     void AddPipeline(ezUniquePtr<spRenderPipeline> pPipeline);
@@ -134,8 +142,12 @@ namespace RPI
     static ezEvent<const spSceneContextPrepareEvent&, ezMutex> s_PrepareEvent;
     static ezEvent<const spSceneContextDrawEvent&, ezMutex> s_DrawEvent;
 
+    EZ_ALWAYS_INLINE void SetWorld(ezWorld* pWorld) { m_pWorld = pWorld; }
+
     void AddRenderObject(spRenderObject* pRenderObject);
     void RemoveRenderObject(spRenderObject* pRenderObject);
+
+    ezWorld* m_pWorld{nullptr};
 
     RHI::spDevice* m_pDevice{nullptr};
 

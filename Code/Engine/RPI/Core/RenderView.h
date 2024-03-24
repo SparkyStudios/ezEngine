@@ -17,6 +17,7 @@
 #include <RPI/RPIDLL.h>
 
 #include <RPI/Core/RenderGroup.h>
+#include <RPI/Shaders/ConstantBuffer.h>
 
 #include <Foundation/Math/Frustum.h>
 
@@ -31,19 +32,16 @@ namespace RPI
     ezVec3 m_Position;
     float m_NearClipPlane;
 
-    ezVec3 m_Rotation;
+    ezVec3 m_PreviousPosition;
     float m_FarClipPlane;
 
     ezVec3 m_Direction;
-    float m_FieldOfView;
+    float m_ShutterSpeed;
 
-    ezVec2 m_ViewportSize;
-    ezVec2 m_InverseViewportSize;
-
-    ezVec2 m_RenderSize;
-    ezVec2 m_InverseRenderSize;
-
-    ezColorLinearUB m_ClearColor;
+    float m_Exposure;
+    float m_Aperture;
+    float m_ISO;
+    float m_AspectRatio;
 
     ezMat4 m_Projection;
     ezMat4 m_InverseProjection;
@@ -70,7 +68,7 @@ namespace RPI
   };
 
   /// \brief Specifies for which purpose the render view should be used.
-  struct spRenderViewUsage
+  struct SP_RPI_DLL spRenderViewUsage
   {
     typedef ezUInt8 StorageType;
 
@@ -82,8 +80,11 @@ namespace RPI
       /// \brief The render view will be used for shadow map rendering.
       ShadowMapping = EZ_BIT(1),
 
+      /// \brief The render view will be used for occlusion culling.
+      Culling = EZ_BIT(2),
+
       /// \brief The render view will be used for all types of rendering.
-      All = ShadowMapping | Main,
+      All = Main | ShadowMapping | Culling,
 
       Default = Main
     };
@@ -92,6 +93,7 @@ namespace RPI
     {
       StorageType Main : 1;
       StorageType ShadowMapping : 1;
+      StorageType Culling : 1;
     };
   };
 
@@ -103,9 +105,9 @@ namespace RPI
     spRenderView() = default;
     ~spRenderView() = default;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderViewData& GetData() const { return m_Data; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spConstantBuffer<spRenderViewData>& GetDataBuffer() const { return m_RenderViewDataBuffer; }
 
-    EZ_ALWAYS_INLINE void SetData(const spRenderViewData& data) { m_Data = data; }
+    void SetData(const spRenderViewData& data);
 
     /// \brief Gets the index of this view in the list of collected views in the \a spSceneContext.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezInt32 GetIndex() const { return m_iIndex; }
@@ -121,11 +123,15 @@ namespace RPI
 
     EZ_ALWAYS_INLINE void SetCullingMode(const ezEnum<spRenderViewCullingMode>& eCullingMode) { m_eCullingMode = eCullingMode; }
 
+    EZ_ALWAYS_INLINE void SetUsage(const ezBitflags<spRenderViewUsage>& eUsage) { m_eUsage = eUsage; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezBitflags<spRenderViewUsage>& GetUsage() const { return m_eUsage; }
+
   private:
     friend class spRenderSystem;
     friend class spRenderContext;
 
-    spRenderViewData m_Data{};
+    spConstantBuffer<spRenderViewData> m_RenderViewDataBuffer;
 
     ezInt32 m_iIndex{-1};
     ezBitflags<spRenderGroupMask> m_eRenderGroup{spRenderGroupMask::Default};
@@ -133,3 +139,5 @@ namespace RPI
     ezBitflags<spRenderViewUsage> m_eUsage{spRenderViewUsage::Default};
   };
 } // namespace RPI
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RPI_DLL, RPI::spRenderViewUsage);
