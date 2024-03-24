@@ -91,9 +91,11 @@ namespace RPI
     return m_RegisteredWorldScenes.GetValue(uiIndex);
   }
 
-  spSceneContext* spRenderSystem::CreateSceneForWorld(const ezWorld* pWorld)
+  spSceneContext* spRenderSystem::CreateSceneForWorld(ezWorld* pWorld)
   {
     m_RegisteredWorldScenes[pWorld] = EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spSceneContext, m_pDevice.Borrow());
+    m_RegisteredWorldScenes[pWorld]->SetWorld(pWorld);
+
     return m_RegisteredWorldScenes[pWorld];
   }
 
@@ -107,3 +109,5 @@ namespace RPI
     m_RegisteredWorldScenes.RemoveAndCopy(pWorld);
   }
 } // namespace RPI
+
+EZ_STATICLINK_FILE(RPI, RPI_Implementation_Core_RenderSystem);

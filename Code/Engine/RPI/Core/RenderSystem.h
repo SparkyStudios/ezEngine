@@ -104,7 +104,7 @@ namespace RPI
 
     EZ_NODISCARD spSceneContext* GetSceneContextFromWorld(const ezWorld* pWorld) const;
 
-    spSceneContext* CreateSceneForWorld(const ezWorld* pWorld);
+    spSceneContext* CreateSceneForWorld(ezWorld* pWorld);
 
     void RegisterSceneForWorld(const ezWorld* pWorld, spSceneContext* pSceneContext);
 

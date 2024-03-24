@@ -149,3 +149,6 @@ namespace RPI
     };
   };
 } // namespace RPI
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RPI_DLL, RPI::spRenderGroup);
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RPI_DLL, RPI::spRenderGroupMask);
