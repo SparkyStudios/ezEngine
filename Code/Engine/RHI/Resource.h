@@ -222,13 +222,13 @@ namespace RHI
 
     EZ_ALWAYS_INLINE T& operator[](ezInt32 index)
     {
-      EZ_ASSERT_DEV(index < m_uiCount && index > 0, "Given index ({0}) is out of range.", index);
+      EZ_ASSERT_DEV(index < m_uiCount && index >= 0, "Given index ({0}) is out of range.", index);
       return GetAt(static_cast<ezUInt32>(index));
     }
 
     EZ_ALWAYS_INLINE const T& operator[](ezInt32 index) const
     {
-      EZ_ASSERT_DEV(index < m_uiCount && index > 0, "Given index ({0}) is out of range.", index);
+      EZ_ASSERT_DEV(index < m_uiCount && index >= 0, "Given index ({0}) is out of range.", index);
       return GetAt(static_cast<ezUInt32>(index));
     }
 
@@ -244,13 +244,13 @@ namespace RHI
 
     EZ_ALWAYS_INLINE T& operator[](ezVec2I32 index)
     {
-      EZ_ASSERT_DEV(index.x > 0 && index.y > 0, "Given index ({0}) is out of range.", index);
+      EZ_ASSERT_DEV(index.x >= 0 && index.y >= 0, "Given index ({0}) is out of range.", index);
       return GetAt(static_cast<ezUInt32>(index.x), static_cast<ezUInt32>(index.y));
     }
 
     EZ_ALWAYS_INLINE const T& operator[](ezVec2I32 index) const
     {
-      EZ_ASSERT_DEV(index.x > 0 && index.y > 0, "Given index ({0}) is out of range.", index);
+      EZ_ASSERT_DEV(index.x >= 0 && index.y >= 0, "Given index ({0}) is out of range.", index);
       return GetAt(static_cast<ezUInt32>(index.x), static_cast<ezUInt32>(index.y));
     }
 
@@ -266,20 +266,20 @@ namespace RHI
 
     EZ_ALWAYS_INLINE T& operator[](ezVec3I32 index)
     {
-      EZ_ASSERT_DEV(index.x > 0 && index.y > 0 && index.z > 0, "Given index ({0}) is out of range.", index);
+      EZ_ASSERT_DEV(index.x >= 0 && index.y >= 0 && index.z >= 0, "Given index ({0}) is out of range.", index);
       return GetAt(static_cast<ezUInt32>(index.x), static_cast<ezUInt32>(index.y), static_cast<ezUInt32>(index.z));
     }
 
     EZ_ALWAYS_INLINE const T& operator[](ezVec3I32 index) const
     {
-      EZ_ASSERT_DEV(index.x > 0 && index.y > 0 && index.z > 0, "Given index ({0}) is out of range.", index);
+      EZ_ASSERT_DEV(index.x >= 0 && index.y >= 0 && index.z >= 0, "Given index ({0}) is out of range.", index);
       return GetAt(static_cast<ezUInt32>(index.x), static_cast<ezUInt32>(index.y), static_cast<ezUInt32>(index.z));
     }
 
   private:
     static const constexpr ezUInt64 SizeOfT = sizeof(T);
 
-    EZ_ALWAYS_INLINE T& GetAt(ezUInt32 x, ezUInt32 y = 0, ezUInt32 z = 0)
+    EZ_ALWAYS_INLINE T& GetAt(ezUInt32 x, ezUInt32 y = 0, ezUInt32 z = 0) const
     {
       ezUInt8* ptr = static_cast<ezUInt8*>(m_MappedResource.GetData()) + (z * m_MappedResource.GetDepthPitch()) + (y * m_MappedResource.GetRowPitch()) + (x * SizeOfT);
       return *reinterpret_cast<T*>(ptr);
