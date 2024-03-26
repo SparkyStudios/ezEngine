@@ -196,6 +196,16 @@ namespace RHI
       auto depthAttachment = m_pDescriptor->depthAttachment();
       depthAttachment->setTexture(m_pDepthTexture->GetMTLTexture());
       depthAttachment->setLoadAction(MTL::LoadActionLoad);
+      depthAttachment->setStoreAction(MTL::StoreActionStore);
+
+      if (spPixelFormatHelper::IsStencilFormat(m_pDepthTexture->GetFormat()))
+      {
+        auto stencilAttachment = m_pDescriptor->stencilAttachment();
+        stencilAttachment->setTexture(m_pDepthTexture->GetMTLTexture());
+        stencilAttachment->setLoadAction(MTL::LoadActionLoad);
+        stencilAttachment->setStoreAction(MTL::StoreActionStore);
+        stencilAttachment->setSlice(m_pDepthTexture->GetArrayLayerCount());
+      }
     }
 
     m_bIsResourceCreated = true;

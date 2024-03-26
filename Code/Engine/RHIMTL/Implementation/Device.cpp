@@ -105,8 +105,9 @@ kernel void copy_bytes(
         EZ_LOCK(m_SubmittedCommandsMutex);
 
         if (pFence != nullptr)
-          m_SubmittedCommands.Insert(pCommandListMTL->m_pCommandBuffer, pFence.Downcast<spFenceMTL>());
+          pCommandListMTL->SetCompletionFence(pFence.Downcast<spFenceMTL>());
 
+        m_SubmittedCommands.Insert(pCommandListMTL->m_pCommandBuffer, pCommandListMTL);
         m_pLastSubmittedCommandBuffer = pCommandListMTL->Commit();
       }
     }
@@ -559,12 +560,9 @@ kernel void copy_bytes(
     {
       EZ_LOCK(m_SubmittedCommandsMutex);
 
-      ezSharedPtr<spFenceMTL> pFence(nullptr);
-      if (m_SubmittedCommands.TryGetValue(pCommandBuffer, pFence))
-      {
-        pFence->Raise();
-        m_SubmittedCommands.Remove(pCommandBuffer);
-      }
+      auto& pCommandList = m_SubmittedCommands[pCommandBuffer];
+      pCommandList->OnCompleted(pCommandBuffer);
+      m_SubmittedCommands.Remove(pCommandBuffer);
 
       if (m_pLastSubmittedCommandBuffer == pCommandBuffer)
         m_pLastSubmittedCommandBuffer = nullptr;

@@ -48,7 +48,11 @@ namespace RHI
     const ezUInt32 roundFactor = (4 - (m_uiBufferAlignedSize % 4)) % 4;
     m_uiActualCapacity = m_uiBufferAlignedSize + roundFactor;
 
-    m_pBuffer = m_pMTLDevice->newBuffer(m_uiActualCapacity * m_uiBufferCount, 0);
+    const bool bIsSharedMemory = m_Description.m_eUsage.IsSet(spBufferUsage::Dynamic) || m_Description.m_eUsage == spBufferUsage::Staging;
+
+    m_pBuffer = m_pMTLDevice->newBuffer(
+      m_uiActualCapacity * m_uiBufferCount,
+      bIsSharedMemory ? MTL::ResourceStorageModeShared : MTL::ResourceStorageModePrivate);
 
     PostCreateResource();
 

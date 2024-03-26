@@ -15,6 +15,7 @@ namespace RHI
   class spBufferMTL;
   class spFenceMTL;
   class spShaderMTL;
+  class spCommandListMTL;
 
   class SP_RHIMTL_DLL spDeviceMTL final : public spDevice
   {
@@ -97,7 +98,7 @@ namespace RHI
     MTL::CommandBuffer* m_pLastSubmittedCommandBuffer{nullptr};
 
     ezMutex m_SubmittedCommandsMutex;
-    ezMap<MTL::CommandBuffer*, ezSharedPtr<spFenceMTL>> m_SubmittedCommands;
+    ezMap<MTL::CommandBuffer*, ezSharedPtr<spCommandListMTL>> m_SubmittedCommands;
 
     ezMutex m_MappedResourcesMutex;
     ezMap<spMappedResourceCacheKey, spMappedResource> m_MappedResourcesCache;
