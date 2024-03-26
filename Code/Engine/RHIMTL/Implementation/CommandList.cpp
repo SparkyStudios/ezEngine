@@ -30,6 +30,26 @@ namespace RHI
       return;
 
     EnsureNoRenderPass();
+
+    {
+      EZ_LOCK(m_SubmittedCommandsLock);
+
+      for (auto& buffer : m_AvailableStagingBuffers)
+        buffer.Clear();
+
+      m_AvailableStagingBuffers.Clear();
+
+      for (auto& pair : m_SubmittedStagingBuffers)
+      {
+        for (auto& buffer : pair.Value())
+          buffer.Clear();
+
+        pair.Value().Clear();
+      }
+
+      m_SubmittedStagingBuffers.Clear();
+    }
+
     SP_RHI_MTL_RELEASE(m_pCommandBuffer);
 
     m_bReleased = true;
@@ -49,10 +69,10 @@ namespace RHI
     m_pCommandBuffer = pDevice->GetCommandQueue()->commandBuffer();
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-      {
-        spScopedMTLResource nsString(NS::String::string("RHI Metal Command List Buffer", NS::UTF8StringEncoding));
-        m_pCommandBuffer->setLabel(*nsString);
-      }
+    {
+      spScopedMTLResource nsString(NS::String::string("RHI Metal Command List Buffer", NS::UTF8StringEncoding));
+      m_pCommandBuffer->setLabel(*nsString);
+    }
 #endif
 
     ClearCachedState();
@@ -416,13 +436,12 @@ namespace RHI
 
     bool bUseComputeCopy = (uiOffset % 4 != 0) || (uiSize % 4 != 0 && uiOffset != 0 && uiSize != pBuffer->GetSize());
 
-    // TODO: Cache these, and rely on the command buffer's completion callback to add them back to a shared pool.
-    auto pBufferCopyMTL = m_pDevice->GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging)).Downcast<spBufferMTL>();
-    m_pDevice->UpdateBuffer(pBufferCopyMTL, 0, pSourceData, uiSize);
+    auto pStagingBuffer = GetFreeStagingBuffer(uiSize);
+    m_pDevice->UpdateBuffer(pStagingBuffer, 0, pSourceData, uiSize);
 
     if (bUseComputeCopy)
     {
-      CopyBufferInternal(pBufferCopyMTL, 0, pBuffer, uiOffset, uiSize);
+      CopyBufferInternal(pStagingBuffer, 0, pBuffer, uiOffset, uiSize);
     }
     else
     {
@@ -431,13 +450,23 @@ namespace RHI
       EnsureBlitEncoder();
 
       m_pBlitCommandEncoder->copyFromBuffer(
-        pBufferCopyMTL->GetMTLBuffer(), 0,
+        pStagingBuffer->GetMTLBuffer(), 0,
         pBufferMTL->GetMTLBuffer(), uiOffset,
         (uiSize + sizeRoundFactor));
     }
 
-    pBufferCopyMTL.Clear();
-    // m_pDevice->GetResourceManager()->EnqueueReleaseResource(pBufferCopyMTL);
+    {
+      EZ_LOCK(m_SubmittedCommandsLock);
+
+      ezDynamicArray<ezSharedPtr<spBufferMTL>>* stagingBuffers;
+      if (!m_SubmittedStagingBuffers.TryGetValue(m_pCommandBuffer, stagingBuffers))
+      {
+        m_SubmittedStagingBuffers[m_pCommandBuffer] = ezDynamicArray<ezSharedPtr<spBufferMTL>>();
+        stagingBuffers = &m_SubmittedStagingBuffers[m_pCommandBuffer];
+      }
+
+      stagingBuffers->PushBack(pStagingBuffer);
+    }
   }
 
   void spCommandListMTL::CopyBufferInternal(ezSharedPtr<RHI::spBuffer> pSourceBuffer, ezUInt32 uiSourceOffset, ezSharedPtr<RHI::spBuffer> pDestinationBuffer, ezUInt32 uiDestinationOffset, ezUInt32 uiSize)
@@ -712,6 +741,32 @@ namespace RHI
     m_pCommandBuffer = nullptr;
 
     return pCommandBuffer;
+  }
+
+  void spCommandListMTL::SetCompletionFence(ezSharedPtr<spFenceMTL> pFence)
+  {
+    EZ_ASSERT_DEV(m_CompletionFence == nullptr, "Completion fence already set.");
+    m_CompletionFence = pFence;
+  }
+
+  void spCommandListMTL::OnCompleted(MTL::CommandBuffer* pCommandBuffer)
+  {
+    if (m_CompletionFence != nullptr)
+    {
+      m_CompletionFence->Raise();
+      m_CompletionFence.Clear();
+    }
+
+    {
+      EZ_LOCK(m_SubmittedCommandsLock);
+
+      ezDynamicArray<ezSharedPtr<spBufferMTL>>* stagingBuffers = nullptr;
+      if (m_SubmittedStagingBuffers.TryGetValue(pCommandBuffer, stagingBuffers))
+      {
+        m_AvailableStagingBuffers.InsertRange(stagingBuffers->GetArrayPtr(), 0);
+        m_SubmittedStagingBuffers.Remove(pCommandBuffer);
+      }
+    }
   }
 
   bool spCommandListMTL::PreDraw()
@@ -1182,6 +1237,25 @@ namespace RHI
     }
 
     return uiBase;
+  }
+
+  ezSharedPtr<spBufferMTL> spCommandListMTL::GetFreeStagingBuffer(ezUInt32 uiSize)
+  {
+    {
+      EZ_LOCK(m_SubmittedCommandsLock);
+
+      for (auto& buffer : m_AvailableStagingBuffers)
+      {
+        if (buffer->GetSize() >= uiSize)
+        {
+          m_AvailableStagingBuffers.RemoveAndCopy(buffer);
+          return buffer;
+        }
+      }
+    }
+
+    auto pBuffer = m_pDevice->GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging));
+    return pBuffer.Downcast<spBufferMTL>();
   }
 } // namespace RHI
 

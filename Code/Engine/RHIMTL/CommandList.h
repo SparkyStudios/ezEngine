@@ -79,6 +79,9 @@ namespace RHI
 
     MTL::CommandBuffer* Commit();
 
+    void SetCompletionFence(ezSharedPtr<spFenceMTL> pFence);
+    void OnCompleted(MTL::CommandBuffer* pCommandBuffer);
+
   private:
     bool PreDraw();
     void PreDispatch();
@@ -112,6 +115,8 @@ namespace RHI
     EZ_NODISCARD EZ_ALWAYS_INLINE bool IsRenderCommandEncoderActive() const { return m_pRenderCommandEncoder != nullptr; }
     EZ_NODISCARD EZ_ALWAYS_INLINE bool IsBlitCommandEncoderActive() const { return m_pBlitCommandEncoder != nullptr; }
     EZ_NODISCARD EZ_ALWAYS_INLINE bool IsComputeCommandEncoderActive() const { return m_pComputeCommandEncoder != nullptr; }
+
+    ezSharedPtr<spBufferMTL> GetFreeStagingBuffer(ezUInt32 uiSize);
 
     MTL::Device* m_pMTLDevice{nullptr};
 
@@ -160,5 +165,10 @@ namespace RHI
     ezDynamicArray<spCommandListResourceSet> m_ComputeResourceSets;
     ezDynamicArray<bool> m_ActiveComputeResourceSets;
     bool m_bComputePipelineChanged{false};
+
+    ezDynamicArray<ezSharedPtr<spBufferMTL>> m_AvailableStagingBuffers;
+    ezMap<MTL::CommandBuffer*, ezDynamicArray<ezSharedPtr<spBufferMTL>>> m_SubmittedStagingBuffers;
+    ezMutex m_SubmittedCommandsLock;
+    ezSharedPtr<spFenceMTL> m_CompletionFence{nullptr};
   };
 } // namespace RHI
