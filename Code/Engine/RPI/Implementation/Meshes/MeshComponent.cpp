@@ -15,6 +15,7 @@
 #include <RPI/RPIPCH.h>
 
 #include <RPI/Meshes/MeshComponent.h>
+#include <RPI/Scene/SceneContext.h>
 
 #include <Core/WorldSerializer/WorldReader.h>
 #include <Core/WorldSerializer/WorldWriter.h>
@@ -45,10 +46,32 @@ namespace RPI
   spMeshComponentManager::spMeshComponentManager(ezWorld* pWorld)
     : ezComponentManager(pWorld)
   {
+    m_pRenderFeature = EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spMeshRenderFeature);
   }
 
   spMeshComponentManager::~spMeshComponentManager()
   {
+  }
+
+  void spMeshComponentManager::Initialize()
+  {
+    SUPER::Initialize();
+
+    spSceneContext* context = spRenderSystem::GetSingleton()->GetSceneContextFromWorld(GetWorld());
+    if (context == nullptr)
+    {
+      ezLog::Warning("Cannot initialize mesh render feature, no scene context available for the current world.");
+      return;
+    }
+
+    m_pRenderFeature->Initialize(context->GetRenderContext());
+  }
+
+  void spMeshComponentManager::Deinitialize()
+  {
+    SUPER::Deinitialize();
+
+    m_pRenderFeature->Deinitialize();
   }
 
   spMeshComponent::spMeshComponent()
