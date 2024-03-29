@@ -225,326 +225,326 @@ static ezResult DeserializeShader(const mpack_node_t& root, spShaderVariant& ref
       mpack_node_hstr(permutationNameNode, permutation.m_sName);
       mpack_node_hstr(permutationValueNode, permutation.m_sValue);
     }
+  }
 
-    // State
+  // State
+  {
+    enum class StateValueMode : ezUInt8
     {
-      enum class StateValueMode : ezUInt8
+      Map = 1,
+      String = 2,
+    };
+
+    const ezUInt64 uiStateCount = mpack_node_array_length(shaderStateNode);
+
+    for (ezUInt64 i = 0; i < uiStateCount; ++i)
+    {
+      const mpack_node_t& stateNode = mpack_node_array_at(shaderStateNode, i);
+
+      if (mpack_node_is_missing(stateNode))
+        return EZ_FAILURE;
+
+      const mpack_node_t& stateNameNode = mpack_node_array_at(stateNode, 0);
+      const mpack_node_t& stateMapNode = mpack_node_array_at(stateNode, 1);
+      const mpack_node_t& stateValueNode = mpack_node_array_at(stateNode, 2);
+      const mpack_node_t& stateTypeNode = mpack_node_array_at(stateNode, 3);
+
+      if (mpack_node_is_missing(stateNameNode) || mpack_node_is_missing(stateMapNode) || mpack_node_is_missing(stateValueNode) || mpack_node_is_missing(stateTypeNode))
+        return EZ_FAILURE;
+
+      const ezStringView sStateName(mpack_node_str(stateNameNode), mpack_node_strlen(stateNameNode));
+      const auto eStateType = static_cast<StateValueMode>(mpack_node_u8(stateTypeNode));
+
+      if (sStateName.Compare("BlendState") == 0)
       {
-        Map = 1,
-        String = 2,
-      };
-
-      const ezUInt64 uiStateCount = mpack_node_array_length(shaderStateNode);
-
-      for (ezUInt64 i = 0; i < uiStateCount; ++i)
-      {
-        const mpack_node_t& stateNode = mpack_node_array_at(shaderStateNode, i);
-
-        if (mpack_node_is_missing(stateNode))
-          return EZ_FAILURE;
-
-        const mpack_node_t& stateNameNode = mpack_node_array_at(stateNode, 0);
-        const mpack_node_t& stateMapNode = mpack_node_array_at(stateNode, 1);
-        const mpack_node_t& stateValueNode = mpack_node_array_at(stateNode, 2);
-        const mpack_node_t& stateTypeNode = mpack_node_array_at(stateNode, 3);
-
-        if (mpack_node_is_missing(stateNameNode) || mpack_node_is_missing(stateMapNode) || mpack_node_is_missing(stateValueNode) || mpack_node_is_missing(stateTypeNode))
-          return EZ_FAILURE;
-
-        const ezStringView sStateName(mpack_node_str(stateNameNode), mpack_node_strlen(stateNameNode));
-        const auto eStateType = static_cast<StateValueMode>(mpack_node_u8(stateTypeNode));
-
-        if (sStateName.Compare("BlendState") == 0)
+        switch (eStateType)
         {
-          switch (eStateType)
+          case StateValueMode::Map:
           {
-            case StateValueMode::Map:
+            ref_data.m_RenderingState.m_BlendState.m_AttachmentStates.SetCount(1);
+
+            const ezUInt64 uiMapSize = mpack_node_map_count(stateMapNode);
+
+            for (ezUInt64 j = 0; j < uiMapSize; ++j)
             {
-              ref_data.m_RenderingState.m_BlendState.m_AttachmentStates.SetCount(1);
+              const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
+              const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
 
-              const ezUInt64 uiMapSize = mpack_node_map_count(stateMapNode);
+              const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
+              const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
 
-              for (ezUInt64 j = 0; j < uiMapSize; ++j)
+              if (sKey.Compare("BlendColor") == 0)
               {
-                const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
-                const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
-
-                const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
-                const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
-
-                if (sKey.Compare("BlendColor") == 0)
-                {
-                  bool bValidColor = false;
-                  ref_data.m_RenderingState.m_BlendState.m_BlendColor = ezConversionUtils::GetColorByName(sValue, &bValidColor);
-                  if (!bValidColor)
-                    ezLog::Error("Invalid blend color value: '{0}'", sValue);
-                }
-                else if (sValue.Compare("AlphaToCoverage") == 0)
-                  ref_data.m_RenderingState.m_BlendState.m_bAlphaToCoverage = sValue.Compare("true") == 0;
-                else if (sKey.Compare("ColorWriteMask") == 0)
-                  ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eColorWriteMask = RHI::spColorWriteMask::FromString(sValue);
-                else if (sValue.Compare("SourceColorBlendFactor") == 0)
-                  ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eSourceColorBlendFactor = RHI::spBlendFactor::FromString(sValue);
-                else if (sValue.Compare("DestinationColorBlendFactor") == 0)
-                  ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eDestinationColorBlendFactor = RHI::spBlendFactor::FromString(sValue);
-                else if (sValue.Compare("SourceAlphaBlendFactor") == 0)
-                  ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eSourceAlphaBlendFactor = RHI::spBlendFactor::FromString(sValue);
-                else if (sValue.Compare("DestinationAlphaBlendFactor") == 0)
-                  ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eDestinationAlphaBlendFactor = RHI::spBlendFactor::FromString(sValue);
-                else if (sValue.Compare("ColorBlendFunction") == 0)
-                  ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eColorBlendFunction = RHI::spBlendFunction::FromString(sValue);
-                else if (sValue.Compare("AlphaBlendFunction") == 0)
-                  ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eAlphaBlendFunction = RHI::spBlendFunction::FromString(sValue);
-                else if (sValue.Compare("Enabled") == 0)
-                  ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_bEnabled = sValue.Compare("true") == 0;
-                else
-                  ezLog::Warning("Found unknown blend state key: '{0}'", sKey);
+                bool bValidColor = false;
+                ref_data.m_RenderingState.m_BlendState.m_BlendColor = ezConversionUtils::GetColorByName(sValue, &bValidColor);
+                if (!bValidColor)
+                  ezLog::Error("Invalid blend color value: '{0}'", sValue);
               }
-
-              break;
-            }
-
-            case StateValueMode::String:
-            {
-              const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
-
-              if (sStateValue.Compare("Empty") == 0)
-                ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::Empty;
-              else if (sStateValue.Compare("SingleOverrideBlend") == 0)
-                ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleOverrideBlend;
-              else if (sStateValue.Compare("SingleAlphaBlend") == 0)
-                ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleAlphaBlend;
-              else if (sStateValue.Compare("SingleAdditiveBlend") == 0)
-                ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleAdditiveBlend;
-              else if (sStateValue.Compare("SingleMultiplyBlend") == 0)
-                ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleMultiplyBlend;
-              else if (sStateValue.Compare("SingleDisabled") == 0)
-                ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleDisabled;
+              else if (sValue.Compare("AlphaToCoverage") == 0)
+                ref_data.m_RenderingState.m_BlendState.m_bAlphaToCoverage = sValue.Compare("true") == 0;
+              else if (sKey.Compare("ColorWriteMask") == 0)
+                ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eColorWriteMask = RHI::spColorWriteMask::FromString(sValue);
+              else if (sValue.Compare("SourceColorBlendFactor") == 0)
+                ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eSourceColorBlendFactor = RHI::spBlendFactor::FromString(sValue);
+              else if (sValue.Compare("DestinationColorBlendFactor") == 0)
+                ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eDestinationColorBlendFactor = RHI::spBlendFactor::FromString(sValue);
+              else if (sValue.Compare("SourceAlphaBlendFactor") == 0)
+                ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eSourceAlphaBlendFactor = RHI::spBlendFactor::FromString(sValue);
+              else if (sValue.Compare("DestinationAlphaBlendFactor") == 0)
+                ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eDestinationAlphaBlendFactor = RHI::spBlendFactor::FromString(sValue);
+              else if (sValue.Compare("ColorBlendFunction") == 0)
+                ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eColorBlendFunction = RHI::spBlendFunction::FromString(sValue);
+              else if (sValue.Compare("AlphaBlendFunction") == 0)
+                ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_eAlphaBlendFunction = RHI::spBlendFunction::FromString(sValue);
+              else if (sValue.Compare("Enabled") == 0)
+                ref_data.m_RenderingState.m_BlendState.m_AttachmentStates[0].m_bEnabled = sValue.Compare("true") == 0;
               else
-              {
-                ezLog::Error("Unknown blend state value '{0}'. Falling back to 'SingleDisabled'", sStateValue);
-                ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleDisabled;
-              }
-
-              break;
+                ezLog::Warning("Found unknown blend state key: '{0}'", sKey);
             }
+
+            break;
           }
-        }
-        else if (sStateName.Compare("DepthState") == 0)
-        {
-          switch (eStateType)
+
+          case StateValueMode::String:
           {
-            case StateValueMode::Map:
+            const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
+
+            if (sStateValue.Compare("Empty") == 0)
+              ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::Empty;
+            else if (sStateValue.Compare("SingleOverrideBlend") == 0)
+              ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleOverrideBlend;
+            else if (sStateValue.Compare("SingleAlphaBlend") == 0)
+              ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleAlphaBlend;
+            else if (sStateValue.Compare("SingleAdditiveBlend") == 0)
+              ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleAdditiveBlend;
+            else if (sStateValue.Compare("SingleMultiplyBlend") == 0)
+              ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleMultiplyBlend;
+            else if (sStateValue.Compare("SingleDisabled") == 0)
+              ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleDisabled;
+            else
             {
-              const ezUInt64 uiMapSize = mpack_node_map_count(stateMapNode);
-
-              for (ezUInt64 j = 0; j < uiMapSize; ++j)
-              {
-                const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
-                const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
-
-                const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
-                const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
-
-                if (sKey.Compare("DepthTestEnabled") == 0)
-                  ref_data.m_RenderingState.m_DepthState.m_bDepthTestEnabled = sValue.Compare("true") == 0;
-                else if (sKey.Compare("DepthMaskEnabled") == 0)
-                  ref_data.m_RenderingState.m_DepthState.m_bDepthMaskEnabled = sValue.Compare("true") == 0;
-                else if (sKey.Compare("DepthStencilComparison") == 0)
-                  ref_data.m_RenderingState.m_DepthState.m_eDepthStencilComparison = RHI::spDepthStencilComparison::FromString(sValue);
-                else
-                  ezLog::Warning("Found unknown depth state key: '{0}'", sKey);
-              }
-
-              break;
+              ezLog::Error("Unknown blend state value '{0}'. Falling back to 'SingleDisabled'", sStateValue);
+              ref_data.m_RenderingState.m_BlendState = RHI::spBlendState::SingleDisabled;
             }
 
-            case StateValueMode::String:
-            {
-              const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
-
-              if (sStateValue.Compare("Less") == 0)
-                ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::Less;
-              else if (sStateValue.Compare("LessEqual") == 0)
-                ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::LessEqual;
-              else if (sStateValue.Compare("LessRead") == 0)
-                ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::LessRead;
-              else if (sStateValue.Compare("LessEqualRead") == 0)
-                ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::LessEqualRead;
-              else if (sStateValue.Compare("Greater") == 0)
-                ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::Greater;
-              else if (sStateValue.Compare("GreaterEqual") == 0)
-                ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::GreaterEqual;
-              else if (sStateValue.Compare("GreaterRead") == 0)
-                ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::GreaterRead;
-              else if (sStateValue.Compare("GreaterEqualRead") == 0)
-                ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::GreaterEqualRead;
-              else if (sStateValue.Compare("Disabled") == 0)
-                ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::Disabled;
-              else
-              {
-                ezLog::Error("Unknown depth state value '{0}'. Falling back to 'Disabled'", sStateValue);
-                ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::Disabled;
-              }
-
-              break;
-            }
+            break;
           }
-        }
-        else if (sStateName.Compare("StencilState") == 0)
-        {
-          switch (eStateType)
-          {
-            case StateValueMode::Map:
-            {
-              const ezUInt64 uiMapSize = mpack_node_map_count(stateMapNode);
-
-              for (ezUInt64 j = 0; j < uiMapSize; ++j)
-              {
-                const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
-                const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
-
-                const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
-                const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
-
-                if (sKey.Compare("Enabled") == 0)
-                  ref_data.m_RenderingState.m_StencilState.m_bEnabled = sValue.Compare("true") == 0;
-                else if (sKey.Compare("FrontFailOp") == 0)
-                  ref_data.m_RenderingState.m_StencilState.m_Front.m_eFail = RHI::spStencilOperation::FromString(sValue);
-                else if (sKey.Compare("FrontPassOp") == 0)
-                  ref_data.m_RenderingState.m_StencilState.m_Front.m_ePass = RHI::spStencilOperation::FromString(sValue);
-                else if (sKey.Compare("FrontDepthFailOp") == 0)
-                  ref_data.m_RenderingState.m_StencilState.m_Front.m_eDepthFail = RHI::spStencilOperation::FromString(sValue);
-                else if (sKey.Compare("FrontComparison") == 0)
-                  ref_data.m_RenderingState.m_StencilState.m_Front.m_eComparison = RHI::spDepthStencilComparison::FromString(sValue);
-                else if (sKey.Compare("BackFailOp") == 0)
-                  ref_data.m_RenderingState.m_StencilState.m_Back.m_eFail = RHI::spStencilOperation::FromString(sValue);
-                else if (sKey.Compare("BackPassOp") == 0)
-                  ref_data.m_RenderingState.m_StencilState.m_Back.m_ePass = RHI::spStencilOperation::FromString(sValue);
-                else if (sKey.Compare("BackDepthFailOp") == 0)
-                  ref_data.m_RenderingState.m_StencilState.m_Back.m_eDepthFail = RHI::spStencilOperation::FromString(sValue);
-                else if (sKey.Compare("BackComparison") == 0)
-                  ref_data.m_RenderingState.m_StencilState.m_Back.m_eComparison = RHI::spDepthStencilComparison::FromString(sValue);
-                else if (sKey.Compare("ReadMask") == 0)
-                {
-                  ezUInt32 uiReadMask = 0;
-                  if (ezConversionUtils::StringToUInt(sValue, uiReadMask).Failed())
-                  {
-                    ezLog::Error("Invalid read mask '{0}'", sValue);
-                    uiReadMask = 0;
-                  }
-
-                  ref_data.m_RenderingState.m_StencilState.m_uiReadMask = static_cast<ezUInt8>(uiReadMask);
-                }
-                else if (sKey.Compare("WriteMask") == 0)
-                {
-                  ezUInt32 uiWriteMask = 0;
-                  if (ezConversionUtils::StringToUInt(sValue, uiWriteMask).Failed())
-                  {
-                    ezLog::Error("Invalid write mask '{0}'", sValue);
-                    uiWriteMask = 0;
-                  }
-
-                  ref_data.m_RenderingState.m_StencilState.m_uiWriteMask = static_cast<ezUInt8>(uiWriteMask);
-                }
-                else if (sKey.Compare("Reference") == 0)
-                {
-                  ezUInt32 uiReference = 0;
-                  if (ezConversionUtils::StringToUInt(sValue, uiReference).Failed())
-                  {
-                    ezLog::Error("Invalid reference value '{0}'", sValue);
-                    uiReference = 0;
-                  }
-
-                  ref_data.m_RenderingState.m_StencilState.m_uiReference = static_cast<ezUInt8>(uiReference);
-                }
-                else
-                  ezLog::Warning("Found unknown depth state key: '{0}'", sKey);
-              }
-
-              break;
-            }
-
-            case StateValueMode::String:
-            {
-              const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
-
-              if (sStateValue.Compare("Disabled") == 0)
-                ref_data.m_RenderingState.m_StencilState = RHI::spStencilState::Disabled;
-              else
-              {
-                ezLog::Error("Unknown depth state value '{0}'. Falling back to 'Disabled'", sStateValue);
-                ref_data.m_RenderingState.m_StencilState = RHI::spStencilState::Disabled;
-              }
-
-              break;
-            }
-          }
-        }
-        else if (sStateName.Compare("RasterizerState") == 0)
-        {
-          switch (eStateType)
-          {
-            case StateValueMode::Map:
-            {
-              const ezUInt64 uiMapSize = mpack_node_map_count(stateMapNode);
-
-              for (ezUInt64 j = 0; j < uiMapSize; ++j)
-              {
-                const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
-                const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
-
-                const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
-                const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
-
-                if (sKey.Compare("FaceCulling") == 0)
-                  ref_data.m_RenderingState.m_RasterizerState.m_eFaceCulling = RHI::spFaceCullMode::FromString(sValue);
-                else if (sKey.Compare("ScissorTestEnabled") == 0)
-                  ref_data.m_RenderingState.m_RasterizerState.m_bScissorTestEnabled = sValue.Compare("true") == 0;
-                else if (sKey.Compare("DepthClipEnabled") == 0)
-                  ref_data.m_RenderingState.m_RasterizerState.m_bDepthClipEnabled = sValue.Compare("true") == 0;
-                else if (sKey.Compare("FrontFace") == 0)
-                  ref_data.m_RenderingState.m_RasterizerState.m_eFrontFace = RHI::spFrontFace::FromString(sValue);
-                else if (sKey.Compare("PolygonFillMode") == 0)
-                  ref_data.m_RenderingState.m_RasterizerState.m_ePolygonFillMode = RHI::spPolygonFillMode::FromString(sValue);
-                else if (sKey.Compare("ConservativeRasterization") == 0)
-                  ref_data.m_RenderingState.m_RasterizerState.m_bConservativeRasterization = sValue.Compare("true") == 0;
-                else
-                  ezLog::Warning("Found unknown rasterizer state key: '{0}'", sKey);
-              }
-
-              break;
-            }
-
-            case StateValueMode::String:
-            {
-              const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
-
-              if (sStateValue.Compare("Default") == 0)
-                ref_data.m_RenderingState.m_RasterizerState = RHI::spRasterizerState::Default;
-              else if (sStateValue.Compare("CullNone") == 0)
-                ref_data.m_RenderingState.m_RasterizerState = RHI::spRasterizerState::CullNone;
-              else
-              {
-                ezLog::Error("Unknown rasterizer state value '{0}'. Falling back to 'Default'", sStateValue);
-                ref_data.m_RenderingState.m_RasterizerState = RHI::spRasterizerState::Default;
-              }
-
-              break;
-            }
-          }
-        }
-        else
-        {
-          ezLog::Warning("Found unknown rendering state key: '{0}'", sStateName);
         }
       }
-    }
+      else if (sStateName.Compare("DepthState") == 0)
+      {
+        switch (eStateType)
+        {
+          case StateValueMode::Map:
+          {
+            const ezUInt64 uiMapSize = mpack_node_map_count(stateMapNode);
 
-    // Lang
-    {
-      ref_data.m_eShaderLanguage = static_cast<RHI::spShaderLanguage::Enum>(mpack_node_u8(shaderLangNode));
+            for (ezUInt64 j = 0; j < uiMapSize; ++j)
+            {
+              const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
+              const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
+
+              const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
+              const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
+
+              if (sKey.Compare("DepthTestEnabled") == 0)
+                ref_data.m_RenderingState.m_DepthState.m_bDepthTestEnabled = sValue.Compare("true") == 0;
+              else if (sKey.Compare("DepthMaskEnabled") == 0)
+                ref_data.m_RenderingState.m_DepthState.m_bDepthMaskEnabled = sValue.Compare("true") == 0;
+              else if (sKey.Compare("DepthStencilComparison") == 0)
+                ref_data.m_RenderingState.m_DepthState.m_eDepthStencilComparison = RHI::spDepthStencilComparison::FromString(sValue);
+              else
+                ezLog::Warning("Found unknown depth state key: '{0}'", sKey);
+            }
+
+            break;
+          }
+
+          case StateValueMode::String:
+          {
+            const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
+
+            if (sStateValue.Compare("Less") == 0)
+              ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::Less;
+            else if (sStateValue.Compare("LessEqual") == 0)
+              ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::LessEqual;
+            else if (sStateValue.Compare("LessRead") == 0)
+              ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::LessRead;
+            else if (sStateValue.Compare("LessEqualRead") == 0)
+              ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::LessEqualRead;
+            else if (sStateValue.Compare("Greater") == 0)
+              ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::Greater;
+            else if (sStateValue.Compare("GreaterEqual") == 0)
+              ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::GreaterEqual;
+            else if (sStateValue.Compare("GreaterRead") == 0)
+              ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::GreaterRead;
+            else if (sStateValue.Compare("GreaterEqualRead") == 0)
+              ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::GreaterEqualRead;
+            else if (sStateValue.Compare("Disabled") == 0)
+              ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::Disabled;
+            else
+            {
+              ezLog::Error("Unknown depth state value '{0}'. Falling back to 'Disabled'", sStateValue);
+              ref_data.m_RenderingState.m_DepthState = RHI::spDepthState::Disabled;
+            }
+
+            break;
+          }
+        }
+      }
+      else if (sStateName.Compare("StencilState") == 0)
+      {
+        switch (eStateType)
+        {
+          case StateValueMode::Map:
+          {
+            const ezUInt64 uiMapSize = mpack_node_map_count(stateMapNode);
+
+            for (ezUInt64 j = 0; j < uiMapSize; ++j)
+            {
+              const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
+              const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
+
+              const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
+              const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
+
+              if (sKey.Compare("Enabled") == 0)
+                ref_data.m_RenderingState.m_StencilState.m_bEnabled = sValue.Compare("true") == 0;
+              else if (sKey.Compare("FrontFailOp") == 0)
+                ref_data.m_RenderingState.m_StencilState.m_Front.m_eFail = RHI::spStencilOperation::FromString(sValue);
+              else if (sKey.Compare("FrontPassOp") == 0)
+                ref_data.m_RenderingState.m_StencilState.m_Front.m_ePass = RHI::spStencilOperation::FromString(sValue);
+              else if (sKey.Compare("FrontDepthFailOp") == 0)
+                ref_data.m_RenderingState.m_StencilState.m_Front.m_eDepthFail = RHI::spStencilOperation::FromString(sValue);
+              else if (sKey.Compare("FrontComparison") == 0)
+                ref_data.m_RenderingState.m_StencilState.m_Front.m_eComparison = RHI::spDepthStencilComparison::FromString(sValue);
+              else if (sKey.Compare("BackFailOp") == 0)
+                ref_data.m_RenderingState.m_StencilState.m_Back.m_eFail = RHI::spStencilOperation::FromString(sValue);
+              else if (sKey.Compare("BackPassOp") == 0)
+                ref_data.m_RenderingState.m_StencilState.m_Back.m_ePass = RHI::spStencilOperation::FromString(sValue);
+              else if (sKey.Compare("BackDepthFailOp") == 0)
+                ref_data.m_RenderingState.m_StencilState.m_Back.m_eDepthFail = RHI::spStencilOperation::FromString(sValue);
+              else if (sKey.Compare("BackComparison") == 0)
+                ref_data.m_RenderingState.m_StencilState.m_Back.m_eComparison = RHI::spDepthStencilComparison::FromString(sValue);
+              else if (sKey.Compare("ReadMask") == 0)
+              {
+                ezUInt32 uiReadMask = 0;
+                if (ezConversionUtils::StringToUInt(sValue, uiReadMask).Failed())
+                {
+                  ezLog::Error("Invalid read mask '{0}'", sValue);
+                  uiReadMask = 0;
+                }
+
+                ref_data.m_RenderingState.m_StencilState.m_uiReadMask = static_cast<ezUInt8>(uiReadMask);
+              }
+              else if (sKey.Compare("WriteMask") == 0)
+              {
+                ezUInt32 uiWriteMask = 0;
+                if (ezConversionUtils::StringToUInt(sValue, uiWriteMask).Failed())
+                {
+                  ezLog::Error("Invalid write mask '{0}'", sValue);
+                  uiWriteMask = 0;
+                }
+
+                ref_data.m_RenderingState.m_StencilState.m_uiWriteMask = static_cast<ezUInt8>(uiWriteMask);
+              }
+              else if (sKey.Compare("Reference") == 0)
+              {
+                ezUInt32 uiReference = 0;
+                if (ezConversionUtils::StringToUInt(sValue, uiReference).Failed())
+                {
+                  ezLog::Error("Invalid reference value '{0}'", sValue);
+                  uiReference = 0;
+                }
+
+                ref_data.m_RenderingState.m_StencilState.m_uiReference = static_cast<ezUInt8>(uiReference);
+              }
+              else
+                ezLog::Warning("Found unknown depth state key: '{0}'", sKey);
+            }
+
+            break;
+          }
+
+          case StateValueMode::String:
+          {
+            const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
+
+            if (sStateValue.Compare("Disabled") == 0)
+              ref_data.m_RenderingState.m_StencilState = RHI::spStencilState::Disabled;
+            else
+            {
+              ezLog::Error("Unknown depth state value '{0}'. Falling back to 'Disabled'", sStateValue);
+              ref_data.m_RenderingState.m_StencilState = RHI::spStencilState::Disabled;
+            }
+
+            break;
+          }
+        }
+      }
+      else if (sStateName.Compare("RasterizerState") == 0)
+      {
+        switch (eStateType)
+        {
+          case StateValueMode::Map:
+          {
+            const ezUInt64 uiMapSize = mpack_node_map_count(stateMapNode);
+
+            for (ezUInt64 j = 0; j < uiMapSize; ++j)
+            {
+              const mpack_node_t& keyNode = mpack_node_map_key_at(stateMapNode, j);
+              const mpack_node_t& valueNode = mpack_node_map_value_at(stateMapNode, j);
+
+              const ezStringView sKey(mpack_node_str(keyNode), mpack_node_strlen(keyNode));
+              const ezStringView sValue(mpack_node_str(valueNode), mpack_node_strlen(valueNode));
+
+              if (sKey.Compare("FaceCulling") == 0)
+                ref_data.m_RenderingState.m_RasterizerState.m_eFaceCulling = RHI::spFaceCullMode::FromString(sValue);
+              else if (sKey.Compare("ScissorTestEnabled") == 0)
+                ref_data.m_RenderingState.m_RasterizerState.m_bScissorTestEnabled = sValue.Compare("true") == 0;
+              else if (sKey.Compare("DepthClipEnabled") == 0)
+                ref_data.m_RenderingState.m_RasterizerState.m_bDepthClipEnabled = sValue.Compare("true") == 0;
+              else if (sKey.Compare("FrontFace") == 0)
+                ref_data.m_RenderingState.m_RasterizerState.m_eFrontFace = RHI::spFrontFace::FromString(sValue);
+              else if (sKey.Compare("PolygonFillMode") == 0)
+                ref_data.m_RenderingState.m_RasterizerState.m_ePolygonFillMode = RHI::spPolygonFillMode::FromString(sValue);
+              else if (sKey.Compare("ConservativeRasterization") == 0)
+                ref_data.m_RenderingState.m_RasterizerState.m_bConservativeRasterization = sValue.Compare("true") == 0;
+              else
+                ezLog::Warning("Found unknown rasterizer state key: '{0}'", sKey);
+            }
+
+            break;
+          }
+
+          case StateValueMode::String:
+          {
+            const ezStringView sStateValue(mpack_node_str(stateValueNode), mpack_node_strlen(stateValueNode));
+
+            if (sStateValue.Compare("Default") == 0)
+              ref_data.m_RenderingState.m_RasterizerState = RHI::spRasterizerState::Default;
+            else if (sStateValue.Compare("CullNone") == 0)
+              ref_data.m_RenderingState.m_RasterizerState = RHI::spRasterizerState::CullNone;
+            else
+            {
+              ezLog::Error("Unknown rasterizer state value '{0}'. Falling back to 'Default'", sStateValue);
+              ref_data.m_RenderingState.m_RasterizerState = RHI::spRasterizerState::Default;
+            }
+
+            break;
+          }
+        }
+      }
+      else
+      {
+        ezLog::Warning("Found unknown rendering state key: '{0}'", sStateName);
+      }
     }
+  }
+
+  // Lang
+  {
+    ref_data.m_eShaderLanguage = static_cast<RHI::spShaderLanguage::Enum>(mpack_node_u8(shaderLangNode));
   }
 
   return EZ_SUCCESS;
