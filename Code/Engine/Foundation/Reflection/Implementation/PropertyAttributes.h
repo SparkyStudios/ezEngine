@@ -167,6 +167,11 @@ public:
   {
   }
 
+  ezDefaultValueAttribute(ezUInt32 value)
+    : m_Value(value)
+  {
+  }
+
   ezDefaultValueAttribute(float value)
     : m_Value(value)
   {
