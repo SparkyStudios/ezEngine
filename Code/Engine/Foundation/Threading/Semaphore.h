@@ -45,7 +45,7 @@ public:
   void ReturnToken();
 
   /// \brief Same as AcquireToken() but returns immediately with EZ_FAILURE, if currently not tokens are available.
-  ezResult TryAcquireToken(ezTime timeout = ezTime::Zero());
+  ezResult TryAcquireToken(ezTime timeout = ezTime::MakeZero());
 
 private:
   ezSemaphoreHandle m_hSemaphore = {};

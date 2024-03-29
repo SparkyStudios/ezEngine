@@ -625,10 +625,10 @@ void ezAudioTranslationLayer::DebugRender() const
 
     if (const ezView* pView = ezRenderWorld::GetViewByUsageHint(ezCameraUsageHint::MainView, ezCameraUsageHint::EditorView))
     {
-      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugRenderer::ScreenPlacement::BottomRight, "AudioSystem", ezFmt("ATL ({0}) - {1} fps, {2} ms", pAudioMiddleware->GetMiddlewareName(), uiFPS, ezArgF(tDisplayedFrameTime.GetMilliseconds(), 1, false, 4)));
-      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugRenderer::ScreenPlacement::BottomRight, "AudioSystem", ezFmt("Entities Count: {0}", m_mEntities.GetCount()));
-      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugRenderer::ScreenPlacement::BottomRight, "AudioSystem", ezFmt("Listeners Count: {0}", m_mListeners.GetCount()));
-      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugRenderer::ScreenPlacement::BottomRight, "AudioSystem", ezFmt("Total Allocated Memory: {0}Mb", (ezAudioSystemAllocator::GetSingleton()->GetStats().m_uiAllocationSize + ezAudioMiddlewareAllocator::GetSingleton()->GetStats().m_uiAllocationSize) / 1048576.0f));
+      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugTextPlacement::BottomRight, "AudioSystem", ezFmt("ATL ({0}) - {1} fps, {2} ms", pAudioMiddleware->GetMiddlewareName(), uiFPS, ezArgF(tDisplayedFrameTime.GetMilliseconds(), 1, false, 4)));
+      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugTextPlacement::BottomRight, "AudioSystem", ezFmt("Entities Count: {0}", m_mEntities.GetCount()));
+      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugTextPlacement::BottomRight, "AudioSystem", ezFmt("Listeners Count: {0}", m_mListeners.GetCount()));
+      ezDebugRenderer::DrawInfoText(pView->GetHandle(), ezDebugTextPlacement::BottomRight, "AudioSystem", ezFmt("Total Allocated Memory: {0}Mb", (ezAudioSystemAllocator::GetSingleton()->GetStats().m_uiAllocationSize + ezAudioMiddlewareAllocator::GetSingleton()->GetStats().m_uiAllocationSize) / 1048576.0f));
     }
   }
 }

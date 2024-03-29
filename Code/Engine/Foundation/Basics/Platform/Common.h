@@ -165,10 +165,7 @@ namespace ezInternal
 #define EZ_ARRAY_SIZE(a) (sizeof(*ezInternal::ArraySizeHelper(a)) + 0)
 
 /// \brief Template helper which allows to suppress "Unused variable" warnings (e.g. result used in platform specific block, ..)
-template <class T>
-void EZ_IGNORE_UNUSED(const T&)
-{
-}
+#define EZ_IGNORE_UNUSED(a) (void)(a)
 
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS)
 #  define EZ_DECL_EXPORT __declspec(dllexport)
