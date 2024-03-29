@@ -334,11 +334,7 @@ ezResult spMeshProcessor::BuildContext()
   {
     ezUInt8 uiLODCount = 0;
 
-    for (ezUInt32 n = 0; n < m_pScene->mRootNode->mNumChildren; ++n)
-    {
-      const aiNode* pNode = m_pScene->mRootNode->mChildren[n];
-      ProcessNodes(pNode, ezInvalidIndex, uiLODCount);
-    }
+    ProcessNodes(m_pScene->mRootNode, ezInvalidIndex, uiLODCount);
 
     m_AssimpContext.m_uiLODCount = uiLODCount + 1;
   }
