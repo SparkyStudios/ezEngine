@@ -30,7 +30,7 @@ using namespace RAI;
 
 static spTextureResourceLoader s_TextureResourceLoader;
 
-ezCVarFloat cvar_StreamingTextureLoadDelay("Streaming.TextureLoadDelay", 0.0f, ezCVarFlags::Save, "Artificial texture loading slowdown.");
+ezCVarFloat cvar_Streaming_TextureLoadDelay("Streaming.TextureLoadDelay", 0.0f, ezCVarFlags::Save, "Artificial texture loading slowdown.");
 
 // clang-format off
 EZ_BEGIN_SUBSYSTEM_DECLARATION(RAI, TextureResource)
@@ -122,6 +122,7 @@ ezResourceLoadData spTextureResourceLoader::OpenDataStream(const ezResource* pRe
     }
 
     result = ktxTexture_SetImageFromMemory(ktxTexture(texture), 0, 0, 0, pPixels, kPixelCount);
+    EZ_DEFAULT_DELETE_RAW_BUFFER(pPixels);
 
     if (result != KTX_SUCCESS)
       return res;
@@ -162,8 +163,6 @@ ezResourceLoadData spTextureResourceLoader::OpenDataStream(const ezResource* pRe
 
     if (pData->m_pImage->LoadImageData().Failed())
       return res;
-
-    EZ_DEFAULT_DELETE_RAW_BUFFER(pPixels);
   }
   else
   {
@@ -202,9 +201,9 @@ ezResourceLoadData spTextureResourceLoader::OpenDataStream(const ezResource* pRe
   res.m_pDataStream = &pData->m_Reader;
   res.m_pCustomLoaderData = pData;
 
-  if (cvar_StreamingTextureLoadDelay > 0)
+  if (cvar_Streaming_TextureLoadDelay > 0)
   {
-    ezThreadUtils::Sleep(ezTime::Seconds(cvar_StreamingTextureLoadDelay));
+    ezThreadUtils::Sleep(ezTime::Seconds(cvar_Streaming_TextureLoadDelay));
   }
 
   return res;
