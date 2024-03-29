@@ -136,10 +136,7 @@ namespace ezInternal
 #define EZ_ARRAY_SIZE(a) (ezInternal::ArraySizeHelper<decltype(a)>::value)
 
 /// \brief Template helper which allows to suppress "Unused variable" warnings (e.g. result used in platform specific block, ..)
-template <class T>
-void EZ_IGNORE_UNUSED(const T&)
-{
-}
+#define EZ_IGNORE_UNUSED(a) (void)(a)
 
 #if (__cplusplus >= 202002L || _MSVC_LANG >= 202002L)
 #  undef EZ_USE_CPP20_OPERATORS
