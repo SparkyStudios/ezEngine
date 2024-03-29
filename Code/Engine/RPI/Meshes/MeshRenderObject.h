@@ -20,16 +20,14 @@
 
 namespace RPI
 {
-  struct alignas(16) spMeshRenderObjectData
-  {
-
-  };
-
   class SP_RPI_DLL spMeshRenderObject final : public spRenderObject
   {
+    friend class spMeshRenderFeature;
+    friend class spMeshRenderFeatureExtractor;
+
     EZ_ADD_DYNAMIC_REFLECTION(spMeshRenderObject, spRenderObject);
 
   private:
-    spMeshRenderObjectData m_Data;
+    RAI::spMeshResourceHandle m_hMeshResource;
   };
 }

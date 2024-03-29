@@ -23,11 +23,20 @@
 
 namespace RPI
 {
-  class spMeshComponentManager : public ezComponentManager<class spMeshComponent, ezBlockStorageType::FreeList>
+  class SP_RPI_DLL spMeshComponentManager : public ezComponentManager<class spMeshComponent, ezBlockStorageType::FreeList>
   {
   public:
+    using SUPER = ezComponentManager<class spMeshComponent, ezBlockStorageType::FreeList>;
+
     explicit spMeshComponentManager(ezWorld* pWorld);
     ~spMeshComponentManager() override;
+
+  protected:
+    void Initialize() override;
+    void Deinitialize() override;
+
+  private:
+    ezUniquePtr<spMeshRenderFeature> m_pRenderFeature{nullptr};
   };
 
   class SP_RPI_DLL spMeshComponent : public spRenderComponent

@@ -56,6 +56,20 @@ namespace RPI
     message.m_pRenderView = pRenderView;
     message.m_Objects = EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spRenderObjectCollection, &visibilityGroup);
 
+    {
+      EZ_LOCK(pSceneContext->GetWorld()->GetWriteMarker());
+
+      for (auto it = pSceneContext->GetWorld()->GetObjects(); it.IsValid(); it.Next())
+      {
+        spMeshComponent* component = nullptr;
+        if (it->TryGetComponentOfBaseType<spMeshComponent>(component) && component != nullptr)
+        {
+          // TODO: Send this only if the object is visible and within the view frustum
+          component->SendMessage(message);
+        }
+      }
+    }
+
     // TODO: Handle caching if game object is static or render object caching behavior is set to always
   }
 } // namespace RPI
