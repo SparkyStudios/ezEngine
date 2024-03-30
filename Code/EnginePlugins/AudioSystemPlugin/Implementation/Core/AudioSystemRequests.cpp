@@ -191,6 +191,7 @@ EZ_DEFINE_AUDIOSYSTEM_STREAM_OPERATORS_SIMPLE(ezAudioSystemRequestUnloadBank);
 EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestUnloadBank, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestUnloadBank>)
 
 EZ_END_STATIC_REFLECTED_TYPE;
+
 EZ_DEFINE_CUSTOM_VARIANT_TYPE(ezAudioSystemRequestShutdown);
 EZ_DEFINE_AUDIOSYSTEM_STREAM_OPERATORS_SIMPLE(ezAudioSystemRequestShutdown);
 EZ_BEGIN_STATIC_REFLECTED_TYPE(ezAudioSystemRequestShutdown, ezAudioSystemRequest, 1, ezRTTIDefaultAllocator<ezAudioSystemRequestShutdown>)

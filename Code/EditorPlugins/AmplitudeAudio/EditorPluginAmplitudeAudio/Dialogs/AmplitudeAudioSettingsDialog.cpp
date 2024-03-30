@@ -102,7 +102,7 @@ void ezQtAmplitudeAudioSettingsDialog::Load()
 
   while (pChild)
   {
-    if (pChild->IsCustomType("Middleware") && pChild->HasName() && ezStringUtils::Compare(pChild->GetName(), s_szAmplitudeMiddlewareName) == 0)
+    if (pChild->IsCustomType("Middleware") && pChild->HasName() && pChild->GetName().Compare(s_szAmplitudeMiddlewareName) == 0)
     {
       if (m_Configs.Load(*pChild).Failed())
         ezLog::Error("Failed to load configuration for audio middleware: {0}.", pChild->GetName());

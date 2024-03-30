@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Foundation/IO/Stream.h"
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginDLL.h>
 
 #include <AudioSystemPlugin/Core/AudioSystemData.h>

@@ -46,11 +46,11 @@ void ezAmplitudeAudioActions::MapMenuActions(const char* szMapping)
   ezActionMap* pMap = ezActionMapManager::GetActionMap(szMapping);
   EZ_ASSERT_DEV(pMap != nullptr, "Mapping the actions failed!");
 
-  pMap->MapAction(s_hCategoryAudioSystem, "Menu.Editor/ProjectCategory/Menu.ProjectSettings/AudioSystem", 9.0f);
-  pMap->MapAction(s_hProjectSettings, "Menu.Editor/ProjectCategory/Menu.ProjectSettings/AudioSystem/Amplitude", 0.0f);
+  pMap->MapAction(s_hCategoryAudioSystem, "G.Plugins.Settings", "AudioSystem", 9.0f);
+  pMap->MapAction(s_hProjectSettings, "G.Plugins.Settings", "AudioSystem/Amplitude", 0.0f);
 
-  pMap->MapAction(s_hCategoryAudioSystem, "Menu.Scene/AudioSystem", 5.0f);
-  pMap->MapAction(s_hReloadControls, "Menu.Scene/AudioSystem/Amplitude", 1.0f);
+  pMap->MapAction(s_hCategoryAudioSystem, "G.Scene", "AudioSystem", 5.0f);
+  pMap->MapAction(s_hReloadControls, "G.Scene", "AudioSystem/Amplitude", 1.0f);
 }
 
 void ezAmplitudeAudioActions::MapToolbarActions(const char* szMapping)

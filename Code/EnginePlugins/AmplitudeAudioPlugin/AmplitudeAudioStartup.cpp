@@ -7,6 +7,7 @@
 
 #include <Core/World/World.h>
 #include <Foundation/Configuration/Startup.h>
+#include <Foundation/IO/Archive/ArchiveUtils.h>
 #include <GameEngine/GameApplication/GameApplication.h>
 
 static ezAmplitude* s_pAmplitudeSingleton = nullptr;
@@ -15,16 +16,18 @@ EZ_BEGIN_SUBSYSTEM_DECLARATION(SparkyStudios, AmplitudeAudioPlugin)
 
   BEGIN_SUBSYSTEM_DEPENDENCIES
     "Foundation",
-      "Core",
-      "AudioSystem"
+    "Core",
+    "AudioSystem"
   END_SUBSYSTEM_DEPENDENCIES
 
   ON_CORESYSTEMS_STARTUP
   {
+    ezArchiveUtils::GetAcceptedArchiveFileExtensions().PushBack("ampack");
   }
 
   ON_CORESYSTEMS_SHUTDOWN
   {
+    ezArchiveUtils::GetAcceptedArchiveFileExtensions().RemoveAndCopy("ampack");
   }
 
   ON_HIGHLEVELSYSTEMS_STARTUP

@@ -73,11 +73,11 @@ class ezAmplitudeAudioControlCollectionAssetDocument : public ezSimpleAssetDocum
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioControlCollectionAssetDocument, ezSimpleAssetDocument<ezAmplitudeAudioControlCollectionAsset>);
 
 public:
-  ezAmplitudeAudioControlCollectionAssetDocument(const char* szDocumentPath);
+  ezAmplitudeAudioControlCollectionAssetDocument(ezStringView szDocumentPath);
 
 protected:
   void UpdateAssetDocumentInfo(ezAssetDocumentInfo* pInfo) const override;
-  ezTransformStatus InternalTransformAsset(ezStreamWriter& stream, const char* szOutputTag, const ezPlatformProfile* pAssetProfile, const ezAssetFileHeader& AssetHeader, ezBitflags<ezTransformFlags> transformFlags) override;
+  ezTransformStatus InternalTransformAsset(ezStreamWriter& stream, ezStringView szOutputTag, const ezPlatformProfile* pAssetProfile, const ezAssetFileHeader& AssetHeader, ezBitflags<ezTransformFlags> transformFlags) override;
 
 private:
   ezResult TransformAssetEntry(const ezAmplitudeAudioControlCollectionAssetEntry& entry, ezAmplitudeAudioControlCollectionResourceDescriptor& descriptor) const;

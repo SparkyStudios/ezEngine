@@ -51,11 +51,11 @@ void ezAudioSystemActions::MapMenuActions(const char* szMapping)
   ezActionMap* pMap = ezActionMapManager::GetActionMap(szMapping);
   EZ_ASSERT_DEV(pMap != nullptr, "Mapping the actions failed!");
 
-  pMap->MapAction(s_hCategoryAudioSystem, "Menu.Editor/ProjectCategory/Menu.ProjectSettings", 9.0f);
+  pMap->MapAction(s_hCategoryAudioSystem, "G.Plugins.Settings", 9.0f);
 
-  pMap->MapAction(s_hCategoryAudioSystem, "Menu.Scene", 5.0f);
-  pMap->MapAction(s_hMuteSound, "Menu.Scene/AudioSystem", 0.0f);
-  pMap->MapAction(s_hMasterVolume, "Menu.Scene/AudioSystem", 2.0f);
+  pMap->MapAction(s_hCategoryAudioSystem, "G.Scene", 5.0f);
+  pMap->MapAction(s_hMuteSound, "G.Scene", "AudioSystem", 0.0f);
+  pMap->MapAction(s_hMasterVolume, "G.Scene", "AudioSystem", 2.0f);
 }
 
 void ezAudioSystemActions::MapToolbarActions(const char* szMapping)
