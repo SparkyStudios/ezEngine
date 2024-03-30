@@ -48,7 +48,7 @@ void ezAmplitudeAudioControlCollectionAssetDocumentManager::OnDocumentManagerEve
 }
 
 void ezAmplitudeAudioControlCollectionAssetDocumentManager::InternalCreateDocument(
-  const char* szDocumentTypeName, const char* szPath, bool bCreateNewDocument, ezDocument*& out_pDocument, const ezDocumentObject* pOpenContext)
+  ezStringView szDocumentTypeName, ezStringView szPath, bool bCreateNewDocument, ezDocument*& out_pDocument, const ezDocumentObject* pOpenContext)
 {
   out_pDocument = new ezAmplitudeAudioControlCollectionAssetDocument(szPath);
 }

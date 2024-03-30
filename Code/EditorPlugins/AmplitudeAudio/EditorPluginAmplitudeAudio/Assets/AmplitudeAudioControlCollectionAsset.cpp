@@ -79,7 +79,7 @@ ezAmplitudeAudioControlCollectionAssetSoundBankEntry::ezAmplitudeAudioControlCol
   m_Type = ezAmplitudeAudioControlType::SoundBank;
 }
 
-ezAmplitudeAudioControlCollectionAssetDocument::ezAmplitudeAudioControlCollectionAssetDocument(const char* szDocumentPath)
+ezAmplitudeAudioControlCollectionAssetDocument::ezAmplitudeAudioControlCollectionAssetDocument(ezStringView szDocumentPath)
   : ezSimpleAssetDocument<ezAmplitudeAudioControlCollectionAsset>(szDocumentPath, ezAssetDocEngineConnection::None)
 {
 }
@@ -121,7 +121,7 @@ void ezAmplitudeAudioControlCollectionAssetDocument::UpdateAssetDocumentInfo(ezA
   }
 }
 
-ezTransformStatus ezAmplitudeAudioControlCollectionAssetDocument::InternalTransformAsset(ezStreamWriter& stream, const char* szOutputTag, const ezPlatformProfile* pAssetProfile, const ezAssetFileHeader& AssetHeader, ezBitflags<ezTransformFlags> transformFlags)
+ezTransformStatus ezAmplitudeAudioControlCollectionAssetDocument::InternalTransformAsset(ezStreamWriter& stream, ezStringView szOutputTag, const ezPlatformProfile* pAssetProfile, const ezAssetFileHeader& AssetHeader, ezBitflags<ezTransformFlags> transformFlags)
 {
   ezAmplitudeAudioControlCollectionAsset* pProp = GetProperties();
 

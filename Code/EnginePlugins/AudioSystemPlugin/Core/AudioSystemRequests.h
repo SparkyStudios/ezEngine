@@ -16,7 +16,6 @@
 
 /// \brief Helper macro to declare a new audio system request.
 #define EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE_SIMPLE(name)                                       \
-  EZ_DECLARE_POD_TYPE();                                                                       \
   bool operator==(const name& rhs) const                                                       \
   {                                                                                            \
     return static_cast<ezAudioSystemRequest>(*this) == static_cast<ezAudioSystemRequest>(rhs); \
@@ -30,7 +29,6 @@
 
 /// \brief Helper macro to declare a new audio system request.
 #define EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE(name, eq_ex)                                                  \
-  EZ_DECLARE_POD_TYPE();                                                                                  \
   bool operator==(const name& rhs) const                                                                  \
   {                                                                                                       \
     return static_cast<ezAudioSystemRequest>(*this) == static_cast<ezAudioSystemRequest>(rhs) && (eq_ex); \
@@ -127,8 +125,6 @@
 /// This will block the main thread until the request has been processed.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequest
 {
-  EZ_DECLARE_POD_TYPE();
-
   /// \brief The audio entity which is being manipulated, if any.
   ezAudioSystemDataID m_uiEntityId{0};
 
@@ -344,7 +340,7 @@ struct CallRequestCallbackFunc
   }
 
   template <typename T>
-  void operator()()
+  void operator()() const
   {
     if (!m_Value.IsValid())
       return;

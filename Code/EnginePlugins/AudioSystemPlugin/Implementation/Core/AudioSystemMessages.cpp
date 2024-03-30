@@ -14,12 +14,6 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezMsgAudioSystemSetRtpcValue, 1, ezRTTIDefaultAl
     EZ_MEMBER_PROPERTY("Sync", m_bSync)->AddAttributes(new ezDefaultValueAttribute(false)),
   }
   EZ_END_PROPERTIES;
-
-  EZ_BEGIN_ATTRIBUTES
-  {
-    new ezAutoGenVisScriptMsgSender(),
-  }
-  EZ_END_ATTRIBUTES;
 }
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
@@ -31,12 +25,6 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezMsgAudioSystemRtpcValueChanged, 1, ezRTTIDefau
     EZ_MEMBER_PROPERTY("Value", m_fValue)->AddAttributes(new ezDefaultValueAttribute(0.0f)),
   }
   EZ_END_PROPERTIES;
-
-  EZ_BEGIN_ATTRIBUTES
-  {
-    new ezAutoGenVisScriptMsgHandler(),
-  }
-  EZ_END_ATTRIBUTES;
 }
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
@@ -49,12 +37,6 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezMsgAudioSystemSetSwitchState, 1, ezRTTIDefault
     EZ_MEMBER_PROPERTY("Sync", m_bSync)->AddAttributes(new ezDefaultValueAttribute(false)),
   }
   EZ_END_PROPERTIES;
-
-  EZ_BEGIN_ATTRIBUTES
-  {
-    new ezAutoGenVisScriptMsgSender(),
-  }
-  EZ_END_ATTRIBUTES;
 }
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
@@ -66,12 +48,6 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezMsgAudioSystemSwitchStateChanged, 1, ezRTTIDef
     EZ_MEMBER_PROPERTY("State", m_sSwitchState),
   }
   EZ_END_PROPERTIES;
-
-  EZ_BEGIN_ATTRIBUTES
-  {
-    new ezAutoGenVisScriptMsgSender(),
-  }
-  EZ_END_ATTRIBUTES;
 }
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 
@@ -84,12 +60,6 @@ EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezMsgAudioSystemSetEnvironmentAmount, 1, ezRTTID
     EZ_MEMBER_PROPERTY("Sync", m_bSync)->AddAttributes(new ezDefaultValueAttribute(false)),
   }
   EZ_END_PROPERTIES;
-
-  EZ_BEGIN_ATTRIBUTES
-  {
-    new ezAutoGenVisScriptMsgSender(),
-  }
-  EZ_END_ATTRIBUTES;
 }
 EZ_END_DYNAMIC_REFLECTED_TYPE;
 // clang-format on

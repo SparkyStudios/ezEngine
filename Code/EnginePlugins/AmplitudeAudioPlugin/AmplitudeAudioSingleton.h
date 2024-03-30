@@ -142,7 +142,7 @@ private:
   SparkyStudios::Audio::Amplitude::Engine* m_pEngine;
 
   SparkyStudios::Audio::Amplitude::AmTime m_dCurrentTime;
-  SparkyStudios::Audio::Amplitude::FileLoader m_Loader;
+  SparkyStudios::Audio::Amplitude::FileSystem* m_pLoader;
 
   bool m_bInitialized;
 

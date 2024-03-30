@@ -6,7 +6,7 @@
 #include <AudioSystemPlugin/Core/AudioSystem.h>
 #include <AudioSystemPlugin/Core/AudioSystemAllocator.h>
 
-#include <Core/Assets/AssetFileHeader.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
 
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionResource, 1, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionResource>)

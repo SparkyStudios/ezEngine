@@ -109,7 +109,7 @@ void ezAudioRtpcComponent::SetValue(float fValue, bool bSync)
     msg.m_fValue = e.m_fValue;
 
     // We are not in the writing thread, so posting the message for the next frame instead of sending...
-    m_ValueChangedEventSender.PostEventMessage(msg, this, GetOwner(), ezTime::Zero(), ezObjectMsgQueueType::NextFrame);
+    m_ValueChangedEventSender.PostEventMessage(msg, this, GetOwner(), ezTime::MakeZero(), ezObjectMsgQueueType::NextFrame);
   };
 
   if (bSync)

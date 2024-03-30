@@ -33,7 +33,7 @@ void ezAudioBoxEnvironmentComponent::Initialize()
 {
   SUPER::Initialize();
 
-  m_Box.SetCenterAndHalfExtents(GetOwner()->GetGlobalPosition(), m_vHalfExtends);
+  m_Box = ezBoundingBox::MakeFromCenterAndHalfExtents(GetOwner()->GetGlobalPosition(), m_vHalfExtends);
 }
 
 void ezAudioBoxEnvironmentComponent::Deinitialize()
@@ -103,7 +103,7 @@ void ezAudioBoxEnvironmentComponent::SetHalfExtends(const ezVec3& vHalfExtends)
 
 void ezAudioBoxEnvironmentComponent::Update()
 {
-  m_Box.SetCenterAndHalfExtents(GetOwner()->GetGlobalPosition(), m_vHalfExtends);
+  m_Box = ezBoundingBox::MakeFromCenterAndHalfExtents(GetOwner()->GetGlobalPosition(), m_vHalfExtends);
 }
 
 EZ_STATICLINK_FILE(AudioSystemPlugin, AudioSystemPlugin_Implementation_Components_AudioBoxEnvironmentComponent);
