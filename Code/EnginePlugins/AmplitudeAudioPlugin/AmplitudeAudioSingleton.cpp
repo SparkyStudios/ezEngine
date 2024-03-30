@@ -99,7 +99,7 @@ namespace Memory
     return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->GetStats().m_uiAllocationSize;
   }
 
-  static Amplitude::AmSize SizeOfMemory([[maybe_unused]] Amplitude::MemoryPoolKind pool, Amplitude::AmVoidPtr address)
+  static Amplitude::AmSize SizeOfMemory([[maybe_unused]] Amplitude::MemoryPoolKind pool, Amplitude::AmConstVoidPtr address)
   {
     return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->AllocatedSize(address);
   }
@@ -236,7 +236,7 @@ ezResult ezAmplitude::Startup()
   m_pEngine = Amplitude::Engine::GetInstance();
   EZ_ASSERT_DEBUG(m_pEngine != nullptr, "Amplitude engine not available.");
 
-  m_Loader.SetBasePath(AM_STRING_TO_OS_STRING(assetsPath.GetData()));
+  m_pLoader->SetBasePath(AM_STRING_TO_OS_STRING(assetsPath.GetData()));
 
   Amplitude::MemoryManagerConfig memConfig;
   memConfig.alignedMalloc = Memory::Malign;
@@ -250,7 +250,7 @@ ezResult ezAmplitude::Startup()
   Amplitude::MemoryManager::Initialize(memConfig);
   EZ_ASSERT_DEBUG(Amplitude::MemoryManager::IsInitialized(), "Amplitude memory manager not initialized.");
 
-  m_pEngine->SetFileLoader(m_Loader);
+  m_pEngine->SetFileSystem(m_pLoader);
 
   EZ_ASSERT_DEBUG(m_pEngine->Initialize(AM_STRING_TO_OS_STRING(config.m_sEngineConfigFileName.GetData())), "Amplitude engine initialization failed.");
 
@@ -887,7 +887,7 @@ float ezAmplitude::GetMasterGain() const
 
 bool ezAmplitude::GetMute() const
 {
-  return m_pEngine->GetMute();
+  return m_pEngine->IsMuted();
 }
 
 void ezAmplitude::OnMasterGainChange(float fGain)

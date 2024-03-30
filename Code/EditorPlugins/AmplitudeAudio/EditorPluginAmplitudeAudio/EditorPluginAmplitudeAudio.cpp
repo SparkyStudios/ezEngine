@@ -18,15 +18,15 @@ EZ_PLUGIN_ON_LOADED()
   {
     // Menu Bar
     ezActionMapManager::RegisterActionMap("AudioControlCollectionAssetMenuBar").IgnoreResult();
-    ezStandardMenus::MapActions("AudioControlCollectionAssetMenuBar", ezStandardMenuTypes::File | ezStandardMenuTypes::Edit | ezStandardMenuTypes::Panels | ezStandardMenuTypes::Help);
+    ezStandardMenus::MapActions("AudioControlCollectionAssetMenuBar", ezStandardMenuTypes::Default | ezStandardMenuTypes::Edit);
     ezProjectActions::MapActions("AudioControlCollectionAssetMenuBar");
-    ezDocumentActions::MapActions("AudioControlCollectionAssetMenuBar", "Menu.File", false);
-    ezCommandHistoryActions::MapActions("AudioControlCollectionAssetMenuBar", "Menu.Edit");
+    ezDocumentActions::MapMenuActions("AudioControlCollectionAssetMenuBar");
+    ezCommandHistoryActions::MapActions("AudioControlCollectionAssetMenuBar");
 
     // Tool Bar
     {
       ezActionMapManager::RegisterActionMap("AudioControlCollectionAssetToolBar").IgnoreResult();
-      ezDocumentActions::MapActions("AudioControlCollectionAssetToolBar", "", true);
+      ezDocumentActions::MapToolbarActions("AudioControlCollectionAssetToolBar");
       ezCommandHistoryActions::MapActions("AudioControlCollectionAssetToolBar", "");
       ezAssetActions::MapToolBarActions("AudioControlCollectionAssetToolBar", true);
       ezAmplitudeAudioActions::MapToolbarActions("AudioControlCollectionAssetToolBar");

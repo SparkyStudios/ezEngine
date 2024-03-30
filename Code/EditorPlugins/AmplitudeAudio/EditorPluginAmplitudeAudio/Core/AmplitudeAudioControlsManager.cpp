@@ -1,5 +1,3 @@
-#include "AudioSystemPlugin/Core/AudioSystemData.h"
-#include "Foundation/Types/Types.h"
 #include <EditorPluginAmplitudeAudio/EditorPluginAmplitudeAudioPCH.h>
 
 #include <EditorPluginAmplitudeAudio/Core/AmplitudeAudioControlsManager.h>
@@ -9,12 +7,12 @@
 #include <AmplitudeAudioPlugin/Core/AmplitudeAudioData.h>
 #include <AmplitudeAudioPlugin/Core/Common.h>
 
-#include <Core/Assets/AssetFileHeader.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
 #include <Foundation/IO/FileSystem/FileSystem.h>
 #include <Foundation/IO/FileSystem/FileWriter.h>
 #include <Foundation/IO/JSONReader.h>
 #include <Foundation/IO/OSFile.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
 
 EZ_IMPLEMENT_SINGLETON(ezAmplitudeAudioControlsManager);
 
@@ -153,7 +151,7 @@ ezResult ezAmplitudeAudioControlsManager::SerializeSoundBankControl(ezStreamWrit
 ezResult ezAmplitudeAudioControlsManager::CreateTriggerControl(const char* szControlName, const ezAudioSystemTriggerData* pControlData)
 {
   ezStringBuilder sbOutputFile;
-  sbOutputFile.Format(":atl/Triggers/{0}.ezAudioSystemControl", szControlName);
+  sbOutputFile.SetFormat(":atl/Triggers/{0}.ezAudioSystemControl", szControlName);
 
   ezStringBuilder sbAssetPath;
   if (ezFileSystem::ResolvePath(sbOutputFile, &sbAssetPath, nullptr).Failed())
@@ -176,7 +174,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateTriggerControl(const char* szCon
 ezResult ezAmplitudeAudioControlsManager::CreateRtpcControl(const char* szControlName, const ezAudioSystemRtpcData* pControlData)
 {
   ezStringBuilder sbOutputFile;
-  sbOutputFile.Format(":atl/Rtpcs/{0}.ezAudioSystemControl", szControlName);
+  sbOutputFile.SetFormat(":atl/Rtpcs/{0}.ezAudioSystemControl", szControlName);
 
   ezStringBuilder sbAssetPath;
   if (ezFileSystem::ResolvePath(sbOutputFile, &sbAssetPath, nullptr).Failed())
@@ -199,7 +197,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateRtpcControl(const char* szContro
 ezResult ezAmplitudeAudioControlsManager::CreateSwitchStateControl(const char* szControlName, const ezAudioSystemSwitchStateData* pControlData)
 {
   ezStringBuilder sbOutputFile;
-  sbOutputFile.Format(":atl/SwitchStates/{0}.ezAudioSystemControl", szControlName);
+  sbOutputFile.SetFormat(":atl/SwitchStates/{0}.ezAudioSystemControl", szControlName);
 
   ezStringBuilder sbAssetPath;
   if (ezFileSystem::ResolvePath(sbOutputFile, &sbAssetPath, nullptr).Failed())
@@ -222,7 +220,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateSwitchStateControl(const char* s
 ezResult ezAmplitudeAudioControlsManager::CreateEnvironmentControl(const char* szControlName, const ezAudioSystemEnvironmentData* pControlData)
 {
   ezStringBuilder sbOutputFile;
-  sbOutputFile.Format(":atl/Environments/{0}.ezAudioSystemControl", szControlName);
+  sbOutputFile.SetFormat(":atl/Environments/{0}.ezAudioSystemControl", szControlName);
 
   ezStringBuilder sbAssetPath;
   if (ezFileSystem::ResolvePath(sbOutputFile, &sbAssetPath, nullptr).Failed())
@@ -245,7 +243,7 @@ ezResult ezAmplitudeAudioControlsManager::CreateEnvironmentControl(const char* s
 ezResult ezAmplitudeAudioControlsManager::CreateSoundBankControl(const char* szControlName, const ezAudioSystemBankData* pControlData)
 {
   ezStringBuilder sbOutputFile;
-  sbOutputFile.Format(":atl/SoundBanks/{0}.ezAudioSystemControl", szControlName);
+  sbOutputFile.SetFormat(":atl/SoundBanks/{0}.ezAudioSystemControl", szControlName);
 
   ezStringBuilder sbAssetPath;
   if (ezFileSystem::ResolvePath(sbOutputFile, &sbAssetPath, nullptr).Failed())

@@ -97,7 +97,7 @@ void ezAudioAnimationEntry::Initialize(bool bSync)
 
   {
     ezStringBuilder name;
-    name.Format("AudioAnimation Entity: {}", m_sEventName);
+    name.SetFormat("AudioAnimation Entity: {}", m_sEventName);
 
     registerEntity.m_uiEntityId = m_uiEntityId;
     registerEntity.m_sName = name;

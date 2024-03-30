@@ -34,7 +34,7 @@ public:
 
 struct ezAudioSystemAllocatorWrapper
 {
-  EZ_ALWAYS_INLINE static ezAllocatorBase* GetAllocator()
+  EZ_ALWAYS_INLINE static ezAllocator* GetAllocator()
   {
     return ezAudioSystemAllocator::GetSingleton();
   }
@@ -42,7 +42,7 @@ struct ezAudioSystemAllocatorWrapper
 
 struct ezAudioMiddlewareAllocatorWrapper
 {
-  EZ_ALWAYS_INLINE static ezAllocatorBase* GetAllocator()
+  EZ_ALWAYS_INLINE static ezAllocator* GetAllocator()
   {
     return ezAudioMiddlewareAllocator::GetSingleton();
   }

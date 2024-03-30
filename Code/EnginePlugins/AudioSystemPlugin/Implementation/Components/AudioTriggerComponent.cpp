@@ -340,7 +340,7 @@ void ezAudioTriggerComponentManager::CastRay(ObstructionOcclusionState& state, e
 
   if (state.m_ObstructionRaysValues.GetCount() <= rayIndex)
   {
-    state.m_ObstructionRaysValues.Insert(averageObstruction, rayIndex);
+    state.m_ObstructionRaysValues.InsertAt(averageObstruction, rayIndex);
   }
   else
   {

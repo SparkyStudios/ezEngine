@@ -4,13 +4,13 @@ EZ_IMPLEMENT_SINGLETON(ezAudioSystemAllocator);
 EZ_IMPLEMENT_SINGLETON(ezAudioMiddlewareAllocator);
 
 ezAudioSystemAllocator::ezAudioSystemAllocator()
-  : ezAllocator("AudioSystemAllocator")
+  : ezAlignedHeapAllocator("AudioSystemAllocator")
   , m_SingletonRegistrar(this)
 {
 }
 
 ezAudioMiddlewareAllocator::ezAudioMiddlewareAllocator(ezAudioSystemAllocator* pParentAllocator)
-  : ezAllocator("AudioMiddlewareAllocator", pParentAllocator)
+  : ezAlignedHeapAllocator("AudioMiddlewareAllocator", pParentAllocator)
   , m_SingletonRegistrar(this)
 {
 }

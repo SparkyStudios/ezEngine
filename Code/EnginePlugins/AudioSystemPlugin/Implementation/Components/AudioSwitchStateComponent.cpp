@@ -101,7 +101,7 @@ void ezAudioSwitchStateComponent::SetState(const ezString& sSwitchStateName, boo
     msg.m_sSwitchState = sSwitchStateName;
 
     // We are not in the writing thread, so posting the message for the next frame instead of sending it now...
-    m_ValueChangedEventSender.PostEventMessage(msg, this, GetOwner(), ezTime::Zero(), ezObjectMsgQueueType::NextFrame);
+    m_ValueChangedEventSender.PostEventMessage(msg, this, GetOwner(), ezTime::MakeZero(), ezObjectMsgQueueType::NextFrame);
   };
 
   if (bSync)
