@@ -119,6 +119,13 @@ void ezAudioProxyComponent::Update()
       request.m_uiEntityId = m_uiEntityId;
       request.m_uiObjectId = id;
       request.m_fAmount = m_mEnvironmentAmounts[id].m_fNextAmount;
+      request.m_Callback = [this](const ezAudioSystemRequestSetEnvironmentAmount& req)
+      {
+        if (req.m_eStatus.Failed())
+          return;
+
+        m_mEnvironmentAmounts[req.m_uiObjectId].m_fPreviousAmount = m_mEnvironmentAmounts[req.m_uiObjectId].m_fNextAmount;
+      };
 
       rq.PushBack(request);
     }
