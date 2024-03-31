@@ -211,6 +211,18 @@ ezResult ezAmplitude::Startup()
   if (m_bInitialized)
     return EZ_SUCCESS;
 
+  Amplitude::MemoryManagerConfig memConfig;
+  memConfig.alignedMalloc = Memory::Malign;
+  memConfig.alignedRealloc = Memory::Realign;
+  memConfig.free = Memory::Free;
+  memConfig.malloc = Memory::Malloc;
+  memConfig.realloc = Memory::Realloc;
+  memConfig.sizeOf = Memory::SizeOfMemory;
+  memConfig.totalReservedMemorySize = Memory::TotalMemorySize;
+
+  Amplitude::MemoryManager::Initialize(memConfig);
+  EZ_ASSERT_DEBUG(Amplitude::MemoryManager::IsInitialized(), "Amplitude memory manager not initialized.");
+
   DetectPlatform();
 
   if (!m_pData->m_Configs.m_AssetProfiles.Contains(m_pData->m_sPlatform))
@@ -227,32 +239,51 @@ ezResult ezAmplitude::Startup()
 
   ezStringBuilder assetsPath;
 
-  if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/amplitude_assets", &assetsPath, nullptr).Failed())
+  if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/" AMPLITUDE_ASSETS_DIR_NAME, &assetsPath, nullptr).Failed())
   {
     ezLog::Error("No Amplitude assets directory available in the project. Amplitude will be deactivated.", m_pData->m_sPlatform);
     return EZ_FAILURE;
   }
 
+  Amplitude::Engine::RegisterDefaultPlugins();
+
   m_pEngine = Amplitude::Engine::GetInstance();
   EZ_ASSERT_DEBUG(m_pEngine != nullptr, "Amplitude engine not available.");
 
-  m_pLoader->SetBasePath(AM_STRING_TO_OS_STRING(assetsPath.GetData()));
+  m_Loader.SetBasePath(AM_STRING_TO_OS_STRING(assetsPath.GetData()));
+  m_pEngine->SetFileSystem(&m_Loader);
 
-  Amplitude::MemoryManagerConfig memConfig;
-  memConfig.alignedMalloc = Memory::Malign;
-  memConfig.alignedRealloc = Memory::Realign;
-  memConfig.free = Memory::Free;
-  memConfig.malloc = Memory::Malloc;
-  memConfig.realloc = Memory::Realloc;
-  memConfig.sizeOf = Memory::SizeOfMemory;
-  memConfig.totalReservedMemorySize = Memory::TotalMemorySize;
+  // Wait for the file system to complete loading
+  m_pEngine->StartOpenFileSystem();
+  while (!m_pEngine->TryFinalizeOpenFileSystem())
+    Amplitude::Thread::Sleep(1);
 
-  Amplitude::MemoryManager::Initialize(memConfig);
-  EZ_ASSERT_DEBUG(Amplitude::MemoryManager::IsInitialized(), "Amplitude memory manager not initialized.");
+  const auto sPluginsPath = m_Loader.ResolvePath(AM_OS_STRING("plugins"));
+  Amplitude::Engine::AddPluginSearchPath(sPluginsPath);
 
-  m_pEngine->SetFileSystem(m_pLoader);
+  // Auto load available plugins
+  {
+    ezFileSystemIterator fsIt;
+    for (fsIt.StartSearch(AM_OS_STRING_TO_STRING(sPluginsPath), ezFileSystemIteratorFlags::ReportFiles); fsIt.IsValid(); fsIt.Next())
+    {
+      ezStringBuilder fileName = fsIt.GetStats().m_sName;
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+      if (fileName.EndsWith_NoCase("_d.dll"))
+#else
+      if (fileName.EndsWith_NoCase(".dll"))
+#endif
+      {
+        ezStringBuilder sTemp;
+        Amplitude::Engine::LoadPlugin(AM_STRING_TO_OS_STRING(fileName.GetFileName().GetData(sTemp)));
+      }
+    }
+  }
 
-  EZ_ASSERT_DEBUG(m_pEngine->Initialize(AM_STRING_TO_OS_STRING(config.m_sEngineConfigFileName.GetData())), "Amplitude engine initialization failed.");
+  if (!m_pEngine->Initialize(AM_STRING_TO_OS_STRING(config.m_sEngineConfigFileName.GetData())))
+  {
+    ezLog::Error("Amplitude engine initialization failed with the config file '{0}'.", config.m_sEngineConfigFileName);
+    return EZ_FAILURE;
+  }
 
   Amplitude::AmBankID uiInitBankId = Amplitude::kAmInvalidObjectId;
 
@@ -261,6 +292,11 @@ ezResult ezAmplitude::Startup()
     ezLog::Error("Amplitude engine initialization failed. Could not load initial sound bank '{0}'.", config.m_sInitSoundBank);
     return EZ_FAILURE;
   }
+
+  // Wait for the sound files to complete loading
+  m_pEngine->StartLoadSoundFiles();
+  while (!m_pEngine->TryFinalizeLoadSoundFiles())
+    Amplitude::Thread::Sleep(1);
 
   m_bInitialized = true;
 
@@ -277,8 +313,17 @@ ezResult ezAmplitude::Shutdown()
     if (m_pEngine != nullptr)
     {
       m_pEngine->Deinitialize();
+
+      // Wait for the file system to complete closing
+      m_pEngine->StartCloseFileSystem();
+      while (!m_pEngine->TryFinalizeCloseFileSystem())
+        Amplitude::Thread::Sleep(1);
+
+      Amplitude::Engine::DestroyInstance();
       m_pEngine = nullptr;
     }
+
+    Amplitude::Engine::UnregisterDefaultPlugins();
 
     // Terminate the Memory Manager
     if (Amplitude::MemoryManager::IsInitialized())

@@ -19,7 +19,7 @@ ezQtAmplitudeAudioSettingsDialog::ezQtAmplitudeAudioSettingsDialog(QWidget* pare
   setupUi(this);
 
   ezStringBuilder projectPath;
-  if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/amplitude_assets", &projectPath, nullptr).Failed())
+  if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/" AMPLITUDE_ASSETS_DIR_NAME, &projectPath, nullptr).Failed())
   {
     ezLog::Error("No Amplitude assets directory available. Cannot customize project settings.");
     return;
@@ -66,6 +66,7 @@ ezQtAmplitudeAudioSettingsDialog::ezQtAmplitudeAudioSettingsDialog(QWidget* pare
     SetCurrentPlatform("");
   }
 }
+
 ezResult ezQtAmplitudeAudioSettingsDialog::Save()
 {
   ezFileWriter file;

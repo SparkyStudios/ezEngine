@@ -24,14 +24,14 @@ ezAmplitudeAudioControlsManager::ezAmplitudeAudioControlsManager()
 ezResult ezAmplitudeAudioControlsManager::ReloadControls()
 {
   ezStringBuilder assetsPath;
-  if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/amplitude_assets", &assetsPath, nullptr).Failed())
+  if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/" AMPLITUDE_ASSETS_DIR_NAME, &assetsPath, nullptr).Failed())
   {
     ezLog::Error("No Amplitude assets directory available. Amplitude will be deactivated.");
     return EZ_FAILURE;
   }
 
   ezStringBuilder projectPath;
-  if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/amplitude_project", &projectPath, nullptr).Failed())
+  if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/" AMPLITUDE_PROJECT_DIR_NAME, &projectPath, nullptr).Failed())
   {
     ezLog::Error("No Amplitude project directory available. Amplitude will be deactivated.");
     return EZ_FAILURE;
