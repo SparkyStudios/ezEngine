@@ -1,15 +1,7 @@
 #pragma once
 
-#define AMPLITUDE_ASSETS_DIR_NAME "amplitude_assets"
-#define AMPLITUDE_PROJECT_DIR_NAME "amplitude_project"
-
-static constexpr char kProjectRootPath[] = "sounds/" AMPLITUDE_PROJECT_DIR_NAME "/";
-static constexpr char kAssetsRootPath[] = "sounds/" AMPLITUDE_ASSETS_DIR_NAME "/";
-static constexpr char kDefaultBanksPath[] = "sounds/" AMPLITUDE_ASSETS_DIR_NAME "/soundbanks/";
-
-static constexpr char kEngineConfigFile[] = "pc.config.json";
-static constexpr char kBusesConfigFile[] = "buses.json";
-static constexpr char kInitBankFile[] = "init.ambank";
+#define AMPLITUDE_ASSETS_DIR_NAME "amplitude_project/build"
+#define AMPLITUDE_PROJECT_DIR_NAME "amplitude_project/sources"
 
 static constexpr char kProjectFileExtension[] = ".json";
 static constexpr char kSoundBankFileExtension[] = ".ambank";
