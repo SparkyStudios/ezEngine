@@ -169,7 +169,7 @@ namespace RHI
     ~spDevice() override = default;
 
     /// \brief Gets the allocator used by the device.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezAllocatorBase* GetAllocator() const { return m_pAllocator; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezAllocator* GetAllocator() const { return m_pAllocator; }
 
     /// \brief Gets the hardware info.
     EZ_NODISCARD virtual HardwareInfo GetHardwareInfo() const = 0;
@@ -460,7 +460,7 @@ namespace RHI
     /// \brief Constructs a new instance of the \a spDevice class.
     /// \param pAllocator The resources allocator.
     /// \param description The resource manager for the device.
-    spDevice(ezAllocatorBase* pAllocator, spDeviceDescription description);
+    spDevice(ezAllocator* pAllocator, spDeviceDescription description);
 
     virtual void WaitForIdleInternal() = 0;
     virtual const spMappedResource& MapInternal(ezSharedPtr<spBuffer> pBuffer, ezEnum<spMapAccess> eAccess) = 0;
@@ -479,7 +479,7 @@ namespace RHI
     spDeviceResourceManager* m_pResourceManager{nullptr};
     spStagingMemoryPool* m_pStagingMemoryPool{nullptr};
 
-    ezAllocatorBase* m_pAllocator;
+    ezAllocator* m_pAllocator;
 
     ezUInt32 m_uiFrameCounter{0};
   };
@@ -487,7 +487,7 @@ namespace RHI
   /// \brief A wrapper around an \a ezAllocatorBase that can be used to allocate RHI device memory.
   struct spDeviceAllocatorWrapper
   {
-    EZ_ALWAYS_INLINE static ezAllocatorBase* GetAllocator()
+    EZ_ALWAYS_INLINE static ezAllocator* GetAllocator()
     {
       const auto* pDevice = ezSingletonRegistry::GetSingletonInstance<spDevice>();
       return pDevice == nullptr ? ezDefaultAllocatorWrapper::GetAllocator() : pDevice->GetAllocator();

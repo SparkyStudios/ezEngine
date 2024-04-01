@@ -27,7 +27,7 @@ namespace RHI
 
   const spMappedResource g_InvalidMappedResource = {};
 
-  spDevice::spDevice(ezAllocatorBase* pAllocator, spDeviceDescription description)
+  spDevice::spDevice(ezAllocator* pAllocator, spDeviceDescription description)
     : m_Description(std::move(description))
     , m_pAllocator(pAllocator)
   {

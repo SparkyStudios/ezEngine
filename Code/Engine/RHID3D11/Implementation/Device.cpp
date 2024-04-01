@@ -503,7 +503,7 @@ namespace RHI
     }
   }
 
-  spDeviceD3D11::spDeviceD3D11(ezAllocatorBase* pAllocator, const spDeviceDescriptionD3D11& deviceDescription)
+  spDeviceD3D11::spDeviceD3D11(ezAllocator* pAllocator, const spDeviceDescriptionD3D11& deviceDescription)
     : spDevice(pAllocator, static_cast<spDeviceDescription>(deviceDescription))
     , m_SingletonRegistrar(this)
   {

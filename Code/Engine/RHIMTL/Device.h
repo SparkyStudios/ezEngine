@@ -62,7 +62,7 @@ namespace RHI
     // spDeviceMTL
 
   public:
-    spDeviceMTL(ezAllocatorBase* pAllocator, const spDeviceDescription& deviceDescription);
+    spDeviceMTL(ezAllocator* pAllocator, const spDeviceDescription& deviceDescription);
     ~spDeviceMTL() override;
 
     EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Device* GetMTLDevice() const { return m_pMTLDevice; }

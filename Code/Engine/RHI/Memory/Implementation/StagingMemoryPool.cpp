@@ -4,7 +4,7 @@
 
 namespace RHI
 {
-  spStagingMemoryPool::spStagingMemoryPool(ezAllocatorBase* pAllocator)
+  spStagingMemoryPool::spStagingMemoryPool(ezAllocator* pAllocator)
     : m_pAllocator(pAllocator)
     , m_Storage()
     , m_AvailableMemoryBlocks()

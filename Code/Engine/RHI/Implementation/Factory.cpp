@@ -28,7 +28,7 @@ FactoryInfo* GetFactoryInfo(ezStringView szImplementationName)
   return pFactory;
 }
 
-ezInternal::NewInstance<RHI::spDevice> spRHIImplementationFactory::CreateDevice(ezStringView szImplementationName, ezAllocatorBase* pAllocator, const RHI::spDeviceDescription& description)
+ezInternal::NewInstance<RHI::spDevice> spRHIImplementationFactory::CreateDevice(ezStringView szImplementationName, ezAllocator* pAllocator, const RHI::spDeviceDescription& description)
 {
   if (auto pFuncInfo = GetFactoryInfo(szImplementationName))
   {

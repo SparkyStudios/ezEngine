@@ -175,7 +175,7 @@ namespace RAI
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
     ezStringBuilder sb;
-    sb.Format("{0}__VertexBuffer", m_Root.m_sName);
+    sb.SetFormat("{0}__VertexBuffer", m_Root.m_sName);
     m_pRHIVertexBuffer->SetDebugName(sb);
 #endif
   }
@@ -194,7 +194,7 @@ namespace RAI
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
     ezStringBuilder sb;
-    sb.Format("{0}__IndexBuffer", m_Root.m_sName);
+    sb.SetFormat("{0}__IndexBuffer", m_Root.m_sName);
     m_pRHIIndexBuffer->SetDebugName(sb);
 #endif
   }
@@ -215,7 +215,7 @@ namespace RAI
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
     ezStringBuilder sb;
-    sb.Format("{0}__IndirectBuffer", m_Root.m_sName);
+    sb.SetFormat("{0}__IndirectBuffer", m_Root.m_sName);
     m_pRHIIndirectBuffer->SetDebugName(sb);
 #endif
   }

@@ -16,9 +16,8 @@
 
 #include <RAI/Resources/BlendShapeResource.h>
 
-#include <Core/Assets/AssetFileHeader.h>
-
 #include <Foundation/IO/FileSystem/FileReader.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
 #  include <Foundation/IO/CompressedStreamZstd.h>
@@ -140,7 +139,7 @@ namespace RAI
         ezLog::Error("Asset is compressed with zstandard, but support for this compressor is not compiled in.");
         return EZ_FAILURE;
 #endif
-        
+
       default:
         ezLog::Error("Asset is compressed with an unknown algorithm.");
         return EZ_FAILURE;

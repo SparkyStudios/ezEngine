@@ -232,7 +232,7 @@ namespace RHI
     if (pError != nullptr)
     {
       ezStringBuilder sError;
-      sError.Format("Failed to create shader library: {0}\n{1}", pError->localizedFailureReason()->utf8String(), pError->localizedDescription()->utf8String());
+      sError.SetFormat("Failed to create shader library: {0}\n{1}", pError->localizedFailureReason()->utf8String(), pError->localizedDescription()->utf8String());
 
       EZ_LOG_BLOCK("Shader Compilation Error Message");
       ezLog::Dev("{0}", sError.GetData());

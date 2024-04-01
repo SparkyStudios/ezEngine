@@ -14,8 +14,8 @@
 
 #include <AssetProcessor/Importers/BlendShapeImporter.h>
 
-#include <Core/Assets/AssetFileHeader.h>
 #include <Foundation/IO/FileSystem/FileWriter.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
 
 using namespace RAI;
 
