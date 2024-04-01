@@ -39,7 +39,7 @@ namespace RHI
     static constexpr const ezUInt32 kMinimumCapacity = 128;
 
   public:
-    explicit spStagingMemoryPool(ezAllocatorBase* pAllocator);
+    explicit spStagingMemoryPool(ezAllocator* pAllocator);
     ~spStagingMemoryPool();
 
     spStagingMemoryBlock Stage(void* pData, ezUInt32 uiSize);
@@ -59,7 +59,7 @@ namespace RHI
 
     typedef ezCompareHelper<ezUInt32> spStagingMemoryCapacityComparer;
 
-    ezAllocatorBase* m_pAllocator;
+    ezAllocator* m_pAllocator;
 
     ezDynamicArray<spStagingMemoryBlock> m_Storage;
     ezArrayMap<ezUInt32, ezUInt32> m_AvailableMemoryBlocks;

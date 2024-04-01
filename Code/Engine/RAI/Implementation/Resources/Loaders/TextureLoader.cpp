@@ -17,12 +17,11 @@
 #include <RAI/Resources/Loaders/TextureLoader.h>
 #include <RAI/Resources/Texture2DResource.h>
 
-#include <Core/Assets/AssetFileHeader.h>
-
 #include <Foundation/Configuration/CVar.h>
 #include <Foundation/Configuration/Startup.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
 #include <Foundation/IO/OSFile.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
 
 #include <ktx.h>
 

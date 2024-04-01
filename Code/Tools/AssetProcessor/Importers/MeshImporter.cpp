@@ -14,8 +14,8 @@
 
 #include <AssetProcessor/Importers/MeshImporter.h>
 
-#include <Core/Assets/AssetFileHeader.h>
 #include <Foundation/IO/FileSystem/FileWriter.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
 
 #include <assimp/scene.h>
 

@@ -15,9 +15,9 @@ struct spRHIImplementationDescription
 
 struct SP_RHI_DLL spRHIImplementationFactory
 {
-  using Factory = ezDelegate<ezInternal::NewInstance<RHI::spDevice>(ezAllocatorBase*, const RHI::spDeviceDescription&)>;
+  using Factory = ezDelegate<ezInternal::NewInstance<RHI::spDevice>(ezAllocator*, const RHI::spDeviceDescription&)>;
 
-  static ezInternal::NewInstance<RHI::spDevice> CreateDevice(ezStringView szImplementationName, ezAllocatorBase* pAllocator, const RHI::spDeviceDescription& description);
+  static ezInternal::NewInstance<RHI::spDevice> CreateDevice(ezStringView szImplementationName, ezAllocator* pAllocator, const RHI::spDeviceDescription& description);
 
   static void RegisterImplementation(ezStringView szName, const Factory& func, const spRHIImplementationDescription& description);
 

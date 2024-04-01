@@ -48,7 +48,7 @@ namespace RHI
       if (pError != nullptr)
       {
         ezStringBuilder sError;
-        sError.Format("Failed to create specialized Metal function: {0}\n{1}", pError->localizedFailureReason()->utf8String(), pError->localizedDescription()->utf8String());
+        sError.SetFormat("Failed to create specialized Metal function: {0}\n{1}", pError->localizedFailureReason()->utf8String(), pError->localizedDescription()->utf8String());
 
         EZ_LOG_BLOCK("Compute Pipeline Error Message");
         ezLog::Dev("{0}", sError.GetData());
@@ -132,7 +132,7 @@ namespace RHI
           if (pError != nullptr)
           {
             ezStringBuilder sError;
-            sError.Format("Failed to create specialized Metal function: {0}\n{1}", pError->localizedFailureReason()->utf8String(), pError->localizedDescription()->utf8String());
+            sError.SetFormat("Failed to create specialized Metal function: {0}\n{1}", pError->localizedFailureReason()->utf8String(), pError->localizedDescription()->utf8String());
 
             EZ_LOG_BLOCK("Compute Pipeline Error Message");
             ezLog::Dev("{0}", sError.GetData());
@@ -176,7 +176,7 @@ namespace RHI
       if (pError != nullptr)
       {
         ezStringBuilder sError;
-        sError.Format("Failed to create Metal compute pipeline state: {0}\n{1}", pError->localizedFailureReason()->utf8String(), pError->localizedDescription()->utf8String());
+        sError.SetFormat("Failed to create Metal compute pipeline state: {0}\n{1}", pError->localizedFailureReason()->utf8String(), pError->localizedDescription()->utf8String());
 
         EZ_LOG_BLOCK("Compute Pipeline Error Message");
         ezLog::Dev("{0}", sError.GetData());
@@ -353,7 +353,7 @@ namespace RHI
       if (pError != nullptr)
       {
         ezStringBuilder sError;
-        sError.Format("Failed to create Metal render pipeline state: {0}\n{1}", pError->localizedFailureReason()->utf8String(), pError->localizedDescription()->utf8String());
+        sError.SetFormat("Failed to create Metal render pipeline state: {0}\n{1}", pError->localizedFailureReason()->utf8String(), pError->localizedDescription()->utf8String());
 
         EZ_LOG_BLOCK("Graphic Pipeline Error Message");
         ezLog::Dev("{0}", sError.GetData());

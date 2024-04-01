@@ -451,7 +451,7 @@ kernel void copy_bytes(
     ezMemoryUtils::RawByteCopy(destOffsetPtr, pData, uiSize);
   }
 
-  spDeviceMTL::spDeviceMTL(ezAllocatorBase* pAllocator, const spDeviceDescription& deviceDescription)
+  spDeviceMTL::spDeviceMTL(ezAllocator* pAllocator, const spDeviceDescription& deviceDescription)
     : spDevice(pAllocator, deviceDescription)
     , m_SingletonRegistrar(this)
     , m_pMTLDevice(MTL::CreateSystemDefaultDevice())

@@ -14,10 +14,10 @@
 
 #include <AssetProcessor/Importers/ShaderImporter.h>
 
-#include <Core/Assets/AssetFileHeader.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
 #include <Foundation/IO/FileSystem/FileWriter.h>
 #include <Foundation/IO/OSFile.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
 
 #include <mpack/mpack.h>
 

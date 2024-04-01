@@ -16,10 +16,9 @@
 
 #include <RAI/Resources/SamplerResource.h>
 
-#include <Core/Assets/AssetFileHeader.h>
-
 #include <Foundation/IO/FileSystem/FileReader.h>
 #include <Foundation/IO/FileSystem/FileWriter.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
 
 namespace RAI
 {

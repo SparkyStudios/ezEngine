@@ -513,7 +513,7 @@ namespace RHI
     EZ_NODISCARD spDeviceResource* GetResource(const spResourceHandle& hResource) const;
 
     spDevice* m_pDevice;
-    ezAllocatorBase* m_pAllocator;
+    ezAllocator* m_pAllocator;
 
     spResourceTable m_RegisteredResources;
   };

@@ -16,7 +16,7 @@
 
 using namespace RHI;
 
-ezInternal::NewInstance<spDeviceMTL> CreateRHIMTLDevice(ezAllocatorBase* pAllocator, const spDeviceDescription& description)
+ezInternal::NewInstance<spDeviceMTL> CreateRHIMTLDevice(ezAllocator* pAllocator, const spDeviceDescription& description)
 {
   return EZ_NEW(pAllocator, spDeviceMTL, pAllocator, description);
 }

@@ -94,7 +94,7 @@ namespace RPI
 
     // --- spDevice shortcuts
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezAllocatorBase* GetAllocator() const { return m_pDevice->GetAllocator(); }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezAllocator* GetAllocator() const { return m_pDevice->GetAllocator(); }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spDeviceResourceManager* GetResourceManager() const { return m_pDevice->GetResourceManager(); }
 
