@@ -5,6 +5,7 @@
 #include <AudioSystemPlugin/Core/AudioSystemAllocator.h>
 #include <AudioSystemPlugin/Core/AudioSystemRequests.h>
 
+#include <Foundation/Configuration/CVar.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
 #include <Foundation/Profiling/Profiling.h>
 
