@@ -14,6 +14,7 @@
 
 #include <AssetProcessor/Processors/ImageProcessor.h>
 #include <AssetProcessor/Processors/MeshProcessor.h>
+#include <AssetProcessor/Processors/RootMaterialProcessor.h>
 #include <AssetProcessor/Processors/ShaderProcessor.h>
 
 #include <Foundation/Application/Application.h>
@@ -49,7 +50,7 @@
       -texture "path/to/texture1.jpg" "path/to/texture2.png"
 
 -shader <paths>
-    Paths to one or many folders containing compiled SPSL shader variants files and a single .variants.json file.
+    Paths to one or many folders containing compiled SPSL shader variants files and a single variants.json file.
 
     It will generate spShader assets from SPSL shader variant files, in the same path, unless
     the -out option is specified with a different value.
@@ -57,6 +58,16 @@
     Example:
         -shader "path/to/shader"
         -shader "path/to/shader1" "path/to/shader2"
+
+-material <paths>
+     Path to one or many root material files.
+
+    It will generate an spRootMaterial asset from an SPSL root material file with the same file name, in the same path,
+    unless the -out option is specified with a different value.
+
+    Example:
+      -material "path/to/material.sprm"
+      -material "path/to/material1.sprm" "path/to/material2.sprm"
 
 -out <path>
     The output path of the currently processed assets.
@@ -178,6 +189,18 @@ This argument takes the names of the shader variants to generate, separated by s
 
 #pragma endregion
 
+#pragma region Root Material processing options
+
+ezCommandLineOptionDoc opt_Materials("_AssetProcessor_RootMaterial", "-material", "<paths>", R"(
+Path to one or many SPSL root materials.
+
+It will generate an spRootMaterial asset from the SPSL file, using the same file name, unless the
+-out option is specified with a different value.
+)",
+  "");
+
+#pragma endregion
+
 ezCommandLineOptionPath opt_Out("_AssetProcessor", "-out", R"(
 The output path of the currently processed assets.
 
@@ -209,8 +232,13 @@ public:
     /// \brief A shader asset file.
     ///
     /// This type of asset will generate a *.spShader file, and many *.spShaderVariant files
-    /// according to the *.variants.json file.
+    /// according to the variants.json file.
     Shader,
+
+    /// \brief A root material asset file.
+    ///
+    /// This type of asset will generate a *.spRootMaterial file.
+    RootMaterial,
 
     Unknown = -1
   };
@@ -226,6 +254,8 @@ public:
 
   spShaderProcessorConfig m_ShaderProcessorConfig;
 
+  spRootMaterialProcessorConfig m_RootMaterialProcessorConfig;
+
   static const char* GetSortingGroupFromAssetType(AssetType type)
   {
     switch (type)
@@ -236,6 +266,8 @@ public:
         return "_AssetProcessor_Texture";
       case AssetType::Shader:
         return "_AssetProcessor_Shader";
+      case AssetType::RootMaterial:
+        return "_AssetProcessor_RootMaterial";
       case AssetType::Unknown:
       default:
         return "_AssetProcessor";
@@ -272,6 +304,11 @@ public:
       m_eAssetType = AssetType::Shader;
       EZ_SUCCEED_OR_RETURN(ParseShaderArguments());
     }
+    else if (opt_Materials.IsOptionSpecified())
+    {
+      m_eAssetType = AssetType::RootMaterial;
+      EZ_SUCCEED_OR_RETURN(ParseRootMaterialArguments());
+    }
 
     m_sOutput = opt_Out.GetOptionValue(ezCommandLineOption::LogMode::Never);
     m_sOutput = ezOSFile::MakePathAbsoluteWithCWD(m_sOutput);
@@ -280,7 +317,7 @@ public:
 
     if (!isHelp && m_sInputs.IsEmpty() && !m_sOutput.IsEmpty())
     {
-      ezLog::Error("Input asset files not defined. Please Specify them.");
+      ezLog::Error("Input asset files not defined. Please provide them.");
       return EZ_FAILURE;
     }
 
@@ -396,7 +433,7 @@ public:
       {
         m_sInputs.PushBack(cmd.GetAbsolutePathOption("-shader", a));
 
-        if (!ezOSFile::ExistsFile(m_sInputs.PeekBack()))
+        if (!ezOSFile::ExistsFile(m_sInputs.PeekBack()) && !ezOSFile::ExistsDirectory(m_sInputs.PeekBack()))
         {
           ezLog::Error("-shader input file does not exist: '{}'", m_sInputs.PeekBack());
           return EZ_FAILURE;
@@ -405,6 +442,33 @@ public:
     }
 
     opt_Shader_Variants.GetOptionValue(ezCommandLineOption::LogMode::AlwaysIfSpecified).Split(false, m_ShaderProcessorConfig.m_ShaderVariants, " ");
+
+    return EZ_SUCCESS;
+  }
+
+  ezResult ParseRootMaterialArguments()
+  {
+    const ezCommandLineUtils& cmd = *ezCommandLineUtils::GetGlobalInstance();
+
+    if (const ezUInt32 args = cmd.GetStringOptionArguments("-material"); args > 0)
+    {
+      if (m_eAssetType != AssetType::RootMaterial)
+      {
+        ezLog::Error("Cannot use -material option with another asset type.");
+        return EZ_FAILURE;
+      }
+
+      for (ezUInt32 a = 0; a < args; ++a)
+      {
+        m_sInputs.PushBack(cmd.GetAbsolutePathOption("-material", a));
+
+        if (!ezOSFile::ExistsFile(m_sInputs.PeekBack()))
+        {
+          ezLog::Error("-material input file does not exist: '{}'", m_sInputs.PeekBack());
+          return EZ_FAILURE;
+        }
+      }
+    }
 
     return EZ_SUCCESS;
   }
@@ -436,6 +500,17 @@ public:
     for (const auto& input : m_sInputs)
     {
       spShaderProcessor processor(m_ShaderProcessorConfig);
+
+      if (processor.Process(input, m_sOutput).Failed())
+        failedImports.PushBack(input);
+    }
+  }
+
+  void ProcessRootMaterial(ezHybridArray<ezString, 8>& failedImports)
+  {
+    for (const auto& input : m_sInputs)
+    {
+      spRootMaterialProcessor processor(m_RootMaterialProcessorConfig);
 
       if (processor.Process(input, m_sOutput).Failed())
         failedImports.PushBack(input);
@@ -499,6 +574,12 @@ public:
         case AssetType::Shader:
         {
           ProcessShader(failedImports);
+          break;
+        }
+
+        case AssetType::RootMaterial:
+        {
+          ProcessRootMaterial(failedImports);
           break;
         }
 

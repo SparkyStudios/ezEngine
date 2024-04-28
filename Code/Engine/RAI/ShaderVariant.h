@@ -26,7 +26,7 @@ namespace RAI
 {
   /// \brief A shader variant asset.
   ///
-  /// Stores data for a single shader variant.
+  /// Reflects an SPSL binary shader variant.
   class SP_RAI_DLL spShaderVariant
   {
     friend class spShader;
@@ -43,6 +43,8 @@ namespace RAI
     ~spShaderVariant() noexcept;
 
     void Clear();
+
+    ezUInt32 m_uiHash;
 
     ezHashedString m_sName;
 
@@ -81,3 +83,5 @@ namespace RAI
 #pragma endregion
   };
 } // namespace RAI
+
+#include <RAI/Implementation/ShaderVariant_inl.h>

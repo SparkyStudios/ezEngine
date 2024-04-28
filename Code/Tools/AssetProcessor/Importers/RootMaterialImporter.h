@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
 
 #include <AssetProcessor/Importers/Importer.h>
 
-#include <RAI/Resources/ShaderVariantResource.h>
+#include <RAI/Resources/RootMaterialResource.h>
 
-struct spShaderVariantImporterConfiguration
-{
-};
+struct spRootMaterialImporterConfiguration
+{};
 
-class spShaderImporter : public spImporter<spShaderVariantImporterConfiguration>
+/// \brief spAssimpImporter implementation for skeletons.
+class spRootMaterialImporter : public spImporter<spRootMaterialImporterConfiguration>
 {
   // spImporter
 
@@ -32,8 +32,6 @@ public:
   // spShaderVariantImporter
 
 public:
-  explicit spShaderImporter(const spShaderVariantImporterConfiguration& config);
-  ~spShaderImporter() override = default;
-  ezUInt32 GetVariantHash(ezStringView sPath);
-  ezResult ImportVariant(ezStringView sVariantPath, RAI::spShaderVariant& variant);
+  explicit spRootMaterialImporter(const spRootMaterialImporterConfiguration& config);
+  ~spRootMaterialImporter() override = default;
 };
