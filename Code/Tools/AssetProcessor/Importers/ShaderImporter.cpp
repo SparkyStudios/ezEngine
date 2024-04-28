@@ -15,9 +15,7 @@
 #include <AssetProcessor/Importers/ShaderImporter.h>
 
 #include <Foundation/IO/FileSystem/FileReader.h>
-#include <Foundation/IO/FileSystem/FileWriter.h>
 #include <Foundation/IO/OSFile.h>
-#include <Foundation/Utilities/AssetFileHeader.h>
 
 #include <mpack/mpack.h>
 
@@ -86,7 +84,7 @@ static ezEnum<RHI::spShaderStage> GetShaderStageFromIndex(RHI::spShaderStage::St
   }
 }
 
-static void mpack_node_hstr(const mpack_node_t& node, ezHashedString& out_str)
+void mpack_node_hstr(const mpack_node_t& node, ezHashedString& out_str)
 {
   const ezUInt32 len = mpack_node_strlen(node);
 
@@ -126,16 +124,18 @@ static ezResult DeserializeInputElement(const mpack_node_t& root, RHI::spInputEl
 
 static ezResult DeserializeShader(const mpack_node_t& root, spShaderVariant& ref_data)
 {
-  static constexpr ezUInt32 kShaderNameIndex = 0;
-  static constexpr ezUInt32 kShaderInputElementsIndex = 1;
-  static constexpr ezUInt32 kShaderSamplersIndex = 2;
-  static constexpr ezUInt32 kShaderByteCodeIndex = 3;
-  static constexpr ezUInt32 kShaderEntryPointsIndex = 4;
-  static constexpr ezUInt32 kShaderPermutationsIndex = 5;
-  static constexpr ezUInt32 kShaderStateIndex = 6;
-  static constexpr ezUInt32 kShaderLangIndex = 7;
+  static constexpr ezUInt32 kShaderVersionIndex = 0;
+  static constexpr ezUInt32 kShaderNameIndex = 1;
+  static constexpr ezUInt32 kShaderInputElementsIndex = 2;
+  static constexpr ezUInt32 kShaderSamplersIndex = 3;
+  static constexpr ezUInt32 kShaderByteCodeIndex = 4;
+  static constexpr ezUInt32 kShaderEntryPointsIndex = 5;
+  static constexpr ezUInt32 kShaderPermutationsIndex = 6;
+  static constexpr ezUInt32 kShaderStateIndex = 7;
+  static constexpr ezUInt32 kShaderLangIndex = 8;
 
   // Nodes
+  const mpack_node_t& shaderVersionNode = mpack_node_array_at(root, kShaderVersionIndex);
   const mpack_node_t& shaderNameNode = mpack_node_array_at(root, kShaderNameIndex);
   const mpack_node_t& shaderInputElementsNode = mpack_node_array_at(root, kShaderInputElementsIndex);
   const mpack_node_t& shaderSamplersNode = mpack_node_array_at(root, kShaderSamplersIndex);
@@ -145,15 +145,24 @@ static ezResult DeserializeShader(const mpack_node_t& root, spShaderVariant& ref
   const mpack_node_t& shaderStateNode = mpack_node_array_at(root, kShaderStateIndex);
   const mpack_node_t& shaderLangNode = mpack_node_array_at(root, kShaderLangIndex);
 
-  if (mpack_node_is_missing(shaderNameNode) ||
-      mpack_node_is_missing(shaderInputElementsNode) ||
-      mpack_node_is_missing(shaderSamplersNode) ||
-      mpack_node_is_missing(shaderByteCodeNode) ||
-      mpack_node_is_missing(shaderEntryPointsNode) ||
-      mpack_node_is_missing(shaderPermutationsNode) ||
-      mpack_node_is_missing(shaderStateNode) ||
-      mpack_node_is_missing(shaderLangNode))
+  if (mpack_node_is_missing(shaderVersionNode))
     return EZ_FAILURE;
+
+  // Version check
+  ezUInt32 uiShaderVersion = mpack_node_u32(shaderVersionNode);
+
+  if (uiShaderVersion == 1)
+  {
+    if (mpack_node_is_missing(shaderNameNode) ||
+        mpack_node_is_missing(shaderInputElementsNode) ||
+        mpack_node_is_missing(shaderSamplersNode) ||
+        mpack_node_is_missing(shaderByteCodeNode) ||
+        mpack_node_is_missing(shaderEntryPointsNode) ||
+        mpack_node_is_missing(shaderPermutationsNode) ||
+        mpack_node_is_missing(shaderStateNode) ||
+        mpack_node_is_missing(shaderLangNode))
+      return EZ_FAILURE;
+  }
 
   // Material name
   mpack_node_hstr(shaderNameNode, ref_data.m_sName);
@@ -225,6 +234,8 @@ static ezResult DeserializeShader(const mpack_node_t& root, spShaderVariant& ref
       mpack_node_hstr(permutationNameNode, permutation.m_sName);
       mpack_node_hstr(permutationValueNode, permutation.m_sValue);
     }
+
+    ref_data.m_Permutations.Sort();
   }
 
   // State
@@ -552,19 +563,55 @@ static ezResult DeserializeShader(const mpack_node_t& root, spShaderVariant& ref
 
 ezResult spShaderImporter::Import(ezStringView sAssetPath, ezStringView sOutputPath)
 {
-  spShaderVariantResourceDescriptor desc;
+  // noop
+  // The shader importer should merge several files together, so we don't need to do anything here.
 
+  return EZ_SUCCESS;
+}
+
+spShaderImporter::spShaderImporter(const spShaderVariantImporterConfiguration& config)
+  : spImporter<spShaderVariantImporterConfiguration>(config)
+{
+}
+
+ezUInt32 spShaderImporter::GetVariantHash(ezStringView sPath)
+{
+  ezUInt32 uiHash = 0;
+  ezFileReader file;
+
+  if (file.Open(sPath).Failed())
+    return uiHash;
+
+  ezUInt8 header[4];
+  file.ReadBytes(header, 4);
+  if (header[0] != 'S' || header[1] != 'P' || header[2] != 'S' || header[3] != 'V')
+    return uiHash;
+
+  file.ReadBytes(&uiHash, sizeof(ezUInt32));
+
+  return uiHash;
+}
+
+ezResult spShaderImporter::ImportVariant(ezStringView sVariantPath, spShaderVariant& variant)
+{
   // Parse shader variant file
   {
-    ezFileReader file;
-    if (file.Open(sAssetPath).Failed())
+    if (!sVariantPath.HasExtension("spsv"))
       return EZ_FAILURE;
 
-    if (!sAssetPath.HasExtension("spslb"))
+    ezFileReader file;
+    if (file.Open(sVariantPath).Failed())
       return EZ_FAILURE;
+
+    ezUInt8 header[4];
+    file.ReadBytes(header, 4);
+    if (header[0] != 'S' || header[1] != 'P' || header[2] != 'S' || header[3] != 'V')
+      return EZ_FAILURE;
+
+    file.ReadBytes(&variant.m_uiHash, sizeof(ezUInt32));
 
     ezDynamicArray<ezUInt8> content;
-    content.SetCountUninitialized(file.GetFileSize());
+    content.SetCountUninitialized(file.GetFileSize() - sizeof(header) - sizeof(ezUInt32));
 
     file.ReadBytes(content.GetData(), content.GetCount());
 
@@ -574,38 +621,12 @@ ezResult spShaderImporter::Import(ezStringView sAssetPath, ezStringView sOutputP
 
     const mpack_node_t& root = mpack_tree_root(&tree);
 
-    if (DeserializeShader(root, desc.GetShaderVariant()).Failed())
+    if (DeserializeShader(root, variant).Failed())
       return EZ_FAILURE;
 
     if (mpack_tree_destroy(&tree) != mpack_ok)
       return EZ_FAILURE;
   }
 
-  ezStringBuilder sOutputFile(sOutputPath);
-  sOutputFile.AppendFormat("/{}.spShaderVariant", sAssetPath.GetFileName());
-
-  // Write shader variant resource
-  {
-    ezFileWriter file;
-    if (file.Open(sOutputFile, 1024 * 1024).Failed())
-    {
-      ezLog::Error("Failed to save mesh asset: '{0}'", sOutputFile);
-      return EZ_FAILURE;
-    }
-
-    // Write asset header
-    ezAssetFileHeader assetHeader;
-    assetHeader.SetGenerator("SparkEngine Asset Processor");
-    assetHeader.SetFileHashAndVersion(ezHashingUtils::xxHash64String(sAssetPath), 1);
-    EZ_SUCCEED_OR_RETURN(assetHeader.Write(file));
-
-    EZ_SUCCEED_OR_RETURN(desc.Save(file));
-  }
-
   return EZ_SUCCESS;
-}
-
-spShaderImporter::spShaderImporter(const spShaderVariantImporterConfiguration& config)
-  : spImporter<spShaderVariantImporterConfiguration>(config)
-{
 }

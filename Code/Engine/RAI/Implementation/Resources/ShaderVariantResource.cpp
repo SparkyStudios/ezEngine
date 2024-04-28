@@ -72,7 +72,7 @@ namespace RAI
     EZ_SUCCEED_OR_RETURN(pWriter->WriteBytes(&m_ShaderVariant.m_eShaderLanguage, sizeof(RHI::spShaderLanguage)));
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
-    compressor.FinishCompressedStream().IgnoreResult();
+    EZ_SUCCEED_OR_RETURN(compressor.FinishCompressedStream());
     ezLog::Dev("Compressed shader data from {0}KB to {1}KB ({2}%%) using Zstd", ezArgF(static_cast<double>(compressor.GetUncompressedSize()) / 1024.0, 1), ezArgF(static_cast<double>(compressor.GetCompressedSize()) / 1024.0, 1), ezArgF(100.0 * static_cast<double>(compressor.GetCompressedSize()) / static_cast<double>(compressor.GetUncompressedSize()), 1));
 #endif
 

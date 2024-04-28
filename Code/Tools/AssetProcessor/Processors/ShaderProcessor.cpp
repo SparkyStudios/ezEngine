@@ -14,7 +14,11 @@
 
 #include <AssetProcessor/Processors/ShaderProcessor.h>
 
+#include <Foundation/IO/FileSystem/FileWriter.h>
 #include <Foundation/IO/OSFile.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
+
+#include <RAI/Resources/ShaderResource.h>
 
 using namespace RAI;
 
@@ -22,32 +26,65 @@ ezResult spShaderProcessor::Process(ezStringView sFileName, ezStringView sOutput
 {
   EZ_LOG_BLOCK("spShaderProcessor::Process", sFileName);
 
-  if (ezPathUtils::HasAnyExtension(sFileName))
+  if (!ezOSFile::ExistsDirectory(sFileName))
   {
-    if (!m_Configuration.m_ShaderVariants.IsEmpty())
-      ezLog::Warning("Shader variants are not supported by the shader processor.");
-
-    return m_ShaderImporter.Import(sFileName, sOutputPath);
+    ezLog::Warning("You must provide a directory with SPSL binary code.");
+    return EZ_FAILURE;
   }
-  else
+
+  ezSet<ezStringView> filesToProcess;
+
+  for (auto it = m_Configuration.m_ShaderVariants.GetIterator(); it.IsValid(); it.Next())
+    filesToProcess.Insert(*it);
+
+  ezMap<ezUInt32, spShaderVariant> variants;
+
+  ezFileSystemIterator it;
+  for (it.StartSearch(sFileName, ezFileSystemIteratorFlags::ReportFiles); it.IsValid(); it.Next())
   {
-    ezSet<ezStringView> filesToProcess;
+    ezStringBuilder filePath = it.GetCurrentPath();
+    filePath.AppendPath(it.GetStats().m_sName);
 
-    for (auto it = m_Configuration.m_ShaderVariants.GetIterator(); it.IsValid(); it.Next())
-      filesToProcess.Insert(*it);
+    if (!filePath.HasExtension("spsv"))
+      continue;
 
-    ezFileSystemIterator it;
-    for (it.StartSearch(sFileName, ezFileSystemIteratorFlags::ReportFiles); it.IsValid(); it.Next())
+    ezUInt32 uiHash = m_ShaderImporter.GetVariantHash(filePath);
+    spShaderVariant& variant = variants[uiHash];
+
+    ezResult result = EZ_SUCCESS;
+    if (filesToProcess.IsEmpty() || filesToProcess.Contains(filePath))
+      result = m_ShaderImporter.ImportVariant(filePath, variant);
+
+    if (result == EZ_FAILURE)
+      return result;
+  }
+
+  spShaderResourceDescriptor desc;
+  desc.GetShader().m_sName.Assign(sFileName.GetFileName());
+  desc.GetShader().m_Variants = std::move(variants);
+
+  ezStringBuilder sOutputFile(sOutputPath);
+  sOutputFile.AppendFormat("/{}.spShader", sFileName.GetFileName());
+
+  // Write shader variant resource
+  {
+    ezFileWriter file;
+    if (file.Open(sOutputFile, 1024 * 1024).Failed())
     {
-      ezStringBuilder filePath = it.GetCurrentPath();
-      filePath.AppendPath(it.GetStats().m_sName);
-
-      if (filesToProcess.IsEmpty() || filesToProcess.Contains(filePath))
-        m_ShaderImporter.Import(filePath, sOutputPath).IgnoreResult();
+      ezLog::Error("Failed to save mesh asset: '{0}'", sOutputFile);
+      return EZ_FAILURE;
     }
 
-    return EZ_SUCCESS;
+    // Write asset header
+    ezAssetFileHeader assetHeader;
+    assetHeader.SetGenerator("SparkEngine Asset Processor");
+    assetHeader.SetFileHashAndVersion(ezHashingUtils::xxHash64String(sFileName), 1);
+    EZ_SUCCEED_OR_RETURN(assetHeader.Write(file));
+
+    EZ_SUCCEED_OR_RETURN(desc.Save(file));
   }
+
+  return EZ_SUCCESS;
 }
 
 spShaderProcessor::spShaderProcessor(const spShaderProcessorConfig& config)

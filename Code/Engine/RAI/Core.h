@@ -39,6 +39,12 @@ namespace RAI
     ezHashedString m_sValue;
 
     EZ_ALWAYS_INLINE bool operator==(const spPermutationVar& other) const { return m_sName == other.m_sName && m_sValue == other.m_sValue; }
+
+    EZ_ALWAYS_INLINE bool operator!=(const spPermutationVar& other) const { return !(*this == other); }
+
+    EZ_ALWAYS_INLINE bool operator<(const spPermutationVar& other) const { return m_sName < other.m_sName || (m_sName == other.m_sName && m_sValue < other.m_sValue); }
+
+    EZ_ALWAYS_INLINE bool operator>(const spPermutationVar& other) const { return other < *this; }
   };
 
   EZ_FORCE_INLINE ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const spPermutationVar& permutation)

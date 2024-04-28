@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,32 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <RAI/RAIDLL.h>
-
-#include <Foundation/IO/MemoryStream.h>
-
-#include <RHI/Input.h>
-#include <RHI/Shader.h>
-
-#include <RAI/Resources/ShaderVariantResource.h>
+#include <RAI/RootMaterial.h>
 
 namespace RAI
 {
-  /// \brief A shader asset.
-  class SP_RAI_DLL spShader
+  void spRootMaterial::Clear()
   {
-    friend class spShaderResource;
-    friend class spShaderResourceDescriptor;
-
-  public:
-    spShader() = default;
-
-    void Clear();
-
-    ezHashedString m_sName;
-
-    ezMap<ezUInt32, spShaderVariant> m_Variants;
-  };
+    m_sName.Clear();
+    m_ParameterGroups.Clear();
+    m_Permutations.Clear();
+  }
 } // namespace RAI

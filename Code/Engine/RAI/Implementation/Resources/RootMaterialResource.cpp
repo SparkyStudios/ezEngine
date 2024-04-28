@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,38 +14,42 @@
 
 #include <RAI/RAIPCH.h>
 
-#include <RAI/Resources/ShaderResource.h>
+#include <RAI/Resources/RootMaterialResource.h>
 
 #include <Foundation/IO/ChunkStream.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
-#include <Foundation/Utilities/AssetFileHeader.h>
+#include <Foundation/IO/FileSystem/FileWriter.h>
+
+#ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
+#  include <Foundation/IO/CompressedStreamZstd.h>
+#endif
 
 namespace RAI
 {
-  static constexpr ezTypeVersion kShaderResourceVersion = 1;
+  static constexpr ezTypeVersion kRootMaterialResourceVersion = 1;
 
   // clang-format off
-  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spShaderResource, 1, ezRTTIDefaultAllocator<spShaderResource>)
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRootMaterialResource, 1, ezRTTIDefaultAllocator<spRootMaterialResource>)
   EZ_END_DYNAMIC_REFLECTED_TYPE;
 
-  EZ_RESOURCE_IMPLEMENT_COMMON_CODE(spShaderResource);
+  EZ_RESOURCE_IMPLEMENT_COMMON_CODE(spRootMaterialResource);
   // clang-format on
 
-#pragma region spShaderResourceDescriptor
+#pragma region spRootMaterialResourceDesciptor
 
-  spShaderResourceDescriptor::spShaderResourceDescriptor()
+  spRootMaterialResourceDescriptor::spRootMaterialResourceDescriptor()
   {
     Clear();
   }
 
-  void spShaderResourceDescriptor::Clear()
+  void spRootMaterialResourceDescriptor::Clear()
   {
-    m_Shader.Clear();
+    m_RootMaterial.Clear();
   }
 
-  ezResult spShaderResourceDescriptor::Save(ezStreamWriter& inout_stream)
+  ezResult spRootMaterialResourceDescriptor::Save(ezStreamWriter& inout_stream)
   {
-    inout_stream.WriteVersion(kShaderResourceVersion);
+    inout_stream.WriteVersion(kRootMaterialResourceVersion);
 
     ezUInt8 uiCompressionMode = 0;
 
@@ -59,8 +63,8 @@ namespace RAI
 
     inout_stream << uiCompressionMode;
 
-    EZ_SUCCEED_OR_RETURN(pWriter->WriteString(m_Shader.m_sName));
-    EZ_SUCCEED_OR_RETURN(pWriter->WriteMap(m_Shader.m_Variants));
+    EZ_SUCCEED_OR_RETURN(pWriter->WriteString(m_RootMaterial.m_sName));
+    EZ_SUCCEED_OR_RETURN(pWriter->WriteArray(m_RootMaterial.m_ParameterGroups));
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     EZ_SUCCEED_OR_RETURN(compressor.FinishCompressedStream());
@@ -70,23 +74,23 @@ namespace RAI
     return EZ_SUCCESS;
   }
 
-  ezResult spShaderResourceDescriptor::Save(ezStringView sFileName)
+  ezResult spRootMaterialResourceDescriptor::Save(ezStringView sFileName)
   {
-    EZ_LOG_BLOCK("spShaderResourceDescriptor::Save", sFileName);
+    EZ_LOG_BLOCK("spRootMaterialResourceDescriptor::Save", sFileName);
 
     ezFileWriter file;
     if (file.Open(sFileName, 1024 * 1024).Failed())
     {
-      ezLog::Error("Failed to open shader file '{0}'", sFileName);
+      ezLog::Error("Failed to open file '{0}' for writing", sFileName);
       return EZ_FAILURE;
     }
 
     return Save(file);
   }
 
-  ezResult spShaderResourceDescriptor::Load(ezStreamReader& inout_stream)
+  ezResult spRootMaterialResourceDescriptor::Load(ezStreamReader& inout_stream)
   {
-    inout_stream.ReadVersion(kShaderResourceVersion);
+    inout_stream.ReadVersion(kRootMaterialResourceVersion);
 
     ezUInt8 uiCompressionMode = 0;
     inout_stream >> uiCompressionMode;
@@ -113,30 +117,29 @@ namespace RAI
 #endif
 
       default:
-        ezLog::Error("Asset is compressed with an unknown algorithm.");
+        ezLog::Error("Asset is compressed with an unsupported compression mode '{0}'", uiCompressionMode);
         return EZ_FAILURE;
     }
 
     {
       ezStringBuilder sb;
       EZ_SUCCEED_OR_RETURN(pReader->ReadString(sb));
-      m_Shader.m_sName.Assign(sb);
+      m_RootMaterial.m_sName.Assign(sb);
     }
 
-    m_Shader.m_Variants.Clear();
-    EZ_SUCCEED_OR_RETURN(pReader->ReadMap(m_Shader.m_Variants));
+    EZ_SUCCEED_OR_RETURN(pReader->ReadArray(m_RootMaterial.m_ParameterGroups));
 
     return EZ_SUCCESS;
   }
 
-  ezResult spShaderResourceDescriptor::Load(ezStringView sFileName)
+  ezResult spRootMaterialResourceDescriptor::Load(ezStringView sFileName)
   {
-    EZ_LOG_BLOCK("spShaderResourceDescriptor::Load", sFileName);
+    EZ_LOG_BLOCK("spRootMaterialResourceDescriptor::Load", sFileName);
 
     ezFileReader file;
-    if (file.Open(sFileName, 1024 * 1024).Failed())
+    if (file.Open(sFileName).Failed())
     {
-      ezLog::Error("Failed to open shader file '{0}'", sFileName);
+      ezLog::Error("Failed to open file '{0}' for reading", sFileName);
       return EZ_FAILURE;
     }
 
@@ -145,31 +148,30 @@ namespace RAI
 
 #pragma endregion
 
-#pragma region spShaderResource
+#pragma region spRootMaterialResource
 
-  spShaderResource::spShaderResource()
+  spRootMaterialResource::spRootMaterialResource()
     : ezResource(DoUpdate::OnAnyThread, 1)
   {
   }
 
-  ezResourceLoadDesc spShaderResource::UnloadData(ezResource::Unload WhatToUnload)
+  ezResourceLoadDesc spRootMaterialResource::UnloadData(ezResource::Unload WhatToUnload)
   {
     m_Descriptor.Clear();
 
     ezResourceLoadDesc res;
-    res.m_uiQualityLevelsDiscardable = 0;
     res.m_uiQualityLevelsLoadable = 0;
+    res.m_uiQualityLevelsLoadable = 1;
     res.m_State = ezResourceState::Unloaded;
 
     return res;
   }
 
-  ezResourceLoadDesc spShaderResource::UpdateContent(ezStreamReader* pStream)
+  ezResourceLoadDesc spRootMaterialResource::UpdateContent(ezStreamReader* pStream)
   {
     ezResourceLoadDesc res;
-    res.m_uiQualityLevelsDiscardable = 0;
     res.m_uiQualityLevelsLoadable = 0;
-    res.m_State = ezResourceState::Unloaded;
+    res.m_uiQualityLevelsLoadable = 0;
 
     if (pStream == nullptr)
     {
@@ -177,13 +179,13 @@ namespace RAI
       return res;
     }
 
+    spRootMaterialResourceDescriptor desc;
+
     // skip the absolute file path data that the standard file reader writes into the stream
     {
       ezStringBuilder sAbsFilePath;
       *pStream >> sAbsFilePath;
     }
-
-    spShaderResourceDescriptor desc;
 
     ezAssetFileHeader AssetHash;
     AssetHash.Read(*pStream).IgnoreResult();
@@ -197,13 +199,13 @@ namespace RAI
     return CreateResource(std::move(desc));
   }
 
-  void spShaderResource::UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage)
+  void spRootMaterialResource::UpdateMemoryUsage(ezResource::MemoryUsage& out_NewMemoryUsage)
   {
-    out_NewMemoryUsage.m_uiMemoryCPU = sizeof(spShaderResource) + m_Descriptor.m_Shader.m_Variants.GetHeapMemoryUsage();
+    out_NewMemoryUsage.m_uiMemoryCPU = sizeof(spRootMaterialResource);
     out_NewMemoryUsage.m_uiMemoryGPU = 0;
   }
 
-  EZ_RESOURCE_IMPLEMENT_CREATEABLE(spShaderResource, spShaderResourceDescriptor)
+  EZ_RESOURCE_IMPLEMENT_CREATEABLE(spRootMaterialResource, spRootMaterialResourceDescriptor)
   {
     m_Descriptor = std::move(descriptor);
 
@@ -218,4 +220,4 @@ namespace RAI
 #pragma endregion
 } // namespace RAI
 
-EZ_STATICLINK_FILE(RAI, RAI_Implementation_Resources_ShaderResource);
+EZ_STATICLINK_FILE(RAI, RAI_Implementation_Resources_RootMaterialResource);

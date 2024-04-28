@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,32 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <AssetProcessor/Processors/RootMaterialProcessor.h>
 
-#include <RAI/RAIDLL.h>
-
-#include <Foundation/IO/MemoryStream.h>
-
-#include <RHI/Input.h>
-#include <RHI/Shader.h>
-
-#include <RAI/Resources/ShaderVariantResource.h>
-
-namespace RAI
+ezResult spRootMaterialProcessor::Process(ezStringView sFilename, ezStringView sOutputPath)
 {
-  /// \brief A shader asset.
-  class SP_RAI_DLL spShader
-  {
-    friend class spShaderResource;
-    friend class spShaderResourceDescriptor;
+  EZ_LOG_BLOCK("spRootMaterialProcessor::Process", sFilename);
 
-  public:
-    spShader() = default;
+  return m_RootMaterialImporter.Import(sFilename, sOutputPath);
+}
 
-    void Clear();
-
-    ezHashedString m_sName;
-
-    ezMap<ezUInt32, spShaderVariant> m_Variants;
-  };
-} // namespace RAI
+spRootMaterialProcessor::spRootMaterialProcessor(const spRootMaterialProcessorConfig& config)
+  : spProcessor(config)
+  , m_RootMaterialImporter(config.m_RootMaterialImporterConfig)
+{
+}

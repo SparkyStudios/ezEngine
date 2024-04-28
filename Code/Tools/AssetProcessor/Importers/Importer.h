@@ -17,6 +17,8 @@
 #include <Foundation/Basics.h>
 #include <Foundation/Logging/Log.h>
 
+#include <mpack/mpack.h>
+
 /// \brief Base class for all RAI assets importers.
 /// \tparam TConfig The configuration type of the importer.
 template <typename TConfig>
@@ -49,3 +51,6 @@ public:
 protected:
   TConfig m_Configuration;
 };
+
+// Utilities
+void mpack_node_hstr(const mpack_node_t& node, ezHashedString& out_str);
