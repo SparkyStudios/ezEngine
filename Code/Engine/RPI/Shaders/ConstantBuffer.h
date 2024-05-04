@@ -66,7 +66,7 @@ namespace RPI
   /// never as read-write. You cannot map a buffer as read-only and write-only at the same time.
   ///
   /// \tparam T The data type of the buffer. It's recommended to be a struct with 16-bit alignment.
-  template <typename T, RHI::spBufferUsage::Enum Usage = RHI::spBufferUsage::Staging>
+  template <typename T, RHI::spBufferUsage::Enum Usage = RHI::spBufferUsage::Dynamic>
   class spConstantBuffer : public spConstantBufferBase
   {
   public:
