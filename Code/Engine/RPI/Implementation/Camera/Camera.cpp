@@ -37,6 +37,12 @@ namespace RPI
     m_CachedInverseProjectionMatrix.SetIdentity();
   }
 
+  spCamera::~spCamera()
+  {
+    if (m_pRenderView != nullptr)
+      EZ_DELETE(RHI::spDeviceAllocatorWrapper::GetAllocator(), m_pRenderView);
+  }
+
   void spCamera::SetRenderViewUsage(ezBitflags<RPI::spRenderViewUsage> eUsage)
   {
     m_eRenderViewUsage = eUsage;
