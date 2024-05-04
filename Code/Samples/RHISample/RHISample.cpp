@@ -1,8 +1,8 @@
-#include <Core/Assets/AssetFileHeader.h>
 #include <Core/Input/InputManager.h>
 #include <Core/ResourceManager/ResourceManager.h>
 #include <Core/System/Window.h>
 
+#include <Foundation/Utilities/AssetFileHeader.h>
 #include <Foundation/Basics/Platform/Win/IncludeWindows.h>
 #include <Foundation/Configuration/Startup.h>
 #include <Foundation/Containers/ArrayMap.h>
@@ -739,13 +739,14 @@ ezApplication::Execution ezRHISampleApp::Run()
 
   // do the rendering
   m_pRenderSystem->GetRenderThread()->PostAsync([&]() -> void
+  {
+    m_pSceneContext->BeginFrame();
     {
-      m_pSceneContext->BeginFrame();
-      {
-        m_pSceneContext->Draw();
-        m_pSceneContext->Present();
-      }
-      m_pSceneContext->EndFrame(); });
+      m_pSceneContext->Draw();
+      m_pSceneContext->Present();
+    }
+    m_pSceneContext->EndFrame();
+  });
 
   m_pSceneContext->WaitForIdle();
 
