@@ -365,6 +365,8 @@ namespace RHI
     else
     {
       const auto pBufferD3D11 = pBuffer.Downcast<spBufferD3D11>();
+      pBufferD3D11->EnsureResourceCreated();
+
       EZ_LOCK(m_ImmediateContextMutex);
 
       D3D11_MAPPED_SUBRESOURCE mappedSubresource;
@@ -393,6 +395,8 @@ namespace RHI
     else
     {
       const auto pTextureD3D11 = pTexture.Downcast<spTextureD3D11>();
+      pTextureD3D11->EnsureResourceCreated();
+
       EZ_LOCK(m_ImmediateContextMutex);
 
       D3D11_MAPPED_SUBRESOURCE mappedSubresource;
