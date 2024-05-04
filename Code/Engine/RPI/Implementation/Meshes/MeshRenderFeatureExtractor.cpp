@@ -71,6 +71,8 @@ namespace RPI
     }
 
     // TODO: Handle caching if game object is static or render object caching behavior is set to always
+
+    EZ_DELETE(RHI::spDeviceAllocatorWrapper::GetAllocator(), message.m_Objects);
   }
 } // namespace RPI
 

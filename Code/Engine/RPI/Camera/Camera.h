@@ -48,6 +48,7 @@ namespace RPI
 
   public:
     spCamera();
+    ~spCamera();
 
     void SetRenderViewUsage(ezBitflags<spRenderViewUsage> eUsage);
     EZ_NODISCARD EZ_ALWAYS_INLINE ezBitflags<spRenderViewUsage> GetRenderViewUsage() const { return m_eRenderViewUsage; }
