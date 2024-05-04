@@ -142,7 +142,7 @@ namespace RPI
 
   const char* spMeshComponent::GetMeshFile() const
   {
-    return m_hMeshResource.IsValid() ? m_hMeshResource.GetResourceID() : "";
+    return m_hMeshResource.IsValid() ? m_hMeshResource.GetResourceID().GetData() : "";
   }
 
   void spMeshComponent::SetSortingOrder(float fSortingOrder)

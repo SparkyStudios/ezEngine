@@ -62,7 +62,7 @@ namespace RHI
         InputLayoutCacheKey key;
 
         key.m_InputLayouts = EZ_DEFAULT_NEW_ARRAY(spInputLayoutDescription, inputLayouts.GetCount());
-        ezMemoryUtils::Construct(key.m_InputLayouts.GetPtr(), key.m_InputLayouts.GetCount());
+        ezMemoryUtils::Construct<ConstructAll>(key.m_InputLayouts.GetPtr(), key.m_InputLayouts.GetCount());
 
         for (ezUInt32 i = 0, l = key.m_InputLayouts.GetCount(); i < l; ++i)
         {
@@ -89,7 +89,7 @@ namespace RHI
       InputLayoutCacheKey(const InputLayoutCacheKey& key)
       {
         m_InputLayouts = EZ_DEFAULT_NEW_ARRAY(spInputLayoutDescription, key.m_InputLayouts.GetCount());
-        ezMemoryUtils::Construct(m_InputLayouts.GetPtr(), m_InputLayouts.GetCount());
+        ezMemoryUtils::Construct<ConstructAll>(m_InputLayouts.GetPtr(), m_InputLayouts.GetCount());
 
         for (ezUInt32 i = 0, l = key.m_InputLayouts.GetCount(); i < l; ++i)
         {
@@ -138,7 +138,7 @@ namespace RHI
       EZ_ALWAYS_INLINE InputLayoutCacheKey& operator=(const InputLayoutCacheKey& rhs)
       {
         m_InputLayouts = EZ_DEFAULT_NEW_ARRAY(spInputLayoutDescription, rhs.m_InputLayouts.GetCount());
-        ezMemoryUtils::Construct(m_InputLayouts.GetPtr(), m_InputLayouts.GetCount());
+        ezMemoryUtils::Construct<ConstructAll>(m_InputLayouts.GetPtr(), m_InputLayouts.GetCount());
 
         for (ezUInt32 i = 0, l = rhs.m_InputLayouts.GetCount(); i < l; ++i)
         {
