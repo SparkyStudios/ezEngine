@@ -2,7 +2,7 @@
   "name": "spark-engine",
   "builtin-baseline": "326d8b43e365352ba3ccadf388d989082fe0f2a6",
   "description": "A cross-platform C++ game engine.",
-  "version": "1.0",
+  "version": "1.0.0",
   "dependencies": [
     {
       "name": "mikktspace",
@@ -58,7 +58,8 @@
     },
     {
       "name": "d3d12-memory-allocator",
-      "version>=": "2.0.1"
+      "version>=": "2.0.1",
+      "platform": "windows"
     }
   ]
 }
