@@ -70,9 +70,11 @@ namespace RPI
   class spConstantBuffer : public spConstantBufferBase
   {
   public:
+    static constexpr ezUInt64 DataSize = sizeof(T);
+
     /// \brief Create a new constant buffer storage.
     spConstantBuffer()
-      : spConstantBufferBase(sizeof(T), Usage)
+      : spConstantBufferBase(DataSize, Usage)
     {
     }
 
@@ -104,7 +106,7 @@ namespace RPI
     /// \param[in] value The value to set in the buffer.
     EZ_FORCE_INLINE void Set(const T& value) const
     {
-      UpdateBuffer(0, sizeof(T), &value);
+      UpdateBuffer(0, DataSize, &value);
     }
   };
 
@@ -117,6 +119,9 @@ namespace RPI
   template <typename T>
   class spConstantBufferView
   {
+    friend class spConstantBufferView<T>;
+    friend class spConstantBufferView<const T>;
+
   public:
     explicit spConstantBufferView(const spConstantBufferBase* pBuffer)
     {

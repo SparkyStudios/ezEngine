@@ -25,6 +25,30 @@ namespace RPI
     EZ_ADD_DYNAMIC_REFLECTION(spRenderer, ezReflectedClass);
 
   public:
-    virtual void Render(const spRenderContext* pRenderingContext) const = 0;
+    spRenderer(ezStringView sName);
+    virtual ~spRenderer() = default;
+
+    virtual void Render() = 0;
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezStringView& GetName() const { return m_sName; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsEnabled() const { return m_bEnabled; }
+    EZ_ALWAYS_INLINE void SetEnabled(bool bEnabled) { m_bEnabled = bEnabled; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsInitialized() const { return m_bInitialized; }
+
+    void Initialize(const spRenderContext* pRenderContext);
+
+  protected:
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderContext* GetRenderContext() const { return m_pRenderContext; }
+
+    virtual void OnInitialize();
+
+    bool m_bEnabled{true};
+
+  private:
+    ezStringView m_sName;
+    bool m_bInitialized{false};
+    const spRenderContext* m_pRenderContext{nullptr};
   };
 } // namespace RPI

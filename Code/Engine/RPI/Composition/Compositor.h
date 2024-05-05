@@ -16,13 +16,12 @@
 
 #include <RPI/RPIDLL.h>
 
-#include <RPI/Composition/CameraSlot.h>
-
 namespace RPI
 {
   class spRenderSystem;
   class spRenderContext;
   class spRenderFeature;
+  class spRenderer;
 
   class SP_RPI_DLL spCompositorEntryPoint : public ezReflectedClass
   {
@@ -51,16 +50,9 @@ namespace RPI
     spCompositor();
     ~spCompositor() override = default;
 
-    void Render(const spRenderContext* pRenderContext);
-
-  private:
-    spRenderSystem* m_pRenderSystem{nullptr};
-
-    ezDynamicArray<spCameraSlot*> m_Cameras;
-    ezDynamicArray<spRenderFeature*> m_RenderFeatures;
-
-    spCompositorEntryPoint m_GameEntryPoint;
-    spCompositorEntryPoint m_EditorEntryPoint;
-    spCompositorEntryPoint m_PreviewEntryPoint;
+    // Cached values
+    spRenderer* m_pGameRenderer{nullptr};
+    spRenderer* m_pEditorRenderer{nullptr};
+    spRenderer* m_pPreviewRenderer{nullptr};
   };
 } // namespace RPI

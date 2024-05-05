@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,37 +14,49 @@
 
 #include <RPI/RPIPCH.h>
 
-#include <RPI/Camera/CameraSlot.h>
-
-#include <RHI/Device.h>
+#include <RPI/Core/Renderer.h>
 
 namespace RPI
 {
-  typedef ezRTTIDefaultAllocator<spCameraSlot, RHI::spDeviceAllocatorWrapper> spRTTICameraSlotAllocator;
-
   // clang-format off
-  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spCameraSlot, 1, spRTTICameraSlotAllocator)
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderer, 1, ezRTTINoAllocator)
   {
     EZ_BEGIN_PROPERTIES
     {
-      EZ_ACCESSOR_PROPERTY("Name", GetName, SetName)
+      EZ_MEMBER_PROPERTY("Name", m_sName),
+      EZ_MEMBER_PROPERTY("Enabled", m_bEnabled),
+      EZ_ACCESSOR_PROPERTY_READ_ONLY("Initialized", IsInitialized),
     }
     EZ_END_PROPERTIES;
+
+    EZ_BEGIN_ATTRIBUTES
+    {
+      new ezCategoryAttribute("Renderers"),
+    }
+    EZ_END_ATTRIBUTES;
   }
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
-  spCameraSlot::spCameraSlot(ezStringView sName)
+  spRenderer::spRenderer(ezStringView sName)
+    : m_sName(sName)
   {
-    m_sName.Assign(sName);
   }
 
-  void spCameraSlot::SetRenderer(const RPI::spRenderer* pRenderer)
+  void spRenderer::Initialize(const spRenderContext* pRenderContext)
   {
-    if (m_pRenderer == pRenderer)
+    if (m_bInitialized)
       return;
 
-    m_pRenderer = pRenderer;
-    // TODO: Notify cameras on this slot that pipeline has changed
+    m_pRenderContext = pRenderContext;
+    m_bInitialized = true;
+
+    OnInitialize();
+  }
+
+  void spRenderer::OnInitialize()
+  {
   }
 } // namespace RPI
+
+EZ_STATICLINK_FILE(RPI, RPI_Implementation_Core_Renderer);

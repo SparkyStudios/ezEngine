@@ -35,7 +35,15 @@ namespace RPI
 
   void spMeshRenderFeature::Render(const spRenderContext* pRenderingContext) const
   {
-    // TODO
+    auto cl = pRenderingContext->GetCommandList();
+
+    ezSharedPtr<RHI::spScopeProfiler> pScopeProfiler;
+
+    cl->PushProfileScope("spMeshRenderFeature");
+    {
+      cl->ClearColorTarget(0, ezColor::Black);
+    }
+    cl->PopProfileScope(pScopeProfiler);
   }
 
   spMeshRenderFeature::spMeshRenderFeature()
