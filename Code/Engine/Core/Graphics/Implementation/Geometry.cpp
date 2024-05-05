@@ -3,7 +3,7 @@
 #include <Core/Graphics/Geometry.h>
 #include <Foundation/Containers/Map.h>
 #include <Foundation/Math/Quat.h>
-#include <mikktspace/mikktspace.h>
+#include <mikktspace.h>
 
 bool ezGeometry::GeoOptions::IsFlipWindingNecessary() const
 {

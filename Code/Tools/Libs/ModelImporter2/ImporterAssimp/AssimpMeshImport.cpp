@@ -8,8 +8,8 @@
 #include <RendererCore/Meshes/MeshBufferUtils.h>
 #include <RendererCore/Meshes/MeshResourceDescriptor.h>
 #include <assimp/scene.h>
-#include <meshoptimizer/meshoptimizer.h>
-#include <mikktspace/mikktspace.h>
+#include <meshoptimizer.h>
+#include <mikktspace.h>
 
 namespace ezModelImporter2
 {
