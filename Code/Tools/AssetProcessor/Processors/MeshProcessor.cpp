@@ -21,7 +21,7 @@
 
 #include <meshoptimizer.h>
 
-#include <mikktspace/mikktspace.h>
+#include <mikktspace.h>
 
 using namespace RAI;
 

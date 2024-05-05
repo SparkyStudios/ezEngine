@@ -1,4 +1,4 @@
-# Copyright (c) 2021-present Sparky Studios. All rights reserved.
+# Copyright (c) 2024-present Sparky Studios. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,23 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(SP_3RDPARTY_KTX_SUPPORT ON CACHE BOOL "Whether to add support for the Khronos Texture compression tools.")
-mark_as_advanced(FORCE SP_3RDPARTY_KTX_SUPPORT)
-
 # #####################################
-# ## sp_requires_ktx()
+# ## sp_requires_mikktspace()
 # #####################################
-macro(sp_requires_ktx)
-  ez_requires(SP_3RDPARTY_KTX_SUPPORT)
-
-  find_package(Ktx CONFIG REQUIRED)
+macro(sp_requires_mikktspace)
+  find_package(mikktspace CONFIG REQUIRED)
 endmacro()
 
 # #####################################
-# ## sp_link_target_ktx(<target>)
+# ## sp_link_target_mikktspace(<target>)
 # #####################################
-function(sp_link_target_ktx TARGET_NAME)
-  sp_requires_ktx()
+function(sp_link_target_mikktspace TARGET_NAME)
+  sp_requires_mikktspace()
 
-  target_link_libraries(${TARGET_NAME} PRIVATE KTX::ktx)
+  target_link_libraries(${TARGET_NAME} PRIVATE mikktspace::mikktspace)
 endfunction()

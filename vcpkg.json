@@ -1,6 +1,6 @@
 {
   "name": "spark-engine",
-  "builtin-baseline": "e38b936343030e167a207ee4eddc3c6086caec56",
+  "builtin-baseline": "326d8b43e365352ba3ccadf388d989082fe0f2a6",
   "description": "A cross-platform C++ game engine.",
   "version": "1.0",
   "dependencies": [
