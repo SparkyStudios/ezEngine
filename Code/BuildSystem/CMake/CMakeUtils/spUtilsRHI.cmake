@@ -7,7 +7,13 @@
 # #####################################
 macro(sp_rhi_requires_d3d11)
   ez_requires_windows()
-  ez_requires_d3d()
+endmacro()
+
+# #####################################
+# ## sp_rhi_requires_d3d12()
+# #####################################
+macro(sp_rhi_requires_d3d12)
+  ez_requires_windows()
 endmacro()
 
 # #####################################
@@ -25,6 +31,16 @@ function(sp_rhi_link_target_d3d11 TARGET_NAME)
 
   target_link_libraries(${TARGET_NAME} PRIVATE RHID3D11)
   ez_link_target_dx11(${TARGET_NAME})
+endfunction()
+
+# #####################################
+# ## sp_rhi_link_target_d3d12(<target>)
+# #####################################
+function(sp_rhi_link_target_d3d12 TARGET_NAME)
+  sp_rhi_requires_d3d12()
+
+  target_link_libraries(${TARGET_NAME} PRIVATE RHID3D12)
+  sp_link_target_d3d12(${TARGET_NAME})
 endfunction()
 
 # #####################################
@@ -46,11 +62,11 @@ endfunction()
 # ## sp_rhi_requires_renderer()
 # #####################################
 macro(sp_rhi_requires_renderer)
-  if (EZ_CMAKE_PLATFORM_WINDOWS)
+  if(EZ_CMAKE_PLATFORM_WINDOWS)
     sp_rhi_requires_d3d11()
-  elseif (EZ_CMAKE_PLATFORM_OSX)
+  elseif(EZ_CMAKE_PLATFORM_OSX)
     sp_rhi_requires_metal()
-  endif ()
+  endif()
 endmacro()
 
 # #####################################
@@ -60,9 +76,9 @@ endmacro()
 function(sp_rhi_link_target TARGET_NAME)
   target_link_libraries(${TARGET_NAME} PRIVATE RHI)
 
-  if (EZ_CMAKE_PLATFORM_WINDOWS)
+  if(EZ_CMAKE_PLATFORM_WINDOWS)
     sp_rhi_link_target_d3d11(${TARGET_NAME})
-  elseif (EZ_CMAKE_PLATFORM_OSX)
+  elseif(EZ_CMAKE_PLATFORM_OSX)
     sp_rhi_link_target_metal(${TARGET_NAME})
-  endif ()
+  endif()
 endfunction()

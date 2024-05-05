@@ -55,6 +55,10 @@
     {
       "name": "glfw3",
       "version>=": "3.4"
+    },
+    {
+      "name": "d3d12-memory-allocator",
+      "version>=": "2.0.1"
     }
   ]
 }
