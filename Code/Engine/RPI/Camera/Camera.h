@@ -16,6 +16,7 @@
 
 #include <RPI/RPIDLL.h>
 
+#include <RPI/Camera/CameraSlot.h>
 #include <RPI/Core/RenderGroup.h>
 #include <RPI/Core/RenderView.h>
 #include <RPI/Scene/SceneContext.h>
@@ -126,6 +127,8 @@ namespace RPI
     void UpdateView();
 
     bool m_bIsDirty{true};
+
+    spCameraSlotHandle m_hCameraSlot;
 
     // Render View Properties
     ezBitflags<spRenderViewUsage> m_eRenderViewUsage{spRenderViewUsage::Default};

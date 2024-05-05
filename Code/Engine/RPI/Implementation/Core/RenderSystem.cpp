@@ -82,6 +82,11 @@ namespace RPI
     m_pDevice = nullptr;
   }
 
+  ezSharedPtr<spCompositor> spRenderSystem::GetCompositor() const
+  {
+    return m_pCompositor;
+  }
+
   spSceneContext* spRenderSystem::GetSceneContextFromWorld(const ezWorld* pWorld) const
   {
     const auto uiIndex = m_RegisteredWorldScenes.Find(pWorld);
@@ -108,6 +113,27 @@ namespace RPI
   {
     m_RegisteredWorldScenes.RemoveAndCopy(pWorld);
   }
+
+  spCameraSlotHandle spRenderSystem::CreateCameraSlot(ezStringView sName)
+  {
+    spCameraSlot* pSlot = EZ_DEFAULT_NEW(spCameraSlot, sName);
+    spCameraSlotHandleId idSlot = m_CameraSlots.Insert(std::move(pSlot));
+    pSlot->m_Handle.m_InternalId = idSlot;
+
+    m_CameraSlotsByName.Insert(sName, idSlot);
+
+    return pSlot->m_Handle;
+  }
+
+  spCameraSlotHandle spRenderSystem::GetCameraSlotByName(ezStringView sName) const
+  {
+    ezUInt32 uiIndex = m_CameraSlotsByName.Find(sName);
+    if (uiIndex == ezInvalidIndex)
+      return spCameraSlotHandle();
+
+    return spCameraSlotHandle(m_CameraSlotsByName.GetValue(uiIndex));
+  }
+
 } // namespace RPI
 
 EZ_STATICLINK_FILE(RPI, RPI_Implementation_Core_RenderSystem);

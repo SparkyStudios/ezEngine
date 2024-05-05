@@ -18,6 +18,7 @@
 
 #include <RHI/Device.h>
 
+#include <RPI/Camera/CameraSlot.h>
 #include <RPI/Composition/Compositor.h>
 #include <RPI/Core/Threading/RenderThread.h>
 
@@ -25,6 +26,7 @@ class ezWorld;
 
 namespace RPI
 {
+  class spCompositor;
   class spSceneContext;
 
   /// \brief A struct used to create and hold references to render nodes.
@@ -100,7 +102,7 @@ namespace RPI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezUniquePtr<spRenderThread>& GetRenderThread() const { return m_pRenderThread; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spCompositor> GetCompositor() const { return m_pCompositor; }
+    EZ_NODISCARD ezSharedPtr<spCompositor> GetCompositor() const;
 
     EZ_NODISCARD spSceneContext* GetSceneContextFromWorld(const ezWorld* pWorld) const;
 
@@ -110,8 +112,22 @@ namespace RPI
 
     void UnregisterSceneForWorld(const ezWorld* pWorld);
 
+    spCameraSlotHandle CreateCameraSlot(ezStringView sName);
+
+    EZ_NODISCARD spCameraSlotHandle GetCameraSlotByName(ezStringView sName) const;
+
+    const spRenderer* GetGameRenderer() const;
+
+  protected:
+    using spCameraSlotTable = ezIdTable<spCameraSlotHandle::IdType, spCameraSlot*, ezLocalAllocatorWrapper>;
+
   private:
     static ezUInt64 s_uiFrameCount;
+
+    spRenderSystem* m_pRenderSystem{nullptr};
+
+    spCameraSlotTable m_CameraSlots;
+    ezArrayMap<ezStringView, spCameraSlotHandleId> m_CameraSlotsByName;
 
     bool m_bInitialized{false};
 

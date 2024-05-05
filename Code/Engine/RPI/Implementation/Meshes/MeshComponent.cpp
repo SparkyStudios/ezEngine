@@ -51,6 +51,7 @@ namespace RPI
 
   spMeshComponentManager::~spMeshComponentManager()
   {
+    m_pRenderFeature.Clear();
   }
 
   void spMeshComponentManager::Initialize()
@@ -125,6 +126,9 @@ namespace RPI
 
   void spMeshComponent::OnMsgExtract(spExtractMeshRenderObjectMessage& ref_msg) const
   {
+    if (!m_hMeshResource.IsValid())
+      return;
+
     // TODO
   }
 

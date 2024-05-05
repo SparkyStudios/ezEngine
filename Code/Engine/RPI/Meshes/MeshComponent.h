@@ -31,6 +31,8 @@ namespace RPI
     explicit spMeshComponentManager(ezWorld* pWorld);
     ~spMeshComponentManager() override;
 
+    EZ_NODISCARD EZ_ALWAYS_INLINE spMeshRenderFeature* GetMeshRenderFeature() const { return m_pRenderFeature.Borrow(); }
+
   protected:
     void Initialize() override;
     void Deinitialize() override;

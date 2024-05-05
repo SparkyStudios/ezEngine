@@ -117,6 +117,9 @@ namespace RPI
     EZ_NODISCARD float GetOrthographicSizeX() const;
     EZ_NODISCARD float GetOrthographicSizeY() const;
 
+    void SetCameraSlot(const char* szCameraSlot);
+    EZ_NODISCARD const char* GetCameraSlot() const;
+
 #pragma endregion
 
   private:
@@ -124,5 +127,6 @@ namespace RPI
     void OnExtractEvent(const spSceneContextExtractEvent& event);
 
     spCamera m_Camera;
+    ezHashedString m_sCameraSlotName;
   };
 } // namespace RPI

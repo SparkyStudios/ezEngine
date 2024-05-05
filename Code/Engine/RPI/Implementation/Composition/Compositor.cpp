@@ -15,8 +15,7 @@
 #include <RPI/RPIPCH.h>
 
 #include <RPI/Composition/Compositor.h>
-#include <RPI/Core/RenderContext.h>
-#include <RPI/Core/RenderSystem.h>
+#include <RPI/Core/Renderer.h>
 
 #include <RHI/Device.h>
 
@@ -32,19 +31,14 @@ namespace RPI
   {
     EZ_BEGIN_PROPERTIES
     {
-      EZ_MEMBER_PROPERTY("Game", m_GameEntryPoint),
-      EZ_MEMBER_PROPERTY("Editor", m_EditorEntryPoint),
-      EZ_MEMBER_PROPERTY("Preview", m_PreviewEntryPoint),
-      EZ_ARRAY_MEMBER_PROPERTY("CameraSlots", m_Cameras),
+      EZ_MEMBER_PROPERTY("GameRenderer", m_pGameRenderer),
+      EZ_MEMBER_PROPERTY("EditorRenderer", m_pEditorRenderer),
+      EZ_MEMBER_PROPERTY("PreviewRenderer", m_pPreviewRenderer),
     }
     EZ_END_PROPERTIES;
   }
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
-
-  spCompositor::spCompositor()
-  {
-  }
 
   ezResult spCompositorEntryPoint::Serialize(ezStreamWriter& inout_stream) const
   {
@@ -58,5 +52,9 @@ namespace RPI
     inout_stream >> m_iPinIndex;
     inout_stream >> m_uiNumConnections;
     return EZ_SUCCESS;
+  }
+
+  spCompositor::spCompositor()
+  {
   }
 } // namespace RPI

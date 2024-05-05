@@ -18,17 +18,22 @@
 
 namespace RPI
 {
+  class spRenderer;
+
   typedef ezGenericId<24, 8> spCameraSlotHandleId;
 
   /// \brief A handle to a \a spCameraSlot.
   class spCameraSlotHandle
   {
     EZ_DECLARE_HANDLE_TYPE(spCameraSlotHandle, spCameraSlotHandleId);
+
+    friend class spRenderSystem;
+    friend class spCameraSlot;
   };
 
   /// \brief A camera slot in a \a spCompositor.
   ///
-  /// This is used to assign a pipeline to a camera. A camera slot can only be assigned to a single pipeline
+  /// This is used to assign a renderer to a camera. A camera slot can only be assigned to a single renderer
   /// at a time, but many cameras can be assigned to the same slot at the same time.
   ///
   /// A \a spCamera can dynamically change its slot at runtime, and the new slot will be active only at the
@@ -38,6 +43,8 @@ namespace RPI
   /// \see spCamera
   class SP_RPI_DLL spCameraSlot : public ezReflectedClass
   {
+    friend class spRenderSystem;
+
     EZ_ADD_DYNAMIC_REFLECTION(spCameraSlot, ezReflectedClass);
 
   public:
@@ -58,9 +65,20 @@ namespace RPI
         m_sName.Assign(sName);
     }
 
+    /// \brief Sets the pipeline assigned to this slot.
+    /// \param pRenderer The new pipeline to assign to this slot.
+    void SetRenderer(const spRenderer* pRenderer);
+
+    /// \brief Gets the pipeline assigned to this slot.
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderer* GetRenderer() const { return m_pRenderer; }
+
   private:
+    spCameraSlot(ezStringView sName);
+
     spCameraSlotHandle m_Handle;
 
     ezHashedString m_sName;
+
+    const spRenderer* m_pRenderer{nullptr};
   };
 } // namespace RPI

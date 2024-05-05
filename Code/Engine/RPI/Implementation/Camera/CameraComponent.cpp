@@ -16,6 +16,7 @@
 
 #include <RPI/Camera/CameraComponent.h>
 #include <RPI/Core/RenderGroup.h>
+#include <RPI/Core/RenderSystem.h>
 #include <RPI/Core/RenderView.h>
 
 #include <Core/WorldSerializer/WorldReader.h>
@@ -89,6 +90,8 @@ namespace RPI
 
     EZ_BEGIN_PROPERTIES
     {
+      EZ_ACCESSOR_PROPERTY("Slot", GetCameraSlot, SetCameraSlot)->AddAttributes(new ezDynamicStringEnumAttribute("CameraSlot")),
+
       EZ_BITFLAGS_ACCESSOR_PROPERTY("Usage", spRenderViewUsage, GetRenderViewUsage, SetRenderViewUsage)->AddAttributes(new ezDefaultValueAttribute(spRenderViewUsage::Default)),
       EZ_BITFLAGS_ACCESSOR_PROPERTY("RenderGroup", spRenderGroupMask, GetRenderGroupMask, SetRenderGroupMask)->AddAttributes(new ezDefaultValueAttribute(spRenderGroupMask::Default)),
       EZ_ACCESSOR_PROPERTY("CullingEnabled", IsCullingEnabled, SetCullingEnabled)->AddAttributes(new ezDefaultValueAttribute(true)),
@@ -315,6 +318,21 @@ namespace RPI
 
   void spCameraComponent::OnExtractEvent(const spSceneContextExtractEvent& event)
   {
+  }
+
+  void spCameraComponent::SetCameraSlot(const char* szCameraSlot)
+  {
+    if (m_sCameraSlotName == szCameraSlot)
+      return;
+
+    auto pRenderSystem = spRenderSystem::GetSingleton();
+    m_Camera.m_hCameraSlot = pRenderSystem->GetCameraSlotByName(szCameraSlot);
+    m_sCameraSlotName.Assign(szCameraSlot);
+  }
+
+  const char* spCameraComponent::GetCameraSlot() const
+  {
+    return m_sCameraSlotName;
   }
 
 #pragma endregion
