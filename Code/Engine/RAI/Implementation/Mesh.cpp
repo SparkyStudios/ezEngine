@@ -169,7 +169,7 @@ namespace RAI
     EZ_ASSERT_DEV(!m_Data.m_Vertices.IsEmpty(), "Mesh has no vertices.");
     auto* pDevice = ezSingletonRegistry::GetSingletonInstance<RHI::spDevice>();
 
-    m_pRHIVertexBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(GetVertexBufferSize(), RHI::spBufferUsage::VertexBuffer));
+    m_pRHIVertexBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(GetVertexBufferSize(), RHI::spBufferUsage::VertexBuffer | RHI::spBufferUsage::Dynamic));
 
     pDevice->UpdateBuffer(m_pRHIVertexBuffer, 0, m_Data.m_Vertices.GetArrayPtr());
 
@@ -188,7 +188,7 @@ namespace RAI
     EZ_ASSERT_DEV(!m_Data.m_Indices.IsEmpty(), "Mesh has no indices.");
     auto* pDevice = ezSingletonRegistry::GetSingletonInstance<RHI::spDevice>();
 
-    m_pRHIIndexBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(GetIndexBufferSize(), RHI::spBufferUsage::IndexBuffer));
+    m_pRHIIndexBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(GetIndexBufferSize(), RHI::spBufferUsage::IndexBuffer | RHI::spBufferUsage::Dynamic));
 
     pDevice->UpdateBuffer(m_pRHIIndexBuffer, 0, m_Data.m_Indices.GetArrayPtr());
 
