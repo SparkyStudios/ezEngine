@@ -62,5 +62,20 @@ function(sp_link_target_slang TARGET_NAME)
       $<TARGET_FILE_DIR:${TARGET_NAME}>
       COMMAND_EXPAND_LISTS
     )
+  elseif(EZ_CMAKE_PLATFORM_OSX)
+    target_include_directories(${TARGET_NAME}
+      PUBLIC
+      ${SHADER_SLANG_INCLUDE_DIR}
+    )
+
+    target_link_directories(${TARGET_NAME}
+      PUBLIC
+      ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib
+    )
+
+    target_link_libraries(${TARGET_NAME}
+      PUBLIC
+      slang slang-glslang
+    )
   endif()
 endfunction()
