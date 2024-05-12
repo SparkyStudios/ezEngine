@@ -36,6 +36,14 @@ namespace RPI
     m_pRenderContext = EZ_NEW(pDevice->GetAllocator(), spRenderContext, pDevice);
   }
 
+  spSceneContext::~spSceneContext()
+  {
+    m_pCommandList.Clear();
+    m_pFence.Clear();
+
+    m_pRenderContext.Clear();
+  }
+
   void spSceneContext::AddPipeline(ezUniquePtr<spRenderPipeline> pPipeline)
   {
     m_RenderPipelines.PushBack(std::move(pPipeline));

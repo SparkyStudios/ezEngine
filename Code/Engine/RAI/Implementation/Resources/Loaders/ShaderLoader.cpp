@@ -94,12 +94,12 @@ ezResourceLoadData spShaderResourceLoader::OpenDataStream(const ezResource* pRes
   {
     ezDynamicArray<ezUInt8> content;
     content.SetCountUninitialized(file.GetFileSize());
-    file.ReadBytes(content.GetData(), content.GetCount());
+    const ezUInt64 uiBytesRead = file.ReadBytes(content.GetData(), content.GetCount());
 
     w.WriteVersion(spShaderResource::GetResourceVersion());
-    w << (ezUInt8)0; // Compression Mode (Uncompressed)
-    w << (ezUInt64)content.GetCount();
-    w.WriteBytes(content.GetData(), content.GetCount()).IgnoreResult();
+    w << static_cast<ezUInt8>(0); // Compression Mode (Uncompressed)
+    w << uiBytesRead;
+    w.WriteBytes(content.GetData(), uiBytesRead).IgnoreResult();
   }
   else if (sAbsolutePath.HasExtension("spShader"))
   {
@@ -121,7 +121,7 @@ ezResourceLoadData spShaderResourceLoader::OpenDataStream(const ezResource* pRes
     file >> uiCompressionMode;
 
     pData->m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, file.GetFileSize());
-    ezUInt64 uiReadBytes = file.ReadBytes(pData->m_ShaderBytes.GetPtr(), file.GetFileSize());
+    const ezUInt64 uiReadBytes = file.ReadBytes(pData->m_ShaderBytes.GetPtr(), file.GetFileSize());
 
     w.WriteVersion(v);
     w << uiCompressionMode;

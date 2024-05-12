@@ -16,7 +16,7 @@
 # ## sp_requires_slang()
 # #####################################
 macro(sp_requires_slang)
-# noop
+  # noop
 endmacro()
 
 # #####################################
@@ -26,18 +26,41 @@ function(sp_link_target_slang TARGET_NAME)
   sp_requires_slang()
 
   find_path(SHADER_SLANG_INCLUDE_DIR NAMES slang.h)
-  target_include_directories(${TARGET_NAME}
-    PUBLIC
-      ${SHADER_SLANG_INCLUDE_DIR}
-  )
 
-  target_link_directories(${TARGET_NAME}
-    PUBLIC
-      ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib
-  )
+  if(EZ_CMAKE_PLATFORM_WINDOWS)
+    add_library(shader-slang::slang SHARED IMPORTED)
+    set_target_properties(
+      shader-slang::slang
+      PROPERTIES
+      IMPORTED_IMPLIB "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/slang.lib"
+      IMPORTED_LOCATION "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/slang.dll"
+      IMPORTED_NO_SONAME "TRUE"
+      INTERFACE_INCLUDE_DIRECTORIES "${SHADER_SLANG_INCLUDE_DIR}"
+    )
 
-  target_link_libraries(${TARGET_NAME}
-    PUBLIC
-      slang slang-glslang
-  )
+    add_library(shader-slang::slang-rt SHARED IMPORTED)
+    set_target_properties(
+      shader-slang::slang-rt
+      PROPERTIES
+      IMPORTED_IMPLIB "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/lib/slang-rt.lib"
+      IMPORTED_LOCATION "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/slang-rt.dll"
+      IMPORTED_NO_SONAME "TRUE"
+      INTERFACE_INCLUDE_DIRECTORIES "${SHADER_SLANG_INCLUDE_DIR}"
+    )
+
+    target_link_libraries(${TARGET_NAME}
+      PUBLIC
+      shader-slang::slang shader-slang::slang-rt
+    )
+
+    add_custom_command(
+      TARGET ${TARGET_NAME} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      $<TARGET_FILE:shader-slang::slang>
+      $<TARGET_FILE:shader-slang::slang-rt>
+      "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin/slang-glslang.dll"
+      $<TARGET_FILE_DIR:${TARGET_NAME}>
+      COMMAND_EXPAND_LISTS
+    )
+  endif()
 endfunction()

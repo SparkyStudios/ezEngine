@@ -219,12 +219,12 @@ namespace RPI
     void CacheShaderKernel(ezUInt32 uiHash, ezSharedPtr<RHI::spShader> pShader);
 
     /// \brief Creates a Slang shader code from the set of shader specialization constants.
-    Slang::ComPtr<slang::IModule> CreateSpecializationConstantsCode(Slang::ComPtr<slang::ISession> pSession, const spShaderCompilerSetup& compilerSetup);
+    static Slang::ComPtr<slang::IModule> CreateSpecializationConstantsCode(Slang::ComPtr<slang::ISession> pSession, const spShaderCompilerSetup& compilerSetup);
 
     /// \brief Creates a new Slang shader compilation session.
     EZ_NODISCARD Slang::ComPtr<slang::ISession> CreateSlangSession(spShaderCompilerSetup& ref_compilerSetup) const;
 
-    Slang::ComPtr<slang::IEntryPoint> GetEntryPointForStage(Slang::ComPtr<slang::IModule> pModule, ezEnum<RHI::spShaderStage> eStage) const;
+    static Slang::ComPtr<slang::IEntryPoint> GetEntryPointForStage(Slang::ComPtr<slang::IModule> pModule, ezEnum<RHI::spShaderStage> eStage);
 
     Slang::ComPtr<slang::IGlobalSession> m_pGlobalSession{nullptr};
     ezArrayMap<ezUInt32, ezSharedPtr<RHI::spShader>> m_ShaderKernelCache;
