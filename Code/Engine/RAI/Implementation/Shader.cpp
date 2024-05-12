@@ -22,7 +22,8 @@ namespace RAI
 {
   void spShader::Clear()
   {
-    m_Variants.Clear();
+    if (!m_ShaderBytes.IsEmpty())
+      EZ_DEFAULT_DELETE_ARRAY(m_ShaderBytes);
   }
 } // namespace RAI
 

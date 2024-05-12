@@ -2,7 +2,6 @@
 #include <Core/ResourceManager/ResourceManager.h>
 #include <Core/System/Window.h>
 
-#include <Foundation/Utilities/AssetFileHeader.h>
 #include <Foundation/Basics/Platform/Win/IncludeWindows.h>
 #include <Foundation/Configuration/Startup.h>
 #include <Foundation/Containers/ArrayMap.h>
@@ -13,6 +12,7 @@
 #include <Foundation/Logging/VisualStudioWriter.h>
 #include <Foundation/Time/Clock.h>
 #include <Foundation/Types/VariantTypeRegistry.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
 
 #include <Texture/Image/Image.h>
 
@@ -370,115 +370,10 @@ ezResult spDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHa
 
 ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* pBuilder)
 {
+  m_hShader = ezResourceManager::LoadResource<RAI::spShaderResource>(":project/Shaders/sample.slang");
+
   auto& data = m_PassData;
   const auto& resources = pBuilder->GetResources();
-
-#if EZ_ENABLED(EZ_PLATFORM_WINDOWS)
-  constexpr ezUInt8 szVertexShader[] = R"(
-struct VS_INPUT
-{
-  float3 pos : POSITION;
-  float3 nrm : Normal;
-  float3 tnt : Tangent;
-  float3 btt : BiTangent;
-  float2 uv0 : TexCoord0;
-  float4 bw0 : BoneWeights0;
-  uint4 bi1 : BoneIndices0;
-};
-
-struct VS_OUTPUT
-{
-  float4 pos : SV_POSITION;
-  float2 uv0 : TEXCOORD0;
-};
-
-VS_OUTPUT VSMain(VS_INPUT input)
-{
-  VS_OUTPUT output;
-  output.pos = float4(input.pos, 1.0f);
-  output.uv0 = input.uv0;
-  return output;
-}
-)";
-
-  constexpr ezUInt8 szPixelShader[] = R"(
-struct VS_OUTPUT
-{
-  float4 pos : SV_POSITION;
-  float2 uv0 : TEXCOORD0;
-};
-
-SamplerState linearSampler : register(s0);
-
-cbuffer settings : register(b0)
-{
-  float4 color;
-};
-
-Texture2D<float4> tex : register(t0);
-
-float4 PSMain(VS_OUTPUT input) : SV_TARGET
-{
-  return tex.SampleLevel(linearSampler, input.uv0, 0) * color;
-}
-)";
-#elif EZ_ENABLED(EZ_PLATFORM_OSX)
-  constexpr ezUInt8 szVertexShader[] = R"(
-#include <metal_stdlib>
-using namespace metal;
-
-struct VS_INPUT
-{
-  float3 pos [[attribute(0)]];
-  float3 nrm [[attribute(1)]];
-  float3 tnt [[attribute(2)]];
-  float3 btt [[attribute(3)]];
-  float2 uv0 [[attribute(4)]];
-  float4 bw0 [[attribute(5)]];
-  uint4  bi1 [[attribute(6)]];
-};
-
-struct VS_OUTPUT {
-    float4 pos [[position]];
-    float2 uv0;
-};
-
-vertex VS_OUTPUT VSMain(VS_INPUT input [[stage_in]]) {
-    VS_OUTPUT output;
-
-    output.pos = float4(input.pos, 1.0f);
-    output.uv0 = input.uv0;
-
-    return output;
-}
-)";
-
-  constexpr ezUInt8 szPixelShader[] = R"(
-#include <metal_stdlib>
-using namespace metal;
-
-struct VS_OUTPUT {
-    float4 pos [[position]];
-    float2 uv0;
-};
-
-struct Settings {
-    float4 color;
-};
-
-fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture(0)]], sampler linearSampler [[sampler(0)]], constant Settings* settings [[buffer(0)]]) {
-    // Sample the texture to obtain a color
-    const float4 colorSample = tex.sample(linearSampler, in.uv0) * settings->color;
-    return colorSample;
-}
-)";
-#endif
-  // constexpr ezUInt16 IndexBuffer[3] = {0, 1, 2};
-
-  // constexpr float VertexBuffer[9] = {
-  //   -0.5f, -0.5f, 0.0,
-  //   0.0f, 0.5f, 0.0,
-  //   0.5f, -0.5f, 0.0f};
 
   spRenderGraphResource* tex = nullptr;
   resources.TryGetValue(data.m_hGridTexture.GetInternalID(), tex);
@@ -507,23 +402,19 @@ fragment float4 PSMain(VS_OUTPUT in [[stage_in]], texture2d<float> tex [[texture
 
   if (data.m_pVertexShader == nullptr)
   {
-    spShaderDescription vsDescription{};
-    vsDescription.m_sEntryPoint = ezMakeHashedString("VSMain");
-    vsDescription.m_eShaderStage = spShaderStage::VertexShader;
-    vsDescription.m_Buffer = ezMakeByteArrayPtr(szVertexShader, static_cast<ezUInt32>(sizeof(szVertexShader)));
+    spShaderCompilerSetup setup;
+    setup.m_eStage = spShaderStage::VertexShader;
 
-    data.m_pVertexShader = pBuilder->GetResourceFactory()->CreateShader(vsDescription);
+    data.m_pVertexShader = spShaderManager::GetSingleton()->CompileShader(m_hShader, setup);
     data.m_pVertexShader->SetDebugName("vs");
   }
 
   if (data.m_pPixelShader == nullptr)
   {
-    spShaderDescription psDescription{};
-    psDescription.m_sEntryPoint = ezMakeHashedString("PSMain");
-    psDescription.m_eShaderStage = spShaderStage::PixelShader;
-    psDescription.m_Buffer = ezMakeByteArrayPtr(szPixelShader, static_cast<ezUInt32>(sizeof(szPixelShader)));
+    spShaderCompilerSetup setup;
+    setup.m_eStage = spShaderStage::PixelShader;
 
-    data.m_pPixelShader = pBuilder->GetResourceFactory()->CreateShader(psDescription);
+    data.m_pPixelShader = spShaderManager::GetSingleton()->CompileShader(m_hShader, setup);
     data.m_pPixelShader->SetDebugName("ps");
   }
 
@@ -739,14 +630,13 @@ ezApplication::Execution ezRHISampleApp::Run()
 
   // do the rendering
   m_pRenderSystem->GetRenderThread()->PostAsync([&]() -> void
-  {
+    {
     m_pSceneContext->BeginFrame();
     {
       m_pSceneContext->Draw();
       m_pSceneContext->Present();
     }
-    m_pSceneContext->EndFrame();
-  });
+    m_pSceneContext->EndFrame(); });
 
   m_pSceneContext->WaitForIdle();
 

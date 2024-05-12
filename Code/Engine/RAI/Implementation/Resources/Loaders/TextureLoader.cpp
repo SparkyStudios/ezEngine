@@ -154,7 +154,10 @@ ezResourceLoadData spTextureResourceLoader::OpenDataStream(const ezResource* pRe
       }
 
       if (w.WriteBytes(data, wroteSize).Failed())
+      {
+        free(data);
         return res;
+      }
 
       free(data);
       buffer.Compact();

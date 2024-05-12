@@ -25,11 +25,13 @@ namespace RPI
     : m_pDevice(pDevice)
     , m_Data()
   {
+    m_pShaderManager = EZ_DEFAULT_NEW(spShaderManager);
   }
 
   spRenderContext::~spRenderContext()
   {
     m_pCommandList.Clear();
+    m_pShaderManager.Clear();
   }
 
   void spRenderContext::SetCommandList(ezSharedPtr<spCommandList> pCommandList)

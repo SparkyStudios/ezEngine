@@ -1,6 +1,6 @@
 {
   "name": "spark-engine",
-  "builtin-baseline": "326d8b43e365352ba3ccadf388d989082fe0f2a6",
+  "builtin-baseline": "a1212c93cabaa9c5c36c1ffdb4bddd59fdf31e43",
   "description": "A cross-platform C++ game engine.",
   "version": "1.0.0",
   "dependencies": [
@@ -60,6 +60,10 @@
       "name": "d3d12-memory-allocator",
       "version>=": "2.0.1",
       "platform": "windows"
+    },
+    {
+      "name": "shader-slang",
+      "version>=": "2024.1.12"
     }
   ]
 }

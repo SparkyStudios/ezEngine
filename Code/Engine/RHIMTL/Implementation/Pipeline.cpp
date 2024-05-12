@@ -10,23 +10,7 @@
 
 namespace RHI
 {
-  static MTL::FunctionConstantValues* CreateConstantValues(const ezArrayPtr<const spShaderSpecializationConstant>& specializations)
-  {
-    MTL::FunctionConstantValues* ret = MTL::FunctionConstantValues::alloc()->init();
-
-    if (!specializations.IsEmpty())
-    {
-      for (spShaderSpecializationConstant sc : specializations)
-      {
-        MTL::DataType eType = spToMTL(sc.m_eType);
-        ret->setConstantValue(&sc.m_uiValue, eType, sc.m_uiId);
-      }
-    }
-
-    return ret;
-  }
-
-  static void SetupShaderProgramStage(MTL::RenderPipelineDescriptor* pDescriptor, ezSharedPtr<spShaderProgramMTL> pShaderProgram, const ezEnum<spShaderStage> eStage, const ezArrayPtr<const spShaderSpecializationConstant>& specializations, ezList<MTL::Function*>& functions)
+  static void SetupShaderProgramStage(MTL::RenderPipelineDescriptor* pDescriptor, ezSharedPtr<spShaderProgramMTL> pShaderProgram, const ezEnum<spShaderStage> eStage, ezList<MTL::Function*>& functions)
   {
     auto pShader = pShaderProgram->Get(eStage).Downcast<spShaderMTL>();
     if (pShader == nullptr)
@@ -38,11 +22,10 @@ namespace RHI
     if (pShader->HasFunctionConstants())
     {
       NS::Error* pError = nullptr;
-      spScopedMTLResource constantValues(CreateConstantValues(specializations));
 
       {
         spScopedMTLResource sEntryPoint(NS::String::string(pShader->GetEntryPoint().GetData(), NS::UTF8StringEncoding));
-        pFunction = pShader->GetMTLShaderLibrary()->newFunction(*sEntryPoint, *constantValues, &pError);
+        pFunction = pShader->GetMTLShaderLibrary()->newFunction(*sEntryPoint, nullptr, &pError);
       }
 
       if (pError != nullptr)
@@ -122,11 +105,9 @@ namespace RHI
 
         if (pShader->HasFunctionConstants())
         {
-          spScopedMTLResource constantValues(CreateConstantValues(description.m_Specializations.GetArrayPtr()));
-
           {
             spScopedMTLResource sEntryPoint(NS::String::string(pShader->GetEntryPoint().GetData(), NS::UTF8StringEncoding));
-            pFunction = pShader->GetMTLShaderLibrary()->newFunction(*sEntryPoint, *constantValues, &pError);
+            pFunction = pShader->GetMTLShaderLibrary()->newFunction(*sEntryPoint, nullptr, &pError);
           }
 
           if (pError != nullptr)
@@ -271,11 +252,11 @@ namespace RHI
 
       EZ_IGNORE_UNUSED(pShaderProgram->AddRef());
 
-      SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::VertexShader, description.m_Specializations.GetArrayPtr(), m_SpecializedFunctions);
-      SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::GeometryShader, description.m_Specializations.GetArrayPtr(), m_SpecializedFunctions);
-      SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::HullShader, description.m_Specializations.GetArrayPtr(), m_SpecializedFunctions);
-      SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::DomainShader, description.m_Specializations.GetArrayPtr(), m_SpecializedFunctions);
-      SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::PixelShader, description.m_Specializations.GetArrayPtr(), m_SpecializedFunctions);
+      SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::VertexShader, m_SpecializedFunctions);
+      SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::GeometryShader, m_SpecializedFunctions);
+      SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::HullShader, m_SpecializedFunctions);
+      SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::DomainShader, m_SpecializedFunctions);
+      SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::PixelShader, m_SpecializedFunctions);
 
       auto inputDesc = desc->vertexDescriptor();
 
