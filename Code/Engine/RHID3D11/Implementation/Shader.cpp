@@ -231,6 +231,9 @@ namespace RHI
     if (!m_pByteCode.IsEmpty())
       EZ_DEFAULT_DELETE_ARRAY(m_pByteCode);
 
+    if (m_Description.m_bOwnBuffer)
+      EZ_DEFAULT_DELETE_ARRAY(m_Description.m_Buffer);
+
     SP_RHI_DX11_RELEASE(m_pD3D11Shader);
     m_bIsResourceCreated = false;
   }
@@ -255,6 +258,7 @@ namespace RHI
     // If the description contains a compiled shader binary (will be the case most of the time)
     if (m_Description.m_Buffer.GetCount() > 4 && m_Description.m_Buffer[0] == 0x44 && m_Description.m_Buffer[1] == 0x58 && m_Description.m_Buffer[2] == 0x42 && m_Description.m_Buffer[3] == 0x43)
     {
+      m_pByteCode = EZ_DEFAULT_NEW_ARRAY(ezUInt8, m_Description.m_Buffer.GetCount());
       m_pByteCode.CopyFrom(m_Description.m_Buffer);
     }
     else

@@ -17,6 +17,8 @@ ez_cmake_init()
 sp_requires_ktx()
 sp_requires_mpack()
 ez_requires_assimp()
+sp_requires_meshoptimizer()
+sp_requires_mikktspace()
 
 get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME_WE)
 
@@ -27,11 +29,11 @@ target_link_libraries(${PROJECT_NAME}
   Foundation
   RAI
 
-  meshoptimizer
-  mikktspace
   ozz
 )
 
 ez_link_target_assimp(${PROJECT_NAME})
 sp_link_target_ktx(${PROJECT_NAME})
 sp_link_target_mpack(${PROJECT_NAME})
+sp_link_target_meshoptimizer(${PROJECT_NAME})
+sp_link_target_mikktspace(${PROJECT_NAME})

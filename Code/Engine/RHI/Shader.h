@@ -9,8 +9,11 @@ namespace RHI
   /// \brief Describes a \a spShader, for creation using a \a spDeviceResourceFactory.
   struct spShaderDescription : ezHashableStruct<spShaderDescription>
   {
+    /// \brief Defines whether this descriptor owns the shader buffer.
+    bool m_bOwnBuffer{false};
+
     /// \brief The compiled binary representation of the shader.
-    ezConstByteArrayPtr m_Buffer;
+    ezByteArrayPtr m_Buffer;
 
     /// \brief The stage of the shader to create.
     ezEnum<spShaderStage> m_eShaderStage;

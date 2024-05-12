@@ -181,6 +181,9 @@ namespace RHI
     if (IsReleased())
       return;
 
+    if (m_Description.m_bOwnBuffer)
+      EZ_DEFAULT_DELETE_ARRAY(m_Description.m_Buffer);
+
     SP_RHI_MTL_RELEASE(m_pMTLShaderFunction);
     SP_RHI_MTL_RELEASE(m_pMTLShaderLibrary);
 

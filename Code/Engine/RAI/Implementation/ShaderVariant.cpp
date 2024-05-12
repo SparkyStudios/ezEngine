@@ -79,7 +79,7 @@ namespace RAI
 #endif
   }
 
-  ezResult spShaderVariant::GetRHIShaderDescription(const ezEnum<RHI::spShaderStage>& eStage, RHI::spShaderDescription& out_description) const
+  ezResult spShaderVariant::GetRHIShaderDescription(const ezEnum<RHI::spShaderStage>& eStage, RHI::spShaderDescription& out_description)
   {
     if (!m_EntryPoints.Contains(eStage))
       return EZ_FAILURE;

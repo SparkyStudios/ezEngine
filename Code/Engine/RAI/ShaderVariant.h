@@ -77,7 +77,7 @@ namespace RAI
     /// \brief Gets the shader description for a specific shader stage.
     /// \param [in] eStage The shader stage to get the description for.
     /// \param [out] out_description The shader description for the given stage.
-    EZ_NODISCARD ezResult GetRHIShaderDescription(const ezEnum<RHI::spShaderStage>& eStage, RHI::spShaderDescription& out_description) const;
+    EZ_NODISCARD ezResult GetRHIShaderDescription(const ezEnum<RHI::spShaderStage>& eStage, RHI::spShaderDescription& out_description);
 
   private:
     ezSharedPtr<RHI::spShaderProgram> m_pRHIShaderProgram{nullptr};

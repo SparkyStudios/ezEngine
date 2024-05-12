@@ -59,7 +59,7 @@ namespace RAI
 
     inout_stream << uiCompressionMode;
 
-    ezUInt64 uiShaderBytesSize = m_Shader.m_ShaderBytes.GetCount();
+    const ezUInt64 uiShaderBytesSize = m_Shader.m_ShaderBytes.GetCount();
     EZ_SUCCEED_OR_RETURN(pWriter->WriteQWordValue(&uiShaderBytesSize));
     EZ_SUCCEED_OR_RETURN(pWriter->WriteBytes(m_Shader.m_ShaderBytes.GetPtr(), uiShaderBytesSize));
 
