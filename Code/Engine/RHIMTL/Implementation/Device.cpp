@@ -537,10 +537,11 @@ kernel void copy_bytes(
 
       spShaderDescription shaderDesc;
       shaderDesc.m_eShaderStage = spShaderStage::ComputeShader;
-      shaderDesc.m_Buffer = ezMakeByteArrayPtr(kUnalignedBufferCopyShaderCode, static_cast<ezUInt32>(sizeof(kUnalignedBufferCopyShaderCode)));
+      shaderDesc.m_Buffer = ezMakeByteArrayPtr((char*)&kUnalignedBufferCopyShaderCode[0], static_cast<ezUInt32>(sizeof(kUnalignedBufferCopyShaderCode)));
       shaderDesc.m_sEntryPoint = ezMakeHashedString("copy_bytes");
 
       m_pUnalignedBufferCopyShader = m_pResourceFactory->CreateShader(shaderDesc).Downcast<spShaderMTL>();
+      m_pUnalignedBufferCopyShader->EnsureResourceCreated();
 
       NS::Error* pError = nullptr;
       descriptor->setComputeFunction(m_pUnalignedBufferCopyShader->GetMTLShaderFunction());

@@ -1244,7 +1244,7 @@ namespace RHI
     {
       EZ_LOCK(m_SubmittedCommandsLock);
 
-      for (auto& buffer : m_AvailableStagingBuffers)
+      for (auto buffer : m_AvailableStagingBuffers)
       {
         if (buffer->GetSize() >= uiSize)
         {
