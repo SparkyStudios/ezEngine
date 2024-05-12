@@ -324,7 +324,7 @@ namespace RHI
     /// mipmap contained in the \a spTexture.
     /// \param uiArrayLayer The array layer to update. Must be less than the total array layer
     /// count contained in the \a spTexture.
-    virtual void UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) = 0;
+    virtual void UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt64 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) = 0;
 
     /// \brief Updates the \a spTexture data with the given source \a data.
     /// \param pTexture The handle to the \a spTexture to update.

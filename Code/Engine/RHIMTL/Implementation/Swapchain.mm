@@ -75,16 +75,27 @@ namespace RHI
     }
   }
 
-  void spSwapchainMTL::GetNextDrawable()
+  bool spSwapchainMTL::GetNextDrawable()
   {
-    SP_RHI_MTL_RELEASE(m_pMetalDrawable);
+    InvalidateDrawable();
 
     @autoreleasepool
     {
       m_pMetalDrawable = m_pMetalLayer->nextDrawable();
-      SP_RHI_MTL_RETAIN(m_pMetalDrawable);
 
-      m_pSwapchainFramebuffer->SetDrawableTexture(m_pMetalDrawable->texture());
+      if (m_pMetalDrawable != nullptr)
+      {
+        SP_RHI_MTL_RETAIN(m_pMetalDrawable);
+        m_pSwapchainFramebuffer->SetDrawableTexture(m_pMetalDrawable->texture());
+        return true;
+      }
+
+      return false;
     }
+  }
+
+  void spSwapchainMTL::InvalidateDrawable()
+  {
+    SP_RHI_MTL_RELEASE(m_pMetalDrawable);
   }
 } // namespace RHI

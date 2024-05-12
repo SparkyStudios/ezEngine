@@ -114,6 +114,8 @@ namespace RHI
     void Resize(ezUInt32 uiWidth, ezUInt32 uiHeight);
     void SetDrawableTexture(MTL::Texture* pTexture);
 
+    bool EnsureDrawable();
+
   private:
     void CreateDepthTexture(ezUInt32 uiWidth, ezUInt32 uiHeight);
 

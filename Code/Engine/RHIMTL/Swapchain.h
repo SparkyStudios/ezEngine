@@ -55,8 +55,12 @@ namespace RHI
 
     // spSwapchainMTL
 
-    void GetNextDrawable();
+    bool GetNextDrawable();
     EZ_NODISCARD EZ_ALWAYS_INLINE CA::MetalDrawable* GetDrawable() const { return m_pMetalDrawable; }
+
+    EZ_ALWAYS_INLINE bool EnsureDrawable() { return m_pMetalDrawable != nullptr || GetNextDrawable(); }
+
+    void InvalidateDrawable();
 
     spSwapchainMTL(spDeviceMTL* pDevice, const spSwapchainDescription& description);
     ~spSwapchainMTL() override;

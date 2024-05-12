@@ -8,24 +8,6 @@ namespace RHI
 {
   class spDeviceMTL;
 
-  class SP_RHIMTL_DLL spPlaceholderTextureMTL final : public spTexture
-  {
-    EZ_ADD_DYNAMIC_REFLECTION(spPlaceholderTextureMTL, spTexture);
-
-    // spDeviceResource
-
-  public:
-    void ReleaseResource() override;
-
-    // spPlaceholderTextureMTL
-
-  public:
-    void Resize(ezUInt32 uiWidth, ezUInt32 uiHeight);
-
-    spPlaceholderTextureMTL(spDeviceMTL* pDevice, const spTextureDescription& description);
-    ~spPlaceholderTextureMTL();
-  };
-
   class SP_RHIMTL_DLL spTextureMTL final : public spTexture, public spDeferredDeviceResource
   {
     friend class spTextureViewMTL;
@@ -47,7 +29,7 @@ namespace RHI
     // spTextureMTL
 
   public:
-    static ezSharedPtr<spTextureMTL> FromNative(spDeviceMTL* pDevice, MTL::Texture* pNative, spTextureDescription& description);
+    static ezSharedPtr<spTextureMTL> FromNative(spDeviceMTL* pDevice, MTL::Texture* pNative, spTextureDescription& out_Description);
 
     spTextureMTL(spDeviceMTL* pDevice, const spTextureDescription& description);
     ~spTextureMTL() override;

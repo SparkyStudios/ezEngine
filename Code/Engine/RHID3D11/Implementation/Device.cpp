@@ -225,7 +225,7 @@ namespace RHI
     return spTextureSampleCount::None;
   }
 
-  void spDeviceD3D11::UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
+  void spDeviceD3D11::UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt64 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
   {
     auto pTextureD3D11 = pTexture.Downcast<spTextureD3D11>();
     pTextureD3D11->EnsureResourceCreated();

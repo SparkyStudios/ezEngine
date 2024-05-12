@@ -276,6 +276,11 @@ namespace RHI
     m_Description.m_ColorTargets[0] = spFramebufferAttachmentDescription(m_pDrawableTexture->GetHandle());
   }
 
+  bool spSwapchainFramebufferMTL::EnsureDrawable()
+  {
+    return m_pParentSwapchain->EnsureDrawable();
+  }
+
   void spSwapchainFramebufferMTL::CreateDepthTexture(ezUInt32 uiWidth, ezUInt32 uiHeight)
   {
     EZ_ASSERT_DEV(m_eDepthStencilFormat != spPixelFormat::Unknown, "Invalid depth stencil format.");
