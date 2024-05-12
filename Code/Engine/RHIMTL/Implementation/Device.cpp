@@ -196,7 +196,7 @@ kernel void copy_bytes(
     return spTextureSampleCount::None;
   }
 
-  void spDeviceMTL::UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt32 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
+  void spDeviceMTL::UpdateTexture(ezSharedPtr<spTexture> pTexture, const void* pData, ezUInt64 uiSize, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiZ, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer)
   {
     auto pTextureMTL = pTexture.Downcast<spTextureMTL>();
     pTextureMTL->EnsureResourceCreated();
@@ -255,7 +255,8 @@ kernel void copy_bytes(
     ezDynamicArray<MTL::DrawIndexedPrimitivesIndirectArguments> args;
     args.SetCount(source.GetCount());
 
-    for (ezUInt32 i = 0, l = args.GetCount(); i < l; i++) {
+    for (ezUInt32 i = 0, l = args.GetCount(); i < l; i++)
+    {
       auto& arg = args[i];
       const auto& command = source[i];
       arg.indexCount = command.m_uiCount;
@@ -273,7 +274,8 @@ kernel void copy_bytes(
     ezDynamicArray<MTL::DrawPrimitivesIndirectArguments> args;
     args.SetCount(source.GetCount());
 
-    for (ezUInt32 i = 0, l = args.GetCount(); i < l; i++) {
+    for (ezUInt32 i = 0, l = args.GetCount(); i < l; i++)
+    {
       auto& arg = args[i];
       const auto& command = source[i];
       arg.vertexCount = command.m_uiCount;
@@ -319,7 +321,14 @@ kernel void copy_bytes(
   {
     spDevice::BeginFrame();
 
-    m_pMainSwapchain->GetNextDrawable();
+    m_pMainSwapchain->EnsureDrawable();
+  }
+
+  void spDeviceMTL::EndFrame()
+  {
+    m_pMainSwapchain->InvalidateDrawable();
+
+    spDevice::EndFrame();
   }
 
   void spDeviceMTL::WaitForIdleInternal()
@@ -489,7 +498,8 @@ kernel void copy_bytes(
     m_Capabilities.m_bIsDepthRangeZeroToOne = true;
     m_Capabilities.m_bIsClipSpaceYInverted = false;
 
-    m_CompletionHandler = [this](MTL::CommandBuffer* pCommandBuffer) {
+    m_CompletionHandler = [this](MTL::CommandBuffer* pCommandBuffer)
+    {
       OnCommandBufferCompleted(pCommandBuffer);
     };
 

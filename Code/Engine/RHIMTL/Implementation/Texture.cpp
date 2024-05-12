@@ -6,38 +6,6 @@
 
 namespace RHI
 {
-#pragma region spPlaceholderTextureMTL
-
-  // clang-format off
-  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spPlaceholderTextureMTL, 1, ezRTTINoAllocator)
-  EZ_END_DYNAMIC_REFLECTED_TYPE;
-  // clang-format on
-
-  void spPlaceholderTextureMTL::ReleaseResource()
-  {
-    m_bReleased = true;
-  }
-
-  void spPlaceholderTextureMTL::Resize(ezUInt32 uiWidth, ezUInt32 uiHeight)
-  {
-    m_Description.m_uiWidth = uiWidth;
-    m_Description.m_uiHeight = uiHeight;
-  }
-
-  spPlaceholderTextureMTL::spPlaceholderTextureMTL(RHI::spDeviceMTL* pDevice, const RHI::spTextureDescription& description)
-    : spTexture(description)
-  {
-    m_pDevice = pDevice;
-    m_bReleased = false;
-  }
-
-  spPlaceholderTextureMTL::~spPlaceholderTextureMTL()
-  {
-    m_pDevice->GetResourceManager()->ReleaseResource(this);
-  }
-
-#pragma endregion
-
 #pragma region spTextureMTL
 
   // clang-format off
@@ -123,28 +91,28 @@ namespace RHI
     m_bIsResourceCreated = true;
   }
 
-  ezSharedPtr<spTextureMTL> spTextureMTL::FromNative(spDeviceMTL* pDevice, MTL::Texture* pNative, spTextureDescription& description)
+  ezSharedPtr<spTextureMTL> spTextureMTL::FromNative(spDeviceMTL* pDevice, MTL::Texture* pNative, spTextureDescription& out_Description)
   {
-    description.m_uiWidth = static_cast<ezUInt32>(pNative->width());
-    description.m_uiHeight = static_cast<ezUInt32>(pNative->height());
-    description.m_uiDepth = static_cast<ezUInt32>(pNative->depth());
-    description.m_uiMipCount = static_cast<ezUInt32>(pNative->mipmapLevelCount());
-    description.m_uiArrayLayers = static_cast<ezUInt32>(pNative->arrayLength());
-    description.m_eFormat = spFromMTL(pNative->pixelFormat());
-    description.m_eSampleCount = spTextureSampleCount::GetSampleCount(pNative->sampleCount());
-    description.m_eDimension = spFromMTL(pNative->textureType());
-    description.m_eUsage = spFromMTL(pNative->usage(), spIsDepthFormat(pNative->pixelFormat()));
+    out_Description.m_uiWidth = static_cast<ezUInt32>(pNative->width());
+    out_Description.m_uiHeight = static_cast<ezUInt32>(pNative->height());
+    out_Description.m_uiDepth = static_cast<ezUInt32>(pNative->depth());
+    out_Description.m_uiMipCount = static_cast<ezUInt32>(pNative->mipmapLevelCount());
+    out_Description.m_uiArrayLayers = static_cast<ezUInt32>(pNative->arrayLength());
+    out_Description.m_eFormat = spFromMTL(pNative->pixelFormat());
+    out_Description.m_eSampleCount = spTextureSampleCount::GetSampleCount(pNative->sampleCount());
+    out_Description.m_eDimension = spFromMTL(pNative->textureType());
+    out_Description.m_eUsage = spFromMTL(pNative->usage(), spIsDepthFormat(pNative->pixelFormat()));
 
-    auto pResult = pDevice->GetResourceFactory()->CreateTexture(description).Downcast<spTextureMTL>();
+    auto pResult = pDevice->GetResourceFactory()->CreateTexture(out_Description).Downcast<spTextureMTL>();
     pResult->m_pDevice = pDevice;
     pResult->m_pMTLDevice = ezStaticCast<spDeviceMTL*>(pDevice)->GetMTLDevice();
     pResult->m_pTexture = pNative;
-    pResult->m_eFormat = spToMTL(description.m_eFormat, description.m_eUsage.IsSet(spTextureUsage::DepthStencil));
+    pResult->m_eFormat = spToMTL(out_Description.m_eFormat, out_Description.m_eUsage.IsSet(spTextureUsage::DepthStencil));
     pResult->m_eTextureType = spToMTL(
-      description.m_eDimension,
-      description.m_uiArrayLayers,
-      description.m_eSampleCount != spTextureSampleCount::None,
-      description.m_eUsage.IsSet(spTextureUsage::Cubemap));
+      out_Description.m_eDimension,
+      out_Description.m_uiArrayLayers,
+      out_Description.m_eSampleCount != spTextureSampleCount::None,
+      out_Description.m_eUsage.IsSet(spTextureUsage::Cubemap));
     pResult->m_bFromNative = true;
     pResult->m_bIsResourceCreated = true;
 
