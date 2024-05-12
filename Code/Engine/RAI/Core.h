@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <RAI/RAIDLL.h>
+
 /// \brief Represents an invalid joint index.
 #define spSkeletonInvalidJointIndex static_cast<ezUInt16>(0xFFFFu)
 

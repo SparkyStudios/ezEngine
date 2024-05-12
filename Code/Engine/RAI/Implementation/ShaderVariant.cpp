@@ -65,7 +65,7 @@ namespace RAI
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
       ezStringBuilder sb;
-      sb.SetFormat("{0}__{1}", m_sName, eStage.ToString(eStage));
+      sb.SetFormat("{0}__{1}", m_sName, RHI::spShaderStage::ToString(eStage));
       pShader->SetDebugName(sb);
 #endif
 

@@ -576,30 +576,6 @@ namespace RHI
     return mask;
   }
 
-  EZ_ALWAYS_INLINE static MTL::DataType spToMTL(const ezEnum<spShaderSpecializationConstantType>& eType)
-  {
-    switch (eType)
-    {
-      case spShaderSpecializationConstantType::Bool:
-        return MTL::DataTypeBool;
-      case spShaderSpecializationConstantType::UInt16:
-        return MTL::DataTypeUShort;
-      case spShaderSpecializationConstantType::Int16:
-        return MTL::DataTypeShort;
-      case spShaderSpecializationConstantType::UInt32:
-        return MTL::DataTypeUInt;
-      case spShaderSpecializationConstantType::Int32:
-        return MTL::DataTypeInt;
-      case spShaderSpecializationConstantType::Float:
-        return MTL::DataTypeFloat;
-      case spShaderSpecializationConstantType::UInt64:
-      case spShaderSpecializationConstantType::Int64:
-      case spShaderSpecializationConstantType::Double:
-        EZ_ASSERT_DEV(false, "Invalid constant type. Metal doesn't support 64-bit shader constants.");
-        return MTL::DataTypeNone;
-    }
-  }
-
   EZ_ALWAYS_INLINE static MTL::CompareFunction spToMTL(const ezEnum<spDepthStencilComparison>& eComparison)
   {
     switch (eComparison)

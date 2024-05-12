@@ -18,6 +18,8 @@
 
 #include <Foundation/IO/MemoryStream.h>
 
+#include <RAI/Core.h>
+
 #include <RHI/Input.h>
 #include <RHI/Rendering.h>
 #include <RHI/Shader.h>

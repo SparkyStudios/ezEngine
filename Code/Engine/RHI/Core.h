@@ -101,7 +101,7 @@ namespace RHI
       /// \brief Direct3D 11 API (Windows, UWP, XBox360)
       Direct3D11,
 
-      /// \brief Direct3D 12 API (Windows, UWP, XBox One, XBox X)
+      /// \brief Direct3D 12 API (Windows, UWP, XBox One, XBox Series X|S)
       Direct3D12,
 
       /// \brief Vulkan API (Windows, Linux, Mac OS X, Android, and many more platforms)
@@ -112,6 +112,8 @@ namespace RHI
 
       Default = OpenGL
     };
+
+    EZ_ENUM_TO_STRING(OpenGL, OpenGLES, Direct3D11, Direct3D12, Vulkan, Metal);
   };
 
   /// \brief The list of supported shader languages.
@@ -613,44 +615,6 @@ namespace RHI
   };
 
   EZ_DECLARE_FLAGS_OPERATORS(spShaderStage);
-
-  /// \brief The data type of a specialization constant.
-  struct spShaderSpecializationConstantType
-  {
-    typedef ezUInt8 StorageType;
-
-    enum Enum : StorageType
-    {
-      /// \brief A boolean.
-      Bool,
-
-      /// \brief A 16-bit unsigned integer.
-      UInt16,
-
-      /// \brief A 16-bit signed integer.
-      Int16,
-
-      /// \brief A 32-bit unsigned integer.
-      UInt32,
-
-      /// \brief A 32-bit signed integer.
-      Int32,
-
-      /// \brief A 64-bit unsigned integer.
-      UInt64,
-
-      /// \brief A 64-bit signed integer.
-      Int64,
-
-      /// \brief A 32-bit floating-point value.
-      Float,
-
-      /// \brief A 64-bit floating-point value.
-      Double,
-
-      Default = Bool
-    };
-  };
 
   /// \brief A flag that indicates the possible usage for a \a spTexture resource.
   struct spTextureUsage

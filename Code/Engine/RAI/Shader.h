@@ -21,8 +21,6 @@
 #include <RHI/Input.h>
 #include <RHI/Shader.h>
 
-#include <RAI/Resources/ShaderVariantResource.h>
-
 namespace RAI
 {
   /// \brief A shader asset.
@@ -36,8 +34,9 @@ namespace RAI
 
     void Clear();
 
-    ezHashedString m_sName;
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezByteArrayPtr GetShaderBytes() const { return m_ShaderBytes; }
 
-    ezMap<ezUInt32, spShaderVariant> m_Variants;
+  private:
+    ezByteArrayPtr m_ShaderBytes;
   };
 } // namespace RAI

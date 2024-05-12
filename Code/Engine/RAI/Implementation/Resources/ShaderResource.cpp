@@ -59,8 +59,9 @@ namespace RAI
 
     inout_stream << uiCompressionMode;
 
-    EZ_SUCCEED_OR_RETURN(pWriter->WriteString(m_Shader.m_sName));
-    EZ_SUCCEED_OR_RETURN(pWriter->WriteMap(m_Shader.m_Variants));
+    ezUInt64 uiShaderBytesSize = m_Shader.m_ShaderBytes.GetCount();
+    EZ_SUCCEED_OR_RETURN(pWriter->WriteQWordValue(&uiShaderBytesSize));
+    EZ_SUCCEED_OR_RETURN(pWriter->WriteBytes(m_Shader.m_ShaderBytes.GetPtr(), uiShaderBytesSize));
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     EZ_SUCCEED_OR_RETURN(compressor.FinishCompressedStream());
@@ -117,14 +118,11 @@ namespace RAI
         return EZ_FAILURE;
     }
 
-    {
-      ezStringBuilder sb;
-      EZ_SUCCEED_OR_RETURN(pReader->ReadString(sb));
-      m_Shader.m_sName.Assign(sb);
-    }
+    ezUInt64 uiShaderBytesSize = 0;
+    EZ_SUCCEED_OR_RETURN(pReader->ReadQWordValue(&uiShaderBytesSize));
 
-    m_Shader.m_Variants.Clear();
-    EZ_SUCCEED_OR_RETURN(pReader->ReadMap(m_Shader.m_Variants));
+    m_Shader.m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, uiShaderBytesSize);
+    pReader->ReadBytes(m_Shader.m_ShaderBytes.GetPtr(), uiShaderBytesSize);
 
     return EZ_SUCCESS;
   }
@@ -146,6 +144,11 @@ namespace RAI
 #pragma endregion
 
 #pragma region spShaderResource
+
+  ezTypeVersion spShaderResource::GetResourceVersion()
+  {
+    return kShaderResourceVersion;
+  }
 
   spShaderResource::spShaderResource()
     : ezResource(DoUpdate::OnAnyThread, 1)
@@ -176,17 +179,7 @@ namespace RAI
       res.m_State = ezResourceState::LoadedResourceMissing;
       return res;
     }
-
-    // skip the absolute file path data that the standard file reader writes into the stream
-    {
-      ezStringBuilder sAbsFilePath;
-      *pStream >> sAbsFilePath;
-    }
-
     spShaderResourceDescriptor desc;
-
-    ezAssetFileHeader AssetHash;
-    AssetHash.Read(*pStream).IgnoreResult();
 
     if (desc.Load(*pStream).Failed())
     {
@@ -199,7 +192,7 @@ namespace RAI
 
   void spShaderResource::UpdateMemoryUsage(MemoryUsage& out_NewMemoryUsage)
   {
-    out_NewMemoryUsage.m_uiMemoryCPU = sizeof(spShaderResource) + m_Descriptor.m_Shader.m_Variants.GetHeapMemoryUsage();
+    out_NewMemoryUsage.m_uiMemoryCPU = sizeof(spShaderResource) + m_Descriptor.m_Shader.m_ShaderBytes.GetCount();
     out_NewMemoryUsage.m_uiMemoryGPU = 0;
   }
 

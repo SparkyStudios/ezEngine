@@ -6,6 +6,7 @@
 #include <Foundation/Types/UniquePtr.h>
 
 #include <RAI/Mesh.h>
+#include <RAI/Resources/Texture2DResource.h>
 #include <RAI/Resources/ImageResource.h>
 #include <RAI/Resources/MeshResource.h>
 
@@ -84,8 +85,8 @@ public:
     spResourceHandle m_hRenderTarget;
     spResourceHandle m_hIndirectBuffer;
 
-    ezSharedPtr<spShader> m_pVertexShader{nullptr};
-    ezSharedPtr<spShader> m_pPixelShader{nullptr};
+    ezSharedPtr<RHI::spShader> m_pVertexShader{nullptr};
+    ezSharedPtr<RHI::spShader> m_pPixelShader{nullptr};
     ezSharedPtr<spShaderProgram> m_pShaderProgram{nullptr};
 
     ezSharedPtr<spInputLayout> m_pInputLayout{nullptr};
@@ -106,6 +107,8 @@ public:
 private:
   const RAI::spMesh* m_pMesh{nullptr};
   PassData m_PassData;
+
+  RAI::spShaderResourceHandle m_hShader;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(EZ_NO_LINKAGE, spDemoRenderGraphNode::PassData);

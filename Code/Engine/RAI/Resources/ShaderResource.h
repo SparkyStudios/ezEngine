@@ -20,10 +20,10 @@
 
 #include <Core/ResourceManager/Resource.h>
 
+#include <slang-com-ptr.h>
+
 namespace RAI
 {
-  typedef ezTypedResourceHandle<class spShaderResource> spShaderResourceHandle;
-
   class SP_RAI_DLL spShaderResourceDescriptor
   {
     friend class spShaderResource;
@@ -50,13 +50,15 @@ namespace RAI
 
   class SP_RAI_DLL spShaderResource final : public ezResource
   {
-    friend class spTextureResourceLoader;
+    friend class spShaderResourceLoader;
 
     EZ_ADD_DYNAMIC_REFLECTION(spShaderResource, ezResource);
     EZ_RESOURCE_DECLARE_COMMON_CODE(spShaderResource);
     EZ_RESOURCE_DECLARE_CREATEABLE(spShaderResource, spShaderResourceDescriptor);
 
   public:
+    static ezTypeVersion GetResourceVersion();
+
     spShaderResource();
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const spShaderResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
@@ -68,4 +70,6 @@ namespace RAI
 
     spShaderResourceDescriptor m_Descriptor;
   };
+
+  typedef ezTypedResourceHandle<spShaderResource> spShaderResourceHandle;
 } // namespace RAI

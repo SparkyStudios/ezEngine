@@ -113,7 +113,7 @@ private:
 
 #define EZ_ENUM_VALUE_TO_STRING(name) \
   case name:                          \
-    return EZ_PP_STRINGIFY(name);
+    return EZ_CONCAT(EZ_PP_STRINGIFY(name), _ezsv);
 
 /// \brief Helper macro to generate a 'ToString' function for enum values.
 ///
@@ -132,7 +132,7 @@ private:
 ///   EZ_ENUM_TO_STRING(A, B, C);
 /// };
 #define EZ_ENUM_TO_STRING(...)                               \
-  const char* ToString(ezUInt32 value)                       \
+  static ezStringView ToString(Enum value)                    \
   {                                                          \
     switch (value)                                           \
     {                                                        \

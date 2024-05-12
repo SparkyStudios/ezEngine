@@ -20,6 +20,7 @@
 #include <RHI/Device.h>
 
 #include <RPI/Core/RenderContextData.h>
+#include <RPI/Shaders/ShaderManager.h>
 
 class ezWorld;
 
@@ -65,6 +66,13 @@ namespace RPI
 
     spRenderContextData& GetExtractionData();
 
+#pragma region Shader Management
+
+    /// \brief Gets the \a spShaderManager instance associated with the \a spRenderContext.
+    EZ_NODISCARD EZ_ALWAYS_INLINE spShaderManager* GetShaderManager() const { return m_pShaderManager.Borrow(); }
+
+#pragma endregion
+
   private:
     RHI::spDevice* m_pDevice{nullptr};
 
@@ -74,5 +82,7 @@ namespace RPI
     ezMutex m_CommandListLock;
 
     spRenderContextData m_Data[2];
+
+    ezUniquePtr<spShaderManager> m_pShaderManager{nullptr};
   };
 } // namespace RPI
