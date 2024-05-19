@@ -24,6 +24,13 @@ macro(sp_rhi_requires_metal)
 endmacro()
 
 # #####################################
+# ## sp_rhi_requires_vulkan()
+# #####################################
+macro(sp_rhi_requires_vulkan)
+  sp_requires_vulkan()
+endmacro()
+
+# #####################################
 # ## sp_rhi_link_target_d3d11(<target>)
 # #####################################
 function(sp_rhi_link_target_d3d11 TARGET_NAME)
@@ -59,6 +66,16 @@ function(sp_rhi_link_target_metal TARGET_NAME)
 endfunction()
 
 # #####################################
+# ## sp_rhi_link_target_vulkan(<target>)
+# #####################################
+function(sp_rhi_link_target_vulkan TARGET_NAME)
+  sp_rhi_requires_vulkan()
+
+  target_link_libraries(${TARGET_NAME} PRIVATE RHIVK)
+  sp_link_target_vulkan(${TARGET_NAME})
+endfunction()
+
+# #####################################
 # ## sp_rhi_requires_renderer()
 # #####################################
 macro(sp_rhi_requires_renderer)
@@ -66,6 +83,8 @@ macro(sp_rhi_requires_renderer)
     sp_rhi_requires_d3d11()
   elseif(EZ_CMAKE_PLATFORM_OSX)
     sp_rhi_requires_metal()
+  elseif(EZ_CMAKE_PLATFORM_LINUX)
+    sp_rhi_requires_vulkan()
   endif()
 endmacro()
 
@@ -80,5 +99,7 @@ function(sp_rhi_link_target TARGET_NAME)
     sp_rhi_link_target_d3d11(${TARGET_NAME})
   elseif(EZ_CMAKE_PLATFORM_OSX)
     sp_rhi_link_target_metal(${TARGET_NAME})
+  elseif(EZ_CMAKE_PLATFORM_LINUX)
+    sp_rhi_link_target_vulkan(${TARGET_NAME})
   endif()
 endfunction()

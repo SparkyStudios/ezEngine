@@ -19,15 +19,15 @@ mark_as_advanced(FORCE SP_3RDPARTY_VULKAN_SUPPORT)
 # ## sp_requires_vulkan()
 # #####################################
 macro(sp_requires_vulkan)
-    ez_requires_one_of(EZ_CMAKE_PLATFORM_LINUX EZ_CMAKE_PLATFORM_WINDOWS)
+    ez_requires_one_of(EZ_CMAKE_PLATFORM_LINUX EZ_CMAKE_PLATFORM_WINDOWS EZ_CMAKE_PLATFORM_OSX)
     ez_requires(SP_3RDPARTY_VULKAN_SUPPORT)
 
-    include(FindVulkan)
+    if (NOT TARGET unofficial::VulkanMemoryAllocator-Hpp::VulkanMemoryAllocator-Hpp)
+      include(FindVulkan)
 
-    find_package(Vulkan REQUIRED)
-    find_package(unofficial-vulkan-memory-allocator-hpp CONFIG REQUIRED)
-
-    find_path(VULKAN_HPP_INCLUDE_DIRS "vulkan/vulkan.hpp")
+      find_package(Vulkan REQUIRED)
+      find_package(unofficial-vulkan-memory-allocator-hpp CONFIG REQUIRED)
+    endif ()
 endmacro()
 
 # #####################################
@@ -36,6 +36,7 @@ endmacro()
 function(sp_link_target_vulkan TARGET_NAME)
     sp_requires_vulkan()
 
+    find_path(VULKAN_HPP_INCLUDE_DIRS "vulkan/vulkan.hpp")
     target_include_directories(${TARGET_NAME} PRIVATE ${VULKAN_HPP_INCLUDE_DIRS})
 
     target_link_libraries(${TARGET_NAME} PRIVATE Vulkan::Vulkan)
