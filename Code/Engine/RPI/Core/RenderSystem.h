@@ -28,6 +28,7 @@ namespace RPI
 {
   class spCompositor;
   class spSceneContext;
+  class spCamera;
 
   /// \brief A struct used to create and hold references to render nodes.
   /// Theses references are most of the time indices to a render node from
@@ -113,13 +114,19 @@ namespace RPI
     void UnregisterSceneForWorld(const ezWorld* pWorld);
 
     spCameraSlotHandle CreateCameraSlot(ezStringView sName);
+    void DeleteCameraSlot(const spCameraSlotHandle& hSlot);
+    EZ_NODISCARD const spCameraSlot* GetCameraSlot(const spCameraSlotHandle& hSlot) const;
 
     EZ_NODISCARD spCameraSlotHandle GetCameraSlotByName(ezStringView sName) const;
+
+    void AssignSlotToCamera(const spCameraSlotHandle& hSlot, spCamera* pCamera);
+
+    EZ_NODISCARD spCamera* GetCameraBySlot(const spCameraSlotHandle& hSlot) const;
 
     const spRenderer* GetGameRenderer() const;
 
   protected:
-    using spCameraSlotTable = ezIdTable<spCameraSlotHandle::IdType, spCameraSlot*, ezLocalAllocatorWrapper>;
+    using spCameraSlotTable = ezIdTable<spCameraSlotHandle::IdType, spCameraSlot*, RHI::spDeviceAllocatorWrapper>;
 
   private:
     static ezUInt64 s_uiFrameCount;
@@ -128,6 +135,7 @@ namespace RPI
 
     spCameraSlotTable m_CameraSlots;
     ezArrayMap<ezStringView, spCameraSlotHandleId> m_CameraSlotsByName;
+    ezArrayMap<spCameraSlotHandleId, spCamera*> m_AssignedCameraSlots;
 
     bool m_bInitialized{false};
 
