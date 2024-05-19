@@ -56,22 +56,22 @@ namespace RHI
 
   void spSwapchainMTL::Present()
   {
-    if (m_pMetalDrawable != nullptr)
-    {
-      auto* pDevice = static_cast<spDeviceMTL*>(m_pDevice);
+    if (m_pMetalDrawable == nullptr)
+      return;
 
-      @autoreleasepool
-      {
-        MTL::CommandBuffer* pPresentationCommandBuffer = pDevice->GetCommandQueue()->commandBuffer();
+    auto* pDevice = static_cast<spDeviceMTL*>(m_pDevice);
+
+    @autoreleasepool
+    {
+      MTL::CommandBuffer* pPresentationCommandBuffer = pDevice->GetCommandQueue()->commandBuffer();
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-        auto* nsString = NS::String::string("RHI Metal Presentation Buffer", NS::UTF8StringEncoding);
-        pPresentationCommandBuffer->setLabel(nsString);
+      auto* nsString = NS::String::string("RHI Metal Presentation Buffer", NS::UTF8StringEncoding);
+      pPresentationCommandBuffer->setLabel(nsString);
 #endif
 
-        pPresentationCommandBuffer->presentDrawable(m_pMetalDrawable);
-        pPresentationCommandBuffer->commit();
-      }
+      pPresentationCommandBuffer->presentDrawable(m_pMetalDrawable);
+      pPresentationCommandBuffer->commit();
     }
   }
 
@@ -83,14 +83,12 @@ namespace RHI
     {
       m_pMetalDrawable = m_pMetalLayer->nextDrawable();
 
-      if (m_pMetalDrawable != nullptr)
-      {
-        SP_RHI_MTL_RETAIN(m_pMetalDrawable);
-        m_pSwapchainFramebuffer->SetDrawableTexture(m_pMetalDrawable->texture());
-        return true;
-      }
+      if (m_pMetalDrawable == nullptr)
+        return false;
 
-      return false;
+      SP_RHI_MTL_RETAIN(m_pMetalDrawable);
+      m_pSwapchainFramebuffer->SetDrawableTexture(m_pMetalDrawable->texture());
+      return true;
     }
   }
 
