@@ -49,6 +49,9 @@ namespace RPI
 
   void spMeshRenderFeatureExtractor::Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext, const spRenderView* pRenderView)
   {
+    if (!pRenderView->GetUsage().IsSet(spRenderViewUsage::Main))
+      return; // Nothing to extract from this view
+
     spVisibilityGroup visibilityGroup(pSceneContext);
 
     spExtractMeshRenderObjectMessage message;

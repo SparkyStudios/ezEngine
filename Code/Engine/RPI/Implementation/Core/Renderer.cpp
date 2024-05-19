@@ -36,6 +36,16 @@ namespace RPI
     EZ_END_ATTRIBUTES;
   }
   EZ_END_DYNAMIC_REFLECTED_TYPE;
+
+  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spParentRenderer, 1, ezRTTINoAllocator)
+  {
+    EZ_BEGIN_PROPERTIES
+    {
+      EZ_ACCESSOR_PROPERTY("Child", GetChildRenderer, SetChildRenderer),
+    }
+    EZ_END_PROPERTIES;
+  }
+  EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
   spRenderer::spRenderer(ezStringView sName)
@@ -43,18 +53,49 @@ namespace RPI
   {
   }
 
-  void spRenderer::Initialize(const spRenderContext* pRenderContext)
+  void spRenderer::Initialize(const spSceneContext* pSceneContext)
   {
     if (m_bInitialized)
       return;
 
-    m_pRenderContext = pRenderContext;
+    m_pSceneContext = pSceneContext;
     m_bInitialized = true;
 
     OnInitialize();
   }
 
   void spRenderer::OnInitialize()
+  {
+  }
+
+  void spParentRenderer::Render()
+  {
+    if (m_pChildRenderer == nullptr)
+      return;
+
+    m_pChildRenderer->Render();
+  }
+
+  void spParentRenderer::Prepare()
+  {
+    if (m_pChildRenderer == nullptr)
+      return;
+
+    m_pChildRenderer->Prepare();
+  }
+
+  void spParentRenderer::Initialize(const spSceneContext* pSceneContext)
+  {
+    SUPER::Initialize(pSceneContext);
+
+    if (m_pChildRenderer == nullptr)
+      return;
+
+    m_pChildRenderer->Initialize(pSceneContext);
+  }
+
+  spParentRenderer::spParentRenderer(ezStringView sName)
+    : spRenderer(sName)
   {
   }
 } // namespace RPI

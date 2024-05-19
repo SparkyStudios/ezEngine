@@ -40,7 +40,7 @@ namespace RPI
       return;
 
     m_pCommandList = pCommandList;
-    m_pCommandList->Reset();
+    Reset();
   }
 
   void spRenderContext::BeginFrame()

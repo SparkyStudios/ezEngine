@@ -92,6 +92,9 @@ namespace RPI
     explicit spSceneContext(RHI::spDevice* pDevice);
     ~spSceneContext();
 
+    /// \brief Gets the \a spDevice used by this context.
+    EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spDevice* GetDevice() const { return m_pDevice; }
+
     /// \brief Gets the \a spRenderContext which stores drawing data for this scene.
     EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderContext* GetRenderContext() const { return m_pRenderContext.Borrow(); }
 

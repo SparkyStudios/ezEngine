@@ -13,7 +13,7 @@ namespace RPI
     // spRenderPass
 
   public:
-    void Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context) override;
+    void Execute(const spRenderGraphResourcesTable& resources, const spRenderContext* context) override;
     void CleanUp(const spRenderGraphResourcesTable& resources) override;
 
     // spMainSwapchainRenderPass

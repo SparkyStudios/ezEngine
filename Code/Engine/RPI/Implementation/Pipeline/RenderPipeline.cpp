@@ -30,7 +30,7 @@ namespace RPI
       RemovePass(*it);
   }
 
-  void spRenderPipeline::Execute(spRenderContext* pContext)
+  void spRenderPipeline::Execute(const spRenderContext* pContext)
   {
     for (auto it = m_OrderedPasses.GetIterator(); it.IsValid(); it.Next())
     {
@@ -42,17 +42,17 @@ namespace RPI
     }
   }
 
-  void spRenderPipeline::BeginPass(spRenderPass* pPass, spRenderContext* pContext)
+  void spRenderPipeline::BeginPass(spRenderPass* pPass, const spRenderContext* pContext)
   {
     m_PassEvents.Broadcast({spRenderPassEvent::Type::BeforePass, this, pPass, pContext});
   }
 
-  void spRenderPipeline::ExecutePass(spRenderPass* pPass, spRenderContext* pContext)
+  void spRenderPipeline::ExecutePass(spRenderPass* pPass, const spRenderContext* pContext)
   {
     pPass->Execute(m_PipelineResources, pContext);
   }
 
-  void spRenderPipeline::EndPass(spRenderPass* pPass, spRenderContext* pContext)
+  void spRenderPipeline::EndPass(spRenderPass* pPass, const spRenderContext* pContext)
   {
     m_PassEvents.Broadcast({spRenderPassEvent::Type::AfterPass, this, pPass, pContext});
   }
@@ -63,7 +63,7 @@ namespace RPI
     m_OrderedPasses.PushBack(sName);
   }
 
-  void spRenderPipeline::RemovePass(ezHashedString sName)
+  void spRenderPipeline::RemovePass(ezTempHashedString sName)
   {
     m_Passes.Remove(sName);
 
@@ -72,11 +72,27 @@ namespace RPI
         m_OrderedPasses.Remove(it);
   }
 
+  bool spRenderPipeline::TryGetPass(ezTempHashedString sName, spRenderPass*& out_pPass) const
+  {
+    ezUniquePtr<spRenderPass>* pPass = nullptr;
+    const bool bResult = m_Passes.TryGetValue(sName, pPass);
+
+    out_pPass = bResult ? pPass->Borrow() : nullptr;
+    return bResult;
+  }
+
+  spRenderPass* spRenderPipeline::GetPass(ezTempHashedString sName) const
+  {
+    spRenderPass* pPass = nullptr;
+    TryGetPass(sName, pPass);
+    return pPass;
+  }
+
   void spRenderPipeline::CleanUp()
   {
     for (auto it = m_OrderedPasses.GetIterator(); it.IsValid(); it.Next())
     {
-      const ezUniquePtr<spRenderPass>* pPass = m_Passes.GetValue(*it      );
+      const ezUniquePtr<spRenderPass>* pPass = m_Passes.GetValue(*it);
       (*pPass)->CleanUp(m_PipelineResources);
     }
   }

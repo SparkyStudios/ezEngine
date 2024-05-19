@@ -16,6 +16,8 @@ namespace RPI
   class spRenderGraphNode;
   class spRenderGraphBuilder;
 
+  typedef ezHashTable<ezHashedString, RHI::spResourceHandle> spRenderGraphResourceMap;
+
   struct spRenderGraphResourceBindType
   {
     typedef ezUInt8 StorageType;
@@ -75,7 +77,7 @@ namespace RPI
 
     EZ_ALWAYS_INLINE void SetName(ezStringView sName) { m_sName = sName; }
 
-    virtual ezResult Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, RHI::spResourceHandle>& resources) = 0;
+    virtual ezResult Setup(spRenderGraphBuilder* pBuilder, const spRenderGraphResourceMap& resources) = 0;
 
     virtual ezUniquePtr<spRenderPass> Compile(spRenderGraphBuilder* pBuilder) = 0;
 
@@ -117,7 +119,7 @@ namespace RPI
 
     // --- spRenderGraphNode management
 
-    void AddNode(ezStringView sName, ezUniquePtr<spRenderGraphNode>&& node, const ezHashTable<ezHashedString, RHI::spResourceHandle>& resources = {});
+    void AddNode(ezStringView sName, ezUniquePtr<spRenderGraphNode>&& node, const spRenderGraphResourceMap& resources = {});
 
     const spRenderGraphNode* GetNode(ezStringView sName) const;
 

@@ -24,7 +24,7 @@ namespace RPI
   {
   }
 
-  void spCallbackRenderPass::Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context)
+  void spCallbackRenderPass::Execute(const spRenderGraphResourcesTable& resources, const spRenderContext* context)
   {
     m_ExecuteCallback(resources, context, m_PassData);
   }

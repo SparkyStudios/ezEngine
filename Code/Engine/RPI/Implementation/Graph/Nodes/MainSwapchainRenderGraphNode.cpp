@@ -15,7 +15,7 @@ namespace RPI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
-  ezResult spMainSwapchainRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources)
+  ezResult spMainSwapchainRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const spRenderGraphResourceMap& resources)
   {
     if (!resources.TryGetValue("Input", m_PassData.m_hInputTexture))
       return EZ_FAILURE;
