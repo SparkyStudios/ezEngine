@@ -289,7 +289,7 @@ namespace RPI
         break;
 
       default:
-        EZ_REPORT_FAILURE("Invalid Camera Mode {0}", (int)m_eProjectionMode);
+        EZ_REPORT_FAILURE("Invalid Camera Mode {0}", static_cast<int>(m_eProjectionMode));
     }
   }
 

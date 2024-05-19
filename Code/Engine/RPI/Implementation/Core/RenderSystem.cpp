@@ -18,6 +18,7 @@
 
 #include <Foundation/Configuration/CVar.h>
 
+#include <RPI/Camera/Camera.h>
 #include <RPI/Core/RenderSystem.h>
 #include <RPI/Features/RenderFeature.h>
 
@@ -125,15 +126,55 @@ namespace RPI
     return pSlot->m_Handle;
   }
 
+  void spRenderSystem::DeleteCameraSlot(const spCameraSlotHandle& hSlot)
+  {
+    if (spCameraSlot* pSlot = nullptr; !m_CameraSlots.TryGetValue(hSlot, pSlot))
+      return;
+
+    if (const ezUInt32 uiIndex = m_AssignedCameraSlots.Find(hSlot.m_InternalId); uiIndex != ezInvalidIndex)
+    {
+      spCamera* pCamera = m_AssignedCameraSlots.GetValue(uiIndex);
+      pCamera->m_hCameraSlot.Invalidate();
+
+      m_AssignedCameraSlots.RemoveAtAndCopy(uiIndex);
+      m_AssignedCameraSlots.Compact();
+    }
+
+    m_CameraSlots.Remove(hSlot);
+  }
+
+  const spCameraSlot* spRenderSystem::GetCameraSlot(const spCameraSlotHandle& hSlot) const
+  {
+    spCameraSlot* pSlot = nullptr;
+    if (!m_CameraSlots.TryGetValue(hSlot, pSlot))
+      return nullptr;
+
+    return pSlot;
+  }
+
   spCameraSlotHandle spRenderSystem::GetCameraSlotByName(ezStringView sName) const
   {
-    ezUInt32 uiIndex = m_CameraSlotsByName.Find(sName);
+    const ezUInt32 uiIndex = m_CameraSlotsByName.Find(sName);
     if (uiIndex == ezInvalidIndex)
       return spCameraSlotHandle();
 
     return spCameraSlotHandle(m_CameraSlotsByName.GetValue(uiIndex));
   }
 
+  void spRenderSystem::AssignSlotToCamera(const spCameraSlotHandle& hSlot, spCamera* pCamera)
+  {
+    pCamera->m_hCameraSlot = hSlot;
+    m_AssignedCameraSlots[hSlot.m_InternalId] = pCamera;
+  }
+
+  spCamera* spRenderSystem::GetCameraBySlot(const spCameraSlotHandle& hSlot) const
+  {
+    const ezUInt32 uiIndex = m_AssignedCameraSlots.Find(hSlot.m_InternalId);
+    if (uiIndex == ezInvalidIndex)
+      return nullptr;
+
+    return m_AssignedCameraSlots.GetValue(uiIndex);
+  }
 } // namespace RPI
 
 EZ_STATICLINK_FILE(RPI, RPI_Implementation_Core_RenderSystem);

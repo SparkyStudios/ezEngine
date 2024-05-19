@@ -46,6 +46,7 @@ namespace RPI
   class SP_RPI_DLL spCamera
   {
     friend class spCameraComponent;
+    friend class spRenderSystem;
 
   public:
     spCamera();

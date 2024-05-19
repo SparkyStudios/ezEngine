@@ -325,8 +325,8 @@ namespace RPI
     if (m_sCameraSlotName == szCameraSlot)
       return;
 
-    auto pRenderSystem = spRenderSystem::GetSingleton();
-    m_Camera.m_hCameraSlot = pRenderSystem->GetCameraSlotByName(szCameraSlot);
+    spRenderSystem* pRenderSystem = spRenderSystem::GetSingleton();
+    pRenderSystem->AssignSlotToCamera(pRenderSystem->GetCameraSlotByName(szCameraSlot), &m_Camera);
     m_sCameraSlotName.Assign(szCameraSlot);
   }
 
