@@ -145,6 +145,9 @@ namespace RHI
     /// \brief Gets the array of color targets attachment associated to this framebuffer.
     EZ_NODISCARD virtual ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS> GetColorTargets() const;
 
+    /// \brief Gets the number of color targets attached to this framebuffer.
+    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetColorTargetCount() const { return m_Description.m_ColorTargets.GetCount(); }
+
     /// \brief Gets a spOutputDescription giving the formats of depth and color targets.
     EZ_NODISCARD virtual const spOutputDescription& GetOutputDescription() const = 0;
 

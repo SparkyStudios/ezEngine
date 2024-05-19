@@ -42,7 +42,7 @@ namespace RHI
     if (IsReleased())
       return;
 
-    m_pDescriptor = nullptr;
+    SP_RHI_MTL_RELEASE(m_pDescriptor);
     m_bIsResourceCreated = false;
     m_bReleased = true;
   }
@@ -173,6 +173,8 @@ namespace RHI
     m_pParentSwapchain.Clear();
     m_pDepthTexture.Clear();
 
+    SP_RHI_MTL_RELEASE(m_pDescriptor);
+
     m_bIsResourceCreated = false;
   }
 
@@ -225,7 +227,7 @@ namespace RHI
 
   bool spSwapchainFramebufferMTL::IsRenderable() const
   {
-    return false;
+    return true;
   }
 
   spSwapchainFramebufferMTL::spSwapchainFramebufferMTL(spDeviceMTL* pDevice, spSwapchainMTL* pParentSwapchain, ezUInt32 uiWidth, ezUInt32 uiHeight, const ezEnum<spPixelFormat>& eColorPixelFormat, const ezEnum<spPixelFormat>& eDepthPixelFormat)

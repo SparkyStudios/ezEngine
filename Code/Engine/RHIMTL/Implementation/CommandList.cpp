@@ -367,11 +367,12 @@ namespace RHI
     m_pFramebuffer = pFramebuffer.Downcast<spFramebufferMTLBase>();
     m_pFramebuffer->EnsureResourceCreated();
 
-    ezUInt32 uiViewportCount = ezMath::Max(1u, pFramebuffer->GetColorTargets().GetCount());
+    const ezUInt32 uiColorTargetCount = pFramebuffer->GetColorTargetCount();
+    const ezUInt32 uiViewportCount = ezMath::Max(1u, uiColorTargetCount);
 
     m_Viewports.EnsureCount(uiViewportCount);
     m_ScissorRects.EnsureCount(uiViewportCount);
-    m_ClearColors.EnsureCount(pFramebuffer->GetColorTargets().GetCount());
+    m_ClearColors.EnsureCount(uiColorTargetCount);
 
     m_bCurrentFramebufferEverActive = false;
   }

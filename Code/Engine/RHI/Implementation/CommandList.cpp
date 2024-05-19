@@ -70,7 +70,7 @@ namespace RHI
   void spCommandList::ClearColorTarget(ezUInt32 uiIndex, ezColor clearColor)
   {
     EZ_ASSERT_DEV(m_pFramebuffer != nullptr, "Cannot use ClearColorTarget without a framebuffer");
-    EZ_ASSERT_DEV(m_pFramebuffer->GetColorTargets().GetCount() > uiIndex, "Index out of bounds. Values must be less than the number of color targets in the framebuffer.");
+    EZ_ASSERT_DEV(m_pFramebuffer->GetColorTargetCount() > uiIndex, "Index out of bounds. Values must be less than the number of color targets in the framebuffer.");
 
     ClearColorTargetInternal(uiIndex, clearColor);
   }
@@ -315,7 +315,7 @@ namespace RHI
   {
     SetFullScissorRect(0);
 
-    for (ezUInt32 i = 1, l = m_pFramebuffer->GetColorTargets().GetCount(); i < l; ++i)
+    for (ezUInt32 i = 1, l = m_pFramebuffer->GetColorTargetCount(); i < l; ++i)
       SetFullScissorRect(i);
   }
 
@@ -328,7 +328,7 @@ namespace RHI
   {
     SetFullViewport(0);
 
-    for (ezUInt32 i = 1, l = m_pFramebuffer->GetColorTargets().GetCount(); i < l; ++i)
+    for (ezUInt32 i = 1, l = m_pFramebuffer->GetColorTargetCount(); i < l; ++i)
       SetFullViewport(i);
   }
 

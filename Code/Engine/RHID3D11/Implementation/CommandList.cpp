@@ -384,7 +384,7 @@ namespace RHI
       m_ReferencedSwapchainList.PushBack(pSwapchain);
     }
 
-    for (ezUInt32 i = 0, l = m_pFramebuffer->GetColorTargets().GetCount(); i < l; ++i)
+    for (ezUInt32 i = 0, l = m_pFramebuffer->GetColorTargetCount(); i < l; ++i)
     {
       UnbindSRVTexture(spTextureViewDescription(m_pFramebuffer->GetColorTarget(i)->GetHandle()));
     }
@@ -1085,7 +1085,7 @@ namespace RHI
 
     ezUInt32 uiBaseSlot = 0;
     if (!bCompute && !m_CachedPixelSamplerStates.IsEmpty())
-      uiBaseSlot = m_pFramebuffer->GetColorTargets().GetCount();
+      uiBaseSlot = m_pFramebuffer->GetColorTargetCount();
 
     const ezUInt32 uiActualSlot = uiBaseSlot + uiSlot;
     if (pBuffer != nullptr)
