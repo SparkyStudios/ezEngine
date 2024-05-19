@@ -18,7 +18,7 @@ namespace RPI
     SetData(passData);
   }
 
-  void spMainSwapchainRenderPass::Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context)
+  void spMainSwapchainRenderPass::Execute(const spRenderGraphResourcesTable& resources, const spRenderContext* context)
   {
     const auto cl = context->GetCommandList();
     const auto& data = m_PassData.Get<Data>();
@@ -39,7 +39,7 @@ namespace RPI
     cl->PopDebugGroup();
   }
 
-  void spMainSwapchainRenderPass::CleanUp(const spRenderGraphResourcesTable& resources)
+  void spMainSwapchainRenderPass::  CleanUp(const spRenderGraphResourcesTable& resources)
   {
     // noop
   }

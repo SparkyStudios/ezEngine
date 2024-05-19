@@ -29,7 +29,7 @@ namespace RPI
     EZ_ADD_DYNAMIC_REFLECTION(spSortMode, ezReflectedClass);
 
   public:
-    virtual ~spSortMode() = default;
+    ~spSortMode() override = default;
 
     /// \brief Generates a sort key for a \a spRenderObject.
     /// \param pRenderView The render view.

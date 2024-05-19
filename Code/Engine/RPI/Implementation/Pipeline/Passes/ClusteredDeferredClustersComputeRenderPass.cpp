@@ -28,7 +28,7 @@ namespace RPI
     SetData(passData);
   }
 
-  void spClusteredDeferredClustersComputeRenderPass::Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context)
+  void spClusteredDeferredClustersComputeRenderPass::Execute(const spRenderGraphResourcesTable& resources, const spRenderContext* context)
   {
     auto const cl = context->GetCommandList();
   }

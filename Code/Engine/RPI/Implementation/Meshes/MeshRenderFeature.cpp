@@ -41,7 +41,7 @@ namespace RPI
 
     cl->PushProfileScope("spMeshRenderFeature");
     {
-      cl->ClearColorTarget(0, ezColor::Black);
+      cl->ClearColorTarget(0, ezColor::Maroon);
     }
     cl->PopProfileScope(pScopeProfiler);
   }

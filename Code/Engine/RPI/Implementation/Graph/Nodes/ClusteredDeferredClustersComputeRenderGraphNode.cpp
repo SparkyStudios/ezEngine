@@ -25,7 +25,7 @@ namespace RPI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
-  ezResult spClusteredDeferredClustersComputeRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, RHI::spResourceHandle>& resources)
+  ezResult spClusteredDeferredClustersComputeRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const spRenderGraphResourceMap& resources)
   {
     return EZ_SUCCESS;
   }

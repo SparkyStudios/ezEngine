@@ -138,7 +138,7 @@ namespace RPI
     return hResource;
   }
 
-  void spRenderGraphBuilder::AddNode(ezStringView sName, ezUniquePtr<spRenderGraphNode>&& node, const ezHashTable<ezHashedString, spResourceHandle>& resources)
+  void spRenderGraphBuilder::AddNode(ezStringView sName, ezUniquePtr<spRenderGraphNode>&& node, const spRenderGraphResourceMap& resources)
   {
     ezHashedString sNameHash;
     sNameHash.Assign(sName);

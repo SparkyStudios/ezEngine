@@ -25,10 +25,11 @@ namespace RPI
     EZ_ADD_DYNAMIC_REFLECTION(spRenderer, ezReflectedClass);
 
   public:
-    spRenderer(ezStringView sName);
-    virtual ~spRenderer() = default;
+    explicit spRenderer(ezStringView sName);
+    ~spRenderer() override = default;
 
     virtual void Render() = 0;
+    virtual void Prepare() = 0;
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezStringView& GetName() const { return m_sName; }
 
@@ -37,10 +38,10 @@ namespace RPI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool IsInitialized() const { return m_bInitialized; }
 
-    void Initialize(const spRenderContext* pRenderContext);
+    virtual void Initialize(const spSceneContext* pSceneContext);
 
   protected:
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderContext* GetRenderContext() const { return m_pRenderContext; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spSceneContext* GetSceneContext() const { return m_pSceneContext; }
 
     virtual void OnInitialize();
 
@@ -49,6 +50,34 @@ namespace RPI
   private:
     ezStringView m_sName;
     bool m_bInitialized{false};
-    const spRenderContext* m_pRenderContext{nullptr};
+    const spSceneContext* m_pSceneContext{nullptr};
+  };
+
+  class SP_RPI_DLL spParentRenderer : public spRenderer
+  {
+    EZ_ADD_DYNAMIC_REFLECTION(spParentRenderer, spRenderer);
+
+    // spRenderer
+
+  public:
+    void Render() override;
+    void Prepare() override;
+    void Initialize(const spSceneContext* pSceneContext) override;
+
+    // spSceneRenderer
+
+  public:
+    explicit spParentRenderer(ezStringView sName);
+    ~spParentRenderer() override = default;
+
+#pragma region Properties
+
+    EZ_ALWAYS_INLINE void SetChildRenderer(spRenderer* pChildRenderer) { m_pChildRenderer = pChildRenderer; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderer* GetChildRenderer() const { return m_pChildRenderer; }
+
+#pragma endregion
+
+  private:
+    spRenderer* m_pChildRenderer{nullptr};
   };
 } // namespace RPI

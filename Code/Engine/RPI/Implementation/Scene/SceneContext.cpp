@@ -15,6 +15,7 @@
 #include <RPI/RPIPCH.h>
 
 #include <RPI/Core/RenderContext.h>
+#include <RPI/Core/Renderer.h>
 #include <RPI/Pipeline/RenderPipeline.h>
 #include <RPI/Scene/SceneContext.h>
 
@@ -131,8 +132,9 @@ namespace RPI
     event.m_pSceneContext = this;
     s_DrawEvent.Broadcast(event);
 
-    for (ezUInt32 i = 0, l = m_RenderPipelines.GetCount(); i < l; i++)
-      m_RenderPipelines[i]->Execute(m_pRenderContext.Borrow());
+    spRenderSystem::GetSingleton()->GetCompositor()->m_pGameRenderer->Render();
+    // for (ezUInt32 i = 0, l = m_RenderPipelines.GetCount(); i < l; i++)
+    //   m_RenderPipelines[i]->Execute(m_pRenderContext.Borrow());
 
     // Trigger the "after draw" event
     event.m_Type = spSceneContextDrawEvent::Type::AfterDraw;
@@ -174,7 +176,7 @@ namespace RPI
 
   void spSceneContext::CleanUp()
   {
-    for (auto& pipeline : m_RenderPipelines)
+    for (const auto& pipeline : m_RenderPipelines)
       pipeline->CleanUp();
   }
 
@@ -205,3 +207,5 @@ namespace RPI
     pRenderObject->m_pRenderFeature->RemoveRenderObject(pRenderObject);
   }
 } // namespace RPI
+
+EZ_STATICLINK_FILE(RPI, RPI_Implementation_Scene_SceneContext);

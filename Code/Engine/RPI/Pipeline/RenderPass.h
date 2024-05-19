@@ -35,7 +35,7 @@ namespace RPI
       m_PassData = data;
     }
 
-    virtual void Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context) = 0;
+    virtual void Execute(const spRenderGraphResourcesTable& resources, const spRenderContext* context) = 0;
     virtual void CleanUp(const spRenderGraphResourcesTable& resources) = 0;
 
   protected:
@@ -46,13 +46,13 @@ namespace RPI
   {
 
   public:
-    typedef ezDelegate<void(const spRenderGraphResourcesTable&, spRenderContext*, ezVariant&)> ExecuteCallback;
+    typedef ezDelegate<void(const spRenderGraphResourcesTable&, const spRenderContext*, ezVariant&)> ExecuteCallback;
     typedef ezDelegate<void(const spRenderGraphResourcesTable&, ezVariant&)> CleanUpCallback;
 
     spCallbackRenderPass(ExecuteCallback executeCallback, CleanUpCallback cleanUpCallback);
     ~spCallbackRenderPass() override = default;
 
-    void Execute(const spRenderGraphResourcesTable& resources, spRenderContext* context) override;
+    void Execute(const spRenderGraphResourcesTable& resources, const spRenderContext* context) override;
     void CleanUp(const spRenderGraphResourcesTable& resources) override;
 
   private:

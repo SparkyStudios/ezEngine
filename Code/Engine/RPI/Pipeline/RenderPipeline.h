@@ -36,9 +36,9 @@ namespace RPI
     };
 
     Type m_Type{Type::Unknown};
-    spRenderPipeline* m_pPipeline{nullptr};
-    spRenderPass* m_pPass{nullptr};
-    spRenderContext* m_pContext{nullptr};
+    const spRenderPipeline* m_pPipeline{nullptr};
+    const spRenderPass* m_pPass{nullptr};
+    const spRenderContext* m_pContext{nullptr};
   };
 
   class SP_RPI_DLL spRenderPipeline : public ezRefCounted
@@ -51,17 +51,17 @@ namespace RPI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderGraphResourcesTable& GetResources() const { return m_PipelineResources; }
 
-    void Execute(spRenderContext* pContext);
+    void Execute(const spRenderContext* pContext);
 
-    void BeginPass(spRenderPass* pPass, spRenderContext* pContext);
-    void ExecutePass(spRenderPass* pPass, spRenderContext* pContext);
-    void EndPass(spRenderPass* pPass, spRenderContext* pContext);
+    void BeginPass(spRenderPass* pPass, const spRenderContext* pContext);
+    void ExecutePass(spRenderPass* pPass, const spRenderContext* pContext);
+    void EndPass(spRenderPass* pPass, const spRenderContext* pContext);
 
     void AddPass(ezHashedString sName, ezUniquePtr<spRenderPass>&& pPass);
-    void RemovePass(ezHashedString sName);
+    void RemovePass(ezTempHashedString sName);
 
-    bool TryGetPass(ezHashedString sName, spRenderPass*& out_pPass);
-    spRenderPass* GetPass(ezHashedString sName);
+    bool TryGetPass(ezTempHashedString sName, spRenderPass*& out_pPass) const;
+    spRenderPass* GetPass(ezTempHashedString sName) const;
 
     void CleanUp();
 

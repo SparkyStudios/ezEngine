@@ -20,10 +20,19 @@
 
 namespace RPI
 {
-  class SP_RPI_DLL spSceneRenderer : public spRenderer
+  class SP_RPI_DLL spSceneRenderer : public spParentRenderer
   {
-    EZ_ADD_DYNAMIC_REFLECTION(spSceneRenderer, spRenderer);
+    EZ_ADD_DYNAMIC_REFLECTION(spSceneRenderer, spParentRenderer);
+
+    // spRenderer
 
   public:
+    void Render() override;
+
+    // spSceneRenderer
+
+  public:
+    spSceneRenderer();
+    ~spSceneRenderer() override = default;
   };
 } // namespace RPI
