@@ -54,6 +54,22 @@ namespace RHI
 
 #pragma endregion
 
+#pragma region spCommandListPushFramebuffer
+
+  spCommandListPushRestoreFramebuffer::spCommandListPushRestoreFramebuffer(spCommandList* pCommandList, ezSharedPtr<spFramebuffer> pFramebuffer)
+    : m_pCommandList(pCommandList)
+  {
+    m_pOldFramebuffer = m_pCommandList->m_pFramebuffer;
+    m_pCommandList->SetFramebuffer(pFramebuffer);
+  }
+
+  spCommandListPushRestoreFramebuffer::~spCommandListPushRestoreFramebuffer()
+  {
+    m_pCommandList->SetFramebuffer(m_pOldFramebuffer);
+  }
+
+#pragma endregion
+
 #pragma region spCommandList
 
   // clang-format off
@@ -173,13 +189,18 @@ namespace RHI
 
   void spCommandList::SetFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer)
   {
-    if (m_pFramebuffer != pFramebuffer)
-    {
-      m_pFramebuffer = pFramebuffer;
-      SetFramebufferInternal(pFramebuffer);
-      SetFullViewport();
-      SetFullScissorRect();
-    }
+    if (m_pFramebuffer == pFramebuffer)
+      return;
+
+    m_pFramebuffer = pFramebuffer;
+    SetFramebufferInternal(pFramebuffer);
+    SetFullViewport();
+    SetFullScissorRect();
+  }
+
+  spCommandListPushRestoreFramebuffer spCommandList::PushRestoreFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer)
+  {
+    return spCommandListPushRestoreFramebuffer(this, pFramebuffer);
   }
 
   void spCommandList::SetIndexBuffer(ezSharedPtr<spBuffer> pIndexBuffer, const ezEnum<spIndexFormat>& eFormat)

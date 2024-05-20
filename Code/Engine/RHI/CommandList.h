@@ -134,6 +134,19 @@ namespace RHI
   {
   };
 
+  /// \brief Pushes and restores a \a spFramebuffer from the current \a spCommandList.
+  ///
+  /// The old framebuffer will be restored when this structure is destroyed.
+  struct SP_RHI_DLL spCommandListPushRestoreFramebuffer
+  {
+    spCommandListPushRestoreFramebuffer(spCommandList* pCommandList, ezSharedPtr<spFramebuffer> pFramebuffer);
+    ~spCommandListPushRestoreFramebuffer();
+
+  private:
+    spCommandList* m_pCommandList;
+    ezSharedPtr<spFramebuffer> m_pOldFramebuffer;
+  };
+
   /// \brief A device resource which allows the recording of graphics commands, which can later be executed by a
   /// \a spDevice. Before graphics commands can be issued, the \a spCommandList::Begin() method must be invoked.
   /// When the \a spCommandList is ready to be executed, \a spCommandList::End() must be invoked, and then
@@ -143,9 +156,10 @@ namespace RHI
   /// \a spDevice, they must be reset and commands must be issued again.
   class SP_RHI_DLL spCommandList : public spDeviceResource
   {
-    EZ_ADD_DYNAMIC_REFLECTION(spCommandList, spDeviceResource);
-
     friend class spDeviceResourceManager;
+    friend struct spCommandListPushRestoreFramebuffer;
+
+    EZ_ADD_DYNAMIC_REFLECTION(spCommandList, spDeviceResource);
 
   public:
     virtual void Begin() = 0;
@@ -175,6 +189,8 @@ namespace RHI
     void ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination);
 
     void SetFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer);
+
+    spCommandListPushRestoreFramebuffer PushRestoreFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer);
 
     void SetIndexBuffer(ezSharedPtr<spBuffer> pIndexBuffer, const ezEnum<spIndexFormat>& eFormat);
 
