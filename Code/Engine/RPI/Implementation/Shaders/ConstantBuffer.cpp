@@ -23,9 +23,9 @@ using namespace RHI;
 
 namespace RPI
 {
-  spConstantBufferBase::spConstantBufferBase(ezUInt32 uiSizeInBytes, RHI::spBufferUsage::Enum eUsage)
+  spConstantBufferBase::spConstantBufferBase(ezUInt32 uiSizeInBytes, spBufferUsage::Enum eUsage)
   {
-    spBufferDescription desc(uiSizeInBytes, spBufferUsage::ConstantBuffer | eUsage);
+    const spBufferDescription desc(uiSizeInBytes, spBufferUsage::ConstantBuffer | eUsage);
     m_pBuffer = spRenderSystem::GetSingleton()->GetDevice()->GetResourceFactory()->CreateBuffer(desc);
   }
 

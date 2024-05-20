@@ -51,6 +51,7 @@ namespace RPI
   protected:
     /// \brief Creates a new constant buffer wrapper with the given size.
     /// \param[in] uiSizeInBytes The size of the buffer.
+    /// \param[in] eUsage The usage of the buffer.
     spConstantBufferBase(ezUInt32 uiSizeInBytes, RHI::spBufferUsage::Enum eUsage);
 
     /// \brief Destroys the constant buffer wrapper and frees all allocated resources.
@@ -67,8 +68,11 @@ namespace RPI
   ///
   /// \tparam T The data type of the buffer. It's recommended to be a struct with 16-bit alignment.
   template <typename T, RHI::spBufferUsage::Enum Usage = RHI::spBufferUsage::Dynamic>
-  class spConstantBuffer : public spConstantBufferBase
+  class spConstantBuffer final : public spConstantBufferBase, public ezRefCounted
   {
+    friend class spConstantBufferView<T>;
+    friend class spConstantBufferView<const T>;
+
   public:
     static constexpr ezUInt64 DataSize = sizeof(T);
 
@@ -76,14 +80,21 @@ namespace RPI
     spConstantBuffer()
       : spConstantBufferBase(DataSize, Usage)
     {
+      m_RawData = EZ_DEFAULT_NEW_ARRAY(ezUInt8, DataSize);
+      ezMemoryUtils::ZeroFill(m_RawData.GetPtr(), m_RawData.GetCount());
     }
 
     /// \brief Create a new constant buffer storage with the given value.
     /// \param[in] value The value to initialize the buffer with.
-    spConstantBuffer(const T& value)
+    explicit spConstantBuffer(const T& value)
       : spConstantBuffer()
     {
       Set(value);
+    }
+
+    ~spConstantBuffer() override
+    {
+      EZ_DEFAULT_DELETE_ARRAY(m_RawData);
     }
 
     /// \brief Get a view to the constant buffer for writing.
@@ -106,8 +117,17 @@ namespace RPI
     /// \param[in] value The value to set in the buffer.
     EZ_FORCE_INLINE void Set(const T& value) const
     {
-      UpdateBuffer(0, DataSize, &value);
+      ezMemoryUtils::RawByteCopy(m_RawData.GetPtr(), &value, DataSize);
     }
+
+    /// \brief Gets the hash of the constant buffer's value.
+    EZ_NODISCARD EZ_FORCE_INLINE ezUInt32 GetHash() const
+    {
+      return ezHashingUtils::xxHash32(m_RawData.GetPtr(), m_RawData.GetCount());
+    }
+
+  private:
+    ezByteArrayPtr m_RawData;
   };
 
   /// \brief A view to a constant buffer storage.
@@ -119,39 +139,46 @@ namespace RPI
   template <typename T>
   class spConstantBufferView
   {
-    friend class spConstantBufferView<T>;
-    friend class spConstantBufferView<const T>;
-
   public:
-    explicit spConstantBufferView(const spConstantBufferBase* pBuffer)
+    explicit spConstantBufferView(const spConstantBuffer<T>* pBuffer)
     {
       m_pBuffer = pBuffer;
-      m_resource = pBuffer->Map(std::is_const_v<T>);
+      m_uiDataHash = pBuffer->GetHash();
     }
 
     ~spConstantBufferView()
     {
-      m_pBuffer->Unmap();
+      if (std::is_const_v<T>)
+        return;
+
+      if (const ezUInt32 uiDataHash = m_pBuffer->GetHash(); uiDataHash == m_uiDataHash)
+        return;
+
+      {
+        const RHI::spMappedResource resource = m_pBuffer->Map();
+        ezMemoryUtils::RawByteCopy(resource.GetData(), m_pBuffer->m_RawData.GetPtr(), m_pBuffer->m_RawData.GetCount());
+        m_pBuffer->Unmap();
+      }
     }
 
     EZ_FORCE_INLINE T* operator->() const
     {
-      return reinterpret_cast<T*>(m_resource.GetData());
+      return reinterpret_cast<T*>(m_pBuffer->m_RawData.GetPtr());
     }
 
     EZ_FORCE_INLINE T& operator*() const
     {
-      return *reinterpret_cast<T*>(m_resource.GetData());
+      return *reinterpret_cast<T*>(m_pBuffer->m_RawData.GetPtr());
     }
 
     EZ_FORCE_INLINE T& operator=(const T& value) const
     {
-      m_pBuffer->UpdateBuffer(0, sizeof(T), &value);
-      return *reinterpret_cast<T*>(m_resource.GetData());
+      m_pBuffer->Set(value);
+      return *reinterpret_cast<T*>(m_pBuffer->m_RawData.GetPtr());
     }
 
   private:
-    const spConstantBufferBase* m_pBuffer{nullptr};
-    RHI::spMappedResource m_resource;
+    ezUInt32 m_uiDataHash{0};
+    const spConstantBuffer<T>* m_pBuffer{nullptr};
   };
 } // namespace RPI
