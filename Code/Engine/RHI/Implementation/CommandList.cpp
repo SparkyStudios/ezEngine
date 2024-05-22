@@ -193,6 +193,10 @@ namespace RHI
       return;
 
     m_pFramebuffer = pFramebuffer;
+
+    if (pFramebuffer == nullptr)
+      return;
+
     SetFramebufferInternal(pFramebuffer);
     SetFullViewport();
     SetFullScissorRect();

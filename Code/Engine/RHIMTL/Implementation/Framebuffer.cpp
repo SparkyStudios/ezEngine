@@ -14,7 +14,7 @@ namespace RHI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
-  spFramebufferMTLBase::spFramebufferMTLBase(RHI::spDeviceMTL* pDevice, const RHI::spFramebufferDescription& description)
+  spFramebufferMTLBase::spFramebufferMTLBase(spDeviceMTL* pDevice, const spFramebufferDescription& description)
     : spFramebuffer(description)
   {
     m_pDevice = pDevice;
@@ -23,7 +23,12 @@ namespace RHI
   MTL::RenderPassDescriptor* spFramebufferMTLBase::GetRenderPassDescriptor()
   {
     if (m_bIsDirty || m_pDescriptor == nullptr)
+    {
+      SP_RHI_MTL_RELEASE(m_pDescriptor);
       CreateResource();
+
+      m_bIsDirty = false;
+    }
 
     return m_pDescriptor;
   }
@@ -113,7 +118,7 @@ namespace RHI
     m_bIsResourceCreated = true;
   }
 
-  void spFramebufferMTL::SetColorTarget(ezUInt32 uiIndex, const RHI::spFramebufferAttachmentDescription& target)
+  void spFramebufferMTL::SetColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target)
   {
     const ezUInt32 uiCount = m_Description.m_ColorTargets.GetCount();
     EZ_ASSERT_DEV(uiCount > uiIndex, "Invalid color target index. Valid indexes are between 0 and {}.", uiCount);
@@ -129,7 +134,7 @@ namespace RHI
     EZ_ASSERT_NOT_IMPLEMENTED;
   }
 
-  spFramebufferMTL::spFramebufferMTL(RHI::spDeviceMTL* pDevice, const RHI::spFramebufferDescription& description)
+  spFramebufferMTL::spFramebufferMTL(spDeviceMTL* pDevice, const spFramebufferDescription& description)
     : spFramebufferMTLBase(pDevice, description)
     , m_OutputDescription()
   {
@@ -143,7 +148,7 @@ namespace RHI
     m_pDevice->GetResourceManager()->ReleaseResource(this);
   }
 
-  void spFramebufferMTL::ApplyColorTarget(ezUInt32 uiIndex, const RHI::spFramebufferAttachmentDescription& target)
+  void spFramebufferMTL::ApplyColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target)
   {
     const auto pColorTexture = m_pDevice->GetResourceManager()->GetResource<spTextureMTL>(target.m_hTarget);
     EZ_ASSERT_DEV(pColorTexture != nullptr, "Unable to find a texture in the device resource manager. If you have created that texture yourself, make sure to register it in the manager.");
@@ -171,6 +176,8 @@ namespace RHI
       return;
 
     m_pParentSwapchain.Clear();
+
+    m_pDrawableTexture.Clear();
     m_pDepthTexture.Clear();
 
     SP_RHI_MTL_RELEASE(m_pDescriptor);
@@ -187,7 +194,7 @@ namespace RHI
   {
     m_pDescriptor = MTL::RenderPassDescriptor::alloc()->init();
 
-    auto color0 = m_pDescriptor->colorAttachments()->object(0);
+    const auto color0 = m_pDescriptor->colorAttachments()->object(0);
     color0->setTexture(m_pParentSwapchain->GetDrawable()->texture());
     color0->setLoadAction(MTL::LoadActionLoad);
 
@@ -195,14 +202,14 @@ namespace RHI
     {
       m_pDepthTexture->EnsureResourceCreated();
 
-      auto depthAttachment = m_pDescriptor->depthAttachment();
+      const auto depthAttachment = m_pDescriptor->depthAttachment();
       depthAttachment->setTexture(m_pDepthTexture->GetMTLTexture());
       depthAttachment->setLoadAction(MTL::LoadActionLoad);
       depthAttachment->setStoreAction(MTL::StoreActionStore);
 
       if (spPixelFormatHelper::IsStencilFormat(m_pDepthTexture->GetFormat()))
       {
-        auto stencilAttachment = m_pDescriptor->stencilAttachment();
+        const auto stencilAttachment = m_pDescriptor->stencilAttachment();
         stencilAttachment->setTexture(m_pDepthTexture->GetMTLTexture());
         stencilAttachment->setLoadAction(MTL::LoadActionLoad);
         stencilAttachment->setStoreAction(MTL::StoreActionStore);
@@ -227,7 +234,7 @@ namespace RHI
 
   bool spSwapchainFramebufferMTL::IsRenderable() const
   {
-    return true;
+    return false;
   }
 
   spSwapchainFramebufferMTL::spSwapchainFramebufferMTL(spDeviceMTL* pDevice, spSwapchainMTL* pParentSwapchain, ezUInt32 uiWidth, ezUInt32 uiHeight, const ezEnum<spPixelFormat>& eColorPixelFormat, const ezEnum<spPixelFormat>& eDepthPixelFormat)
@@ -276,6 +283,7 @@ namespace RHI
 
     m_Description.m_ColorTargets.SetCount(1);
     m_Description.m_ColorTargets[0] = spFramebufferAttachmentDescription(m_pDrawableTexture->GetHandle());
+    m_bIsDirty = true;
   }
 
   bool spSwapchainFramebufferMTL::EnsureDrawable()

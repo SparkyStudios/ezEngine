@@ -11,6 +11,8 @@ namespace RHI
   /// \brief Describes a single attachment for a \a spFramebuffer.
   struct spFramebufferAttachmentDescription : ezHashableStruct<spFramebufferAttachmentDescription>
   {
+    EZ_DECLARE_POD_TYPE();
+
     /// \brief Constructs an empty spFramebufferAttachmentDescription.
     spFramebufferAttachmentDescription() = default;
 
@@ -77,17 +79,21 @@ namespace RHI
       : ezHashableStruct()
       , m_DepthTarget(hDepthTarget)
     {
-      m_ColorTargets.PushBack(spFramebufferAttachmentDescription(hColorTarget));
+      m_ColorTargets.SetCountUninitialized(1);
+      m_ColorTargets[0] = spFramebufferAttachmentDescription(hColorTarget);
     }
 
     /// \brief Constructs a spFramebufferDescription.
     /// \param [in] hDepthTarget The depth texture to use with the spFramebuffer.
     /// \param [in] colorTargets An array of color targets. All of them must have been created with the spTextureUsage::RenderTarget usage flag.
-    spFramebufferDescription(const spResourceHandle& hDepthTarget, const ezStaticArray<spResourceHandle, SP_RHI_MAX_COLOR_TARGETS>& colorTargets)
+    spFramebufferDescription(const spResourceHandle& hDepthTarget, const ezArrayPtr<spResourceHandle>& colorTargets)
       : ezHashableStruct()
       , m_DepthTarget(hDepthTarget)
     {
-      for (ezUInt32 i = 0, l = colorTargets.GetCount(); i < l; i++)
+      const ezUInt32 uiCount = ezMath::Min<ezUInt32>(colorTargets.GetCount(), SP_RHI_MAX_COLOR_TARGETS);
+      m_ColorTargets.SetCountUninitialized(uiCount);
+
+      for (ezUInt32 i = 0; i < uiCount; i++)
         m_ColorTargets[i] = spFramebufferAttachmentDescription(colorTargets[i]);
     }
 

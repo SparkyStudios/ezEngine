@@ -11,6 +11,8 @@ namespace RHI
   /// \brief A \a spGraphicPipeline component describing the blend behavior of an individual color attachment.
   struct spBlendAttachment : ezHashableStruct<spBlendAttachment>
   {
+    EZ_DECLARE_POD_TYPE();
+
     /// \brief Describes a \a spBlendAttachment state in which the source completely overrides the destination.
     const static spBlendAttachment OverrideBlend;
 
@@ -101,6 +103,8 @@ namespace RHI
   /// \brief Describes the depth state of a depth attachment in the \a spGraphicPipeline.
   struct spDepthState : ezHashableStruct<spDepthState>
   {
+    EZ_DECLARE_POD_TYPE();
+
     /// \brief Describes a \a spDepthState which uses a \a spDepthStencilComparison::Less comparison.
     /// The stencil test is disabled.
     const static spDepthState Less;
@@ -154,6 +158,8 @@ namespace RHI
   /// \brief Describes how stencil tests are performed in a \a spGraphicPipeline.
   struct spStencilBehavior : ezHashableStruct<spStencilBehavior>
   {
+    EZ_DECLARE_POD_TYPE();
+
     spStencilBehavior() = default;
 
     spStencilBehavior(const ezEnum<spStencilOperation>& eFail, const ezEnum<spStencilOperation>& ePass, const ezEnum<spStencilOperation>& eDepthFail, const ezEnum<spDepthStencilComparison>& eComparison)
@@ -190,6 +196,8 @@ namespace RHI
   /// \brief Describes the stencil state of a depth attachment in the \a spGraphicPipeline.
   struct spStencilState : ezHashableStruct<spStencilState>
   {
+    EZ_DECLARE_POD_TYPE();
+
     /// \brief Describes a disabled \a spStencilState.
     const static spStencilState Disabled;
 
@@ -219,6 +227,8 @@ namespace RHI
   /// \brief Describes how rasterization is performed in a \a spGraphicPipeline.
   struct spRasterizerState : ezHashableStruct<spRasterizerState>
   {
+    EZ_DECLARE_POD_TYPE();
+
     /// \brief Describes the default rasterizer state, with clockwise backface culling, solid polygon filling
     /// and both depth clipping and scissor stencil tests enabled.
     const static spRasterizerState Default;

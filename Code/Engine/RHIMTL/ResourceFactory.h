@@ -20,7 +20,7 @@ namespace RHI
     ezSharedPtr<spShaderProgram> CreateShaderProgram() override;
     ezSharedPtr<spTexture> CreateTexture(const spTextureDescription& description) override;
     ezSharedPtr<spSampler> CreateSampler(const spSamplerDescription& description) override;
-    ezSharedPtr<spInputLayout> CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader) override;
+    ezSharedPtr<spInputLayout> CreateInputLayout(const spInputLayoutDescription& description) override;
     ezSharedPtr<spBuffer> CreateBuffer(const spBufferDescription& description) override;
     ezSharedPtr<spBufferRange> CreateBufferRange(const spBufferRangeDescription& description) override;
     ezSharedPtr<spResourceLayout> CreateResourceLayout(const spResourceLayoutDescription& description) override;

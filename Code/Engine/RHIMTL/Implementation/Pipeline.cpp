@@ -12,7 +12,7 @@ namespace RHI
 {
   static void SetupShaderProgramStage(MTL::RenderPipelineDescriptor* pDescriptor, ezSharedPtr<spShaderProgramMTL> pShaderProgram, const ezEnum<spShaderStage> eStage, ezList<MTL::Function*>& functions)
   {
-    auto pShader = pShaderProgram->Get(eStage).Downcast<spShaderMTL>();
+    const auto pShader = pShaderProgram->Get(eStage).Downcast<spShaderMTL>();
     if (pShader == nullptr)
       return;
 
@@ -258,14 +258,14 @@ namespace RHI
       SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::DomainShader, m_SpecializedFunctions);
       SetupShaderProgramStage(*desc, pShaderProgram, spShaderStage::PixelShader, m_SpecializedFunctions);
 
-      auto inputDesc = desc->vertexDescriptor();
+      const auto inputDesc = desc->vertexDescriptor();
 
       for (ezUInt32 i = 0, l = description.m_ShaderPipeline.m_InputLayouts.GetCount(); i < l; ++i)
       {
-        ezUInt32 uiLayoutIndex = m_uiNonVertexBufferCount + i;
+        const ezUInt32 uiLayoutIndex = m_uiNonVertexBufferCount + i;
         MTL::VertexBufferLayoutDescriptor* pLayoutDescriptor = inputDesc->layouts()->object(uiLayoutIndex);
         pLayoutDescriptor->setStride(inputLayouts[i].m_uiStride);
-        ezUInt32 uiStepRate = inputLayouts[i].m_uiInstanceStepRate;
+        const ezUInt32 uiStepRate = inputLayouts[i].m_uiInstanceStepRate;
         pLayoutDescriptor->setStepFunction(uiStepRate == 0 ? MTL::VertexStepFunctionPerVertex : MTL::VertexStepFunctionPerInstance);
         pLayoutDescriptor->setStepRate(ezMath::Max<ezUInt32>(1, uiStepRate));
       }
@@ -300,7 +300,7 @@ namespace RHI
 
       if (outputDescription.m_DepthAttachment.m_eFormat != spPixelFormat::Unknown)
       {
-        MTL::PixelFormat eFormat = spToMTL(outputDescription.m_DepthAttachment.m_eFormat, true);
+        const MTL::PixelFormat eFormat = spToMTL(outputDescription.m_DepthAttachment.m_eFormat, true);
         desc->setDepthAttachmentPixelFormat(eFormat);
 
         if (spPixelFormatHelper::IsStencilFormat(outputDescription.m_DepthAttachment.m_eFormat))
@@ -350,30 +350,33 @@ namespace RHI
       depthDescriptor->setDepthCompareFunction(spToMTL(description.m_RenderingState.m_DepthState.m_eDepthStencilComparison));
       depthDescriptor->setDepthWriteEnabled(description.m_RenderingState.m_DepthState.m_bDepthMaskEnabled);
 
-      bool stencilEnabled = description.m_RenderingState.m_StencilState.m_bEnabled;
-      if (stencilEnabled)
+      if (description.m_RenderingState.m_StencilState.m_bEnabled)
       {
         m_uiStencilReference = description.m_RenderingState.m_StencilState.m_uiReference;
 
-        const auto& frontStencilDesc = description.m_RenderingState.m_StencilState.m_Front;
-        spScopedMTLResource front(MTL::StencilDescriptor::alloc()->init());
-        front->setReadMask(description.m_RenderingState.m_StencilState.m_uiReadMask);
-        front->setWriteMask(description.m_RenderingState.m_StencilState.m_uiWriteMask);
-        front->setDepthFailureOperation(spToMTL(frontStencilDesc.m_eDepthFail));
-        front->setStencilFailureOperation(spToMTL(frontStencilDesc.m_eFail));
-        front->setDepthStencilPassOperation(spToMTL(frontStencilDesc.m_ePass));
-        front->setStencilCompareFunction(spToMTL(frontStencilDesc.m_eComparison));
-        depthDescriptor->setFrontFaceStencil(*front);
+        {
+          const auto& frontStencilDesc = description.m_RenderingState.m_StencilState.m_Front;
+          spScopedMTLResource front(MTL::StencilDescriptor::alloc()->init());
+          front->setReadMask(description.m_RenderingState.m_StencilState.m_uiReadMask);
+          front->setWriteMask(description.m_RenderingState.m_StencilState.m_uiWriteMask);
+          front->setDepthFailureOperation(spToMTL(frontStencilDesc.m_eDepthFail));
+          front->setStencilFailureOperation(spToMTL(frontStencilDesc.m_eFail));
+          front->setDepthStencilPassOperation(spToMTL(frontStencilDesc.m_ePass));
+          front->setStencilCompareFunction(spToMTL(frontStencilDesc.m_eComparison));
+          depthDescriptor->setFrontFaceStencil(*front);
+        }
 
-        const auto& backStencilDesc = description.m_RenderingState.m_StencilState.m_Back;
-        spScopedMTLResource back(MTL::StencilDescriptor::alloc()->init());
-        back->setReadMask(description.m_RenderingState.m_StencilState.m_uiReadMask);
-        back->setWriteMask(description.m_RenderingState.m_StencilState.m_uiWriteMask);
-        back->setDepthFailureOperation(spToMTL(backStencilDesc.m_eDepthFail));
-        back->setStencilFailureOperation(spToMTL(backStencilDesc.m_eFail));
-        back->setDepthStencilPassOperation(spToMTL(backStencilDesc.m_ePass));
-        back->setStencilCompareFunction(spToMTL(backStencilDesc.m_eComparison));
-        depthDescriptor->setBackFaceStencil(*back);
+        {
+          const auto& backStencilDesc = description.m_RenderingState.m_StencilState.m_Back;
+          spScopedMTLResource back(MTL::StencilDescriptor::alloc()->init());
+          back->setReadMask(description.m_RenderingState.m_StencilState.m_uiReadMask);
+          back->setWriteMask(description.m_RenderingState.m_StencilState.m_uiWriteMask);
+          back->setDepthFailureOperation(spToMTL(backStencilDesc.m_eDepthFail));
+          back->setStencilFailureOperation(spToMTL(backStencilDesc.m_eFail));
+          back->setDepthStencilPassOperation(spToMTL(backStencilDesc.m_ePass));
+          back->setStencilCompareFunction(spToMTL(backStencilDesc.m_eComparison));
+          depthDescriptor->setBackFaceStencil(*back);
+        }
       }
 
       m_pDepthStencilState = m_pMTLDevice->newDepthStencilState(*depthDescriptor);
