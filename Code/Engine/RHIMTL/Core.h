@@ -247,7 +247,7 @@ namespace RHI
       case spPixelFormat::D24UNorm:
       case spPixelFormat::D24UNormS8UInt:
         EZ_ASSERT_DEV(bDepthFormat, "Trying to use a depth format without bDepthFormat as true.");
-        return MTL::PixelFormatDepth24Unorm_Stencil8;
+        return MTL::PixelFormatDepth32Float_Stencil8;
       case spPixelFormat::D32Float:
         EZ_ASSERT_DEV(bDepthFormat, "Trying to use a depth format without bDepthFormat as true.");
         return MTL::PixelFormatDepth32Float;

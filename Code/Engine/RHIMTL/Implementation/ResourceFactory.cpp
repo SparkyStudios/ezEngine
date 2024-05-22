@@ -51,7 +51,7 @@ namespace RHI
     return pSampler;
   }
 
-  ezSharedPtr<spInputLayout> spDeviceResourceFactoryMTL::CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader)
+  ezSharedPtr<spInputLayout> spDeviceResourceFactoryMTL::CreateInputLayout(const spInputLayoutDescription& description)
   {
     ezSharedPtr<spInputLayoutMTL> pInputLayout = EZ_NEW(m_pDevice->GetAllocator(), spInputLayoutMTL, m_pDevice, description);
     m_pDevice->GetResourceManager()->RegisterResource(pInputLayout);

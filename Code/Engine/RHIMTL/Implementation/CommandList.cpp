@@ -84,7 +84,7 @@ namespace RHI
     m_pComputeCommandEncoder->dispatchThreadgroups(MTL::Size(uiGroupCountX, uiGroupCountY, uiGroupCountZ), m_pComputePipeline.Downcast<spComputePipelineMTL>()->GetDispatchSize());
   }
 
-  void spCommandListMTL::SetComputePipeline(ezSharedPtr<RHI::spComputePipeline> pComputePipeline)
+  void spCommandListMTL::SetComputePipeline(ezSharedPtr<spComputePipeline> pComputePipeline)
   {
     EZ_ASSERT_DEV(pComputePipeline != nullptr, "Invalid compute pipeline handle");
 
@@ -95,7 +95,7 @@ namespace RHI
     m_bComputePipelineChanged = true;
   }
 
-  void spCommandListMTL::SetGraphicPipeline(ezSharedPtr<RHI::spGraphicPipeline> pGraphicPipeline)
+  void spCommandListMTL::SetGraphicPipeline(ezSharedPtr<spGraphicPipeline> pGraphicPipeline)
   {
     EZ_ASSERT_DEV(pGraphicPipeline != nullptr, "Invalid graphics pipeline handle");
 
@@ -124,7 +124,7 @@ namespace RHI
     m_ScissorRects[uiSlot].height = uiHeight;
   }
 
-  void spCommandListMTL::SetViewport(ezUInt32 uiSlot, const RHI::spViewport& viewport)
+  void spCommandListMTL::SetViewport(ezUInt32 uiSlot, const spViewport& viewport)
   {
     EZ_ASSERT_DEV(uiSlot < m_Viewports.GetCount(), "Invalid viewport slot");
 
@@ -147,7 +147,7 @@ namespace RHI
     PushDebugGroup(sName);
   }
 
-  void spCommandListMTL::PopProfileScope(ezSharedPtr<RHI::spScopeProfiler>& scopeProfiler)
+  void spCommandListMTL::PopProfileScope(ezSharedPtr<spScopeProfiler>& scopeProfiler)
   {
     PopDebugGroup();
 
@@ -255,8 +255,8 @@ namespace RHI
     if (!PreDraw())
       return;
 
-    ezUInt32 uiIndexSize = m_eIndexType == MTL::IndexTypeUInt16 ? 2u : 4u;
-    ezUInt32 uiIndexBufferOffset = (uiIndexSize * uiIndexStart) + m_uiIndexBufferOffset;
+    const ezUInt32 uiIndexSize = m_eIndexType == MTL::IndexTypeUInt16 ? 2u : 4u;
+    const ezUInt32 uiIndexBufferOffset = (uiIndexSize * uiIndexStart) + m_uiIndexBufferOffset;
 
     if (uiInstanceStart == 0)
     {
@@ -265,7 +265,7 @@ namespace RHI
         uiIndexCount,
         m_eIndexType,
         m_pIndexBuffer->GetMTLBuffer(),
-        uiVertexOffset,
+        uiIndexBufferOffset,
         uiInstanceCount);
     }
     else
@@ -277,20 +277,21 @@ namespace RHI
         m_pIndexBuffer->GetMTLBuffer(),
         uiVertexOffset,
         uiInstanceCount,
-        uiVertexOffset,
+        uiIndexBufferOffset,
         uiInstanceStart);
     }
   }
 
-  void spCommandListMTL::DrawIndirectInternal(ezSharedPtr<RHI::spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride)
+  void spCommandListMTL::DrawIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride)
   {
     if (!PreDraw())
       return;
 
-    auto pIndirectBufferMTL = pIndirectBuffer.Downcast<spBufferMTL>();
+    const auto pIndirectBufferMTL = pIndirectBuffer.Downcast<spBufferMTL>();
+
     for (ezUInt32 uiDraw = 0; uiDraw < uiDrawCount; ++uiDraw)
     {
-      ezUInt32 uiCurrentOffset = uiDraw * uiStride + uiOffset;
+      const ezUInt32 uiCurrentOffset = uiDraw * uiStride + uiOffset;
       m_pRenderCommandEncoder->drawPrimitives(
         spToMTL(m_pGraphicPipeline->GetPrimitiveTopology()),
         pIndirectBufferMTL->GetMTLBuffer(),
@@ -298,15 +299,16 @@ namespace RHI
     }
   }
 
-  void spCommandListMTL::DrawIndexedIndirectInternal(ezSharedPtr<RHI::spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride)
+  void spCommandListMTL::DrawIndexedIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset, ezUInt32 uiDrawCount, ezUInt32 uiStride)
   {
     if (!PreDraw())
       return;
 
-    auto pIndirectBufferMTL = pIndirectBuffer.Downcast<spBufferMTL>();
+    const auto pIndirectBufferMTL = pIndirectBuffer.Downcast<spBufferMTL>();
+
     for (ezUInt32 uiDraw = 0; uiDraw < uiDrawCount; ++uiDraw)
     {
-      ezUInt32 uiCurrentOffset = uiDraw * uiStride + uiOffset;
+      const ezUInt32 uiCurrentOffset = uiDraw * uiStride + uiOffset;
       m_pRenderCommandEncoder->drawIndexedPrimitives(
         spToMTL(m_pGraphicPipeline->GetPrimitiveTopology()),
         m_eIndexType,
@@ -317,28 +319,28 @@ namespace RHI
     }
   }
 
-  void spCommandListMTL::DispatchIndirectInternal(ezSharedPtr<RHI::spBuffer> pIndirectBuffer, ezUInt32 uiOffset)
+  void spCommandListMTL::DispatchIndirectInternal(ezSharedPtr<spBuffer> pIndirectBuffer, ezUInt32 uiOffset)
   {
     PreDispatch();
 
-    auto pIndirectBufferMTL = pIndirectBuffer.Downcast<spBufferMTL>();
+    const auto pIndirectBufferMTL = pIndirectBuffer.Downcast<spBufferMTL>();
     m_pComputeCommandEncoder->dispatchThreadgroups(
       pIndirectBufferMTL->GetMTLBuffer(),
       uiOffset,
       m_pComputePipeline.Downcast<spComputePipelineMTL>()->GetDispatchSize());
   }
 
-  void spCommandListMTL::ResolveTextureInternal(ezSharedPtr<RHI::spTexture> pSource, ezSharedPtr<RHI::spTexture> pDestination)
+  void spCommandListMTL::ResolveTextureInternal(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination)
   {
     // TODO: This approach destroys the contents of the source Texture (according to the docs).
     EnsureNoBlitEncoder();
     EnsureNoRenderPass();
 
-    auto pSourceMTL = pSource.Downcast<spTextureMTL>();
-    auto pDestinationMTL = pDestination.Downcast<spTextureMTL>();
+    const auto pSourceMTL = pSource.Downcast<spTextureMTL>();
+    const auto pDestinationMTL = pDestination.Downcast<spTextureMTL>();
 
     spScopedMTLResource rpDesc(MTL::RenderPassDescriptor::alloc()->init());
-    auto colorAttachment = rpDesc->colorAttachments()->object(0);
+    const auto colorAttachment = rpDesc->colorAttachments()->object(0);
     colorAttachment->setTexture(pSourceMTL->GetMTLTexture());
     colorAttachment->setLoadAction(MTL::LoadActionLoad);
     colorAttachment->setStoreAction(MTL::StoreActionMultisampleResolve);
@@ -351,7 +353,7 @@ namespace RHI
     }
   }
 
-  void spCommandListMTL::SetFramebufferInternal(ezSharedPtr<RHI::spFramebuffer> pFramebuffer)
+  void spCommandListMTL::SetFramebufferInternal(ezSharedPtr<spFramebuffer> pFramebuffer)
   {
     if (!m_bCurrentFramebufferEverActive && m_pFramebuffer != nullptr)
     {
@@ -377,14 +379,14 @@ namespace RHI
     m_bCurrentFramebufferEverActive = false;
   }
 
-  void spCommandListMTL::SetIndexBufferInternal(ezSharedPtr<RHI::spBuffer> pIndexBuffer, ezEnum<RHI::spIndexFormat> eFormat, ezUInt32 uiOffset)
+  void spCommandListMTL::SetIndexBufferInternal(ezSharedPtr<spBuffer> pIndexBuffer, ezEnum<spIndexFormat> eFormat, ezUInt32 uiOffset)
   {
     m_pIndexBuffer = pIndexBuffer.Downcast<spBufferMTL>();
     m_uiIndexBufferOffset = uiOffset;
     m_eIndexType = spToMTL(eFormat);
   }
 
-  void spCommandListMTL::SetComputeResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<RHI::spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets)
+  void spCommandListMTL::SetComputeResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets)
   {
     spCommandListResourceSet& set = m_ComputeResourceSets[uiSlot];
 
@@ -396,7 +398,7 @@ namespace RHI
     m_ActiveComputeResourceSets[uiSlot] = false;
   }
 
-  void spCommandListMTL::SetGraphicResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<RHI::spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets)
+  void spCommandListMTL::SetGraphicResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets)
   {
     spCommandListResourceSet& set = m_GraphicResourceSets[uiSlot];
 
@@ -408,7 +410,7 @@ namespace RHI
     m_ActiveGraphicResourceSets[uiSlot] = false;
   }
 
-  void spCommandListMTL::SetVertexBufferInternal(ezUInt32 uiSlot, ezSharedPtr<RHI::spBuffer> pVertexBuffer, ezUInt32 uiOffset)
+  void spCommandListMTL::SetVertexBufferInternal(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer, ezUInt32 uiOffset)
   {
     const auto pBuffer = pVertexBuffer.Downcast<spBufferMTL>();
     pBuffer->EnsureResourceCreated();
@@ -427,17 +429,17 @@ namespace RHI
     }
   }
 
-  void spCommandListMTL::UpdateBufferInternal(ezSharedPtr<RHI::spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize)
+  void spCommandListMTL::UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize)
   {
-    auto pBufferMTL = pBuffer.Downcast<spBufferMTL>();
+    const auto pBufferMTL = pBuffer.Downcast<spBufferMTL>();
     pBufferMTL->EnsureResourceCreated();
 
-    auto pBufferRangeMTL = pBufferMTL->GetCurrentBuffer();
+    const auto pBufferRangeMTL = pBufferMTL->GetCurrentBuffer();
     uiOffset += pBufferRangeMTL->GetOffset();
 
-    bool bUseComputeCopy = (uiOffset % 4 != 0) || (uiSize % 4 != 0 && uiOffset != 0 && uiSize != pBuffer->GetSize());
+    const bool bUseComputeCopy = (uiOffset % 4 != 0) || (uiSize % 4 != 0 && uiOffset != 0 && uiSize != pBuffer->GetSize());
 
-    auto pStagingBuffer = GetFreeStagingBuffer(uiSize);
+    const auto pStagingBuffer = GetFreeStagingBuffer(uiSize);
     m_pDevice->UpdateBuffer(pStagingBuffer, 0, pSourceData, uiSize);
 
     if (bUseComputeCopy)
@@ -447,7 +449,7 @@ namespace RHI
     else
     {
       EZ_ASSERT_DEV(uiOffset % 4 == 0, "Buffer offset must be a multiple of 4.");
-      uint sizeRoundFactor = (4 - (uiSize % 4)) % 4;
+      const uint sizeRoundFactor = (4 - (uiSize % 4)) % 4;
       EnsureBlitEncoder();
 
       m_pBlitCommandEncoder->copyFromBuffer(
@@ -470,10 +472,10 @@ namespace RHI
     }
   }
 
-  void spCommandListMTL::CopyBufferInternal(ezSharedPtr<RHI::spBuffer> pSourceBuffer, ezUInt32 uiSourceOffset, ezSharedPtr<RHI::spBuffer> pDestinationBuffer, ezUInt32 uiDestinationOffset, ezUInt32 uiSize)
+  void spCommandListMTL::CopyBufferInternal(ezSharedPtr<spBuffer> pSourceBuffer, ezUInt32 uiSourceOffset, ezSharedPtr<spBuffer> pDestinationBuffer, ezUInt32 uiDestinationOffset, ezUInt32 uiSize)
   {
-    auto pSourceBufferMTL = pSourceBuffer.Downcast<spBufferMTL>();
-    auto pDestinationBufferMTL = pDestinationBuffer.Downcast<spBufferMTL>();
+    const auto pSourceBufferMTL = pSourceBuffer.Downcast<spBufferMTL>();
+    const auto pDestinationBufferMTL = pDestinationBuffer.Downcast<spBufferMTL>();
     pSourceBufferMTL->EnsureResourceCreated();
     pDestinationBufferMTL->EnsureResourceCreated();
 
@@ -497,7 +499,7 @@ namespace RHI
     }
   }
 
-  void spCommandListMTL::CopyTextureInternal(ezSharedPtr<RHI::spTexture> pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, ezSharedPtr<RHI::spTexture> pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount)
+  void spCommandListMTL::CopyTextureInternal(ezSharedPtr<spTexture> pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, ezSharedPtr<spTexture> pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount)
   {
     EnsureBlitEncoder();
     auto pSourceTextureMTL = pSourceTexture.Downcast<spTextureMTL>();
@@ -652,8 +654,8 @@ namespace RHI
     }
     else if (!bSourceIsStaging && bDestinationIsStaging)
     {
-      MTL::Origin srcOrigin = MTL::Origin(uiSourceX, uiSourceY, uiSourceZ);
-      MTL::Size srcSize = MTL::Size(uiWidth, uiHeight, uiDepth);
+      auto srcOrigin = MTL::Origin(uiSourceX, uiSourceY, uiSourceZ);
+      auto srcSize = MTL::Size(uiWidth, uiHeight, uiDepth);
 
       for (ezUInt32 layer = 0; layer < uiLayerCount; layer++)
       {
@@ -710,18 +712,18 @@ namespace RHI
     }
   }
 
-  void spCommandListMTL::GenerateMipmapsInternal(ezSharedPtr<RHI::spTexture> pTexture)
+  void spCommandListMTL::GenerateMipmapsInternal(ezSharedPtr<spTexture> pTexture)
   {
     EZ_ASSERT_DEV(pTexture->GetMipCount() > 1, "Texture must have at least two mip levels to generate mipmaps.");
 
     EnsureBlitEncoder();
-    auto pTextureMTL = static_cast<spTextureMTL*>(pTexture.Borrow());
+    const auto pTextureMTL = static_cast<spTextureMTL*>(pTexture.Borrow());
     pTextureMTL->EnsureResourceCreated();
 
     m_pBlitCommandEncoder->generateMipmaps(pTextureMTL->GetMTLTexture());
   }
 
-  spCommandListMTL::spCommandListMTL(RHI::spDeviceMTL* pDeviceMTL, const RHI::spCommandListDescription& description)
+  spCommandListMTL::spCommandListMTL(spDeviceMTL* pDeviceMTL, const spCommandListDescription& description)
     : spCommandList(description)
   {
     m_pDevice = pDeviceMTL;
@@ -772,72 +774,70 @@ namespace RHI
 
   bool spCommandListMTL::PreDraw()
   {
-    if (EnsureRenderPass())
+    if (!EnsureRenderPass())
+      return false;
+
+    const auto pGraphicPipelineMTL = m_pGraphicPipeline.Downcast<spGraphicPipelineMTL>();
+    EZ_ASSERT_DEV(pGraphicPipelineMTL != nullptr, "No graphics pipeline has been set.");
+
+    if (m_bViewportsChanged)
     {
-      auto pGraphicPipelineMTL = m_pGraphicPipeline.Downcast<spGraphicPipelineMTL>();
-      EZ_ASSERT_DEV(pGraphicPipelineMTL != nullptr, "No graphics pipeline has been set.");
-
-      if (m_bViewportsChanged)
-      {
-        FlushViewports();
-        m_bViewportsChanged = false;
-      }
-
-      if (m_bScissorRectsChanged && pGraphicPipelineMTL->IsScissorTestEnabled())
-      {
-        FlushScissorRects();
-        m_bScissorRectsChanged = false;
-      }
-
-      if (m_bGraphicPipelineChanged)
-      {
-        m_pRenderCommandEncoder->setRenderPipelineState(pGraphicPipelineMTL->GetPipelineState());
-        m_pRenderCommandEncoder->setCullMode(pGraphicPipelineMTL->GetCullMode());
-        m_pRenderCommandEncoder->setFrontFacingWinding(pGraphicPipelineMTL->GetWinding());
-        m_pRenderCommandEncoder->setTriangleFillMode(pGraphicPipelineMTL->GetFillMode());
-
-        ezColor blendColor = pGraphicPipelineMTL->GetBlendColor();
-        m_pRenderCommandEncoder->setBlendColor(blendColor.r, blendColor.g, blendColor.b, blendColor.a);
-
-        if (!m_pFramebuffer->GetDepthTarget().IsInvalidated())
-        {
-          m_pRenderCommandEncoder->setDepthStencilState(pGraphicPipelineMTL->GetDepthStencilState());
-          m_pRenderCommandEncoder->setDepthClipMode(pGraphicPipelineMTL->GetDepthClipMode());
-          m_pRenderCommandEncoder->setStencilReferenceValue(pGraphicPipelineMTL->GetStencilReference());
-        }
-      }
-
-      for (ezUInt32 i = 0, l = pGraphicPipelineMTL->GetResourceLayouts().GetCount(); i < l; i++)
-      {
-        if (!m_ActiveGraphicResourceSets[i])
-        {
-          ActivateGraphicResourceSet(i, m_GraphicResourceSets[i]);
-          m_ActiveGraphicResourceSets[i] = true;
-        }
-      }
-
-      for (uint i = 0, l = pGraphicPipelineMTL->GetVertexBufferCount(); i < l; i++)
-      {
-        if (!m_ActiveVertexBuffers[i])
-        {
-          m_pRenderCommandEncoder->setVertexBuffer(
-            m_VertexBuffers[i]->GetMTLBuffer(),
-            m_VertexOffsets[i],
-            pGraphicPipelineMTL->GetNonVertexBufferCount() + i);
-        }
-      }
-
-      return true;
+      FlushViewports();
+      m_bViewportsChanged = false;
     }
 
-    return false;
+    if (m_bScissorRectsChanged && pGraphicPipelineMTL->IsScissorTestEnabled())
+    {
+      FlushScissorRects();
+      m_bScissorRectsChanged = false;
+    }
+
+    if (m_bGraphicPipelineChanged)
+    {
+      m_pRenderCommandEncoder->setRenderPipelineState(pGraphicPipelineMTL->GetPipelineState());
+      m_pRenderCommandEncoder->setCullMode(pGraphicPipelineMTL->GetCullMode());
+      m_pRenderCommandEncoder->setFrontFacingWinding(pGraphicPipelineMTL->GetWinding());
+      m_pRenderCommandEncoder->setTriangleFillMode(pGraphicPipelineMTL->GetFillMode());
+
+      const ezColor blendColor = pGraphicPipelineMTL->GetBlendColor();
+      m_pRenderCommandEncoder->setBlendColor(blendColor.r, blendColor.g, blendColor.b, blendColor.a);
+
+      if (!m_pFramebuffer->GetDepthTarget().IsInvalidated())
+      {
+        m_pRenderCommandEncoder->setDepthStencilState(pGraphicPipelineMTL->GetDepthStencilState());
+        m_pRenderCommandEncoder->setDepthClipMode(pGraphicPipelineMTL->GetDepthClipMode());
+        m_pRenderCommandEncoder->setStencilReferenceValue(pGraphicPipelineMTL->GetStencilReference());
+      }
+    }
+
+    for (ezUInt32 i = 0, l = pGraphicPipelineMTL->GetResourceLayouts().GetCount(); i < l; i++)
+    {
+      if (m_ActiveGraphicResourceSets[i])
+        continue;
+
+      ActivateGraphicResourceSet(i, m_GraphicResourceSets[i]);
+      m_ActiveGraphicResourceSets[i] = true;
+    }
+
+    for (uint i = 0, l = pGraphicPipelineMTL->GetVertexBufferCount(); i < l; i++)
+    {
+      if (m_ActiveVertexBuffers[i])
+        continue;
+
+      m_pRenderCommandEncoder->setVertexBuffer(
+        m_VertexBuffers[i]->GetMTLBuffer(),
+        m_VertexOffsets[i],
+        pGraphicPipelineMTL->GetNonVertexBufferCount() + i);
+    }
+
+    return true;
   }
 
   void spCommandListMTL::PreDispatch()
   {
     EnsureComputeEncoder();
 
-    auto pComputePipelineMTL = m_pComputePipeline.Downcast<spComputePipelineMTL>();
+    const auto pComputePipelineMTL = m_pComputePipeline.Downcast<spComputePipelineMTL>();
 
     if (m_bComputePipelineChanged)
     {
@@ -846,11 +846,11 @@ namespace RHI
 
     for (uint i = 0, l = pComputePipelineMTL->GetResourceLayouts().GetCount(); i < l; i++)
     {
-      if (!m_ActiveComputeResourceSets[i])
-      {
-        ActivateComputeResourceSet(i, m_ComputeResourceSets[i]);
-        m_ActiveComputeResourceSets[i] = true;
-      }
+      if (m_ActiveComputeResourceSets[i])
+        continue;
+
+      ActivateComputeResourceSet(i, m_ComputeResourceSets[i]);
+      m_ActiveComputeResourceSets[i] = true;
     }
   }
 
@@ -977,6 +977,7 @@ namespace RHI
       {
         auto* attachment = rpDesc->colorAttachments()->object(i);
         attachment->setLoadAction(MTL::LoadActionClear);
+        attachment->setStoreAction(MTL::StoreActionStore);
         ezColor c = m_ClearColors[i];
         attachment->setClearColor(MTL::ClearColor(c.r, c.g, c.b, c.a));
         m_ClearColors[i] = ezColor::MakeNaN();
@@ -987,6 +988,7 @@ namespace RHI
     {
       MTL::RenderPassDepthAttachmentDescriptor* depthAttachment = rpDesc->depthAttachment();
       depthAttachment->setLoadAction(MTL::LoadActionClear);
+      depthAttachment->setStoreAction(MTL::StoreActionStore);
       depthAttachment->setClearDepth(m_fClearDepth);
 
       const auto pTexture = m_pDevice->GetResourceManager()->GetResource<spTexture>(m_pFramebuffer->GetDepthTarget());
@@ -996,6 +998,7 @@ namespace RHI
       {
         MTL::RenderPassStencilAttachmentDescriptor* stencilAttachment = rpDesc->stencilAttachment();
         stencilAttachment->setLoadAction(MTL::LoadActionClear);
+        stencilAttachment->setStoreAction(MTL::StoreActionStore);
         stencilAttachment->setClearStencil(m_uiClearStencil);
       }
 
@@ -1008,7 +1011,7 @@ namespace RHI
       SP_RHI_MTL_RETAIN(m_pRenderCommandEncoder);
     }
 
-    SP_RHI_MTL_RELEASE(rpDesc);
+    // SP_RHI_MTL_RELEASE(rpDesc);
     m_bCurrentFramebufferEverActive = true;
 
     if (m_bIsInDebugGroup)
@@ -1024,7 +1027,7 @@ namespace RHI
 
   void spCommandListMTL::FlushViewports()
   {
-    auto* pDeviceMTL = static_cast<spDeviceMTL*>(m_pDevice);
+    const auto* pDeviceMTL = static_cast<spDeviceMTL*>(m_pDevice);
 
     if (pDeviceMTL->GetSupportedFeatures().IsSupported(MTL::FeatureSet_macOS_GPUFamily1_v3))
     {
@@ -1038,7 +1041,7 @@ namespace RHI
 
   void spCommandListMTL::FlushScissorRects()
   {
-    auto* pDeviceMTL = static_cast<spDeviceMTL*>(m_pDevice);
+    const auto* pDeviceMTL = static_cast<spDeviceMTL*>(m_pDevice);
 
     if (pDeviceMTL->GetSupportedFeatures().IsSupported(MTL::FeatureSet_macOS_GPUFamily1_v3))
     {
@@ -1064,15 +1067,15 @@ namespace RHI
 
   void spCommandListMTL::ActivateResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet)
   {
-    auto pResourceSetMTL = m_pDevice->GetResourceManager()->GetResource<spResourceSetMTL>(resourceSet.m_hResourceSet);
-    auto pResourceLayoutMTL = m_pDevice->GetResourceManager()->GetResource<spResourceLayoutMTL>(pResourceSetMTL->GetLayout());
+    const auto pResourceSetMTL = m_pDevice->GetResourceManager()->GetResource<spResourceSetMTL>(resourceSet.m_hResourceSet);
+    const auto pResourceLayoutMTL = m_pDevice->GetResourceManager()->GetResource<spResourceLayoutMTL>(pResourceSetMTL->GetLayout());
 
     ezUInt32 uiDynamicOffsetIndex = 0;
 
     for (ezUInt32 i = 0, l = pResourceSetMTL->GetResources().GetCount(); i < l; i++)
     {
-      auto bindingInfo = pResourceLayoutMTL->GetBinding(i);
-      auto hResource = pResourceSetMTL->GetResource(i);
+      const auto bindingInfo = pResourceLayoutMTL->GetBinding(i);
+      const auto hResource = pResourceSetMTL->GetResource(i);
 
       ezUInt32 uiBufferOffset = 0;
       if (bindingInfo.m_bDynamicBuffer)
@@ -1085,37 +1088,37 @@ namespace RHI
       {
         case spShaderResourceType::ConstantBuffer:
         {
-          auto pRange = spResourceHelper::GetBufferRange(m_pDevice, hResource, uiBufferOffset).Downcast<spBufferRangeMTL>();
+          const auto pRange = spResourceHelper::GetBufferRange(m_pDevice, hResource, uiBufferOffset).Downcast<spBufferRangeMTL>();
           BindBuffer(pRange, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
           break;
         }
         case spShaderResourceType::ReadOnlyTexture:
         {
-          auto pTexView = spTextureSamplerManager::GetTextureView(m_pDevice, hResource).Downcast<spTextureViewMTL>();
+          const auto pTexView = spTextureSamplerManager::GetTextureView(m_pDevice, hResource).Downcast<spTextureViewMTL>();
           BindTexture(pTexView, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
           break;
         }
         case spShaderResourceType::ReadWriteTexture:
         {
-          auto pTexViewRW = spTextureSamplerManager::GetTextureView(m_pDevice, hResource).Downcast<spTextureViewMTL>();
+          const auto pTexViewRW = spTextureSamplerManager::GetTextureView(m_pDevice, hResource).Downcast<spTextureViewMTL>();
           BindTexture(pTexViewRW, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
           break;
         }
         case spShaderResourceType::Sampler:
         {
-          auto pSampler = m_pDevice->GetResourceManager()->GetResource<spSamplerMTL>(hResource);
+          const auto pSampler = m_pDevice->GetResourceManager()->GetResource<spSamplerMTL>(hResource);
           BindSampler(pSampler, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
           break;
         }
         case spShaderResourceType::ReadOnlyStructuredBuffer:
         {
-          auto pRange = spResourceHelper::GetBufferRange(m_pDevice, hResource, uiBufferOffset).Downcast<spBufferRangeMTL>();
+          const auto pRange = spResourceHelper::GetBufferRange(m_pDevice, hResource, uiBufferOffset).Downcast<spBufferRangeMTL>();
           BindBuffer(pRange, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
           break;
         }
         case spShaderResourceType::ReadWriteStructuredBuffer:
         {
-          auto pRange = spResourceHelper::GetBufferRange(m_pDevice, hResource, uiBufferOffset).Downcast<spBufferRangeMTL>();
+          const auto pRange = spResourceHelper::GetBufferRange(m_pDevice, hResource, uiBufferOffset).Downcast<spBufferRangeMTL>();
           BindBuffer(pRange, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
           break;
         }
@@ -1129,9 +1132,9 @@ namespace RHI
   void spCommandListMTL::BindBuffer(ezSharedPtr<spBufferRangeMTL> pBuffer, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages)
   {
     pBuffer->EnsureResourceCreated();
-    ezUInt32 uiBaseBuffer = GetBufferBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
+    const ezUInt32 uiBaseBuffer = GetBufferBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
 
-    auto* pMTLBuffer = pBuffer->GetBuffer().Downcast<spBufferMTL>()->GetMTLBuffer();
+    const auto* pMTLBuffer = pBuffer->GetBuffer().Downcast<spBufferMTL>()->GetMTLBuffer();
 
     if (eStages.IsSet(spShaderStage::ComputeShader))
     {
@@ -1141,7 +1144,7 @@ namespace RHI
     {
       if (eStages.IsSet(spShaderStage::VertexShader))
       {
-        ezUInt32 index = uiSlot + uiBaseBuffer;
+        const ezUInt32 index = uiSlot + uiBaseBuffer;
         m_pRenderCommandEncoder->setVertexBuffer(pMTLBuffer, pBuffer->GetOffset(), index);
       }
 
@@ -1155,7 +1158,7 @@ namespace RHI
   void spCommandListMTL::BindTexture(ezSharedPtr<spTextureViewMTL> pTextureView, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages)
   {
     pTextureView->EnsureResourceCreated();
-    ezUInt32 uiBaseTexture = GetTextureBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
+    const ezUInt32 uiBaseTexture = GetTextureBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
 
     if (eStages.IsSet(spShaderStage::ComputeShader))
     {
@@ -1178,7 +1181,7 @@ namespace RHI
   void spCommandListMTL::BindSampler(ezSharedPtr<spSamplerMTL> pSampler, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages)
   {
     pSampler->EnsureResourceCreated();
-    ezUInt32 uiBaseSampler = GetSamplerBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
+    const ezUInt32 uiBaseSampler = GetSamplerBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
 
     if (eStages.IsSet(spShaderStage::ComputeShader))
     {
@@ -1247,15 +1250,15 @@ namespace RHI
 
       for (auto buffer : m_AvailableStagingBuffers)
       {
-        if (buffer->GetSize() >= uiSize)
-        {
-          m_AvailableStagingBuffers.RemoveAndCopy(buffer);
-          return buffer;
-        }
+        if (buffer->GetSize() < uiSize)
+          continue;
+
+        m_AvailableStagingBuffers.RemoveAndCopy(buffer);
+        return buffer;
       }
     }
 
-    auto pBuffer = m_pDevice->GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging));
+    const auto pBuffer = m_pDevice->GetResourceFactory()->CreateBuffer(spBufferDescription(uiSize, spBufferUsage::Staging));
     return pBuffer.Downcast<spBufferMTL>();
   }
 } // namespace RHI

@@ -365,9 +365,8 @@ namespace RHI
 
     /// \brief Creates a new spInputLayout resource.
     /// \param [in] description The description of the input layout resource to create.
-    /// \param [in] hShader The handle to the shader resource used by the input layout.
     /// @return An handle to the created input layout resource.
-    virtual ezSharedPtr<spInputLayout> CreateInputLayout(const spInputLayoutDescription& description, const spResourceHandle& hShader) = 0;
+    virtual ezSharedPtr<spInputLayout> CreateInputLayout(const spInputLayoutDescription& description) = 0;
 
     /// \brief Creates a new spBuffer resource.
     /// \param [in] description The description of the buffer resource to create.
