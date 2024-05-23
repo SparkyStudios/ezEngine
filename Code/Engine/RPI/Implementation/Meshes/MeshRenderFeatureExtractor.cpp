@@ -47,17 +47,11 @@ namespace RPI
     return ezResult(EZ_SUCCESS);
   }
 
-  void spMeshRenderFeatureExtractor::Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext, const spRenderView* pRenderView)
+  void spMeshRenderFeatureExtractor::Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext)
   {
-    if (!pRenderView->GetUsage().IsSet(spRenderViewUsage::Main))
-      return; // Nothing to extract from this view
-
-    spVisibilityGroup visibilityGroup(pSceneContext);
-
     spExtractMeshRenderObjectMessage message;
     message.m_pRenderContext = pRenderContext;
-    message.m_pRenderView = pRenderView;
-    message.m_Objects = EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spRenderObjectCollection, &visibilityGroup);
+    message.m_Objects = pSceneContext->GetVisibilityGroup()->GetRenderObjectCollection();
 
     {
       EZ_LOCK(pSceneContext->GetWorld()->GetWriteMarker());
@@ -65,17 +59,15 @@ namespace RPI
       for (auto it = pSceneContext->GetWorld()->GetObjects(); it.IsValid(); it.Next())
       {
         spMeshComponent* component = nullptr;
-        if (it->TryGetComponentOfBaseType<spMeshComponent>(component) && component != nullptr)
-        {
-          // TODO: Send this only if the object is visible and within the view frustum
-          component->SendMessage(message);
-        }
+        if (!it->TryGetComponentOfBaseType<spMeshComponent>(component) || component == nullptr)
+          continue;
+
+        // TODO: Send this only if the object is visible and within the view frustum
+        component->SendMessage(message);
       }
     }
 
     // TODO: Handle caching if game object is static or render object caching behavior is set to always
-
-    EZ_DELETE(RHI::spDeviceAllocatorWrapper::GetAllocator(), message.m_Objects);
   }
 } // namespace RPI
 

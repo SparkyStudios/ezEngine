@@ -115,7 +115,7 @@ namespace RPI
     MarkAsDirty();
   }
 
-  void spCamera::SetRenderGroupMask(ezBitflags<spRenderGroupMask> eRenderGroupMask)
+  void spCamera::SetRenderGroupMask(ezBitflags<spRenderGroup> eRenderGroupMask)
   {
     m_eRenderGroupMask = eRenderGroupMask;
     MarkAsDirty();
@@ -267,8 +267,8 @@ namespace RPI
       return;
 
     const RHI::spDeviceCapabilities& capabilities = spRenderSystem::GetSingleton()->GetDevice()->GetCapabilities();
-    ezClipSpaceDepthRange::Enum depthRange = capabilities.m_bIsDepthRangeZeroToOne ? ezClipSpaceDepthRange::ZeroToOne : ezClipSpaceDepthRange::MinusOneToOne;
-    ezClipSpaceYMode::Enum clipSpaceYMode = capabilities.m_bIsClipSpaceYInverted ? ezClipSpaceYMode::Flipped : ezClipSpaceYMode::Regular;
+    const ezClipSpaceDepthRange::Enum depthRange = capabilities.m_bIsDepthRangeZeroToOne ? ezClipSpaceDepthRange::ZeroToOne : ezClipSpaceDepthRange::MinusOneToOne;
+    const ezClipSpaceYMode::Enum clipSpaceYMode = capabilities.m_bIsClipSpaceYInverted ? ezClipSpaceYMode::Flipped : ezClipSpaceYMode::Regular;
 
     switch (m_eProjectionMode.GetValue())
     {
@@ -314,7 +314,7 @@ namespace RPI
     m_pRenderView->SetUsage(m_eRenderViewUsage);
 
     {
-      auto viewData = m_pRenderView->GetDataBuffer().Write();
+      const auto viewData = m_pRenderView->GetDataBuffer().Write();
       viewData->m_Position = GetPosition();
       viewData->m_NearClipPlane = GetNearPlaneDistance();
       viewData->m_PreviousPosition = m_vPreviousPosition;

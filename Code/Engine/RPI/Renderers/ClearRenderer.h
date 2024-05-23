@@ -34,7 +34,7 @@ namespace RPI
     // spClearRenderer
 
   public:
-    struct spClearFlags
+    struct ClearFlags
     {
       typedef ezUInt8 StorageType;
 
@@ -80,20 +80,20 @@ namespace RPI
     EZ_ALWAYS_INLINE void SetClearStencil(ezUInt8 uiStencil) { m_uiClearStencil = uiStencil; }
 
     /// \brief Gets the clear flags.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezBitflags<spClearFlags> GetClearFlags() const { return m_eClearFlags; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezBitflags<ClearFlags> GetClearFlags() const { return m_eClearFlags; }
 
     /// \brief Sets the clear flags.
     /// \param eFlags The clear flags to set.
-    EZ_ALWAYS_INLINE void SetClearFlags(ezBitflags<spClearFlags> eFlags) { m_eClearFlags = eFlags; }
+    EZ_ALWAYS_INLINE void SetClearFlags(ezBitflags<ClearFlags> eFlags) { m_eClearFlags = eFlags; }
 
 #pragma endregion
 
   private:
-    ezBitflags<spClearFlags> m_eClearFlags{spClearFlags::Default};
+    ezBitflags<ClearFlags> m_eClearFlags{ClearFlags::Default};
     ezColor m_ClearColor{ezColor::SkyBlue};
     float m_fClearDepth{1.0f};
     ezUInt8 m_uiClearStencil{0};
   };
 } // namespace RPI
 
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RPI_DLL, RPI::spClearRenderer::spClearFlags);
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RPI_DLL, RPI::spClearRenderer::ClearFlags);

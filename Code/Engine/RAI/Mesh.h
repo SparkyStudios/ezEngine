@@ -289,6 +289,9 @@ namespace RAI
     /// of this mesh.
     void CreateRHIIndirectBuffer();
 
+    /// \brief Creates the RHI input layout for this mesh.
+    void CreateRHIInputLayout();
+
     /// \brief Gets the RHI buffer resource for the vertex buffer.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIVertexBuffer() const { return m_pRHIVertexBuffer; }
 
@@ -298,7 +301,8 @@ namespace RAI
     /// \brief Gets the RHI buffer resource for the indirect buffer (draw commands).
     EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndirectBuffer() const { return m_pRHIIndirectBuffer; }
 
-    void GetRHIInputLayoutDescription(RHI::spInputLayoutDescription& out_InputLayoutDescription) const;
+    /// \brief Gets the RHI input layout for this mesh.
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spInputLayout> GetRHIInputLayout() const { return m_pRHIInputLayout; }
 
     /// \brief Generate draw commands.
     /// \param [out] out_DrawCommands The generated array of draw commands.
@@ -308,6 +312,7 @@ namespace RAI
     ezSharedPtr<RHI::spBuffer> m_pRHIVertexBuffer{nullptr};
     ezSharedPtr<RHI::spBuffer> m_pRHIIndexBuffer{nullptr};
     ezSharedPtr<RHI::spBuffer> m_pRHIIndirectBuffer{nullptr};
+    ezSharedPtr<RHI::spInputLayout> m_pRHIInputLayout{nullptr};
 
 #pragma endregion
   };

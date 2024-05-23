@@ -28,61 +28,12 @@ namespace RPI
 {
   class spCompositor;
   class spSceneContext;
-  class spCamera;
-
-  /// \brief A struct used to create and hold references to render nodes.
-  /// Theses references are most of the time indices to a render node from
-  /// an array.
-  struct SP_RPI_DLL spRenderNodeReference
-  {
-  public:
-    EZ_DECLARE_POD_TYPE();
-
-    /// \brief Makes an invalid reference.
-    static spRenderNodeReference MakeInvalid();
-
-    /// \brief Makes a reference to a node.
-    /// \param [in] iReference The reference to the node.
-    explicit spRenderNodeReference(ezInt32 iReference);
-
-    /// \brief Gets the reference. It's typically the index of the render node
-    /// in the collection it is associated with.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezInt32 GetRef() const { return m_iRef; }
-
-    /// \brief Checks if the reference is invalid.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsInvalid() const { return m_iRef == -1; }
-
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spRenderNodeReference& rhs) const
-    {
-      return m_iRef == rhs.m_iRef;
-    }
-
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spRenderNodeReference& rhs) const
-    {
-      return m_iRef != rhs.m_iRef;
-    }
-
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator<(const spRenderNodeReference& rhs) const
-    {
-      return m_iRef < rhs.m_iRef;
-    }
-
-    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderNodeReference operator+(const ezInt32 rhs) const
-    {
-      return spRenderNodeReference(m_iRef + rhs);
-    }
-
-    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderNodeReference operator*(const ezInt32 rhs) const
-    {
-      return spRenderNodeReference(m_iRef * rhs);
-    }
-
-  private:
-    ezInt32 m_iRef{-1};
-  };
+  class spRenderStage;
 
   class SP_RPI_DLL spRenderSystem
   {
+    friend class spSceneContext;
+
     EZ_DECLARE_SINGLETON(spRenderSystem);
 
   public:
@@ -99,9 +50,9 @@ namespace RPI
     void Startup(ezUniquePtr<RHI::spDevice>&& pDevice);
     void Shutdown();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezUniquePtr<RHI::spDevice>& GetDevice() const { return m_pDevice; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spDevice* GetDevice() const { return m_pDevice.Borrow(); }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezUniquePtr<spRenderThread>& GetRenderThread() const { return m_pRenderThread; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderThread* GetRenderThread() const { return m_pRenderThread.Borrow(); }
 
     EZ_NODISCARD ezSharedPtr<spCompositor> GetCompositor() const;
 
@@ -113,29 +64,31 @@ namespace RPI
 
     void UnregisterSceneForWorld(const ezWorld* pWorld);
 
-    spCameraSlotHandle CreateCameraSlot(ezStringView sName);
-    void DeleteCameraSlot(const spCameraSlotHandle& hSlot);
-    EZ_NODISCARD const spCameraSlot* GetCameraSlot(const spCameraSlotHandle& hSlot) const;
+#pragma region Render Stages
 
-    EZ_NODISCARD spCameraSlotHandle GetCameraSlotByName(ezStringView sName) const;
+    /// \brief Registers a new render stage in the \a spRenderSystem.
+    /// \param pRenderStage The render stage to register.
+    void RegisterRenderStage(spRenderStage* pRenderStage);
 
-    void AssignSlotToCamera(const spCameraSlotHandle& hSlot, spCamera* pCamera);
+    /// \brief Unregisters a render stage from the \a spRenderSystem.
+    /// \param pRenderStage The render stage to unregister.
+    void UnregisterRenderStage(spRenderStage* pRenderStage);
 
-    EZ_NODISCARD spCamera* GetCameraBySlot(const spCameraSlotHandle& hSlot) const;
+    /// \brief Gets a registered render stage.
+    /// \param uiIndex The index of the render stage to get.
+    /// \return The render stage at the given index.
+    spRenderStage* GetRenderStage(ezUInt32 uiIndex) const;
 
-    const spRenderer* GetGameRenderer() const;
+    /// \brief Gets the number of registered render stages.
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetRenderStageCount() const { return m_RenderStages.GetCount(); }
 
-  protected:
-    using spCameraSlotTable = ezIdTable<spCameraSlotHandle::IdType, spCameraSlot*, RHI::spDeviceAllocatorWrapper>;
+    /// \brief Gets all registered render stages.
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<spRenderStage* const> GetRenderStages() const { return m_RenderStages.GetArrayPtr(); }
+
+#pragma endregion
 
   private:
     static ezUInt64 s_uiFrameCount;
-
-    spRenderSystem* m_pRenderSystem{nullptr};
-
-    spCameraSlotTable m_CameraSlots;
-    ezArrayMap<ezStringView, spCameraSlotHandleId> m_CameraSlotsByName;
-    ezArrayMap<spCameraSlotHandleId, spCamera*> m_AssignedCameraSlots;
 
     bool m_bInitialized{false};
 
@@ -144,5 +97,6 @@ namespace RPI
     ezSharedPtr<spCompositor> m_pCompositor{nullptr};
 
     ezArrayMap<const ezWorld*, spSceneContext*> m_RegisteredWorldScenes;
+    ezHybridArray<spRenderStage*, 16> m_RenderStages;
   };
 } // namespace RPI

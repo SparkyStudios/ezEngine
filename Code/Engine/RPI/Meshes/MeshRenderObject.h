@@ -22,6 +22,7 @@ namespace RPI
 {
   class SP_RPI_DLL spMeshRenderObject final : public spRenderObject
   {
+    friend class spMeshComponent;
     friend class spMeshRenderFeature;
     friend class spMeshRenderFeatureExtractor;
 

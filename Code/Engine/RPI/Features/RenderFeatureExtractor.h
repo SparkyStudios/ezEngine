@@ -33,9 +33,8 @@ namespace RPI
     spRenderFeatureExtractor() = default;
     ~spRenderFeatureExtractor() override = default;
 
-    /// \brief Extracts a specific set of render objects from the given view.
+    /// \brief Extracts all the available render objects from the given scene.
     /// \param [in] pRenderContext The rendering context in which the extraction occurs.
-    /// \param [in] pRenderView The render view from which extract render objects.
-    virtual void Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext, const spRenderView* pRenderView);
+    virtual void Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext);
   };
 } // namespace RPI

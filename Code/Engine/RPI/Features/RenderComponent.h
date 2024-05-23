@@ -50,7 +50,7 @@ namespace RPI
     /// This method is used when the bounds of the rendered item needs to be updated.
     /// If \see ezResultEnum::EZ_SUCCESS is returned, the bounding box is guaranteed to be valid and the values of
     /// \a ref_bounds and \a ref_bAlwaysVisible are propagated to the \see ezMsgUpdateLocalBounds message.
-    virtual ezResult GetLocalBounds(ezBoundingBoxSphere& ref_bounds, bool& ref_bAlwaysVisible) const = 0;
+    virtual ezResult GetLocalBounds(ezBoundingBoxSphere& ref_bounds, bool& ref_bAlwaysVisible) = 0;
 
     /// \brief Triggers an update of the local space bounding box of this component.
     void TriggerLocalBoundsUpdate();

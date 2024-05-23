@@ -46,7 +46,7 @@ namespace RPI
   class SP_RPI_DLL spCamera
   {
     friend class spCameraComponent;
-    friend class spRenderSystem;
+    friend class spCompositor;
 
   public:
     spCamera();
@@ -88,8 +88,8 @@ namespace RPI
     void SetExposureCompensation(float fExposureCompensation);
     EZ_NODISCARD EZ_ALWAYS_INLINE float GetExposureCompensation() const { return m_fExposureCompensation; }
 
-    void SetRenderGroupMask(ezBitflags<spRenderGroupMask> eRenderGroupMask);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezBitflags<spRenderGroupMask> GetRenderGroupMask() const { return m_eRenderGroupMask; }
+    void SetRenderGroupMask(ezBitflags<spRenderGroup> eRenderGroupMask);
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezBitflags<spRenderGroup> GetRenderGroupMask() const { return m_eRenderGroupMask; }
 
     EZ_NODISCARD float GetEV100() const;
     EZ_NODISCARD float GetExposure() const;
@@ -133,7 +133,7 @@ namespace RPI
 
     // Render View Properties
     ezBitflags<spRenderViewUsage> m_eRenderViewUsage{spRenderViewUsage::Default};
-    ezBitflags<spRenderGroupMask> m_eRenderGroupMask{spRenderGroupMask::Default};
+    ezBitflags<spRenderGroup> m_eRenderGroupMask{spRenderGroup::Default};
     bool m_bCullingEnabled{true};
 
     // Camera Properties

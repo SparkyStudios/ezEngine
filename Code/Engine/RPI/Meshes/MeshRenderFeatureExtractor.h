@@ -36,9 +36,6 @@ namespace RPI
     /// \brief The \a spRenderContext in which data are being extracted.
     const spRenderContext* m_pRenderContext{nullptr};
 
-    /// \brief The \a spRenderView in which data are being extracted.
-    const spRenderView* m_pRenderView{nullptr};
-
     /// \brief The \a spRenderObjectCollection in which mesh render objects are filled.
     spRenderObjectCollection* m_Objects{nullptr};
   };
@@ -53,6 +50,6 @@ namespace RPI
     // spRenderFeatureExtractor
 
   public:
-    void Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext, const spRenderView* pRenderView) override;
+    void Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext) override;
   };
 } // namespace RPI

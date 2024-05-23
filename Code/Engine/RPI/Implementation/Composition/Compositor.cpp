@@ -14,6 +14,7 @@
 
 #include <RPI/RPIPCH.h>
 
+#include <RPI/Camera/Camera.h>
 #include <RPI/Composition/Compositor.h>
 #include <RPI/Core/Renderer.h>
 
@@ -56,5 +57,68 @@ namespace RPI
 
   spCompositor::spCompositor()
   {
+  }
+
+  spCameraSlotHandle spCompositor::CreateCameraSlot(ezStringView sName)
+  {
+    spCameraSlot* pSlot = EZ_DEFAULT_NEW(spCameraSlot, sName);
+    spCameraSlotHandleId idSlot = m_CameraSlots.Insert(std::move(pSlot));
+    pSlot->m_Handle.m_InternalId = idSlot;
+
+    m_CameraSlotsByName.Insert(sName, idSlot);
+
+    return pSlot->m_Handle;
+  }
+
+  void spCompositor::DeleteCameraSlot(const spCameraSlotHandle& hSlot)
+  {
+    spCameraSlot* pSlot = nullptr;
+    if (!m_CameraSlots.TryGetValue(hSlot, pSlot))
+      return;
+
+    if (const ezUInt32 uiIndex = m_AssignedCameraSlots.Find(hSlot.m_InternalId); uiIndex != ezInvalidIndex)
+    {
+      spCamera* pCamera = m_AssignedCameraSlots.GetValue(uiIndex);
+      pCamera->m_hCameraSlot.Invalidate();
+
+      m_AssignedCameraSlots.RemoveAtAndCopy(uiIndex);
+      m_AssignedCameraSlots.Compact();
+    }
+
+    m_CameraSlots.Remove(hSlot);
+    EZ_DEFAULT_DELETE(pSlot);
+  }
+
+  const spCameraSlot* spCompositor::GetCameraSlot(const spCameraSlotHandle& hSlot) const
+  {
+    spCameraSlot* pSlot = nullptr;
+    if (!m_CameraSlots.TryGetValue(hSlot, pSlot))
+      return nullptr;
+
+    return pSlot;
+  }
+
+  spCameraSlotHandle spCompositor::GetCameraSlotByName(ezStringView sName) const
+  {
+    const ezUInt32 uiIndex = m_CameraSlotsByName.Find(sName);
+    if (uiIndex == ezInvalidIndex)
+      return spCameraSlotHandle();
+
+    return spCameraSlotHandle(m_CameraSlotsByName.GetValue(uiIndex));
+  }
+
+  void spCompositor::AssignSlotToCamera(const spCameraSlotHandle& hSlot, spCamera* pCamera)
+  {
+    pCamera->m_hCameraSlot = hSlot;
+    m_AssignedCameraSlots[hSlot.m_InternalId] = pCamera;
+  }
+
+  spCamera* spCompositor::GetCameraBySlot(const spCameraSlotHandle& hSlot) const
+  {
+    const ezUInt32 uiIndex = m_AssignedCameraSlots.Find(hSlot.m_InternalId);
+    if (uiIndex == ezInvalidIndex)
+      return nullptr;
+
+    return m_AssignedCameraSlots.GetValue(uiIndex);
   }
 } // namespace RPI

@@ -54,37 +54,57 @@ namespace RPI
     // spRenderComponent
 
   public:
-    ezResult GetLocalBounds(ezBoundingBoxSphere& ref_bounds, bool& ref_bAlwaysVisible) const override;
+    ezResult GetLocalBounds(ezBoundingBoxSphere& ref_bounds, bool& ref_bAlwaysVisible) override;
 
     // spMeshComponent
 
   public:
     spMeshComponent();
-    virtual ~spMeshComponent() = default;
+    ~spMeshComponent() override = default;
 
 #pragma region Methods
 
+  public:
+    /// \brief Sets the handle to the mesh resource to be rendered.
+    /// \param hMeshResource The handle to the mesh resource to be rendered.
     void SetMesh(const RAI::spMeshResourceHandle& hMeshResource);
-    EZ_ALWAYS_INLINE const RAI::spMeshResourceHandle& GetMesh() const { return m_hMeshResource; }
+
+    /// \brief Returns the handle to the mesh resource to be rendered.
+    EZ_ALWAYS_INLINE const RAI::spMeshResourceHandle& GetMesh() const { return m_RenderObject.m_hMeshResource; }
+
+#pragma endregion
 
 #pragma region Messages
 
-    void OnMsgExtract(spExtractMeshRenderObjectMessage& ref_msg) const;
+  private:
+    /// \brief Called when the \a spMeshRenderFeature want to extract render data from this mesh.
+    /// \param ref_msg The extraction message.
+    void OnMsgExtract(spExtractMeshRenderObjectMessage& ref_msg);
 
 #pragma endregion
 
 #pragma region Properties
 
+  public:
+    /// \brief Sets the mesh file to be rendered.
+    /// \param szMeshFile The path to the mesh file to be rendered.
     void SetMeshFile(const char* szMeshFile);
-    [[nodiscard]] const char* GetMeshFile() const;
 
+    /// \brief Returns the path to the mesh file to be rendered.
+    EZ_NODISCARD const char* GetMeshFile() const;
+
+    /// \brief Sets the sorting order of the mesh.
+    /// \param fSortingOrder The sorting order of the mesh.
     void SetSortingOrder(float fSortingOrder);
-    [[nodiscard]] float GetSortingOrder() const;
+
+    /// \brief Returns the sorting order of the mesh.
+    EZ_NODISCARD float GetSortingOrder() const;
 
 #pragma endregion
 
   private:
-    RAI::spMeshResourceHandle m_hMeshResource;
     float m_fSortingOrder{0.0f};
+
+    spMeshRenderObject m_RenderObject;
   };
 } // namespace RPI

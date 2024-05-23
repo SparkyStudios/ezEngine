@@ -23,7 +23,7 @@ namespace RPI
   EZ_END_DYNAMIC_REFLECTED_TYPE
   // clang-format on
 
-  void spRenderFeatureExtractor::Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext, const spRenderView* pRenderView)
+  void spRenderFeatureExtractor::Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext)
   {
   }
 } // namespace RPI

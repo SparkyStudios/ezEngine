@@ -96,10 +96,13 @@ namespace RPI
     EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spDevice* GetDevice() const { return m_pDevice; }
 
     /// \brief Gets the \a spRenderContext which stores drawing data for this scene.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderContext* GetRenderContext() const { return m_pRenderContext.Borrow(); }
+    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderContext* GetRenderContext() const { return m_pRenderContext.Borrow(); }
 
-    /// \brief Gets the \a spRenderContext which stores drawing data for this scene.
-    EZ_ALWAYS_INLINE spRenderContext* GetRenderContext() { return m_pRenderContext.Borrow(); }
+    /// \brief Gets the \a spVisibilityGroup for this scene.
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spVisibilityGroup* GetVisibilityGroup() const { return m_pVisibilityGroup.Borrow(); }
+
+    /// \brief Gets the \a spVisibilityGroup for this scene.
+    EZ_ALWAYS_INLINE spVisibilityGroup* GetVisibilityGroup() { return m_pVisibilityGroup.Borrow(); }
 
     /// \brief Get the \a ezWorld which this scene belongs to.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezWorld* GetWorld() const { return m_pWorld; }
@@ -159,6 +162,7 @@ namespace RPI
     ezSharedPtr<RHI::spFence> m_pFence{nullptr};
 
     ezUniquePtr<spRenderContext> m_pRenderContext{nullptr};
+    ezUniquePtr<spVisibilityGroup> m_pVisibilityGroup{nullptr};
 
     spConcurrentCollector<spRenderView*> m_RenderViewCollector;
     spConcurrentCollector<spRenderStage*> m_RenderStageCollector;

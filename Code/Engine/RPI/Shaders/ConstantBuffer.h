@@ -140,7 +140,7 @@ namespace RPI
   class spConstantBufferView
   {
   public:
-    explicit spConstantBufferView(const spConstantBuffer<T>* pBuffer)
+    explicit spConstantBufferView(const spConstantBuffer<std::remove_const_t<T>>* pBuffer)
     {
       m_pBuffer = pBuffer;
       m_uiDataHash = pBuffer->GetHash();
@@ -179,6 +179,6 @@ namespace RPI
 
   private:
     ezUInt32 m_uiDataHash{0};
-    const spConstantBuffer<T>* m_pBuffer{nullptr};
+    const spConstantBuffer<std::remove_const_t<T>>* m_pBuffer{nullptr};
   };
 } // namespace RPI

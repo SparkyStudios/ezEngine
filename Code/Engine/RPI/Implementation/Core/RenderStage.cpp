@@ -25,4 +25,28 @@ namespace RPI
   EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRenderStage, 1, ezRTTINoAllocator)
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
-}
+
+  spRenderStage::spRenderStage(ezStringView sName)
+  {
+    m_sName.Assign(sName);
+    spRenderSystem::GetSingleton()->RegisterRenderStage(this);
+  }
+
+  RHI::spOutputDescription spRenderStage::GetOutputDescription(const spRenderView* pRenderView) const
+  {
+    const ezUInt32 uiIndex = m_RenderViewFramebuffers.Find(pRenderView);
+    if (uiIndex == ezInvalidIndex)
+      return {};
+
+    return m_RenderViewFramebuffers.GetValue(uiIndex)->GetOutputDescription();
+  }
+
+  ezSharedPtr<RHI::spFramebuffer> spRenderStage::GetOutputFramebuffer(const spRenderView* pRenderView) const
+  {
+    const ezUInt32 uiIndex = m_RenderViewFramebuffers.Find(pRenderView);
+    if (uiIndex == ezInvalidIndex)
+      return nullptr;
+
+    return m_RenderViewFramebuffers.GetValue(uiIndex);
+  }
+} // namespace RPI

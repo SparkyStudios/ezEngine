@@ -18,55 +18,11 @@
 
 namespace RPI
 {
-  /// \brief A group in which render objects are assigned. \a spRenderView has a group mask which stores one or
-  /// more groups, specifying what are the render objects that should be rendered by this view.
+  /// \brief A group in which render objects are assigned.
+  ///
+  /// In a \a spRenderView it's used as a group mask which stores one or more groups, specifying
+  /// what are the render objects that should be rendered by this view.
   struct SP_RPI_DLL spRenderGroup
-  {
-    typedef ezInt32 StorageType;
-
-    enum Enum : StorageType
-    {
-      None = -1,
-
-      Group0 = 0,
-      Group1 = 1,
-      Group2 = 2,
-      Group3 = 3,
-      Group4 = 4,
-      Group5 = 5,
-      Group6 = 6,
-      Group7 = 7,
-      Group8 = 8,
-      Group9 = 9,
-      Group10 = 10,
-      Group11 = 11,
-      Group12 = 12,
-      Group13 = 13,
-      Group14 = 14,
-      Group15 = 15,
-      Group16 = 16,
-      Group17 = 17,
-      Group18 = 18,
-      Group19 = 19,
-      Group20 = 20,
-      Group21 = 21,
-      Group22 = 22,
-      Group23 = 23,
-      Group24 = 24,
-      Group25 = 25,
-      Group26 = 26,
-      Group27 = 27,
-      Group28 = 28,
-      Group29 = 29,
-      Group30 = 30,
-      Group31 = 31,
-
-      Default = None,
-    };
-  };
-
-  /// \brief A mask of \a spRenderGroup for use in a \a spRenderView.
-  struct SP_RPI_DLL spRenderGroupMask
   {
     typedef ezUInt32 StorageType;
 
@@ -151,4 +107,3 @@ namespace RPI
 } // namespace RPI
 
 EZ_DECLARE_REFLECTABLE_TYPE(SP_RPI_DLL, RPI::spRenderGroup);
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RPI_DLL, RPI::spRenderGroupMask);

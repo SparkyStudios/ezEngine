@@ -27,7 +27,7 @@ namespace RPI
   {
     EZ_DECLARE_HANDLE_TYPE(spCameraSlotHandle, spCameraSlotHandleId);
 
-    friend class spRenderSystem;
+    friend class spCompositor;
     friend class spCameraSlot;
   };
 
@@ -43,7 +43,7 @@ namespace RPI
   /// \see spCamera
   class SP_RPI_DLL spCameraSlot : public ezReflectedClass
   {
-    friend class spRenderSystem;
+    friend class spCompositor;
 
     EZ_ADD_DYNAMIC_REFLECTION(spCameraSlot, ezReflectedClass);
 
@@ -65,20 +65,11 @@ namespace RPI
         m_sName.Assign(sName);
     }
 
-    /// \brief Sets the pipeline assigned to this slot.
-    /// \param pRenderer The new pipeline to assign to this slot.
-    void SetRenderer(const spRenderer* pRenderer);
-
-    /// \brief Gets the pipeline assigned to this slot.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderer* GetRenderer() const { return m_pRenderer; }
-
   private:
     spCameraSlot(ezStringView sName);
 
     spCameraSlotHandle m_Handle;
 
     ezHashedString m_sName;
-
-    const spRenderer* m_pRenderer{nullptr};
   };
 } // namespace RPI

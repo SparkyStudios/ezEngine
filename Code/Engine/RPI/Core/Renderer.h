@@ -20,6 +20,8 @@
 
 namespace RPI
 {
+  class spSceneContext;
+
   class SP_RPI_DLL spRenderer : public ezReflectedClass
   {
     EZ_ADD_DYNAMIC_REFLECTION(spRenderer, ezReflectedClass);

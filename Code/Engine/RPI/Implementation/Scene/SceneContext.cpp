@@ -16,6 +16,7 @@
 
 #include <RPI/Core/RenderContext.h>
 #include <RPI/Core/Renderer.h>
+#include <RPI/Core/VisibilityGroup.h>
 #include <RPI/Pipeline/RenderPipeline.h>
 #include <RPI/Scene/SceneContext.h>
 
@@ -35,6 +36,7 @@ namespace RPI
     m_pFence = pDevice->GetResourceFactory()->CreateFence(spFenceDescription(false));
 
     m_pRenderContext = EZ_NEW(pDevice->GetAllocator(), spRenderContext, pDevice);
+    m_pVisibilityGroup = EZ_NEW(pDevice->GetAllocator(), spVisibilityGroup, this);
   }
 
   spSceneContext::~spSceneContext()
@@ -52,10 +54,6 @@ namespace RPI
 
   void spSceneContext::Collect()
   {
-    m_RenderViewCollector.Clear();
-    m_RenderStageCollector.Clear();
-    m_RenderFeatureCollector.Clear();
-
     // Collect render views and extractors from providers
     spSceneContextCollectEvent event{};
     event.m_Type = spSceneContextCollectEvent::Type::Collect;
@@ -74,12 +72,18 @@ namespace RPI
 
   void spSceneContext::Extract()
   {
+    if (m_RenderViewCollector.IsEmpty())
+      return; // Nothing to extract when there are no render views
+
     // Prepare views
     for (ezUInt32 i = 0, l = m_RenderViewCollector.GetCount(); i < l; i++)
     {
       // Update view index
       spRenderView* view = m_RenderViewCollector[i];
       view->SetIndex(i);
+
+      // Update view viewport
+      view->SetViewport({0, 0, 640, 480}); // TODO: Get values from game resolution settings
     }
 
     // Trigger the "before extract" event
@@ -89,9 +93,12 @@ namespace RPI
     s_ExtractEvent.Broadcast(event);
 
     // Extract render data from views
+    for (const auto& feature : m_RenderFeatureCollector)
+      feature->Extract(this, m_pRenderContext.Borrow());
+
+    // Collect visible objects from each view
     for (const auto& view : m_RenderViewCollector)
-      for (const auto& feature : m_RenderFeatureCollector)
-        feature->Extract(this, m_pRenderContext.Borrow(), view);
+      m_pVisibilityGroup->Extract(view);
 
     // Trigger the "after extract" event
     event.m_Type = spSceneContextExtractEvent::Type::AfterExtract;
@@ -100,12 +107,16 @@ namespace RPI
 
   void spSceneContext::Prepare()
   {
+    if (m_RenderViewCollector.IsEmpty())
+      return; // Nothing to prepare when there are no render views
+
     spSceneContextPrepareEvent event{};
     event.m_Type = spSceneContextPrepareEvent::Type::BeforePrepare;
     event.m_pSceneContext = this;
     s_PrepareEvent.Broadcast(event);
 
     // TODO
+    spRenderSystem::GetSingleton()->GetCompositor()->m_pGameRenderer->Prepare();
 
     // Trigger the "after prepare" event
     event.m_Type = spSceneContextPrepareEvent::Type::AfterPrepare;
@@ -126,6 +137,9 @@ namespace RPI
 
   void spSceneContext::Draw()
   {
+    if (m_RenderViewCollector.IsEmpty())
+      return; // Nothing to draw when there are no render views
+
     // Trigger the "before draw" event
     spSceneContextDrawEvent event{};
     event.m_Type = spSceneContextDrawEvent::Type::BeforeDraw;
@@ -155,15 +169,21 @@ namespace RPI
     m_pDevice->EndFrame();
 
     Reset();
+
+    spRenderSystem::s_uiFrameCount++;
   }
 
   void spSceneContext::Flush()
   {
+    m_RenderViewCollector.Clear();
+    m_RenderStageCollector.Clear();
+    m_RenderFeatureCollector.Clear();
   }
 
   void spSceneContext::Reset()
   {
     m_pRenderContext->Reset();
+    m_pVisibilityGroup->Reset();
   }
 
   void spSceneContext::WaitForIdle()

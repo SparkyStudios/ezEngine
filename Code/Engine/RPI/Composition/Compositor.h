@@ -16,12 +16,15 @@
 
 #include <RPI/RPIDLL.h>
 
+#include <RPI/Camera/CameraSlot.h>
+
 namespace RPI
 {
   class spRenderSystem;
   class spRenderContext;
   class spRenderFeature;
   class spRenderer;
+  class spCamera;
 
   class SP_RPI_DLL spCompositorEntryPoint : public ezReflectedClass
   {
@@ -50,9 +53,26 @@ namespace RPI
     spCompositor();
     ~spCompositor() override = default;
 
+    spCameraSlotHandle CreateCameraSlot(ezStringView sName);
+    void DeleteCameraSlot(const spCameraSlotHandle& hSlot);
+    EZ_NODISCARD const spCameraSlot* GetCameraSlot(const spCameraSlotHandle& hSlot) const;
+
+    EZ_NODISCARD spCameraSlotHandle GetCameraSlotByName(ezStringView sName) const;
+
+    void AssignSlotToCamera(const spCameraSlotHandle& hSlot, spCamera* pCamera);
+
+    EZ_NODISCARD spCamera* GetCameraBySlot(const spCameraSlotHandle& hSlot) const;
+
     // Cached values
     spRenderer* m_pGameRenderer{nullptr};
     spRenderer* m_pEditorRenderer{nullptr};
     spRenderer* m_pPreviewRenderer{nullptr};
+
+  private:
+    using spCameraSlotTable = ezIdTable<spCameraSlotHandle::IdType, spCameraSlot*>;
+
+    spCameraSlotTable m_CameraSlots;
+    ezArrayMap<ezStringView, spCameraSlotHandleId> m_CameraSlotsByName;
+    ezArrayMap<spCameraSlotHandleId, spCamera*> m_AssignedCameraSlots;
   };
 } // namespace RPI

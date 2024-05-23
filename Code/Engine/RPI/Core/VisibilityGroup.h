@@ -37,18 +37,23 @@ namespace RPI
 
     void Reset();
 
-    void Collect(spRenderView* pView);
+    void Extract(spRenderView* pView);
 
     void Copy(spRenderView* pSource, spRenderView* pDestination);
 
+    spRenderObjectCollection* GetRenderObjectCollection() { return &m_RenderObjects; }
+
   private:
+    static void EvaluateActiveRenderStages(spRenderObject* pRenderObject);
+
     void AddRenderObject(spRenderObjectCollection* pCollection, spRenderObject* pRenderObject);
     void RemoveRenderObject(spRenderObjectCollection* pCollection, spRenderObject* pRenderObject);
 
-    void EvaluateActiveRenderStages(spRenderObject* pRenderObject);
+    void EvaluateActiveRenderStages();
 
     bool m_bNeedRenderStageEvaluation{false};
     ezDynamicArray<spRenderObject*> m_RenderObjectsWithoutFeatures{nullptr};
+    spRenderObjectCollection m_RenderObjects{nullptr};
 
     spSceneContext* m_pSceneContext{nullptr};
   };
