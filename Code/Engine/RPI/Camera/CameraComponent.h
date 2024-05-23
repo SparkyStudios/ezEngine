@@ -105,8 +105,8 @@ namespace RPI
     void SetExposureCompensation(float fExposureCompensation);
     EZ_NODISCARD float GetExposureCompensation() const;
 
-    void SetRenderGroupMask(ezBitflags<spRenderGroupMask> eRenderGroupMask);
-    ezBitflags<spRenderGroupMask> GetRenderGroupMask() const;
+    void SetRenderGroupMask(ezBitflags<spRenderGroup> eRenderGroupMask);
+    ezBitflags<spRenderGroup> GetRenderGroupMask() const;
 
     EZ_NODISCARD float GetEV100() const;
     EZ_NODISCARD float GetExposure() const;

@@ -32,9 +32,22 @@ namespace RPI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
+  spRenderView::~spRenderView()
+  {
+    m_VisibleRenderObjects.Clear();
+  }
+
   void spRenderView::SetData(const spRenderViewData& data)
   {
     m_RenderViewDataBuffer.Set(data);
+  }
+
+  ezFrustum spRenderView::GetFrustum() const
+  {
+    const RHI::spDeviceCapabilities& capabilities = spRenderSystem::GetSingleton()->GetDevice()->GetCapabilities();
+    const ezClipSpaceDepthRange::Enum depthRange = capabilities.m_bIsDepthRangeZeroToOne ? ezClipSpaceDepthRange::ZeroToOne : ezClipSpaceDepthRange::MinusOneToOne;
+    const auto data = m_RenderViewDataBuffer.Read();
+    return ezFrustum::MakeFromMVP(data->m_Projection, depthRange, ezHandedness::LeftHanded);
   }
 } // namespace RPI
 

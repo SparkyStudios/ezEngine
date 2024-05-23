@@ -16,7 +16,12 @@
 
 #include <RPI/RPIDLL.h>
 
+#include <RPI/Core/RenderNodeReference.h>
 #include <RPI/Core/SortMode.h>
+
+#include <RHI/Framebuffer.h>
+#include <RHI/Output.h>
+#include <RHI/Rendering.h>
 
 namespace RPI
 {
@@ -55,16 +60,35 @@ namespace RPI
   /// \see spRenderStageFilter
   class SP_RPI_DLL spRenderStage : public ezReflectedClass
   {
+    friend class spRenderSystem;
+
     EZ_ADD_DYNAMIC_REFLECTION(spRenderStage, ezReflectedClass);
 
   public:
+    explicit spRenderStage(ezStringView sName);
+    ~spRenderStage() override = default;
+
     virtual void Filter(const spRenderView& renderView, const ezArrayPtr<spRenderObject>& renderObjects, ezArrayPtr<spRenderObject>& out_filteredRenderObjects, ezArrayPtr<spRenderObject>& out_unfilteredRenderObjects) = 0;
     virtual void Sort(const spRenderView& renderView, const ezArrayPtr<spRenderObject>& renderObjects, ezArrayPtr<spRenderObject>& out_sortedRenderObjects) = 0;
 
-  private:
+    virtual bool IsActiveForRenderObject(const spRenderObject* pRenderObject) const = 0;
+
+    virtual RHI::spOutputDescription GetOutputDescription(const spRenderView* pRenderView) const;
+    virtual RHI::spRenderingState GetRenderingState(const spRenderObject* pRenderObject) const = 0;
+
+    EZ_NODISCARD ezSharedPtr<RHI::spFramebuffer> GetOutputFramebuffer(const spRenderView* pRenderView) const;
+
+    virtual void CreateOutputFramebuffer(const spRenderView* pRenderView) = 0;
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderNodeReference GetRenderSystemReference() const { return m_RenderSystemReference; }
+
+  protected:
     ezHashedString m_sName;
 
     ezUniquePtr<spSortMode> m_pSortMode{nullptr};
     ezUniquePtr<spRenderStageFilter> m_pFilter{nullptr};
+    ezArrayMap<const spRenderView*, ezSharedPtr<RHI::spFramebuffer>> m_RenderViewFramebuffers;
+
+    spRenderNodeReference m_RenderSystemReference{spRenderNodeReference::MakeInvalid()};
   };
 } // namespace RPI

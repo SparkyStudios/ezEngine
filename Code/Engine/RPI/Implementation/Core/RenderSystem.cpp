@@ -28,16 +28,6 @@ namespace RPI
 {
   EZ_IMPLEMENT_SINGLETON(spRenderSystem);
 
-  spRenderNodeReference spRenderNodeReference::MakeInvalid()
-  {
-    return spRenderNodeReference(-1);
-  }
-
-  spRenderNodeReference::spRenderNodeReference(ezInt32 iReference)
-    : m_iRef(iReference)
-  {
-  }
-
   ezUInt64 spRenderSystem::s_uiFrameCount = 0;
 
   bool spRenderSystem::IsMultiThreadedRendering()
@@ -115,65 +105,36 @@ namespace RPI
     m_RegisteredWorldScenes.RemoveAndCopy(pWorld);
   }
 
-  spCameraSlotHandle spRenderSystem::CreateCameraSlot(ezStringView sName)
+  void spRenderSystem::RegisterRenderStage(spRenderStage* pRenderStage)
   {
-    spCameraSlot* pSlot = EZ_DEFAULT_NEW(spCameraSlot, sName);
-    spCameraSlotHandleId idSlot = m_CameraSlots.Insert(std::move(pSlot));
-    pSlot->m_Handle.m_InternalId = idSlot;
+    EZ_ASSERT_DEV(pRenderStage != nullptr, "Trying to register a null render stage");
 
-    m_CameraSlotsByName.Insert(sName, idSlot);
-
-    return pSlot->m_Handle;
-  }
-
-  void spRenderSystem::DeleteCameraSlot(const spCameraSlotHandle& hSlot)
-  {
-    if (spCameraSlot* pSlot = nullptr; !m_CameraSlots.TryGetValue(hSlot, pSlot))
+    if (!pRenderStage->m_RenderSystemReference.IsInvalid())
       return;
 
-    if (const ezUInt32 uiIndex = m_AssignedCameraSlots.Find(hSlot.m_InternalId); uiIndex != ezInvalidIndex)
-    {
-      spCamera* pCamera = m_AssignedCameraSlots.GetValue(uiIndex);
-      pCamera->m_hCameraSlot.Invalidate();
-
-      m_AssignedCameraSlots.RemoveAtAndCopy(uiIndex);
-      m_AssignedCameraSlots.Compact();
-    }
-
-    m_CameraSlots.Remove(hSlot);
+    pRenderStage->m_RenderSystemReference = spRenderNodeReference(m_RenderStages.GetCount());
+    m_RenderStages.PushBack(pRenderStage);
   }
 
-  const spCameraSlot* spRenderSystem::GetCameraSlot(const spCameraSlotHandle& hSlot) const
+  void spRenderSystem::UnregisterRenderStage(spRenderStage* pRenderStage)
   {
-    spCameraSlot* pSlot = nullptr;
-    if (!m_CameraSlots.TryGetValue(hSlot, pSlot))
-      return nullptr;
+    EZ_ASSERT_DEV(pRenderStage != nullptr, "Trying to unregister a null render stage");
 
-    return pSlot;
+    const auto& reference = pRenderStage->m_RenderSystemReference;
+    if (reference.IsInvalid())
+      return;
+
+    m_RenderStages.RemoveAtAndSwap(reference.GetRef());
+
+    if (reference.GetRef() < m_RenderStages.GetCount())
+      m_RenderStages[reference.GetRef()]->m_RenderSystemReference = spRenderNodeReference(reference.GetRef());
+
+    pRenderStage->m_RenderSystemReference = spRenderNodeReference::MakeInvalid();
   }
 
-  spCameraSlotHandle spRenderSystem::GetCameraSlotByName(ezStringView sName) const
+  spRenderStage* spRenderSystem::GetRenderStage(ezUInt32 uiIndex) const
   {
-    const ezUInt32 uiIndex = m_CameraSlotsByName.Find(sName);
-    if (uiIndex == ezInvalidIndex)
-      return spCameraSlotHandle();
-
-    return spCameraSlotHandle(m_CameraSlotsByName.GetValue(uiIndex));
-  }
-
-  void spRenderSystem::AssignSlotToCamera(const spCameraSlotHandle& hSlot, spCamera* pCamera)
-  {
-    pCamera->m_hCameraSlot = hSlot;
-    m_AssignedCameraSlots[hSlot.m_InternalId] = pCamera;
-  }
-
-  spCamera* spRenderSystem::GetCameraBySlot(const spCameraSlotHandle& hSlot) const
-  {
-    const ezUInt32 uiIndex = m_AssignedCameraSlots.Find(hSlot.m_InternalId);
-    if (uiIndex == ezInvalidIndex)
-      return nullptr;
-
-    return m_AssignedCameraSlots.GetValue(uiIndex);
+    return m_RenderStages[uiIndex];
   }
 } // namespace RPI
 

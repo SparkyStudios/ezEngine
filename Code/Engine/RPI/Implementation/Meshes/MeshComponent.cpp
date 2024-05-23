@@ -82,10 +82,10 @@ namespace RPI
 
   void spMeshComponent::SetMesh(const RAI::spMeshResourceHandle& hMeshResource)
   {
-    if (m_hMeshResource == hMeshResource)
+    if (m_RenderObject.m_hMeshResource == hMeshResource)
       return;
 
-    m_hMeshResource = hMeshResource;
+    m_RenderObject.m_hMeshResource = hMeshResource;
 
     TriggerLocalBoundsUpdate();
   }
@@ -97,7 +97,7 @@ namespace RPI
 
     stream.WriteVersion(kMeshComponentVersion);
 
-    stream << m_hMeshResource;
+    stream << m_RenderObject.m_hMeshResource;
     stream << m_fSortingOrder;
   }
 
@@ -108,28 +108,31 @@ namespace RPI
 
     stream.ReadVersion(kMeshComponentVersion);
 
-    stream >> m_hMeshResource;
+    stream >> m_RenderObject.m_hMeshResource;
     stream >> m_fSortingOrder;
   }
 
-  ezResult spMeshComponent::GetLocalBounds(ezBoundingBoxSphere& ref_bounds, bool& ref_bAlwaysVisible) const
+  ezResult spMeshComponent::GetLocalBounds(ezBoundingBoxSphere& ref_bounds, bool& ref_bAlwaysVisible)
   {
-    if (m_hMeshResource.IsValid())
+    if (m_RenderObject.m_hMeshResource.IsValid())
     {
-      ezResourceLock<RAI::spMeshResource> pMesh(m_hMeshResource, ezResourceAcquireMode::AllowLoadingFallback);
+      ezResourceLock<RAI::spMeshResource> pMesh(m_RenderObject.m_hMeshResource, ezResourceAcquireMode::AllowLoadingFallback);
       ref_bounds = pMesh->GetLOD(0).GetBounds();
+      ref_bounds.m_vCenter = GetOwner()->GetGlobalPosition();
+      m_RenderObject.m_BoundingBox = ref_bounds.GetBox();
       return EZ_SUCCESS;
     }
 
     return EZ_FAILURE;
   }
 
-  void spMeshComponent::OnMsgExtract(spExtractMeshRenderObjectMessage& ref_msg) const
+  void spMeshComponent::OnMsgExtract(spExtractMeshRenderObjectMessage& ref_msg)
   {
-    if (!m_hMeshResource.IsValid())
+    if (!m_RenderObject.m_hMeshResource.IsValid())
       return;
 
     // TODO
+    ref_msg.m_Objects->Add(&m_RenderObject);
   }
 
   void spMeshComponent::SetMeshFile(const char* szMeshFile)
@@ -137,16 +140,14 @@ namespace RPI
     RAI::spMeshResourceHandle hMeshResource;
 
     if (!ezStringUtils::IsNullOrEmpty(szMeshFile))
-    {
       hMeshResource = ezResourceManager::LoadResource<RAI::spMeshResource>(szMeshFile);
-    }
 
     SetMesh(hMeshResource);
   }
 
   const char* spMeshComponent::GetMeshFile() const
   {
-    return m_hMeshResource.IsValid() ? m_hMeshResource.GetResourceID().GetData() : "";
+    return m_RenderObject.m_hMeshResource.IsValid() ? m_RenderObject.m_hMeshResource.GetResourceID().GetData() : "";
   }
 
   void spMeshComponent::SetSortingOrder(float fSortingOrder)

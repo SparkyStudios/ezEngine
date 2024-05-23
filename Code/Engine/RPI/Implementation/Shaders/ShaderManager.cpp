@@ -126,7 +126,7 @@ namespace RPI
       case spShaderSpecializationConstantType::Double:
         return "double"_ezsv;
     }
-}
+  }
 
   spShaderManager::spShaderManager()
     : m_SingletonRegistrar(this)
@@ -144,9 +144,7 @@ namespace RPI
 
   ezSharedPtr<RHI::spShader> spShaderManager::CompileShader(RAI::spShaderResourceHandle hShaderResource, spShaderCompilerSetup& ref_compilerSetup, slang::IComponentType** out_pShaderProgram)
   {
-    const ezUInt32 uiHash = ezHashingUtils::CombineHashValues32(
-      ezHashingUtils::StringHashTo32(hShaderResource.GetResourceIDHash()),
-      ref_compilerSetup.CalculateHash());
+    const ezUInt32 uiHash = ezHashingUtils::CombineHashValues32(ezHashingUtils::StringHashTo32(hShaderResource.GetResourceIDHash()), ref_compilerSetup.CalculateHash());
 
     if (!m_ShaderKernelCache.Contains(uiHash))
     {
@@ -251,9 +249,7 @@ namespace RPI
 
     for (const auto& specialization : compilerSetup.m_SpecializationConstants)
     {
-      shaderCode.AppendFormat("export static const {} o_{} = ",
-        GetSlangType(specialization.m_eType),
-        specialization.m_sName.GetData());
+      shaderCode.AppendFormat("export static const {} o_{} = ", GetSlangType(specialization.m_eType), specialization.m_sName.GetData());
 
       switch (specialization.m_eType)
       {
@@ -295,10 +291,7 @@ namespace RPI
     const Slang::ComPtr<slang::IBlob> pCode(EZ_DEFAULT_NEW(spSlangByteBlob, shaderCode));
     ezLog::Info("{}", static_cast<const char*>(pCode->getBufferPointer()));
 
-    Slang::ComPtr<slang::IModule> pModule(pSession->loadModuleFromSource(
-      "specialization-constants",
-      "specialization-constants.slang",
-      pCode));
+    Slang::ComPtr<slang::IModule> pModule(pSession->loadModuleFromSource("specialization-constants", "specialization-constants.slang", pCode));
 
     return pModule;
   }
@@ -349,18 +342,17 @@ namespace RPI
     sEngineShadersPathBuilder.AppendPath("Shaders", "Lib");
 
     ezStringBuilder sProjectShadersPathBuilder;
-    if (ezFileSystem::ResolvePath(":project/Shaders/Lib", &sProjectShadersPathBuilder, nullptr).Failed())
+
+    ezDynamicArray<const char*> searchPaths;
+    searchPaths.PushBack(sEngineShadersPathBuilder);
+
+    if (ezFileSystem::ResolvePath(":project/Shaders/Lib", &sProjectShadersPathBuilder, nullptr).Succeeded())
     {
-      const char* searchPaths[] = {sEngineShadersPathBuilder.GetData()};
-      desc.searchPaths = searchPaths;
-      desc.searchPathCount = 1;
+      searchPaths.PushBack(sProjectShadersPathBuilder);
     }
-    else
-    {
-      const char* searchPaths[] = {sEngineShadersPathBuilder.GetData(), sProjectShadersPathBuilder.GetData()};
-      desc.searchPaths = searchPaths;
-      desc.searchPathCount = 2;
-    }
+
+    desc.searchPaths = searchPaths.GetData();
+    desc.searchPathCount = searchPaths.GetCount();
 
     ezStringBuilder sbTempStorage;
     ref_compilerSetup.m_PredefinedMacros.PushBack({"SP_RHI_API", ezFmt("{}", eGraphicsApi.GetValue()).GetTextCStr(sbTempStorage)});

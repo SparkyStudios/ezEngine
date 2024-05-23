@@ -42,10 +42,10 @@ namespace RPI
 
     virtual void GetSupportedRenderObjectTypes(ezHybridArray<const ezRTTI*, 8>& out_Types) const = 0;
 
-    virtual void Render(const spRenderContext* pRenderingContext) const = 0;
+    virtual void Draw(spRenderObject* pRenderObject, const spRenderContext* pRenderingContext) = 0;
 
     /// \brief Called at the initialization of the \a spCompositor.
-    /// \param[in] pRenderContext The rendering context for which the feature is initialized.
+    /// \param [in] pRenderContext The rendering context for which the feature is initialized.
     void Initialize(const spRenderContext* pRenderContext);
 
     /// \brief Called at the deinitialization of the \a spCompositor.
@@ -64,8 +64,7 @@ namespace RPI
 
     /// \brief Extracts a specific set of render objects from the given view.
     /// \param [in] pRenderContext The rendering context in which the extraction occurs.
-    /// \param [in] pRenderView The render view from which extract render objects.
-    void Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext, const spRenderView* pRenderView) const;
+    void Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext) const;
 
   protected:
     /// \brief Tries to add a \a spRenderObject in the feature.

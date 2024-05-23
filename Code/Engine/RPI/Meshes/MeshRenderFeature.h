@@ -19,6 +19,8 @@
 #include <RPI/Features/RenderFeature.h>
 #include <RPI/Meshes/MeshRenderFeatureExtractor.h>
 
+#include <RAI/Resources/ShaderResource.h>
+
 namespace RPI
 {
   class SP_RPI_DLL spMeshRenderFeature final : public spRenderFeature
@@ -29,7 +31,7 @@ namespace RPI
 
   public:
     void GetSupportedRenderObjectTypes(ezHybridArray<const ezRTTI*, 8>& out_Types) const override;
-    void Render(const spRenderContext* pRenderingContext) const override;
+    void Draw(spRenderObject* pRenderObject, const spRenderContext* pRenderingContext) override;
 
     // spMeshRenderFeature
 
@@ -38,6 +40,12 @@ namespace RPI
     ~spMeshRenderFeature() override = default;
 
   private:
-
+    ezTypedResourceHandle<RAI::spShaderResource> m_hShader;
+    ezSharedPtr<RHI::spShader> m_pVertexShader;
+    ezSharedPtr<RHI::spShader> m_pPixelShader;
+    ezSharedPtr<RHI::spShaderProgram> m_pShaderProgram;
+    ezSharedPtr<RHI::spResourceLayout> m_pResourceLayout;
+    ezSharedPtr<RHI::spResourceSet> m_pResourceSet;
+    ezSharedPtr<RHI::spGraphicPipeline> m_pGraphicPipeline;
   };
 } // namespace RPI

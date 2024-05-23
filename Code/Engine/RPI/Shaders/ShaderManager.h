@@ -188,19 +188,22 @@ namespace RPI
     ezUInt32 CalculateHash() const
     {
       ezUInt32 uiHash = 0;
-      uiHash += ezHashingUtils::xxHash32(&m_eStage, sizeof(m_eStage), uiHash);
+      uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32(&m_eStage, sizeof(m_eStage), uiHash));
+
       for (const auto& macro : m_PredefinedMacros)
       {
-        uiHash += ezHashingUtils::xxHash32String(macro.name, uiHash);
-        uiHash += ezHashingUtils::xxHash32String(macro.value, uiHash);
+        uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32String(macro.name, uiHash));
+        uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32String(macro.value, uiHash));
       }
+
       for (const auto& constant : m_SpecializationConstants)
       {
-        uiHash += ezHashingUtils::xxHash32String(constant.m_sName, uiHash);
+        uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32String(constant.m_sName, uiHash));
         spShaderSpecializationConstantType::Enum eType = constant.m_eType;
-        uiHash += ezHashingUtils::xxHash32(&eType, sizeof(eType), uiHash);
-        uiHash += ezHashingUtils::xxHash32(&constant.m_uiValue, sizeof(constant.m_uiValue), uiHash);
+        uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32(&eType, sizeof(eType), uiHash));
+        uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32(&constant.m_uiValue, sizeof(constant.m_uiValue), uiHash));
       }
+
       return uiHash;
     }
   };

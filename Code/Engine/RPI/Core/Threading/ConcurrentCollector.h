@@ -49,6 +49,9 @@ namespace RPI
     /// \brief Gets the number of items in the collection.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetCount() const { return m_uiCount; }
 
+    /// \brief Checks whether the collection is empty.
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsEmpty() const { return m_uiCount == 0; }
+
     /// \brief Consolidates all items into a single contiguous array.
     /// \note This method should be called before to access the collection.
     void Close();

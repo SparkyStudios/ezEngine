@@ -93,7 +93,7 @@ namespace RPI
       EZ_ACCESSOR_PROPERTY("Slot", GetCameraSlot, SetCameraSlot)->AddAttributes(new ezDynamicStringEnumAttribute("CameraSlot")),
 
       EZ_BITFLAGS_ACCESSOR_PROPERTY("Usage", spRenderViewUsage, GetRenderViewUsage, SetRenderViewUsage)->AddAttributes(new ezDefaultValueAttribute(spRenderViewUsage::Default)),
-      EZ_BITFLAGS_ACCESSOR_PROPERTY("RenderGroup", spRenderGroupMask, GetRenderGroupMask, SetRenderGroupMask)->AddAttributes(new ezDefaultValueAttribute(spRenderGroupMask::Default)),
+      EZ_BITFLAGS_ACCESSOR_PROPERTY("RenderGroup", spRenderGroup, GetRenderGroupMask, SetRenderGroupMask)->AddAttributes(new ezDefaultValueAttribute(spRenderGroup::Default)),
       EZ_ACCESSOR_PROPERTY("CullingEnabled", IsCullingEnabled, SetCullingEnabled)->AddAttributes(new ezDefaultValueAttribute(true)),
 
       EZ_ENUM_ACCESSOR_PROPERTY("ProjectionMode", spCameraProjectionMode, GetProjectionMode, SetProjectionMode)->AddAttributes(new ezDefaultValueAttribute(spCameraProjectionMode::Default)),
@@ -268,12 +268,12 @@ namespace RPI
     return m_Camera.GetExposureCompensation();
   }
 
-  void spCameraComponent::SetRenderGroupMask(ezBitflags<spRenderGroupMask> eRenderGroupMask)
+  void spCameraComponent::SetRenderGroupMask(ezBitflags<spRenderGroup> eRenderGroupMask)
   {
     m_Camera.SetRenderGroupMask(eRenderGroupMask);
   }
 
-  ezBitflags<spRenderGroupMask> spCameraComponent::GetRenderGroupMask() const
+  ezBitflags<spRenderGroup> spCameraComponent::GetRenderGroupMask() const
   {
     return m_Camera.GetRenderGroupMask();
   }
@@ -325,8 +325,8 @@ namespace RPI
     if (m_sCameraSlotName == szCameraSlot)
       return;
 
-    spRenderSystem* pRenderSystem = spRenderSystem::GetSingleton();
-    pRenderSystem->AssignSlotToCamera(pRenderSystem->GetCameraSlotByName(szCameraSlot), &m_Camera);
+    spCompositor* pCompositor = spRenderSystem::GetSingleton()->GetCompositor();
+    pCompositor->AssignSlotToCamera(pCompositor->GetCameraSlotByName(szCameraSlot), &m_Camera);
     m_sCameraSlotName.Assign(szCameraSlot);
   }
 

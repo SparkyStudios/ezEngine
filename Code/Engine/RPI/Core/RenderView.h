@@ -17,12 +17,15 @@
 #include <RPI/RPIDLL.h>
 
 #include <RPI/Core/RenderGroup.h>
+#include <RPI/Core/Threading/ConcurrentCollector.h>
 #include <RPI/Shaders/ConstantBuffer.h>
 
 #include <Foundation/Math/Frustum.h>
 
 namespace RPI
 {
+  class spRenderObject;
+
   /// \brief Render View Data.
   ///
   /// This struct contains all the data needed to render a single view. Data is
@@ -97,13 +100,17 @@ namespace RPI
     };
   };
 
-  class SP_RPI_DLL spRenderView : public ezReflectedClass
+  class SP_RPI_DLL spRenderView final : public ezReflectedClass
   {
+    friend class spRenderSystem;
+    friend class spRenderContext;
+    friend class spVisibilityGroup;
+
     EZ_ADD_DYNAMIC_REFLECTION(spRenderView, ezReflectedClass);
 
   public:
     spRenderView() = default;
-    ~spRenderView() = default;
+    ~spRenderView() override;
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const spConstantBuffer<spRenderViewData>& GetDataBuffer() const { return m_RenderViewDataBuffer; }
 
@@ -115,9 +122,9 @@ namespace RPI
     /// \brief Sets the index this view has in the list of collected views in the \a spSceneContext.
     EZ_ALWAYS_INLINE void SetIndex(ezInt32 index) { m_iIndex = index; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezBitflags<spRenderGroupMask>& GetRenderGroup() const { return m_eRenderGroup; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezBitflags<spRenderGroup>& GetRenderGroup() const { return m_eRenderGroup; }
 
-    EZ_ALWAYS_INLINE void SetRenderGroup(const ezBitflags<spRenderGroupMask>& eGroupMask) { m_eRenderGroup = eGroupMask; }
+    EZ_ALWAYS_INLINE void SetRenderGroup(const ezBitflags<spRenderGroup>& eGroupMask) { m_eRenderGroup = eGroupMask; }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezEnum<spRenderViewCullingMode>& GetCullingMode() const { return m_eCullingMode; }
 
@@ -127,16 +134,28 @@ namespace RPI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezBitflags<spRenderViewUsage>& GetUsage() const { return m_eUsage; }
 
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() const { return m_VisibleRenderObjects; }
+
+    EZ_NODISCARD ezFrustum GetFrustum() const;
+
+    EZ_ALWAYS_INLINE void SetViewport(const ezRectU32& viewport) { m_Viewport = viewport; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezRectU32& GetViewport() const { return m_Viewport; }
+
   private:
-    friend class spRenderSystem;
-    friend class spRenderContext;
+    ezUInt64 m_uiLastCollectedFrame;
 
     spConstantBuffer<spRenderViewData> m_RenderViewDataBuffer;
 
     ezInt32 m_iIndex{-1};
-    ezBitflags<spRenderGroupMask> m_eRenderGroup{spRenderGroupMask::Default};
+    ezBitflags<spRenderGroup> m_eRenderGroup{spRenderGroup::Default};
     ezEnum<spRenderViewCullingMode> m_eCullingMode{spRenderViewCullingMode::Default};
     ezBitflags<spRenderViewUsage> m_eUsage{spRenderViewUsage::Default};
+
+    spConcurrentCollector<spRenderObject*> m_VisibleRenderObjects;
+
+    ezBoundingBox m_BoundingBox{ezBoundingBox::MakeZero()};
+    ezRectU32 m_Viewport{ezRectU32::MakeInvalid()};
   };
 } // namespace RPI
 

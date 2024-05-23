@@ -17,7 +17,7 @@
 #include <RPI/RPIDLL.h>
 
 #include <RPI/Core/RenderGroup.h>
-#include <RPI/Core/RenderSystem.h>
+#include <RPI/Core/RenderNodeReference.h>
 
 namespace RPI
 {
@@ -34,12 +34,15 @@ namespace RPI
     friend class spRenderObjectCollection;
     friend class spVisibilityGroup;
     friend class spSceneContext;
+    friend class spRenderComponent;
 
     EZ_ADD_DYNAMIC_REFLECTION(spRenderObject, ezReflectedClass);
 
   public:
     spRenderObject() = default;
     ~spRenderObject() override = default;
+
+    virtual void Draw(const spRenderContext* pRenderContext);
 
     /// \brief Specifies the caching behavior used by the render object.
     struct CachingBehavior
@@ -61,7 +64,7 @@ namespace RPI
       };
     };
 
-  private:
+  protected:
     ezEnum<CachingBehavior> m_eCachingBehavior{CachingBehavior::OnlyIfStatic};
     ezEnum<spRenderGroup> m_eRenderGroup{spRenderGroup::None};
     ezBoundingBox m_BoundingBox;
@@ -70,6 +73,8 @@ namespace RPI
 
     spRenderNodeReference m_VisibilityGroupReference{spRenderNodeReference::MakeInvalid()};
     spRenderNodeReference m_RenderFeatureReference{spRenderNodeReference::MakeInvalid()};
+
+    ezHybridArray<bool, 16> m_ActiveRenderStages;
   };
 
   /// \brief A collection of \a spRenderObject.

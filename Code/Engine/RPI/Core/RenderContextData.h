@@ -18,7 +18,13 @@
 
 namespace RPI
 {
-  class SP_RPI_DLL spRenderContextData
+  class spRenderView;
+  class spRenderStage;
+
+  class SP_RPI_DLL spRenderContextData final
   {
+  public:
+    spRenderView* m_pRenderView{nullptr};
+    spRenderStage* m_pRenderStage{nullptr};
   };
 } // namespace RPI

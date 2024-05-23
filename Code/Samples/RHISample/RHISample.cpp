@@ -257,6 +257,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   mesh.CreateRHIVertexBuffer();
   mesh.CreateRHIIndexBuffer();
   mesh.CreateRHIIndirectBuffer();
+  mesh.CreateRHIInputLayout();
 
   // --- Begin Experimental render graph
 
@@ -428,8 +429,6 @@ ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* p
 
   if (data.m_pInputLayout == nullptr)
   {
-    spInputLayoutDescription inputLayoutDescription{};
-    m_pMesh->GetRHIInputLayoutDescription(inputLayoutDescription);
     //    inputLayoutDescription.m_uiInstanceStepRate = 0;
     //    inputLayoutDescription.m_uiStride = sizeof(spVertex);
     //    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("pos", spInputElementLocationSemantic::Position, spInputElementFormat::Float3, 0));
@@ -441,8 +440,7 @@ ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* p
     //    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl0", spInputElementLocationSemantic::Color, spInputElementFormat::Byte4, offsetof(spVertex, m_Color0)));
     //    inputLayoutDescription.m_Elements.PushBack(spInputElementDescription("cl1", spInputElementLocationSemantic::Color, spInputElementFormat::Byte4, offsetof(spVertex, m_Color1)));
 
-    data.m_pInputLayout = pBuilder->GetResourceFactory()->CreateInputLayout(inputLayoutDescription, data.m_pVertexShader->GetHandle());
-    data.m_pInputLayout->SetDebugName("input");
+    data.m_pInputLayout = m_pMesh->GetRHIInputLayout();
   }
 
   ezDynamicArray<spResourceLayoutDescription> layouts;

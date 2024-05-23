@@ -19,6 +19,18 @@
 
 namespace RPI
 {
+  void spRenderObject::Draw(const spRenderContext* pRenderContext)
+  {
+    if (m_pRenderFeature == nullptr)
+      return;
+
+    const ezInt32 iRef = pRenderContext->GetExtractionData().m_pRenderStage->GetRenderSystemReference().GetRef();
+    if (m_ActiveRenderStages[iRef] == false)
+      return;
+
+    m_pRenderFeature->Draw(this, pRenderContext);
+  }
+
   spRenderObjectCollection::spRenderObjectCollection(spVisibilityGroup* pVisibilityGroup)
     : m_pVisibilityGroup(pVisibilityGroup)
   {

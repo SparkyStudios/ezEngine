@@ -220,20 +220,35 @@ namespace RAI
 #endif
   }
 
-  void spMesh::GetRHIInputLayoutDescription(RHI::spInputLayoutDescription& out_InputLayoutDescription) const
+  void spMesh::CreateRHIInputLayout()
   {
-    out_InputLayoutDescription.m_Elements.Clear();
-    out_InputLayoutDescription.m_uiStride = m_Data.m_uiVertexSize;
-    out_InputLayoutDescription.m_uiInstanceStepRate = 0;
+    if (m_pRHIInputLayout != nullptr)
+      return;
 
-    out_InputLayoutDescription.m_Elements.SetCount(m_Data.m_VertexStreams.GetCount());
+    const auto* pDevice = ezSingletonRegistry::GetSingletonInstance<RHI::spDevice>();
+
+    RHI::spInputLayoutDescription desc;
+
+    desc.m_Elements.Clear();
+    desc.m_uiStride = m_Data.m_uiVertexSize;
+    desc.m_uiInstanceStepRate = 0;
+
+    desc.m_Elements.SetCount(m_Data.m_VertexStreams.GetCount());
     for (ezUInt32 i = 0, l = m_Data.m_VertexStreams.GetCount(); i < l; ++i)
     {
-      auto& element = out_InputLayoutDescription.m_Elements[i];
+      auto& element = desc.m_Elements[i];
       element.m_eSemantic = m_Data.m_VertexStreams[i].m_eSemantic;
       element.m_eFormat = m_Data.m_VertexStreams[i].m_eFormat;
       element.m_uiOffset = m_Data.m_VertexStreams[i].m_uiOffset;
     }
+
+    m_pRHIInputLayout = pDevice->GetResourceFactory()->CreateInputLayout(desc);
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+    ezStringBuilder sb;
+    sb.SetFormat("{0}__InputLayout", m_Root.m_sName);
+    m_pRHIInputLayout->SetDebugName(sb);
+#endif
   }
 
   void spMesh::GetDrawCommands(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands) const

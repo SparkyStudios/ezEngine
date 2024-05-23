@@ -14,26 +14,17 @@
 
 #include <RPI/RPIPCH.h>
 
-#include <RPI/Camera/CameraSlot.h>
-
-#include <RHI/Device.h>
+#include <RPI/Core/RenderNodeReference.h>
 
 namespace RPI
 {
-  // clang-format off
-  EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spCameraSlot, 1, ezRTTIDefaultAllocator<spCameraSlot>)
+  spRenderNodeReference spRenderNodeReference::MakeInvalid()
   {
-    EZ_BEGIN_PROPERTIES
-    {
-      EZ_ACCESSOR_PROPERTY("Name", GetName, SetName)
-    }
-    EZ_END_PROPERTIES;
+    return spRenderNodeReference(-1);
   }
-  EZ_END_DYNAMIC_REFLECTED_TYPE;
-  // clang-format on
 
-  spCameraSlot::spCameraSlot(ezStringView sName)
+  spRenderNodeReference::spRenderNodeReference(ezInt32 iReference)
+    : m_iRef(iReference)
   {
-    m_sName.Assign(sName);
   }
-} // namespace RPI
+}

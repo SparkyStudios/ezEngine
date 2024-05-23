@@ -18,9 +18,9 @@
 #include <RPI/Scene/SceneContext.h>
 
 // clang-format off
-EZ_BEGIN_STATIC_REFLECTED_BITFLAGS(RPI::spClearRenderer::spClearFlags, 1)
-  EZ_ENUM_CONSTANT(RPI::spClearRenderer::spClearFlags::Color),
-  EZ_ENUM_CONSTANT(RPI::spClearRenderer::spClearFlags::Depth),
+EZ_BEGIN_STATIC_REFLECTED_BITFLAGS(RPI::spClearRenderer::ClearFlags, 1)
+  EZ_ENUM_CONSTANT(RPI::spClearRenderer::ClearFlags::Color),
+  EZ_ENUM_CONSTANT(RPI::spClearRenderer::ClearFlags::Depth),
 EZ_END_STATIC_REFLECTED_BITFLAGS;
 // clang-format on
 
@@ -33,7 +33,7 @@ namespace RPI
   {
     EZ_BEGIN_PROPERTIES
     {
-      EZ_BITFLAGS_MEMBER_PROPERTY("ClearFlags", spClearRenderer::spClearFlags, m_eClearFlags)->AddAttributes(new ezDefaultValueAttribute(spClearRenderer::spClearFlags::Default)),
+      EZ_BITFLAGS_MEMBER_PROPERTY("ClearFlags", spClearRenderer::ClearFlags, m_eClearFlags)->AddAttributes(new ezDefaultValueAttribute(spClearRenderer::ClearFlags::Default)),
       EZ_MEMBER_PROPERTY("Color", m_ClearColor)->AddAttributes(new ezDefaultValueAttribute(ezColor::SkyBlue)),
       EZ_MEMBER_PROPERTY("DepthValue", m_fClearDepth)->AddAttributes(new ezDefaultValueAttribute(1.0f), new ezClampValueAttribute(0.0f, 1.0f)),
       EZ_MEMBER_PROPERTY("StencilValue", m_uiClearStencil)->AddAttributes(new ezDefaultValueAttribute(0), new ezClampValueAttribute(0, 255)),
@@ -49,10 +49,10 @@ namespace RPI
 
     cl->PushDebugGroup("Clear Renderer");
     {
-      if (m_eClearFlags.IsSet(spClearFlags::Color))
+      if (m_eClearFlags.IsSet(ClearFlags::Color))
         cl->ClearColorTarget(0, m_ClearColor);
 
-      if (m_eClearFlags.IsSet(spClearFlags::Depth))
+      if (m_eClearFlags.IsSet(ClearFlags::Depth))
         cl->ClearDepthStencilTarget(m_fClearDepth, m_uiClearStencil);
     }
     cl->PopDebugGroup();
