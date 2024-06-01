@@ -272,7 +272,7 @@ ezResult spMeshProcessor::Process(ezStringView sFilename, ezStringView sOutputPa
   if (m_Configuration.m_AssimpImporterConfig.m_bFlipUVs)
     uiPreset |= aiProcess_FlipUVs;
   if (m_Configuration.m_AssimpImporterConfig.m_bRecomputeNormals)
-    uiPreset |= aiProcess_ForceGenNormals;
+    uiPreset |= aiProcess_ForceGenNormals | aiProcess_GenSmoothNormals;
 
   if (m_Configuration.m_bImportSkeleton)
     uiPreset |= aiProcess_PopulateArmatureData;
