@@ -151,7 +151,7 @@ namespace RPI
       auto const pSession = CreateSlangSession(ref_compilerSetup);
 
       const ezResourceLock resource(hShaderResource, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
-      EZ_ASSERT_DEV(resource.IsValid(), "Unable to get the image resource! Make sure to run AssetProcessor first.");
+      EZ_ASSERT_DEV(resource.IsValid(), "Unable to get the shader resource.");
 
       auto const pBytes = resource.GetPointer()->GetDescriptor().GetShader().GetShaderBytes();
 
@@ -337,6 +337,8 @@ namespace RPI
 
     desc.targets = &targetDesc;
     desc.targetCount = 1;
+
+    desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
 
     ezStringBuilder sEngineShadersPathBuilder(ezFileSystem::GetSdkRootDirectory());
     sEngineShadersPathBuilder.AppendPath("Shaders", "Lib");

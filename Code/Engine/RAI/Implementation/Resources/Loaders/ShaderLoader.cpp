@@ -181,6 +181,8 @@ Slang::ComPtr<slang::ISession> spShaderResourceLoader::CreateSession()
 {
   slang::SessionDesc desc;
 
+  desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
+
   slang::TargetDesc targetDesc;
   targetDesc.format = SLANG_TARGET_NONE;
 
