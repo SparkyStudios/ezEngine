@@ -38,6 +38,8 @@ namespace RPI
     void Initialize() override;
     void Deinitialize() override;
 
+    void Update(const ezWorldModule::UpdateContext& context);
+
   private:
     void OnCollectEvent(const spSceneContextCollectEvent& event);
     void OnExtractEvent(const spSceneContextExtractEvent& event);

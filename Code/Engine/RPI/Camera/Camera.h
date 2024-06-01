@@ -21,6 +21,8 @@
 #include <RPI/Core/RenderView.h>
 #include <RPI/Scene/SceneContext.h>
 
+class ezCoordinateSystemProvider;
+
 namespace RPI
 {
   /// \brief Describes the camera projection mode.
@@ -51,6 +53,11 @@ namespace RPI
   public:
     spCamera();
     ~spCamera();
+
+    /// \brief Allows to specify a different coordinate system in which the camera input and output coordinates are given.
+    ///
+    /// The default is forward = PositiveX, right = PositiveY, Up = PositiveZ.
+    void SetCoordinateSystem(ezBasisAxis::Enum forwardAxis, ezBasisAxis::Enum rightAxis, ezBasisAxis::Enum axis);
 
     void SetRenderViewUsage(ezBitflags<spRenderViewUsage> eUsage);
     EZ_NODISCARD EZ_ALWAYS_INLINE ezBitflags<spRenderViewUsage> GetRenderViewUsage() const { return m_eRenderViewUsage; }
@@ -101,16 +108,19 @@ namespace RPI
     EZ_NODISCARD float GetOrthographicSizeY() const;
 
     void SetPosition(const ezVec3& vPosition);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetPosition() const { return m_vPosition; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetPosition() const { return MapInternalToExternal(m_vPosition); }
 
     void SetForward(const ezVec3& vForward);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetForward() const { return -m_vForward; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetForward() const { return MapInternalToExternal(m_vForward); }
 
     void SetUp(const ezVec3& vUp);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetUp() const { return m_vUp; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetUp() const { return MapInternalToExternal(m_vUp); }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetLeft() const { return GetUp().CrossRH(GetForward()); }
     EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetRight() const { return GetForward().CrossRH(GetUp()); }
+
+    /// \brief Repositions the camera such that it looks at the given target position.
+    void LookAt(const ezVec3& vCameraPos, const ezVec3& vTargetPos, const ezVec3& vUp);
 
     spRenderView* GetRenderView();
 
@@ -122,10 +132,14 @@ namespace RPI
   private:
     void MarkAsDirty();
 
-    void CacheProjectionMatrix();
     void CacheViewMatrix();
+    void CacheProjectionMatrix();
+    void CacheViewProjectionMatrix();
 
     void UpdateView();
+
+    ezVec3 MapExternalToInternal(const ezVec3& v) const;
+    ezVec3 MapInternalToExternal(const ezVec3& v) const;
 
     bool m_bIsDirty{true};
 
@@ -150,14 +164,18 @@ namespace RPI
 
     ezVec3 m_vPreviousPosition{ezVec3::MakeZero()};
     ezVec3 m_vPosition{ezVec3::MakeZero()};
-    ezVec3 m_vForward{-ezVec3::MakeAxisZ()};
-    ezVec3 m_vUp{ezVec3::MakeAxisY()};
+    ezVec3 m_vForward{ezVec3::MakeAxisX()};
+    ezVec3 m_vUp{ezVec3::MakeAxisZ()};
+
+    ezSharedPtr<ezCoordinateSystemProvider> m_pCoordinateSystemProvider;
 
     // Cached Values
     ezMat4 m_CachedViewMatrix;
     ezMat4 m_CachedInverseViewMatrix;
     ezMat4 m_CachedProjectionMatrix;
     ezMat4 m_CachedInverseProjectionMatrix;
+    ezMat4 m_CachedViewProjectionMatrix;
+    ezMat4 m_CachedInverseViewProjectionMatrix;
 
     spRenderView* m_pRenderView{nullptr};
   };
