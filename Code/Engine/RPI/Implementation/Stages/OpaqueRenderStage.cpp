@@ -83,7 +83,7 @@ namespace RPI
     {
       const auto& viewport = pRenderView->GetViewport();
 
-      const auto& depthDesc = RHI::spTextureDescription::Texture2D(viewport.width * 2, viewport.height * 2, 1, 1, RHI::spPixelFormat::D32FloatS8UInt, RHI::spTextureUsage::DepthStencil);
+      const auto& depthDesc = RHI::spTextureDescription::Texture2D(viewport.width, viewport.height, 1, 1, RHI::spPixelFormat::D32FloatS8UInt, RHI::spTextureUsage::DepthStencil);
       pDepthTarget = pDevice->GetResourceFactory()->CreateTexture(depthDesc);
     }
 
@@ -91,7 +91,7 @@ namespace RPI
     {
       const auto& viewport = pRenderView->GetViewport();
 
-      const auto& colorDesc = RHI::spTextureDescription::Texture2D(viewport.width * 2, viewport.height * 2, 1, 1, RHI::spPixelFormat::R8G8B8A8UNorm, RHI::spTextureUsage::RenderTarget | RHI::spTextureUsage::Sampled | RHI::spTextureUsage::Storage);
+      const auto& colorDesc = RHI::spTextureDescription::Texture2D(viewport.width, viewport.height, 1, 1, RHI::spPixelFormat::R8G8B8A8UNorm, RHI::spTextureUsage::RenderTarget | RHI::spTextureUsage::Sampled | RHI::spTextureUsage::Storage);
       pColorTarget = pDevice->GetResourceFactory()->CreateTexture(colorDesc);
     }
 

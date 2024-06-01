@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "RPI/Camera/Camera.h"
+#include "RPI/Stages/OpaqueRenderStage.h"
+
+
 #include <RPI/RPIPCH.h>
 
 #include <RPI/Renderers/CameraRenderer.h>
@@ -31,28 +35,58 @@ namespace RPI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
+  static spOpaqueRenderStage* s_pOpaqueRenderStage;
+
   void spCameraRenderer::Render()
   {
-    spCamera* pCamera = spRenderSystem::GetSingleton()->GetCameraBySlot(m_hCameraSlot);
+    spCamera* pCamera = spRenderSystem::GetSingleton()->GetCompositor()->GetCameraBySlot(m_hCameraSlot);
     if (pCamera == nullptr)
       return; // No camera found for the given slot, nothing to do.
 
-    const auto cl = GetSceneContext()->GetRenderContext()->GetCommandList();
+    const spRenderContext* pRenderContext = GetSceneContext()->GetRenderContext();
+    const RHI::spDevice* pDevice = pRenderContext->GetDevice();
+
+    const auto cl = pRenderContext->GetCommandList();
+    const auto pFramebuffer = pDevice->GetMainSwapchain()->GetFramebuffer();
+
+    const spRenderView* pRenderView = pRenderContext->GetExtractionData().m_pRenderView;
+    const spRenderStage* pRenderStage = pRenderContext->GetExtractionData().m_pRenderStage;
 
     cl->PushDebugGroup("Camera Renderer");
     {
-      // TODO: cl->SetFramebuffer(m_pRenderTarget->GetFramebuffer());
+      auto clPushRestore = cl->PushRestoreFramebuffer(pRenderStage->GetOutputFramebuffer(pRenderView));
+      cl->SetFullViewport(0);
+      cl->SetFullScissorRect(0);
+
+      const ezRectU32 viewport = pRenderView->GetViewport();
+      const RHI::spViewport vp(viewport.x, viewport.y, viewport.width, viewport.height, 0.0f, 1.0f);
+      cl->SetViewport(0, vp);
 
       SUPER::Render();
+
+      const auto& visibleObjects = GetSceneContext()->GetRenderContext()->GetExtractionData().m_pRenderView->GetVisibleRenderObjects();
+      for (const auto& pObject : visibleObjects)
+        pObject->Draw(GetSceneContext()->GetRenderContext());
+
+      cl->CopyTexture(
+        cl->GetDevice()->GetResourceManager()->GetResource<RHI::spTexture>(s_pOpaqueRenderStage->GetOutputFramebuffer(pCamera->GetRenderView())->GetColorTargets()[0]),
+        cl->GetDevice()->GetResourceManager()->GetResource<RHI::spTexture>(pFramebuffer->GetColorTargets()[0]));
     }
     cl->PopDebugGroup();
   }
 
   void spCameraRenderer::Prepare()
   {
+    spCamera* pCamera = spRenderSystem::GetSingleton()->GetCompositor()->GetCameraBySlot(m_hCameraSlot);
+
+    GetSceneContext()->GetRenderContext()->GetExtractionData().m_pRenderView = pCamera->GetRenderView();
+    GetSceneContext()->GetRenderContext()->GetExtractionData().m_pRenderStage = s_pOpaqueRenderStage;
+
+    s_pOpaqueRenderStage->CreateOutputFramebuffer(pCamera->GetRenderView());
+
     if (m_bCameraChanged)
     {
-      // TODO: Create a render target for the camera.
+      m_bCameraChanged = false;
     }
 
     SUPER::Prepare();
@@ -66,11 +100,13 @@ namespace RPI
   spCameraRenderer::spCameraRenderer()
     : spParentRenderer("CameraRenderer")
   {
+    s_pOpaqueRenderStage = EZ_DEFAULT_NEW(spOpaqueRenderStage);
   }
 
   spCameraRenderer::~spCameraRenderer()
   {
-    m_pRenderTarget.Clear();
+    // m_pRenderTarget.Clear();
+    EZ_DEFAULT_DELETE(s_pOpaqueRenderStage);
   }
 
   void spCameraRenderer::SetCameraSlot(const char* szCameraSlot)
@@ -78,13 +114,14 @@ namespace RPI
     if (m_sCameraSlotName == ezTempHashedString(szCameraSlot))
       return;
 
-    m_hCameraSlot = spRenderSystem::GetSingleton()->GetCameraSlotByName(szCameraSlot);
+    m_hCameraSlot = spRenderSystem::GetSingleton()->GetCompositor()->GetCameraSlotByName(szCameraSlot);
     m_sCameraSlotName = szCameraSlot;
+    m_bCameraChanged = true;
   }
 
   const char* spCameraRenderer::GetCameraSlot() const
   {
-    return spRenderSystem::GetSingleton()->GetCameraSlot(m_hCameraSlot)->GetName().GetStartPointer();
+    return spRenderSystem::GetSingleton()->GetCompositor()->GetCameraSlot(m_hCameraSlot)->GetName().GetStartPointer();
   }
 
   void spCameraRenderer::OnInitialize()

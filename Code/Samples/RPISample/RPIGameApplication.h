@@ -16,6 +16,9 @@
 
 #include <GameEngine/GameApplication/GameApplication.h>
 
+#include <RAI/Resources/ShaderResource.h>
+
+#include <RPI/Composition/Compositor.h>
 #include <RPI/Core/RenderSystem.h>
 #include <RPI/Core/Threading/RenderThread.h>
 #include <RPI/Graph/RenderGraph.h>
@@ -40,6 +43,7 @@ public:
 
 protected:
   void Init_LoadRequiredPlugins() override;
+  void Init_ConfigureInput() override;
   void Init_SetupDefaultResources() override;
   void Init_SetupGraphicsDevice() override;
   void Deinit_ShutdownGraphicsDevice() override;
@@ -59,6 +63,7 @@ private:
 
   ezUniquePtr<ezWorld> m_pWorld{nullptr};
   ezUniquePtr<spSceneContext> m_pSceneContext{nullptr};
+  ezUniquePtr<spRenderer> m_pRenderer;
 
   ezUniquePtr<spRPISampleWindow> m_pWindow{nullptr};
 };
@@ -82,4 +87,7 @@ public:
 
 private:
   spResourceHandle m_hRenderTarget;
+  spResourceHandle m_hShader;
+
+  RAI::spShaderResourceHandle m_hShaderAsset;
 };
