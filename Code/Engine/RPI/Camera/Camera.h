@@ -21,7 +21,7 @@
 #include <RPI/Core/RenderView.h>
 #include <RPI/Scene/SceneContext.h>
 
-class ezCoordinateSystemProvider;
+#include <Core/World/CoordinateSystem.h>
 
 namespace RPI
 {

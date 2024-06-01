@@ -55,14 +55,20 @@ namespace RPI
     return EZ_SUCCESS;
   }
 
-  spCompositor::spCompositor()
+  spCompositor::~spCompositor()
   {
+    for (auto it = m_CameraSlots.GetIterator(); it.IsValid(); ++it)
+      EZ_DEFAULT_DELETE(it.Value());
+
+    m_CameraSlots.Clear();
+    m_CameraSlotsByName.Clear();
+    m_AssignedCameraSlots.Clear();
   }
 
   spCameraSlotHandle spCompositor::CreateCameraSlot(ezStringView sName)
   {
     spCameraSlot* pSlot = EZ_DEFAULT_NEW(spCameraSlot, sName);
-    spCameraSlotHandleId idSlot = m_CameraSlots.Insert(std::move(pSlot));
+    spCameraSlotHandleId idSlot = m_CameraSlots.Insert(pSlot);
     pSlot->m_Handle.m_InternalId = idSlot;
 
     m_CameraSlotsByName.Insert(sName, idSlot);
@@ -102,7 +108,7 @@ namespace RPI
   {
     const ezUInt32 uiIndex = m_CameraSlotsByName.Find(sName);
     if (uiIndex == ezInvalidIndex)
-      return spCameraSlotHandle();
+      return {};
 
     return spCameraSlotHandle(m_CameraSlotsByName.GetValue(uiIndex));
   }

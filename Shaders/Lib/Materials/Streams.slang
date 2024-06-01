@@ -63,7 +63,7 @@ struct TransientStream
 {
   float4 Position : SV_Position;
 
-  #ifdef USE_VELOCITY
+#ifdef USE_VELOCITY
   float3 PreviousPosition : PREVPOS;
 #endif
 
@@ -101,7 +101,6 @@ struct TransientStream
 #endif
 
   uint InstanceID : SV_InstanceID;
-  uint FrontFace  : SV_IsFrontFace;
 }
 
 /// \brief G-Buffer output.

@@ -50,8 +50,8 @@ namespace RPI
     EZ_DISALLOW_COPY_AND_ASSIGN(spCompositor);
 
   public:
-    spCompositor();
-    ~spCompositor() override = default;
+    spCompositor() = default;
+    ~spCompositor() override;
 
     spCameraSlotHandle CreateCameraSlot(ezStringView sName);
     void DeleteCameraSlot(const spCameraSlotHandle& hSlot);

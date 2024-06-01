@@ -79,12 +79,14 @@ namespace RPI
     if (m_pResourceLayout == nullptr)
     {
       RHI::spResourceLayoutDescription desc{};
-      desc.m_Elements.PushBack(RHI::spResourceLayoutElementDescription{
-        .m_eOptions = RHI::spResourceLayoutElementOptions::DynamicBinding,
-        .m_eType = RHI::spShaderResourceType::ConstantBuffer,
-        .m_sName = ezMakeHashedString("Buffer_PerView"),
-        .m_eShaderStage = RHI::spShaderStage::VertexShader,
-      });
+      RHI::spResourceLayoutElementDescription perViewBuffer{};
+
+      perViewBuffer.m_sName = ezMakeHashedString("Buffer_PerView");
+      perViewBuffer.m_eType = RHI::spShaderResourceType::ConstantBuffer;
+      perViewBuffer.m_eShaderStage = RHI::spShaderStage::VertexShader;
+      perViewBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::DynamicBinding;
+
+      desc.m_Elements.PushBack(perViewBuffer);
 
       m_pResourceLayout = cl->GetDevice()->GetResourceFactory()->CreateResourceLayout(desc);
       m_pResourceLayout->SetDebugName("layout");

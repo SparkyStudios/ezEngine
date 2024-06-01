@@ -58,11 +58,8 @@ namespace RHI
     SP_RHI_DX11_RELEASE(m_pUserDefinedAnnotation);
     SP_RHI_DX11_RELEASE(m_pDeviceContext);
 
-    for (auto& set : m_GraphicResourceSets)
-      set.m_Offsets.Clear();
-
-    for (auto& set : m_ComputeResourceSets)
-      set.m_Offsets.Clear();
+    m_GraphicResourceSets.Clear();
+    m_ComputeResourceSets.Clear();
 
     m_FreeBuffers.Clear();
 
@@ -427,7 +424,6 @@ namespace RHI
     if (set.m_hResourceSet == pResourceSet->GetHandle() && ezMemoryUtils::IsEqual(set.m_Offsets.GetPtr(), pDynamicOffsets, uiDynamicOffsetCount))
       return;
 
-    set.m_Offsets.Clear();
     set = spCommandListResourceSet(pResourceSet->GetHandle(), uiDynamicOffsetCount, pDynamicOffsets);
     ActivateResourceSet(uiSlot, set, false);
   }
@@ -454,7 +450,7 @@ namespace RHI
     const auto pBufferD3D11 = pBuffer.Downcast<spBufferD3D11>();
     pBufferD3D11->EnsureResourceCreated();
 
-    const auto pBufferRange = pBuffer->GetCurrentBuffer();
+    const auto pBufferRange = pBuffer->GetCurrentRange();
     uiOffset += pBufferRange->GetOffset();
 
     const bool bDynamic = pBuffer->GetUsage().IsSet(spBufferUsage::Dynamic);
@@ -631,9 +627,6 @@ namespace RHI
 
   void spCommandListD3D11::ClearSets(ezDynamicArray<spCommandListResourceSet>& sets)
   {
-    for (ezUInt32 i = 0, l = sets.GetCount(); i < l; ++i)
-      sets[i].m_Offsets.Clear();
-
     sets.Clear();
   }
 
@@ -802,7 +795,7 @@ namespace RHI
       const auto pBufferD3D11 = pResource.Downcast<spBufferD3D11>();
       pBufferD3D11->EnsureResourceCreated();
 
-      pBufferRangeSource = pBufferD3D11->GetCurrentBuffer().Downcast<spBufferRangeD3D11>();
+      pBufferRangeSource = pBufferD3D11->GetCurrentRange().Downcast<spBufferRangeD3D11>();
     }
 
     return m_pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pBufferRangeSource->GetBuffer()->GetHandle(), uiOffset + pBufferRangeSource->GetOffset(), pBufferRangeSource->GetSize())).Downcast<spBufferRangeD3D11>();

@@ -16,8 +16,6 @@
 
 #include <RPI/Camera/Camera.h>
 
-#include <Core/World/CoordinateSystem.h>
-
 #include <Foundation/Utilities/GraphicsUtils.h>
 
 // clang-format off
