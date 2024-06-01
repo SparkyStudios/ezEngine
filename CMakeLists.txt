@@ -72,6 +72,7 @@ if (NOT ${SELECTED_FILTER_NAME} MATCHES "Everything")
 endif()
 add_subdirectory(${EZ_CMAKE_RELPATH_CODE})
 add_subdirectory(Data)
+add_subdirectory(Shaders)
 
 ez_add_external_projects_folder("_1")
 ez_add_external_projects_folder("_2")

@@ -336,6 +336,7 @@ function(ez_glob_source_files ROOT_DIR RESULT_ALL_SOURCES)
 		"${ROOT_DIR}/*.ezShaderTemplate"
 		"${ROOT_DIR}/*.rml"
 		"${ROOT_DIR}/*.rcss"
+		"${ROOT_DIR}/*.slang"
 	)
 
 	set(${RESULT_ALL_SOURCES} ${RELEVANT_FILES} PARENT_SCOPE)
