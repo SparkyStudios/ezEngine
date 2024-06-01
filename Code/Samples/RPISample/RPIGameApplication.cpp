@@ -383,14 +383,13 @@ void spRPIGameApplication::Init_SetupGraphicsDevice()
     EZ_ASSERT_DEV(pRenderSystem->GetDevice() != nullptr, "Device creation failed");
 
     pRenderSystem->GetCompositor()->CreateCameraSlot("Main");
-    spCameraRenderer* pRenderer = EZ_DEFAULT_NEW(spCameraRenderer);
-    pRenderer->SetCameraSlot("Main");
+    pRenderSystem->GetCompositor()->m_pGameRenderer = EZ_DEFAULT_NEW(spCameraRenderer);
+    static_cast<spCameraRenderer*>(pRenderSystem->GetCompositor()->m_pGameRenderer)->SetCameraSlot("Main");
     m_pRenderer = EZ_DEFAULT_NEW(spClearRenderer);
     static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearFlags(spClearRenderer::ClearFlags::Default);
     static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearDepth(1.0f);
     static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearStencil(0);
-    pRenderer->SetChildRenderer(m_pRenderer.Borrow());
-    pRenderSystem->GetCompositor()->m_pGameRenderer = pRenderer;
+    static_cast<spCameraRenderer*>(pRenderSystem->GetCompositor()->m_pGameRenderer)->SetChildRenderer(m_pRenderer.Borrow());
   }
 }
 

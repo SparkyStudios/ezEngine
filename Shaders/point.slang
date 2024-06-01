@@ -39,6 +39,10 @@ TransientStream VSMain(InputStream input)
   float4 oc = mul(Buffer_PerView.ViewMatrix, wp);
   output.Position = mul(Buffer_PerView.ProjectionMatrix, oc);
   output.Normal = input.Normal;
+  output.Tangent = input.Tangent;
+  output.BiTangent = input.BiTangent;
+  output.TexCoord0 = input.TexCoord0;
+  output.InstanceID = input.InstanceID;
 
   return output;
 }

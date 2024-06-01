@@ -98,19 +98,21 @@ namespace RHI
 
     /// \brief Copy assignment operator.
     /// \param [in] rhs The object to copy from.
-    EZ_ALWAYS_INLINE void operator=(const spCommandListResourceSet& rhs)
+    EZ_ALWAYS_INLINE spCommandListResourceSet& operator=(const spCommandListResourceSet& rhs)
     {
       m_hResourceSet = rhs.m_hResourceSet;
       m_Offsets = EZ_DEFAULT_NEW_ARRAY(ezUInt32, rhs.m_Offsets.GetCount());
       m_Offsets.CopyFrom(rhs.m_Offsets);
+      return *this;
     }
 
     /// \brief Move assignment operator.
     /// \param [in] rhs The object to move from.
-    EZ_ALWAYS_INLINE void operator=(spCommandListResourceSet&& rhs) noexcept
+    EZ_ALWAYS_INLINE spCommandListResourceSet& operator=(spCommandListResourceSet&& rhs) noexcept
     {
       std::swap(m_hResourceSet, rhs.m_hResourceSet);
       std::swap(m_Offsets, rhs.m_Offsets);
+      return *this;
     }
 
     /// \brief Compares this \see spCommandListResourceSet to an \a other instance for equality.

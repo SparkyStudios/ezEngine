@@ -315,7 +315,7 @@ namespace RHI
         const ezUInt32 uiOffset = pOffsets[uiDynamicOffset];
         uiDynamicOffset++;
 
-        const spBufferRange* pBufferRange = spResourceHelper::GetBufferRange(m_pDevice, pResourceSet->GetResource(i), uiOffset);
+        ezSharedPtr<spBufferRange> pBufferRange = spResourceHelper::GetBufferRange(m_pDevice, pResourceSet->GetResource(i), uiOffset);
         EZ_ASSERT_DEV(pBufferRange->GetOffset() % uiAlignment == 0, "Offset must be aligned to {0} bytes.", uiAlignment);
       }
     }
