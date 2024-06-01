@@ -113,7 +113,7 @@ kernel void copy_bytes(
     }
   }
 
-  bool spDeviceMTL::WaitForFence(ezSharedPtr<RHI::spFence> pFence)
+  bool spDeviceMTL::WaitForFence(ezSharedPtr<spFence> pFence)
   {
     if (pFence == nullptr)
       return false;
@@ -121,7 +121,7 @@ kernel void copy_bytes(
     return pFence.Downcast<spFenceMTL>()->Wait();
   }
 
-  bool spDeviceMTL::WaitForFence(ezSharedPtr<RHI::spFence> pFence, double uiNanosecondsTimeout)
+  bool spDeviceMTL::WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout)
   {
     if (pFence == nullptr)
       return false;
@@ -129,7 +129,7 @@ kernel void copy_bytes(
     return pFence.Downcast<spFenceMTL>()->Wait(ezTime::Nanoseconds(uiNanosecondsTimeout));
   }
 
-  bool spDeviceMTL::WaitForFences(const ezList<ezSharedPtr<RHI::spFence>>& fences, bool bWaitAll)
+  bool spDeviceMTL::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll)
   {
     for (auto it = fences.GetIterator(); it.IsValid(); it.Next())
     {
@@ -147,7 +147,7 @@ kernel void copy_bytes(
     return true;
   }
 
-  bool spDeviceMTL::WaitForFences(const ezList<ezSharedPtr<RHI::spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout)
+  bool spDeviceMTL::WaitForFences(const ezList<ezSharedPtr<spFence>>& fences, bool bWaitAll, double uiNanosecondsTimeout)
   {
     for (auto it = fences.GetIterator(); it.IsValid(); it.Next())
     {
@@ -165,7 +165,7 @@ kernel void copy_bytes(
     return true;
   }
 
-  void spDeviceMTL::RaiseFence(ezSharedPtr<RHI::spFence> pFence)
+  void spDeviceMTL::RaiseFence(ezSharedPtr<spFence> pFence)
   {
     if (pFence == nullptr)
       return;
@@ -173,7 +173,7 @@ kernel void copy_bytes(
     pFence.Downcast<spFenceMTL>()->Raise();
   }
 
-  void spDeviceMTL::ResetFence(ezSharedPtr<RHI::spFence> pFence)
+  void spDeviceMTL::ResetFence(ezSharedPtr<spFence> pFence)
   {
     if (pFence == nullptr)
       return;
@@ -297,7 +297,7 @@ kernel void copy_bytes(
     return sizeof(MTL::DrawPrimitivesIndirectArguments);
   }
 
-  void spDeviceMTL::ResolveTexture(ezSharedPtr<RHI::spTexture> pSource, ezSharedPtr<RHI::spTexture> pDestination)
+  void spDeviceMTL::ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination)
   {
     // TODO
   }
@@ -362,15 +362,13 @@ kernel void copy_bytes(
     }
     else
     {
-      auto pBufferMTL = pBuffer.Downcast<spBufferMTL>();
+      const auto pBufferMTL = pBuffer.Downcast<spBufferMTL>();
       pBufferMTL->EnsureResourceCreated();
-
-      void* pData = pBufferMTL->GetMTLBuffer()->contents();
 
       mappedResource = spMappedResource(
         pBufferMTL->GetHandle(),
         eAccess,
-        pData,
+        pBufferMTL->GetMTLBuffer()->contents(),
         pBufferMTL->GetSize(),
         0,
         pBufferMTL->GetSize(),
@@ -383,7 +381,7 @@ kernel void copy_bytes(
     return m_MappedResourcesCache[key];
   }
 
-  const spMappedResource& spDeviceMTL::MapInternal(ezSharedPtr<RHI::spTexture> pTexture, ezEnum<RHI::spMapAccess> eAccess, ezUInt32 uiSubresource)
+  const spMappedResource& spDeviceMTL::MapInternal(ezSharedPtr<spTexture> pTexture, ezEnum<spMapAccess> eAccess, ezUInt32 uiSubresource)
   {
     const spMappedResourceCacheKey key(pTexture, uiSubresource);
     EZ_LOCK(m_MappedResourcesMutex);
@@ -426,7 +424,7 @@ kernel void copy_bytes(
     return m_MappedResourcesCache[key];
   }
 
-  void spDeviceMTL::UnMapInternal(ezSharedPtr<RHI::spBuffer> pBuffer)
+  void spDeviceMTL::UnMapInternal(ezSharedPtr<spBuffer> pBuffer)
   {
     const spMappedResourceCacheKey key(pBuffer, 0);
     EZ_LOCK(m_MappedResourcesMutex);
@@ -438,7 +436,7 @@ kernel void copy_bytes(
     EZ_ASSERT_DEV(bDone, "Unable to unmap the resource.");
   }
 
-  void spDeviceMTL::UnMapInternal(ezSharedPtr<RHI::spTexture> pTexture, ezUInt32 uiSubresource)
+  void spDeviceMTL::UnMapInternal(ezSharedPtr<spTexture> pTexture, ezUInt32 uiSubresource)
   {
     const spMappedResourceCacheKey key(pTexture, uiSubresource);
     EZ_LOCK(m_MappedResourcesMutex);

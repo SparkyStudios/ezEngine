@@ -76,7 +76,7 @@ namespace RHI
     {
       const auto pBuffer = pResource.Downcast<spBuffer>();
       EZ_ASSERT_DEV(pBuffer->GetUsage().IsAnySet(spBufferUsage::Dynamic | spBufferUsage::Staging), "Buffers must have the Staging or Dynamic usage flag to be mapped.");
-      EZ_ASSERT_DEV(uiSubResource == 0, "Buffers must have the Staging or Dynamic usage flag to be mapped.");
+      EZ_ASSERT_DEV(uiSubResource == 0, "Cannot map a buffer using the subresource value.");
       EZ_ASSERT_DEV(!((eAccess == spMapAccess::Read || eAccess == spMapAccess::ReadWrite) && !pBuffer->GetUsage().IsSet(spBufferUsage::Staging)), "spMapAccess::Read and spMapAccess::ReadWrite can only be used on buffers created with spBufferUsage::Staging.");
       return MapInternal(pBuffer, eAccess);
     }

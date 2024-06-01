@@ -304,7 +304,7 @@ namespace RHI
     if (const auto* pBufferRange = ezDynamicCast<spBufferRange*>(pResource); pBufferRange != nullptr)
       pSource = pBufferRange;
     else if (const auto* pBuffer = ezDynamicCast<spBuffer*>(pResource); pBuffer != nullptr)
-      pSource = pBuffer->GetCurrentBuffer();
+      pSource = pBuffer->GetCurrentRange();
 
     return pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pSource->GetBuffer()->GetHandle(), pSource->GetOffset() + uiOffset, pSource->GetSize()));
   }

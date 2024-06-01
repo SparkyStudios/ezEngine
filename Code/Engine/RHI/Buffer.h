@@ -170,12 +170,12 @@ namespace RHI
     /// \brief Checks whether the buffer is a raw buffer.
     EZ_NODISCARD EZ_ALWAYS_INLINE bool IsRawBuffer() const { return m_Description.m_bRawBuffer; }
 
-    /// \brief Gets the index of the currently bound buffer in case of multi-buffered buffers.
+    /// \brief Gets the index of the currently bound buffer range in case of multi-buffered buffers.
     /// \note This always returns 0 in case of single-buffered buffers.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetBufferIndex() const { return m_uiBufferIndex; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetCurrentRangeIndex() const { return m_uiBufferIndex; }
 
-    /// \brief Gets the currently used buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spBufferRange> GetCurrentBuffer() const { return m_BufferRanges[m_uiBufferIndex]; }
+    /// \brief Gets the currently used buffer range.
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spBufferRange> GetCurrentRange() const { return m_BufferRanges[m_uiBufferIndex]; }
 
     /// \brief Gets the buffer ranges stored by this buffer.
     ///
