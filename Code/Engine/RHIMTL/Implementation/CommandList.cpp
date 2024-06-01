@@ -434,7 +434,7 @@ namespace RHI
     const auto pBufferMTL = pBuffer.Downcast<spBufferMTL>();
     pBufferMTL->EnsureResourceCreated();
 
-    const auto pBufferRangeMTL = pBufferMTL->GetCurrentBuffer();
+    const auto pBufferRangeMTL = pBufferMTL->GetCurrentRange();
     uiOffset += pBufferRangeMTL->GetOffset();
 
     const bool bUseComputeCopy = (uiOffset % 4 != 0) || (uiSize % 4 != 0 && uiOffset != 0 && uiSize != pBuffer->GetSize());
