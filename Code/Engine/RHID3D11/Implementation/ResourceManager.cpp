@@ -236,6 +236,9 @@ namespace RHI
       desc.MultisampleEnable = bMultisample;
       desc.ConservativeRaster = D3D11_CONSERVATIVE_RASTERIZATION_MODE_ON;
       desc.ForcedSampleCount = 0;
+      desc.DepthBias = static_cast<INT>(rasterizerState.m_fDepthBias);
+      desc.DepthBiasClamp = rasterizerState.m_fDepthBiasClamp;
+      desc.SlopeScaledDepthBias = rasterizerState.m_fSlopeScaledDepthBias;
 
       ID3D11RasterizerState2* pRasterizerState = nullptr;
       const HRESULT res = m_pD3D11Device->CreateRasterizerState2(&desc, &pRasterizerState);
@@ -252,6 +255,9 @@ namespace RHI
     desc.ScissorEnable = rasterizerState.m_bScissorTestEnabled;
     desc.FrontCounterClockwise = rasterizerState.m_eFrontFace == spFrontFace::CounterClockwise;
     desc.MultisampleEnable = bMultisample;
+    desc.DepthBias = static_cast<INT>(rasterizerState.m_fDepthBias);
+    desc.DepthBiasClamp = rasterizerState.m_fDepthBiasClamp;
+    desc.SlopeScaledDepthBias = rasterizerState.m_fSlopeScaledDepthBias;
 
     ID3D11RasterizerState* pRasterizerState = nullptr;
     const HRESULT res = m_pD3D11Device->CreateRasterizerState(&desc, &pRasterizerState);

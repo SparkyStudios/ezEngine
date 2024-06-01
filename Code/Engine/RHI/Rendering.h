@@ -254,6 +254,15 @@ namespace RHI
 
     /// \brief Defines whether to enable conservative rasterization.
     bool m_bConservativeRasterization{false};
+
+    /// \brief The pixel depth bias.
+    float m_fDepthBias{0};
+
+    /// \brief The pixel depth bias clamp.
+    float m_fDepthBiasClamp{0.0f};
+
+    /// \brief The pixel slope scaled depth bias.
+    float m_fSlopeScaledDepthBias{0.0f};
   };
 
 #pragma endregion
