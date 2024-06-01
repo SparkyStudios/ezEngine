@@ -156,7 +156,10 @@ namespace RPI
 
       {
         const RHI::spMappedResource resource = m_pBuffer->Map();
-        ezMemoryUtils::RawByteCopy(resource.GetData(), m_pBuffer->m_RawData.GetPtr(), m_pBuffer->m_RawData.GetCount());
+        ezMemoryUtils::RawByteCopy(
+          static_cast<ezUInt8*>(resource.GetData()) + m_pBuffer->m_pBuffer->GetCurrentRange()->GetOffset(),
+          m_pBuffer->m_RawData.GetPtr(),
+          m_pBuffer->m_RawData.GetCount());
         m_pBuffer->Unmap();
       }
     }
