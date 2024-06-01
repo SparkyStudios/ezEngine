@@ -16,6 +16,8 @@
 
 #include <RPI/Camera/Camera.h>
 
+#include <Core/World/CoordinateSystem.h>
+
 #include <Foundation/Utilities/GraphicsUtils.h>
 
 // clang-format off
@@ -29,12 +31,36 @@ EZ_END_STATIC_REFLECTED_ENUM;
 
 namespace RPI
 {
+  class spDefaultCameraCoordinateSystemProvider final : public ezCoordinateSystemProvider
+  {
+  public:
+    spDefaultCameraCoordinateSystemProvider()
+      : ezCoordinateSystemProvider(nullptr)
+    {
+    }
+
+    void GetCoordinateSystem(const ezVec3& vGlobalPosition, ezCoordinateSystem& out_coordinateSystem) const override
+    {
+      out_coordinateSystem.m_vForwardDir = ezBasisAxis::GetBasisVector(m_ForwardAxis);
+      out_coordinateSystem.m_vRightDir = ezBasisAxis::GetBasisVector(m_RightAxis);
+      out_coordinateSystem.m_vUpDir = ezBasisAxis::GetBasisVector(m_UpAxis);
+    }
+
+    ezBasisAxis::Enum m_ForwardAxis = ezBasisAxis::PositiveX;
+    ezBasisAxis::Enum m_RightAxis = ezBasisAxis::PositiveY;
+    ezBasisAxis::Enum m_UpAxis = ezBasisAxis::PositiveZ;
+  };
+
   spCamera::spCamera()
   {
     m_CachedViewMatrix.SetIdentity();
     m_CachedProjectionMatrix.SetIdentity();
     m_CachedInverseViewMatrix.SetIdentity();
     m_CachedInverseProjectionMatrix.SetIdentity();
+    m_CachedViewProjectionMatrix.SetIdentity();
+    m_CachedInverseViewProjectionMatrix.SetIdentity();
+
+    SetCoordinateSystem(ezBasisAxis::PositiveX, ezBasisAxis::PositiveY, ezBasisAxis::PositiveZ);
   }
 
   spCamera::~spCamera()
@@ -43,80 +69,129 @@ namespace RPI
       EZ_DELETE(RHI::spDeviceAllocatorWrapper::GetAllocator(), m_pRenderView);
   }
 
-  void spCamera::SetRenderViewUsage(ezBitflags<RPI::spRenderViewUsage> eUsage)
+  void spCamera::SetCoordinateSystem(ezBasisAxis::Enum forwardAxis, ezBasisAxis::Enum rightAxis, ezBasisAxis::Enum axis)
   {
+    auto provider = EZ_DEFAULT_NEW(spDefaultCameraCoordinateSystemProvider);
+    provider->m_ForwardAxis = forwardAxis;
+    provider->m_RightAxis = rightAxis;
+    provider->m_UpAxis = axis;
+
+    m_pCoordinateSystemProvider = provider;
+  }
+
+  void spCamera::SetRenderViewUsage(ezBitflags<spRenderViewUsage> eUsage)
+  {
+    if (m_eRenderViewUsage == eUsage)
+      return;
+
     m_eRenderViewUsage = eUsage;
     MarkAsDirty();
   }
 
-  void spCamera::SetProjectionMode(ezEnum<RPI::spCameraProjectionMode> eProjectionMode)
+  void spCamera::SetProjectionMode(ezEnum<spCameraProjectionMode> eProjectionMode)
   {
+    if (m_eProjectionMode == eProjectionMode)
+      return;
+
     m_eProjectionMode = eProjectionMode;
     MarkAsDirty();
   }
 
   void spCamera::SetCullingEnabled(bool bIsCullingEnabled)
   {
+    if (m_bCullingEnabled == bIsCullingEnabled)
+      return;
+
     m_bCullingEnabled = bIsCullingEnabled;
     MarkAsDirty();
   }
 
   void spCamera::SetNearPlaneDistance(float fNearPlaneDistance)
   {
+    if (m_fNearPlaneDistance == fNearPlaneDistance)
+      return;
+
     m_fNearPlaneDistance = fNearPlaneDistance;
     MarkAsDirty();
   }
 
   void spCamera::SetFarPlaneDistance(float fNearPlaneDistance)
   {
+    if (m_fFarPlaneDistance == fNearPlaneDistance)
+      return;
+
     m_fFarPlaneDistance = fNearPlaneDistance;
     MarkAsDirty();
   }
 
   void spCamera::SetFieldOfView(float fFieldOfView)
   {
+    if (m_fFieldOfView == fFieldOfView)
+      return;
+
     m_fFieldOfView = fFieldOfView;
     MarkAsDirty();
   }
 
   void spCamera::SetOrthographicSize(float fOrthographicSize)
   {
+    if (m_fOrthographicSize == fOrthographicSize)
+      return;
+
     m_fOrthographicSize = fOrthographicSize;
     MarkAsDirty();
   }
 
   void spCamera::SetAspectRatio(float fAspectRatio)
   {
+    if (m_fAspectRatio == fAspectRatio)
+      return;
+
     m_fAspectRatio = fAspectRatio;
     MarkAsDirty();
   }
 
   void spCamera::SetAperture(float fAperture)
   {
+    if (m_fAperture == fAperture)
+      return;
+
     m_fAperture = fAperture;
     MarkAsDirty();
   }
 
   void spCamera::SetShutterSpeed(ezTime fShutterSpeed)
   {
+    if (m_fShutterSpeed == fShutterSpeed)
+      return;
+
     m_fShutterSpeed = fShutterSpeed;
     MarkAsDirty();
   }
 
   void spCamera::SetISOSensitivity(float fISOSensitivity)
   {
+    if (m_fISOSensitivity == fISOSensitivity)
+      return;
+
     m_fISOSensitivity = fISOSensitivity;
     MarkAsDirty();
   }
 
   void spCamera::SetExposureCompensation(float fExposureCompensation)
   {
+    if (m_fExposureCompensation == fExposureCompensation)
+      return;
+
     m_fExposureCompensation = fExposureCompensation;
     MarkAsDirty();
   }
 
   void spCamera::SetRenderGroupMask(ezBitflags<spRenderGroup> eRenderGroupMask)
   {
+    if (m_eRenderGroupMask == eRenderGroupMask)
+      return;
+
     m_eRenderGroupMask = eRenderGroupMask;
     MarkAsDirty();
   }
@@ -181,20 +256,48 @@ namespace RPI
 
   void spCamera::SetPosition(const ezVec3& vPosition)
   {
+    const ezVec3 vPositionIn = MapExternalToInternal(vPosition);
+
+    if (m_vPosition == vPositionIn)
+      return;
+
     m_vPreviousPosition = m_vPosition;
-    m_vPosition = vPosition;
+    m_vPosition = vPositionIn;
     MarkAsDirty();
   }
 
   void spCamera::SetForward(const ezVec3& vForward)
   {
-    m_vForward = -(vForward.GetNormalized());
+    const ezVec3 vForwardIn = MapExternalToInternal(vForward.GetNormalized());
+
+    if (m_vForward == vForwardIn)
+      return;
+
+    m_vForward = vForwardIn;
     MarkAsDirty();
   }
 
   void spCamera::SetUp(const ezVec3& vUp)
   {
-    m_vUp = vUp;
+    const ezVec3 vUpIn = MapExternalToInternal(vUp.GetNormalized());
+
+    if (m_vUp == vUpIn)
+      return;
+
+    m_vUp = vUpIn;
+    MarkAsDirty();
+  }
+
+  void spCamera::LookAt(const ezVec3& vCameraPos, const ezVec3& vTargetPos, const ezVec3& vUp)
+  {
+    const ezVec3 vCameraPosIn = MapExternalToInternal(vCameraPos);
+    const ezVec3 vTargetPosIn = MapExternalToInternal(vTargetPos);
+    const ezVec3 vUpIn = MapExternalToInternal(vUp.GetNormalized());
+
+    m_vPosition = vCameraPosIn;
+    m_vUp = vUpIn;
+    m_vForward = (vTargetPosIn - vCameraPosIn).GetNormalized();
+
     MarkAsDirty();
   }
 
@@ -261,6 +364,14 @@ namespace RPI
     EZ_ASSERT_DEV(m_fOrthographicSize > 0.0f, "Orthographic size must be greater than 0.");
   }
 
+  void spCamera::CacheViewMatrix()
+  {
+    if (!m_bIsDirty)
+      return;
+
+    m_CachedViewMatrix = ezGraphicsUtils::CreateLookAtViewMatrix(m_vPosition, m_vPosition + m_vForward, m_vUp, ezHandedness::LeftHanded);
+  }
+
   void spCamera::CacheProjectionMatrix()
   {
     if (!m_bIsDirty)
@@ -293,21 +404,23 @@ namespace RPI
     }
   }
 
-  void spCamera::CacheViewMatrix()
+  void spCamera::CacheViewProjectionMatrix()
   {
     if (!m_bIsDirty)
       return;
 
-    m_CachedViewMatrix = ezGraphicsUtils::CreateViewMatrix(GetPosition(), GetForward(), GetLeft(), GetUp(), ezHandedness::LeftHanded);
+    m_CachedViewProjectionMatrix = m_CachedProjectionMatrix * m_CachedViewMatrix;
   }
+
 
   void spCamera::UpdateView()
   {
     if (m_pRenderView == nullptr)
       return;
 
-    CacheProjectionMatrix();
     CacheViewMatrix();
+    CacheProjectionMatrix();
+    CacheViewProjectionMatrix();
 
     m_pRenderView->SetRenderGroup(m_eRenderGroupMask);
     m_pRenderView->SetCullingMode(m_bCullingEnabled ? spRenderViewCullingMode::Frustum : spRenderViewCullingMode::None);
@@ -326,10 +439,48 @@ namespace RPI
       viewData->m_ISO = GetISOSensitivity();
       viewData->m_AspectRatio = GetAspectRatio();
       viewData->m_Projection = m_CachedProjectionMatrix;
-      viewData->m_InverseProjection = m_CachedProjectionMatrix.GetInverse();
+      viewData->m_InverseProjection = m_CachedProjectionMatrix.GetInverse(0.0f);
       viewData->m_View = m_CachedViewMatrix;
-      viewData->m_InverseView = m_CachedViewMatrix.GetInverse();
+      viewData->m_InverseView = m_CachedViewMatrix.GetInverse(0.0f);
+      viewData->m_ViewProjection = m_CachedViewProjectionMatrix;
+      viewData->m_InverseViewProjection = m_CachedViewProjectionMatrix.GetInverse(0.0f);
     }
+  }
+
+  ezVec3 spCamera::MapExternalToInternal(const ezVec3& v) const
+  {
+    if (m_pCoordinateSystemProvider)
+    {
+      ezCoordinateSystem system;
+      m_pCoordinateSystemProvider->GetCoordinateSystem(m_vPosition, system);
+
+      ezMat3 m;
+      m.SetRow(0, system.m_vForwardDir);
+      m.SetRow(1, system.m_vRightDir);
+      m.SetRow(2, system.m_vUpDir);
+
+      return m * v;
+    }
+
+    return v;
+  }
+
+  ezVec3 spCamera::MapInternalToExternal(const ezVec3& v) const
+  {
+    if (m_pCoordinateSystemProvider)
+    {
+      ezCoordinateSystem system;
+      m_pCoordinateSystemProvider->GetCoordinateSystem(m_vPosition, system);
+
+      ezMat3 m;
+      m.SetColumn(0, system.m_vForwardDir);
+      m.SetColumn(1, system.m_vRightDir);
+      m.SetColumn(2, system.m_vUpDir);
+
+      return m * v;
+    }
+
+    return v;
   }
 } // namespace RPI
 

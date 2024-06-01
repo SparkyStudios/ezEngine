@@ -41,6 +41,11 @@ namespace RPI
   {
     SUPER::Initialize();
 
+    auto desc = EZ_CREATE_MODULE_UPDATE_FUNCTION_DESC(spCameraComponentManager::Update, this);
+    desc.m_Phase = UpdateFunctionDesc::Phase::PostTransform;
+
+    this->RegisterUpdateFunction(desc);
+
     spSceneContext::GetCollectEvent().AddEventHandler(ezMakeDelegate(&spCameraComponentManager::OnCollectEvent, this));
     spSceneContext::GetExtractEvent().AddEventHandler(ezMakeDelegate(&spCameraComponentManager::OnExtractEvent, this));
   }
@@ -51,6 +56,21 @@ namespace RPI
     spSceneContext::GetExtractEvent().RemoveEventHandler(ezMakeDelegate(&spCameraComponentManager::OnExtractEvent, this));
 
     SUPER::Deinitialize();
+  }
+
+  void spCameraComponentManager::Update(const ezWorldModule::UpdateContext& context)
+  {
+    for (auto it = GetComponents(); it.IsValid(); ++it)
+    {
+      if (it->IsActiveAndInitialized())
+      {
+        const ezGameObject* gameObject = it->GetOwner();
+
+        it->m_Camera.SetPosition(gameObject->GetGlobalPosition());
+        it->m_Camera.SetForward(gameObject->GetGlobalDirForwards());
+        it->m_Camera.SetUp(gameObject->GetGlobalDirUp());
+      }
+    }
   }
 
   void spCameraComponentManager::OnCollectEvent(const spSceneContextCollectEvent& event)
