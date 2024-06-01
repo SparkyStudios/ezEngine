@@ -254,6 +254,12 @@ void spRPIGameApplication::Init_ConfigureInput()
 
   config.m_sInputSlotTrigger[0] = ezInputSlot_KeyUp;
   ezInputManager::SetInputActionConfig("Main", "MoveCamForward", config, true);
+
+  config.m_sInputSlotTrigger[0] = ezInputSlot_KeyLeft;
+  ezInputManager::SetInputActionConfig("Main", "MoveCamLeft", config, true);
+
+  config.m_sInputSlotTrigger[0] = ezInputSlot_KeyRight;
+  ezInputManager::SetInputActionConfig("Main", "MoveCamRight", config, true);
 }
 
 void spRPIGameApplication::Init_SetupDefaultResources()
@@ -429,6 +435,16 @@ bool spRPIGameApplication::Run_ProcessApplicationInput()
   if (ezInputManager::GetInputActionState("Main", "MoveCamForward") != ezKeyState::Up)
   {
     m_pCamera->SetLocalPosition(m_pCamera->GetLocalPosition() + ezVec3::MakeAxisX());
+  }
+
+  if (ezInputManager::GetInputActionState("Main", "MoveCamLeft") != ezKeyState::Up)
+  {
+    m_pCamera->SetLocalPosition(m_pCamera->GetLocalPosition() - ezVec3::MakeAxisY());
+  }
+
+  if (ezInputManager::GetInputActionState("Main", "MoveCamRight") != ezKeyState::Up)
+  {
+    m_pCamera->SetLocalPosition(m_pCamera->GetLocalPosition() + ezVec3::MakeAxisY());
   }
 
   return SUPER::Run_ProcessApplicationInput();
