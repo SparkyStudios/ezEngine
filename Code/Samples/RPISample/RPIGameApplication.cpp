@@ -1,5 +1,8 @@
 #include "RPIGameApplication.h"
 
+#include "Core/Input/InputManager.h"
+#include "RPI/Shaders/ShaderTypes.h"
+
 #include <Core/Input/DeviceTypes/Controller.h>
 #include <Core/ResourceManager/ResourceManager.h>
 #include <Core/System/ControllerInput.h>
@@ -18,6 +21,9 @@
 #include <RPI/Graph/Nodes/MainSwapchainRenderGraphNode.h>
 #include <RPI/Meshes/MeshComponent.h>
 #include <RPI/Pipeline/RenderPass.h>
+#include <RPI/Renderers/CameraRenderer.h>
+#include <RPI/Renderers/ClearRenderer.h>
+#include <RPI/Renderers/SceneRenderer.h>
 
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS_DESKTOP)
 #  include <RHID3D11/Device.h>
@@ -33,6 +39,15 @@ static ezUInt32 g_uiWindowHeight = 480;
 
 ezResult spDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources)
 {
+  m_hShaderAsset = ezResourceManager::LoadResource<RAI::spShaderResource>(":project/Shaders/sample.slang");
+
+  const ezResourceLock resource(m_hShaderAsset, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
+  if (!resource.IsValid())
+  {
+    ezLog::Error("Unable to get the image resource! Make sure to run AssetProcessor first.");
+    return EZ_FAILURE;
+  }
+
   spRenderTargetDescription rtDescription{};
   rtDescription.m_bGenerateMipMaps = false;
   rtDescription.m_eQuality = spRenderTargetQuality::LDR;
@@ -52,7 +67,8 @@ ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* p
   rtt->m_pRHIResource->SetDebugName("main_render_target");
 
   auto target = m_hRenderTarget;
-  const spCallbackRenderPass::ExecuteCallback executeCallback = [target](const spRenderGraphResourcesTable& resources, spRenderContext* context, ezVariant& passData) -> void
+  auto shader = m_hShaderAsset;
+  const spCallbackRenderPass::ExecuteCallback executeCallback = [target, shader](const spRenderGraphResourcesTable& resources, const spRenderContext* context, ezVariant& passData) -> void
   {
     spRenderGraphResource* rtt = nullptr;
     resources.TryGetValue(target.GetInternalID(), rtt);
@@ -61,6 +77,14 @@ ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* p
 
     const auto c = ezAngle::MakeFromRadian(ezTime::Now().AsFloatInSeconds());
     const auto col = ezColor(ezMath::Sin(c), ezMath::Cos(c), ezMath::Sin(-c), 1.0f);
+
+    spShaderCompilerSetup setup;
+    setup.m_eStage = spShaderStage::VertexShader;
+    setup.m_SpecializationConstants.PushBack(spShaderSpecializationConstant(ezMakeHashedString("TestSpec"), true));
+    setup.m_PredefinedMacros.PushBack({"USE_NORMAL", "1"});
+
+    Slang::ComPtr<slang::IComponentType> shaderProgram;
+    context->GetShaderManager()->CompileShader(shader, setup, shaderProgram.writeRef());
 
     ezSharedPtr<spScopeProfiler> pTestScopeProfiler;
 
@@ -127,6 +151,8 @@ spRPIGameApplication::spRPIGameApplication()
 
 void spRPIGameApplication::AfterCoreSystemsStartup()
 {
+  ezLog::Debug(ezFileSystem::GetSdkRootDirectory());
+
   ExecuteInitFunctions();
 
   ezWorldDesc desc("RPISampleWorld");
@@ -139,9 +165,11 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
     spRenderSystem::GetSingleton()->CreateSceneForWorld(m_pWorld.Borrow()),
     spDeviceAllocatorWrapper::GetAllocator());
 
+  spRenderSystem::GetSingleton()->GetCompositor()->m_pGameRenderer->Initialize(m_pSceneContext.Borrow());
+
   //  ActivateGameState(m_pWorld.Borrow()).IgnoreResult();
 
-  ezUniquePtr<spRenderGraphBuilder> builder = EZ_NEW(spDeviceAllocatorWrapper::GetAllocator(), spRenderGraphBuilder, spRenderSystem::GetSingleton()->GetDevice().Borrow());
+  ezUniquePtr<spRenderGraphBuilder> builder = EZ_NEW(spDeviceAllocatorWrapper::GetAllocator(), spRenderGraphBuilder, spRenderSystem::GetSingleton()->GetDevice());
 
   {
     ezUniquePtr<spDemoRenderGraphNode> triangleNode = EZ_NEW(spDeviceAllocatorWrapper::GetAllocator(), spDemoRenderGraphNode);
@@ -166,17 +194,27 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
     {
       ezGameObjectDesc cubeDesc;
       cubeDesc.m_sName.Assign("Cube");
+      cubeDesc.m_LocalPosition = ezVec3(0.0f, 0.0f, 0.0f);
+      cubeDesc.m_LocalUniformScaling = 1.0f;
       m_pWorld->CreateObject(cubeDesc, m_pCube);
 
-      m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_pCube);
+      spShaderTransform t = m_pCube->GetGlobalTransform();
+
+      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_pCube);
+      if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
+        pComponent->SetMeshFile(":project/objects/teapot.spMesh");
     }
 
     {
       ezGameObjectDesc cameraDesc;
       cameraDesc.m_sName.Assign("Camera");
+      cameraDesc.m_bDynamic = true;
+      cameraDesc.m_LocalPosition = ezVec3(-50.0f, 0.0f, 0.0f);
       m_pWorld->CreateObject(cameraDesc, m_pCamera);
 
-      m_pWorld->GetOrCreateComponentManager<spCameraComponentManager>()->CreateComponent(m_pCamera);
+      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spCameraComponentManager>()->CreateComponent(m_pCamera);
+      if (spCameraComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spCameraComponentManager>()->TryGetComponent(hComponent, pComponent))
+        pComponent->SetCameraSlot("Main");
     }
   }
 }
@@ -203,6 +241,19 @@ void spRPIGameApplication::Init_LoadRequiredPlugins()
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
   ezPlugin::LoadPlugin("ezInspectorPlugin").IgnoreResult();
 #endif
+}
+
+void spRPIGameApplication::Init_ConfigureInput()
+{
+  ezGameApplication::Init_ConfigureInput();
+
+  ezInputActionConfig config;
+
+  config.m_sInputSlotTrigger[0] = ezInputSlot_KeyDown;
+  ezInputManager::SetInputActionConfig("Main", "MoveCamBack", config, true);
+
+  config.m_sInputSlotTrigger[0] = ezInputSlot_KeyUp;
+  ezInputManager::SetInputActionConfig("Main", "MoveCamForward", config, true);
 }
 
 void spRPIGameApplication::Init_SetupDefaultResources()
@@ -324,6 +375,16 @@ void spRPIGameApplication::Init_SetupGraphicsDevice()
     }
 
     EZ_ASSERT_DEV(pRenderSystem->GetDevice() != nullptr, "Device creation failed");
+
+    pRenderSystem->GetCompositor()->CreateCameraSlot("Main");
+    spCameraRenderer* pRenderer = EZ_DEFAULT_NEW(spCameraRenderer);
+    pRenderer->SetCameraSlot("Main");
+    m_pRenderer = EZ_DEFAULT_NEW(spClearRenderer);
+    static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearFlags(spClearRenderer::ClearFlags::Default);
+    static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearDepth(1.0f);
+    static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearStencil(0);
+    pRenderer->SetChildRenderer(m_pRenderer.Borrow());
+    pRenderSystem->GetCompositor()->m_pGameRenderer = pRenderer;
   }
 }
 
@@ -358,6 +419,18 @@ bool spRPIGameApplication::IsGameUpdateEnabled() const
 
 bool spRPIGameApplication::Run_ProcessApplicationInput()
 {
+  EZ_LOCK(m_pWorld->GetWriteMarker());
+
+  if (ezInputManager::GetInputActionState("Main", "MoveCamBack") != ezKeyState::Up)
+  {
+    m_pCamera->SetLocalPosition(m_pCamera->GetLocalPosition() - ezVec3::MakeAxisX());
+  }
+
+  if (ezInputManager::GetInputActionState("Main", "MoveCamForward") != ezKeyState::Up)
+  {
+    m_pCamera->SetLocalPosition(m_pCamera->GetLocalPosition() + ezVec3::MakeAxisX());
+  }
+
   return SUPER::Run_ProcessApplicationInput();
 }
 

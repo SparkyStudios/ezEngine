@@ -19,6 +19,7 @@
 #include <RPI/Core/RenderGroup.h>
 #include <RPI/Core/Threading/ConcurrentCollector.h>
 #include <RPI/Shaders/ConstantBuffer.h>
+#include <RPI/Shaders/ShaderTypes.h>
 
 #include <Foundation/Math/Frustum.h>
 
@@ -46,11 +47,14 @@ namespace RPI
     float m_ISO;
     float m_AspectRatio;
 
-    ezMat4 m_Projection;
-    ezMat4 m_InverseProjection;
+    spShaderMat4 m_Projection;
+    spShaderMat4 m_InverseProjection;
 
-    ezMat4 m_View;
-    ezMat4 m_InverseView;
+    spShaderMat4 m_View;
+    spShaderMat4 m_InverseView;
+
+    spShaderMat4 m_ViewProjection;
+    spShaderMat4 m_InverseViewProjection;
   };
 
   /// \brief Specifies how the render view should cull render objects.
