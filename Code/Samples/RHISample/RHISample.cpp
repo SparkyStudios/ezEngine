@@ -246,7 +246,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   if (!imageResource.IsValid())
     return ezLog::Error("Unable to get the image resource! Make sure to run AssetProcessor first.");
 
-  m_hMesh = ezResourceManager::LoadResource<spMeshResource>(":project/objects/yemaya_body.spMesh");
+  m_hMesh = ezResourceManager::LoadResource<spMeshResource>(":project/objects/teapot.spMesh");
   const ezResourceLock resource(m_hMesh, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
   if (!resource.IsValid())
     return ezLog::Error("Unable to get the mesh resource! Make sure to run AssetProcessor first.");
