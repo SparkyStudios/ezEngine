@@ -22,7 +22,6 @@ namespace RHI
 
   MTL::RenderPassDescriptor* spFramebufferMTLBase::GetRenderPassDescriptor()
   {
-    if (m_bIsDirty || m_pDescriptor == nullptr)
     {
       SP_RHI_MTL_RELEASE(m_pDescriptor);
       CreateResource();
