@@ -58,7 +58,7 @@ namespace RPI
   {
     SUPER::Initialize();
 
-    spSceneContext* context = spRenderSystem::GetSingleton()->GetSceneContextFromWorld(GetWorld());
+    const spSceneContext* context = spRenderSystem::GetSingleton()->GetSceneContextFromWorld(GetWorld());
     if (context == nullptr)
     {
       ezLog::Warning("Cannot initialize mesh render feature, no scene context available for the current world.");
@@ -116,10 +116,10 @@ namespace RPI
   {
     if (m_RenderObject.m_hMeshResource.IsValid())
     {
-      ezResourceLock<RAI::spMeshResource> pMesh(m_RenderObject.m_hMeshResource, ezResourceAcquireMode::AllowLoadingFallback);
+      ezResourceLock pMesh(m_RenderObject.m_hMeshResource, ezResourceAcquireMode::AllowLoadingFallback);
       ref_bounds = pMesh->GetLOD(0).GetBounds();
-      ref_bounds.m_vCenter = GetOwner()->GetGlobalPosition();
-      m_RenderObject.m_BoundingBox = ref_bounds.GetBox();
+      ref_bounds.m_vCenter += GetOwner()->GetGlobalPosition();
+
       return EZ_SUCCESS;
     }
 
@@ -130,6 +130,10 @@ namespace RPI
   {
     if (!m_RenderObject.m_hMeshResource.IsValid())
       return;
+
+    m_RenderObject.m_BoundingBox = GetOwner()->GetLocalBounds();
+    m_RenderObject.m_Transform = GetOwner()->GetGlobalTransform();
+    m_RenderObject.m_PreviousTransform = GetOwner()->GetLastGlobalTransform();
 
     // TODO
     ref_msg.m_Objects->Add(&m_RenderObject);

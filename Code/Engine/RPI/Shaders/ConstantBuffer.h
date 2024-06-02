@@ -48,6 +48,13 @@ namespace RPI
     /// \param[in] pData The data to write.
     void UpdateBuffer(ezUInt32 uiOffsetInBytes, ezUInt32 uiSizeInBytes, const void* pData) const;
 
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+    /// \brief Sets the debug name of the buffer.
+    /// \param[in] sName The name to set.
+    /// \note This method is only available in debug builds.
+    void SetDebugName(ezStringView sName) const;
+#endif
+
   protected:
     /// \brief Creates a new constant buffer wrapper with the given size.
     /// \param[in] uiSizeInBytes The size of the buffer.

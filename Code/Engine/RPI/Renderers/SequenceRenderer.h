@@ -16,14 +16,13 @@
 
 #include <RPI/RPIDLL.h>
 
-#include <RPI/Camera/CameraSlot.h>
 #include <RPI/Core/Renderer.h>
 
 namespace RPI
 {
-  class SP_RPI_DLL spCameraRenderer : public spParentRenderer
+  class SP_RHI_DLL spSequenceRenderer : public spRenderer
   {
-    EZ_ADD_DYNAMIC_REFLECTION(spCameraRenderer, spParentRenderer);
+    EZ_ADD_DYNAMIC_REFLECTION(spSequenceRenderer, spRenderer);
 
     // spRenderer
 
@@ -32,28 +31,15 @@ namespace RPI
     void Prepare() override;
     void Initialize(const spSceneContext* pSceneContext) override;
 
-    // spCameraRenderer
+    // spSequenceRenderer
 
   public:
-    spCameraRenderer();
-    ~spCameraRenderer() override;
+    spSequenceRenderer();
+    ~spSequenceRenderer() override;
 
-#pragma region Properties
-
-    void SetCameraSlot(const char* szCameraSlot);
-    EZ_NODISCARD const char* GetCameraSlot() const;
-
-#pragma endregion
-
-  protected:
-    void OnInitialize() override;
+    void PushBack(spRenderer* pRenderer);
 
   private:
-    spCamera* ResolveCamera() const;
-
-    ezTempHashedString m_sCameraSlotName;
-    spCameraSlotHandle m_hCameraSlot;
-
-    bool m_bCameraChanged{false};
+    ezDynamicArray<spRenderer*> m_Renderers;
   };
 } // namespace RPI

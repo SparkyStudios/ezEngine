@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "RPI/Camera/Camera.h"
-#include "RPI/Stages/OpaqueRenderStage.h"
-
-
 #include <RPI/RPIPCH.h>
 
+#include <RPI/Camera/Camera.h>
 #include <RPI/Renderers/CameraRenderer.h>
 #include <RPI/Scene/SceneContext.h>
 
@@ -35,11 +32,9 @@ namespace RPI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
-  static spOpaqueRenderStage* s_pOpaqueRenderStage;
-
   void spCameraRenderer::Render()
   {
-    spCamera* pCamera = spRenderSystem::GetSingleton()->GetCompositor()->GetCameraBySlot(m_hCameraSlot);
+    spCamera* pCamera = ResolveCamera();
     if (pCamera == nullptr)
       return; // No camera found for the given slot, nothing to do.
 
@@ -49,44 +44,28 @@ namespace RPI
     const auto cl = pRenderContext->GetCommandList();
     const auto pFramebuffer = pDevice->GetMainSwapchain()->GetFramebuffer();
 
-    const spRenderView* pRenderView = pRenderContext->GetExtractionData().m_pRenderView;
-    const spRenderStage* pRenderStage = pRenderContext->GetExtractionData().m_pRenderStage;
-
     cl->PushDebugGroup("Camera Renderer");
     {
-      auto clPushRestore = cl->PushRestoreFramebuffer(pRenderStage->GetOutputFramebuffer(pRenderView));
-      cl->SetFullViewport(0);
-      cl->SetFullScissorRect(0);
-
-      const ezRectU32 viewport = pRenderView->GetViewport();
-      const RHI::spViewport vp(viewport.x, viewport.y, viewport.width, viewport.height, 0.0f, 1.0f);
-      cl->SetViewport(0, vp);
-
       SUPER::Render();
-
-      const auto& visibleObjects = GetSceneContext()->GetRenderContext()->GetExtractionData().m_pRenderView->GetVisibleRenderObjects();
-      for (const auto& pObject : visibleObjects)
-        pObject->Draw(GetSceneContext()->GetRenderContext());
-
-      cl->CopyTexture(
-        cl->GetDevice()->GetResourceManager()->GetResource<RHI::spTexture>(s_pOpaqueRenderStage->GetOutputFramebuffer(pCamera->GetRenderView())->GetColorTargets()[0]),
-        cl->GetDevice()->GetResourceManager()->GetResource<RHI::spTexture>(pFramebuffer->GetColorTargets()[0]));
     }
     cl->PopDebugGroup();
   }
 
   void spCameraRenderer::Prepare()
   {
-    spCamera* pCamera = spRenderSystem::GetSingleton()->GetCompositor()->GetCameraBySlot(m_hCameraSlot);
+    spCamera* pCamera = ResolveCamera();
+    if (pCamera == nullptr)
+      return; // No camera found for the given slot, nothing to do.
 
+    const auto pCompositor = spRenderSystem::GetSingleton()->GetCompositor();
     GetSceneContext()->GetRenderContext()->GetExtractionData().m_pRenderView = pCamera->GetRenderView();
-    GetSceneContext()->GetRenderContext()->GetExtractionData().m_pRenderStage = s_pOpaqueRenderStage;
-
-    s_pOpaqueRenderStage->CreateOutputFramebuffer(pCamera->GetRenderView());
 
     if (m_bCameraChanged)
     {
       m_bCameraChanged = false;
+
+      const ezRectU32 renderSize = pCompositor->GetRenderSize();
+      pCamera->GetRenderView()->SetViewport(renderSize);
     }
 
     SUPER::Prepare();
@@ -100,13 +79,11 @@ namespace RPI
   spCameraRenderer::spCameraRenderer()
     : spParentRenderer("CameraRenderer")
   {
-    s_pOpaqueRenderStage = EZ_DEFAULT_NEW(spOpaqueRenderStage);
   }
 
   spCameraRenderer::~spCameraRenderer()
   {
-    // m_pRenderTarget.Clear();
-    EZ_DEFAULT_DELETE(s_pOpaqueRenderStage);
+    m_hCameraSlot.Invalidate();
   }
 
   void spCameraRenderer::SetCameraSlot(const char* szCameraSlot)
@@ -126,5 +103,13 @@ namespace RPI
 
   void spCameraRenderer::OnInitialize()
   {
+  }
+
+  spCamera* spCameraRenderer::ResolveCamera() const
+  {
+    if (m_hCameraSlot.IsInvalidated())
+      return nullptr;
+
+    return spRenderSystem::GetSingleton()->GetCompositor()->GetCameraBySlot(m_hCameraSlot);
   }
 } // namespace RPI

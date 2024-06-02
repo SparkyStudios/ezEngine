@@ -31,11 +31,38 @@ namespace RPI
 
     cl->PushDebugGroup("Scene Renderer");
     {
-      cl->SetFramebuffer(pFramebuffer);
+      auto clPushRestore = cl->PushRestoreFramebuffer(m_pRenderTarget->GetFramebuffer());
 
       SUPER::Render();
+
+      cl->CopyTexture(
+        m_pRenderTarget->GetTexture(),
+        cl->GetDevice()->GetResourceManager()->GetResource<RHI::spTexture>(pFramebuffer->GetColorTargets()[0]));
     }
     cl->PopDebugGroup();
+  }
+
+  void spSceneRenderer::Initialize(const spSceneContext* pSceneContext)
+  {
+    const auto pCompositor = spRenderSystem::GetSingleton()->GetCompositor();
+    const ezRectU32 renderSize = pCompositor->GetRenderSize();
+
+    m_pRenderTarget.Clear();
+
+    RHI::spRenderTargetDescription desc;
+    desc.m_eQuality = pCompositor->IsHDR() ? RHI::spRenderTargetQuality::HDR : RHI::spRenderTargetQuality::LDR;
+    desc.m_uiWidth = renderSize.width;
+    desc.m_uiHeight = renderSize.height;
+    desc.m_eSampleCount = RHI::spTextureSampleCount::None; // TODO: Get this from the compositor.
+    desc.m_bGenerateMipMaps = false;
+
+    m_pRenderTarget = pSceneContext->GetDevice()->GetResourceFactory()->CreateRenderTarget(desc);
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+    m_pRenderTarget->SetDebugName("Camera Renderer Render Target");
+#endif
+
+    SUPER::Initialize(pSceneContext);
   }
 
   spSceneRenderer::spSceneRenderer()

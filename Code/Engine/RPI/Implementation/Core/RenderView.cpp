@@ -32,6 +32,13 @@ namespace RPI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
+  spRenderView::spRenderView()
+  {
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+    m_RenderViewDataBuffer.SetDebugName("Buffer_PerView");
+#endif
+  }
+
   spRenderView::~spRenderView()
   {
     m_VisibleRenderObjects.Clear();

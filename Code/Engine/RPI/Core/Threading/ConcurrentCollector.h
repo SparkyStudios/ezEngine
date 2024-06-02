@@ -46,6 +46,22 @@ namespace RPI
       return m_pHead->m_Items;
     }
 
+    /// \brief Gets the collection as an \c ArrayPtr. It is valid to call this method
+    /// only after the collection has been closed.
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<const T> GetArrayPtr() const
+    {
+      EZ_ASSERT_DEBUG(m_pHead == m_pTail, "The collection is not yet closed.");
+      return ezMakeArrayPtr(&m_pHead->m_Items[0], m_uiCount);
+    }
+
+    /// \brief Gets the collection as an \c ArrayPtr. It is valid to call this method
+    /// only after the collection has been closed.
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<T> GetArrayPtr()
+    {
+      EZ_ASSERT_DEBUG(m_pHead == m_pTail, "The collection is not yet closed.");
+      return ezMakeArrayPtr(&m_pHead->m_Items[0], m_uiCount);
+    }
+
     /// \brief Gets the number of items in the collection.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetCount() const { return m_uiCount; }
 

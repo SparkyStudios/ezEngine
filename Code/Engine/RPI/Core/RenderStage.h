@@ -38,10 +38,10 @@ namespace RPI
     ~spRenderStageFilter() override = default;
 
     /// \brief Returns true if the render object should be visible in the given rendering view.
-    /// \param renderObject The render object to check.
-    /// \param renderView The rendering view in which check the visibility.
-    /// \param renderStage The current rendering stage.
-    virtual bool IsVisible(const spRenderObject& renderObject, const spRenderView& renderView, const spRenderStage& renderStage) = 0;
+    /// \param pRenderObject The render object to check.
+    /// \param pRenderView The rendering view in which check the visibility.
+    /// \param pRenderStage The current rendering stage.
+    virtual bool IsVisible(const spRenderObject* pRenderObject, const spRenderView* pRenderView, const spRenderStage* pRenderStage) = 0;
   };
 
   /// \brief A single stage in a rendering feature.
@@ -68,8 +68,8 @@ namespace RPI
     explicit spRenderStage(ezStringView sName);
     ~spRenderStage() override = default;
 
-    virtual void Filter(const spRenderView& renderView, const ezArrayPtr<spRenderObject>& renderObjects, ezArrayPtr<spRenderObject>& out_filteredRenderObjects, ezArrayPtr<spRenderObject>& out_unfilteredRenderObjects) = 0;
-    virtual void Sort(const spRenderView& renderView, const ezArrayPtr<spRenderObject>& renderObjects, ezArrayPtr<spRenderObject>& out_sortedRenderObjects) = 0;
+    virtual void Filter(const spRenderView* pRenderView, const ezArrayPtr<spRenderObject* const>& renderObjects, ezDynamicArray<spRenderObject*>* out_passedRenderObjects, ezDynamicArray<spRenderObject*>* out_failedRenderObjects);
+    virtual void Sort(const spRenderView* pRenderView, const ezArrayPtr<spRenderObject* const>& renderObjects, ezDynamicArray<spRenderObject*>& out_sortedRenderObjects);
 
     virtual bool IsActiveForRenderObject(const spRenderObject* pRenderObject) const = 0;
 

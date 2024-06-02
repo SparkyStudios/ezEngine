@@ -58,7 +58,8 @@ protected:
   void Run_FinishFrame() override;
 
 private:
-  ezGameObject* m_pCube{nullptr};
+  ezGameObject* m_pCube1{nullptr};
+  ezGameObject* m_pCube2{nullptr};
   ezGameObject* m_pCamera{nullptr};
 
   ezUniquePtr<ezWorld> m_pWorld{nullptr};
