@@ -17,7 +17,7 @@ namespace RHI
       return;
 
     m_pFramebuffer.Clear();
-    m_pTexture.Clear();
+    m_pColorTexture.Clear();
 
     m_bReleased = true;
   }
@@ -28,7 +28,7 @@ namespace RHI
     m_pDevice = pDevice;
 
     m_pFramebuffer = pFramebuffer;
-    m_pTexture = pDevice->GetResourceManager()->GetResource<spTexture>(pFramebuffer->GetColorTargets()[0]);
+    m_pColorTexture = pDevice->GetResourceManager()->GetResource<spTexture>(pFramebuffer->GetColorTargets()[0]);
 
     m_bReleased = false;
   }
@@ -38,7 +38,7 @@ namespace RHI
   {
     m_pDevice = pDevice;
 
-    m_pTexture = pTexture;
+    m_pColorTexture = pTexture;
 
     GenerateFramebuffer();
 
@@ -51,16 +51,23 @@ namespace RHI
   {
     m_pDevice = pDevice;
 
-    ezBitflags<spTextureUsage> eTextureUsage = spTextureUsage::RenderTarget | spTextureUsage::Sampled;
+    ezBitflags<spTextureUsage> eColorTextureUsage = spTextureUsage::RenderTarget | spTextureUsage::Sampled;
+    ezBitflags<spTextureUsage> eDepthTextureUsage = spTextureUsage::DepthStencil | spTextureUsage::Sampled;
     if (description.m_bGenerateMipMaps)
-      eTextureUsage |= spTextureUsage::GenerateMipmaps;
+    {
+      eColorTextureUsage |= spTextureUsage::GenerateMipmaps;
+      eDepthTextureUsage |= spTextureUsage::GenerateMipmaps;
+    }
 
     ezEnum<spPixelFormat> ePixelFormat = spPixelFormat::R8G8B8A8UNorm;
     if (description.m_eQuality == spRenderTargetQuality::HDR)
       ePixelFormat = spPixelFormat::R16G16B16A16Float;
 
-    const spTextureDescription desc = spTextureDescription::Texture2D(description.m_uiWidth, description.m_uiHeight, description.m_bGenerateMipMaps ? description.m_uiMipmapsCount : 1, 1, ePixelFormat, eTextureUsage, description.m_eSampleCount);
-    m_pTexture = m_pDevice->GetResourceFactory()->CreateTexture(desc);
+    const spTextureDescription colorDesc = spTextureDescription::Texture2D(description.m_uiWidth, description.m_uiHeight, description.m_bGenerateMipMaps ? description.m_uiMipmapsCount : 1, 1, ePixelFormat, eColorTextureUsage, description.m_eSampleCount);
+    m_pColorTexture = m_pDevice->GetResourceFactory()->CreateTexture(colorDesc);
+
+    const spTextureDescription depthDesc = spTextureDescription::Texture2D(description.m_uiWidth, description.m_uiHeight, description.m_bGenerateMipMaps ? description.m_uiMipmapsCount : 1, 1, description.m_bHasStencil ? spPixelFormat::D24UNormS8UInt : spPixelFormat::D32Float, eDepthTextureUsage, description.m_eSampleCount);
+    m_pDepthStencilTexture = m_pDevice->GetResourceFactory()->CreateTexture(depthDesc);
 
     GenerateFramebuffer();
 
@@ -69,7 +76,7 @@ namespace RHI
 
   void spRenderTarget::GenerateFramebuffer()
   {
-    const spFramebufferDescription desc({}, m_pTexture->GetHandle());
+    const spFramebufferDescription desc(m_pDepthStencilTexture != nullptr ? m_pDepthStencilTexture->GetHandle() : spResourceHandle(), m_pColorTexture->GetHandle());
     m_pFramebuffer = m_pDevice->GetResourceFactory()->CreateFramebuffer(desc);
   }
 } // namespace RHI
