@@ -20,7 +20,7 @@
 
 namespace RPI
 {
-  class SP_RHI_DLL spSequenceRenderer : public spRenderer
+  class SP_RPI_DLL spSequenceRenderer : public spRenderer
   {
     EZ_ADD_DYNAMIC_REFLECTION(spSequenceRenderer, spRenderer);
 

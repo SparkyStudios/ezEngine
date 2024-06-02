@@ -48,7 +48,7 @@ namespace RPI
 
   /// \brief Compute a \c spSortKey for a \c spRenderObject based on
   /// the distance between the render object and the render view.
-  class SP_RHI_DLL spDistanceSortMode : public spSortMode
+  class SP_RPI_DLL spDistanceSortMode : public spSortMode
   {
     EZ_ADD_DYNAMIC_REFLECTION(spDistanceSortMode, spSortMode);
 
@@ -74,7 +74,7 @@ namespace RPI
     bool m_bSortBackToFront{false};
   };
 
-  class SP_RHI_DLL spFrontToBackSortMode : public spDistanceSortMode
+  class SP_RPI_DLL spFrontToBackSortMode : public spDistanceSortMode
   {
     EZ_ADD_DYNAMIC_REFLECTION(spFrontToBackSortMode, spDistanceSortMode);
 
@@ -85,7 +85,7 @@ namespace RPI
     ~spFrontToBackSortMode() override = default;
   };
 
-  class SP_RHI_DLL spBackToFrontSortMode : public spDistanceSortMode
+  class SP_RPI_DLL spBackToFrontSortMode : public spDistanceSortMode
   {
     EZ_ADD_DYNAMIC_REFLECTION(spBackToFrontSortMode, spDistanceSortMode);
 
