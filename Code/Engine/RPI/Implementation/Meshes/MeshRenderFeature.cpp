@@ -147,8 +147,8 @@ namespace RPI
       cl->SetVertexBuffer(0, mesh.GetRHIVertexBuffer());
       cl->SetIndexBuffer(mesh.GetRHIIndexBuffer(), RHI::spIndexFormat::UInt16);
 
-      m_PushConstants.transform = pMeshRenderObject->m_Transform.GetAsMat4().GetTranspose();
-      m_PushConstants.values = pMeshRenderObject->m_PreviousTransform.GetAsMat4().GetTranspose();
+      m_PushConstants.transform = pMeshRenderObject->m_Transform.GetAsMat4();
+      m_PushConstants.values = pMeshRenderObject->m_PreviousTransform.GetAsMat4();
       cl->PushConstants(0, RHI::spShaderStage::VertexShader, &m_PushConstants, 0, sizeof(PushConstantTest));
       // cl->UpdateBuffer(m_PushConstantBuffer, 0, constants.Borrow(), 1);
 
