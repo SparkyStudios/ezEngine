@@ -137,7 +137,6 @@ namespace RPI
   void spConcurrentCollector<T, TAllocatorWrapper>::Clear()
   {
     Close();
-    GetItems().Clear();
     m_uiCount.Set(0);
   }
 
