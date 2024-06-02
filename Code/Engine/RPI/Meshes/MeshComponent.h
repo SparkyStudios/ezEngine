@@ -93,18 +93,9 @@ namespace RPI
     /// \brief Returns the path to the mesh file to be rendered.
     EZ_NODISCARD const char* GetMeshFile() const;
 
-    /// \brief Sets the sorting order of the mesh.
-    /// \param fSortingOrder The sorting order of the mesh.
-    void SetSortingOrder(float fSortingOrder);
-
-    /// \brief Returns the sorting order of the mesh.
-    EZ_NODISCARD float GetSortingOrder() const;
-
 #pragma endregion
 
   private:
-    float m_fSortingOrder{0.0f};
-
     spMeshRenderObject m_RenderObject;
   };
 } // namespace RPI

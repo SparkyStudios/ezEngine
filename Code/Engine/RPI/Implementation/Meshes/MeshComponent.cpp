@@ -30,7 +30,6 @@ namespace RPI
     EZ_BEGIN_PROPERTIES
     {
       EZ_ACCESSOR_PROPERTY("Mesh", GetMeshFile, SetMeshFile)->AddAttributes(new ezAssetBrowserAttribute("*.spMesh")),
-      EZ_ACCESSOR_PROPERTY("SortingOrder", GetSortingOrder, SetSortingOrder)
     }
     EZ_END_PROPERTIES;
 
@@ -98,7 +97,6 @@ namespace RPI
     stream.WriteVersion(kMeshComponentVersion);
 
     stream << m_RenderObject.m_hMeshResource;
-    stream << m_fSortingOrder;
   }
 
   void spMeshComponent::DeserializeComponent(ezWorldReader& in_stream)
@@ -109,16 +107,21 @@ namespace RPI
     stream.ReadVersion(kMeshComponentVersion);
 
     stream >> m_RenderObject.m_hMeshResource;
-    stream >> m_fSortingOrder;
   }
 
   ezResult spMeshComponent::GetLocalBounds(ezBoundingBoxSphere& ref_bounds, bool& ref_bAlwaysVisible)
   {
     if (m_RenderObject.m_hMeshResource.IsValid())
     {
+      const ezMat4 mTransform = GetOwner()->GetGlobalTransform().GetAsMat4();
+
       ezResourceLock pMesh(m_RenderObject.m_hMeshResource, ezResourceAcquireMode::AllowLoadingFallback);
-      ref_bounds = pMesh->GetLOD(0).GetBounds();
-      ref_bounds.m_vCenter += GetOwner()->GetGlobalPosition();
+
+      const auto bounds = pMesh->GetLOD(0).GetBounds().GetBox();
+
+      ref_bounds = ezBoundingBox::MakeFromMinMax(
+        mTransform.TransformPosition(bounds.m_vMin),
+        mTransform.TransformPosition(bounds.m_vMax));
 
       return EZ_SUCCESS;
     }
@@ -134,6 +137,7 @@ namespace RPI
     m_RenderObject.m_BoundingBox = GetOwner()->GetLocalBounds();
     m_RenderObject.m_Transform = GetOwner()->GetGlobalTransform();
     m_RenderObject.m_PreviousTransform = GetOwner()->GetLastGlobalTransform();
+    m_RenderObject.m_eRenderGroup = spRenderGroup::All;
 
     // TODO
     ref_msg.m_Objects->Add(&m_RenderObject);
@@ -152,16 +156,6 @@ namespace RPI
   const char* spMeshComponent::GetMeshFile() const
   {
     return m_RenderObject.m_hMeshResource.IsValid() ? m_RenderObject.m_hMeshResource.GetResourceID().GetData() : "";
-  }
-
-  void spMeshComponent::SetSortingOrder(float fSortingOrder)
-  {
-    m_fSortingOrder = fSortingOrder;
-  }
-
-  float spMeshComponent::GetSortingOrder() const
-  {
-    return m_fSortingOrder;
   }
 } // namespace RPI
 

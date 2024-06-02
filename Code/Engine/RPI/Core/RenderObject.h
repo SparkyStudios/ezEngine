@@ -100,6 +100,8 @@ namespace RPI
 
     void Remove(spRenderObject* pRenderObject);
 
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetCount() const { return m_Items.GetCount(); }
+
   private:
     ezHybridArray<spRenderObject*, 64> m_Items;
     spVisibilityGroup* m_pVisibilityGroup{nullptr};

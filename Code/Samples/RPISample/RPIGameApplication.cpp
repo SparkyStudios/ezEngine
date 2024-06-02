@@ -225,7 +225,7 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
       if (spCameraComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spCameraComponentManager>()->TryGetComponent(hComponent, pComponent))
       {
         pComponent->SetCameraSlot("Main");
-        pComponent->SetCullingEnabled(false);
+        pComponent->SetCullingEnabled(true);
       }
     }
   }
