@@ -124,7 +124,7 @@ namespace RHI
 
     ezMemoryUtils::ZeroFill(m_ActiveVertexBuffers.GetData(), m_uiNumVertexBuffers);
 
-    m_PushConstants.Clear();
+    m_PushConstant.m_pData = nullptr;
 
     m_pGraphicPipeline = pGraphicPipeline;
     m_bGraphicPipelineChanged = true;
@@ -441,12 +441,16 @@ namespace RHI
     }
   }
 
-  void spCommandListMTL::PushConstantsInternal(ezUInt32 uiSlot, ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize)
+  void spCommandListMTL::PushConstantsInternal(ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize)
   {
-    m_PushConstants.EnsureCount(uiSlot + 1);
+    EZ_ASSERT_DEV(m_pGraphicPipeline != nullptr || m_pComputePipeline != nullptr, "Push constants can only be set after a pipeline.");
+    EZ_ASSERT_DEV(m_pGraphicPipeline == nullptr || m_pGraphicPipeline->SupportsPushConstants(), "Push constants are not supported by this pipeline. Please enable push constants when creating the pipeline.");
+    EZ_ASSERT_DEV(m_pComputePipeline == nullptr || m_pComputePipeline->SupportsPushConstants(), "Push constants are not supported by this pipeline. Please enable push constants when creating the pipeline.");
 
-    if (const spCommandListPushConstant constant(eStage, pData, uiOffset, uiSize); m_PushConstants[uiSlot] != constant)
-      m_PushConstants[uiSlot] = constant;
+    m_PushConstant.m_eStage = eStage;
+    m_PushConstant.m_pData = pData;
+    m_PushConstant.m_uiOffset = uiOffset;
+    m_PushConstant.m_uiSize = uiSize;
   }
 
   void spCommandListMTL::UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize)
@@ -842,7 +846,7 @@ namespace RHI
       m_ActiveGraphicResourceSets[i] = true;
     }
 
-    for (uint i = 0, l = pGraphicPipelineMTL->GetVertexBufferCount(); i < l; i++)
+    for (ezUInt32 i = 0, l = pGraphicPipelineMTL->GetVertexBufferCount(); i < l; i++)
     {
       if (m_ActiveVertexBuffers[i])
         continue;
@@ -855,26 +859,21 @@ namespace RHI
       m_ActiveVertexBuffers[i] = true;
     }
 
-    for (ezUInt32 i = 0, l = m_PushConstants.GetCount(); i < l; i++)
+    if (pGraphicPipelineMTL->SupportsPushConstants() && m_PushConstant.m_pData != nullptr)
     {
-      const auto& constant = m_PushConstants[i];
-
-      if (constant.m_pData == nullptr)
-        continue;
-
-      if (constant.m_eStage.IsSet(spShaderStage::VertexShader))
+      if (m_PushConstant.m_eStage.IsSet(spShaderStage::VertexShader))
       {
         m_pRenderCommandEncoder->setVertexBytes(
-          static_cast<const ezUInt8*>(constant.m_pData) + constant.m_uiOffset,
-          constant.m_uiSize,
-          pGraphicPipelineMTL->GetNonVertexBufferCount() + pGraphicPipelineMTL->GetVertexBufferCount() + i);
+          static_cast<const ezUInt8*>(m_PushConstant.m_pData) + m_PushConstant.m_uiOffset,
+          m_PushConstant.m_uiSize,
+          0);
       }
-      else if (constant.m_eStage.IsSet(spShaderStage::PixelShader))
+      else if (m_PushConstant.m_eStage.IsSet(spShaderStage::PixelShader))
       {
         m_pRenderCommandEncoder->setFragmentBytes(
-          static_cast<const ezUInt8*>(constant.m_pData) + constant.m_uiOffset,
-          constant.m_uiSize,
-          pGraphicPipelineMTL->GetNonVertexBufferCount() + pGraphicPipelineMTL->GetVertexBufferCount() + i);
+          static_cast<const ezUInt8*>(m_PushConstant.m_pData) + m_PushConstant.m_uiOffset,
+          m_PushConstant.m_uiSize,
+          0);
       }
     }
 
@@ -1262,7 +1261,10 @@ namespace RHI
   {
     auto layouts = bIsGraphics ? m_pGraphicPipeline->GetResourceLayouts() : m_pComputePipeline->GetResourceLayouts();
 
-    ezUInt32 uiBase = 0;
+    const bool bSupportsPushConstants = bIsGraphics ? m_pGraphicPipeline->SupportsPushConstants() : m_pComputePipeline->SupportsPushConstants();
+
+    ezUInt32 uiBase = bSupportsPushConstants ? 1 : 0;
+
     for (int i = 0; i < uiSet; i++)
     {
       EZ_ASSERT_DEV(layouts[i] != nullptr, "Invalid resource layout.");

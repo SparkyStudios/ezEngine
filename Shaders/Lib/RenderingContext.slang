@@ -69,14 +69,10 @@ struct PerPassBuffer
 };
 
 ConstantBuffer<PerFrameBuffer> Buffer_PerFrame;
-ConstantBuffer<PerViewBuffer> Buffer_PerView : register(b0, space0);
+ConstantBuffer<PerViewBuffer> Buffer_PerView : register(b1, space0);
 
 [[push_constant]]
-// TODO: The binding model used in the Metal backend forces me to set this buffer
-// to binding 2 (the next available binding after the vertext buffer), because the vertex buffer
-// uses the binding 1 (which may change over shaders). Not sure how to deal with this,
-// will need more tests for other backends.
-PerPassBuffer Buffer_PerPass : register(b2, space0);
+PerPassBuffer Buffer_PerPass : register(b0, space0); // Push constants have the requirement to be at binding 0.
 
 /// \brief Gets the index in the materials buffer for the current rendering object.
 uint GetMaterialIndex() { return /*uint(Buffer_PerPass.Values._m03)*/ 0; }
