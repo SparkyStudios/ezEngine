@@ -39,6 +39,7 @@ namespace RHI
     if (FAILED(m_pDeviceContext->QueryInterface(IID_ID3DUserDefinedAnnotation, reinterpret_cast<void**>(&m_pUserDefinedAnnotation))))
       ezLog::Warning("Could not get ID3DUserDefinedAnnotation interface, some features may not be available.");
 #endif
+
     m_bReleased = false;
   }
 
@@ -184,8 +185,12 @@ namespace RHI
       m_VertexOffsets.EnsureCount(uiVertexStridesCount);
     }
 
-    m_GraphicResourceSets.EnsureCount(pGraphicPipeline->GetResourceLayouts().GetCount());
-    m_InvalidatedGraphicResourceSets.EnsureCount(pGraphicPipeline->GetResourceLayouts().GetCount());
+    const ezUInt32 uiLayoutsCount = pGraphicPipeline->GetResourceLayouts().GetCount();
+
+    m_GraphicResourceSets.EnsureCount(uiLayoutsCount);
+    m_InvalidatedGraphicResourceSets.EnsureCount(uiLayoutsCount);
+
+    m_PushConstants.Clear();
 
     m_pGraphicPipeline = pGraphicPipeline;
   }
@@ -443,6 +448,29 @@ namespace RHI
 
       m_uiNumVertexBuffers = ezMath::Max(m_uiNumVertexBuffers, uiSlot + 1);
     }
+  }
+
+  void spCommandListD3D11::PushConstantsInternal(ezUInt32 uiSlot, ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize)
+  {
+    // D3D11 doesn't support push constants, so use a constant buffer instead
+    m_PushConstants.EnsureCount(uiSlot + 1);
+    m_PushConstantBuffers.EnsureCount(uiSlot + 1);
+
+    if (const spCommandListPushConstant constant(eStage, pData, uiOffset, uiSize); m_PushConstants[uiSlot] != constant)
+    {
+      m_PushConstants[uiSlot] = constant;
+
+      if (m_PushConstantBuffers[uiSlot] == nullptr)
+      {
+        spBufferDescription desc;
+        desc.m_eUsage = spBufferUsage::ConstantBuffer | spBufferUsage::Dynamic;
+        desc.m_uiSize = 128;
+
+        m_PushConstantBuffers[uiSlot] = m_pDevice->GetResourceFactory()->CreateBuffer(desc).Downcast<spBufferD3D11>();
+      }
+    }
+
+    UpdateBuffer(m_PushConstantBuffers[uiSlot], uiOffset, pData, uiSize);
   }
 
   void spCommandListD3D11::UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize)
@@ -1252,11 +1280,32 @@ namespace RHI
     const ezUInt32 uiGraphicResourceCount = m_pGraphicPipeline->GetResourceLayouts().GetCount();
     for (ezUInt32 i = 0; i < uiGraphicResourceCount; ++i)
     {
-      if (m_InvalidatedGraphicResourceSets[i])
+      if (!m_InvalidatedGraphicResourceSets[i])
+        continue;
+
+      m_InvalidatedGraphicResourceSets[i] = false;
+      ActivateResourceSet(i, m_GraphicResourceSets[i], false);
+    }
+
+    for (ezUInt32 i = 0, l = m_PushConstants.GetCount(); i < l; ++i)
+    {
+      const auto& pc = m_PushConstants[i];
+
+      if (pc.m_pData == nullptr)
+        continue;
+
+      if (pc.m_eStage.IsSet(spShaderStage::VertexShader))
       {
-        m_InvalidatedGraphicResourceSets[i] = false;
-        ActivateResourceSet(i, m_GraphicResourceSets[i], false);
+        ID3D11Buffer* pBuffer = m_PushConstantBuffers[i]->GetD3D11Buffer();
+        m_pDeviceContext->VSSetConstantBuffers(m_CachedVertexConstantBuffers.GetCount() + i, 1, &pBuffer);
       }
+      else if (pc.m_eStage.IsSet(spShaderStage::PixelShader))
+      {
+        ID3D11Buffer* pBuffer = m_PushConstantBuffers[i]->GetD3D11Buffer();
+        m_pDeviceContext->PSSetConstantBuffers(m_CachedPixelConstantBuffers.GetCount() + i, 1, &pBuffer);
+      }
+
+      // TODO: Suppot more stages?
     }
   }
 

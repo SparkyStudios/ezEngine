@@ -66,8 +66,11 @@ namespace RHI
     const spTextureDescription colorDesc = spTextureDescription::Texture2D(description.m_uiWidth, description.m_uiHeight, description.m_bGenerateMipMaps ? description.m_uiMipmapsCount : 1, 1, ePixelFormat, eColorTextureUsage, description.m_eSampleCount);
     m_pColorTexture = m_pDevice->GetResourceFactory()->CreateTexture(colorDesc);
 
-    const spTextureDescription depthDesc = spTextureDescription::Texture2D(description.m_uiWidth, description.m_uiHeight, description.m_bGenerateMipMaps ? description.m_uiMipmapsCount : 1, 1, description.m_bHasStencil ? spPixelFormat::D24UNormS8UInt : spPixelFormat::D32Float, eDepthTextureUsage, description.m_eSampleCount);
-    m_pDepthStencilTexture = m_pDevice->GetResourceFactory()->CreateTexture(depthDesc);
+    if (description.m_bHasDepth)
+    {
+      const spTextureDescription depthDesc = spTextureDescription::Texture2D(description.m_uiWidth, description.m_uiHeight, description.m_bGenerateMipMaps ? description.m_uiMipmapsCount : 1, 1, description.m_bHasStencil ? spPixelFormat::D24UNormS8UInt : spPixelFormat::D32Float, eDepthTextureUsage, description.m_eSampleCount);
+      m_pDepthStencilTexture = m_pDevice->GetResourceFactory()->CreateTexture(depthDesc);
+    }
 
     GenerateFramebuffer();
 
