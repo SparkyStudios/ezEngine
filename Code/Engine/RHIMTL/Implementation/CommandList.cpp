@@ -91,8 +91,12 @@ namespace RHI
     if (m_pComputePipeline == pComputePipeline)
       return;
 
-    m_ComputeResourceSets.EnsureCount(pComputePipeline->GetResourceLayouts().GetCount());
-    m_ActiveComputeResourceSets.EnsureCount(pComputePipeline->GetResourceLayouts().GetCount());
+    const ezUInt32 uiLayoutsCount = pComputePipeline->GetResourceLayouts().GetCount();
+
+    m_ComputeResourceSets.EnsureCount(uiLayoutsCount);
+    m_ActiveComputeResourceSets.EnsureCount(uiLayoutsCount);
+
+    ezMemoryUtils::ZeroFill(m_ActiveComputeResourceSets.GetData(), uiLayoutsCount);
 
     m_pComputePipeline = pComputePipeline;
     m_bComputePipelineChanged = true;
@@ -105,14 +109,22 @@ namespace RHI
     if (m_pGraphicPipeline == pGraphicPipeline)
       return;
 
-    m_GraphicResourceSets.EnsureCount(pGraphicPipeline->GetResourceLayouts().GetCount());
-    m_ActiveGraphicResourceSets.EnsureCount(pGraphicPipeline->GetResourceLayouts().GetCount());
+    const ezUInt32 uiLayoutsCount = pGraphicPipeline->GetResourceLayouts().GetCount();
+
+    m_GraphicResourceSets.EnsureCount(uiLayoutsCount);
+    m_ActiveGraphicResourceSets.EnsureCount(uiLayoutsCount);
+
+    ezMemoryUtils::ZeroFill(m_ActiveGraphicResourceSets.GetData(), uiLayoutsCount);
 
     m_uiNumVertexBuffers = pGraphicPipeline.Downcast<spGraphicPipelineMTL>()->GetVertexBufferCount();
 
     m_VertexBuffers.EnsureCount(m_uiNumVertexBuffers);
     m_VertexOffsets.EnsureCount(m_uiNumVertexBuffers);
     m_ActiveVertexBuffers.EnsureCount(m_uiNumVertexBuffers);
+
+    ezMemoryUtils::ZeroFill(m_ActiveVertexBuffers.GetData(), m_uiNumVertexBuffers);
+
+    m_PushConstants.Clear();
 
     m_pGraphicPipeline = pGraphicPipeline;
     m_bGraphicPipelineChanged = true;
@@ -427,6 +439,14 @@ namespace RHI
 
       m_uiNumVertexBuffers = ezMath::Max(m_uiNumVertexBuffers, uiSlot + 1);
     }
+  }
+
+  void spCommandListMTL::PushConstantsInternal(ezUInt32 uiSlot, ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize)
+  {
+    m_PushConstants.EnsureCount(uiSlot + 1);
+
+    if (const spCommandListPushConstant constant(eStage, pData, uiOffset, uiSize); m_PushConstants[uiSlot] != constant)
+      m_PushConstants[uiSlot] = constant;
   }
 
   void spCommandListMTL::UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize)
@@ -809,6 +829,8 @@ namespace RHI
         m_pRenderCommandEncoder->setDepthClipMode(pGraphicPipelineMTL->GetDepthClipMode());
         m_pRenderCommandEncoder->setStencilReferenceValue(pGraphicPipelineMTL->GetStencilReference());
       }
+
+      m_bGraphicPipelineChanged = false;
     }
 
     for (ezUInt32 i = 0, l = pGraphicPipelineMTL->GetResourceLayouts().GetCount(); i < l; i++)
@@ -829,6 +851,31 @@ namespace RHI
         m_VertexBuffers[i]->GetMTLBuffer(),
         m_VertexOffsets[i],
         pGraphicPipelineMTL->GetNonVertexBufferCount() + i);
+
+      m_ActiveVertexBuffers[i] = true;
+    }
+
+    for (ezUInt32 i = 0, l = m_PushConstants.GetCount(); i < l; i++)
+    {
+      const auto& constant = m_PushConstants[i];
+
+      if (constant.m_pData == nullptr)
+        continue;
+
+      if (constant.m_eStage.IsSet(spShaderStage::VertexShader))
+      {
+        m_pRenderCommandEncoder->setVertexBytes(
+          static_cast<const ezUInt8*>(constant.m_pData) + constant.m_uiOffset,
+          constant.m_uiSize,
+          pGraphicPipelineMTL->GetNonVertexBufferCount() + pGraphicPipelineMTL->GetVertexBufferCount() + i);
+      }
+      else if (constant.m_eStage.IsSet(spShaderStage::PixelShader))
+      {
+        m_pRenderCommandEncoder->setFragmentBytes(
+          static_cast<const ezUInt8*>(constant.m_pData) + constant.m_uiOffset,
+          constant.m_uiSize,
+          pGraphicPipelineMTL->GetNonVertexBufferCount() + pGraphicPipelineMTL->GetVertexBufferCount() + i);
+      }
     }
 
     return true;

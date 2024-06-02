@@ -131,6 +131,43 @@ namespace RHI
     ezArrayPtr<ezUInt32> m_Offsets;
   };
 
+  /// \brief Holds data for a push constant to be set in a \a spCommandList.
+  struct SP_RHI_DLL spCommandListPushConstant
+  {
+    EZ_DECLARE_POD_TYPE();
+
+    /// \brief Default constructor.
+    spCommandListPushConstant() = default;
+
+    /// \brief Creates a new command list push constant.
+    /// \param [in] eStage The stage of the push constant.
+    /// \param [in] pData The pointer to the push constant data.
+    /// \param [in] uiSize The size of the push constant data.
+    spCommandListPushConstant(ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize);
+
+    EZ_ALWAYS_INLINE bool operator==(const spCommandListPushConstant& other) const
+    {
+      return m_eStage == other.m_eStage && m_pData == other.m_pData && m_uiOffset == other.m_uiOffset && m_uiSize == other.m_uiSize;
+    }
+
+    EZ_ALWAYS_INLINE bool operator!=(const spCommandListPushConstant& other) const
+    {
+      return !(*this == other);
+    }
+
+    /// \brief The stage of the push constant.
+    ezBitflags<spShaderStage> m_eStage{spShaderStage::None};
+
+    /// \brief The pointer to the push constant data.
+    const void* m_pData{nullptr};
+
+    /// \brief The offset in the push constant data.
+    ezUInt32 m_uiOffset{0};
+
+    /// \brief The size of the push constant data.
+    ezUInt32 m_uiSize{0};
+  };
+
   /// \brief Describes a \a spCommandList for creation through a \a spDeviceResourceFactory.
   struct spCommandListDescription : ezHashableStruct<spCommandListDescription>
   {
@@ -220,6 +257,8 @@ namespace RHI
 
     void SetVertexBuffer(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer, ezUInt32 uiOffset);
 
+    void PushConstants(ezUInt32 uiSlot, ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize);
+
     virtual void SetScissorRect(ezUInt32 uiSlot, ezUInt32 uiX, ezUInt32 uiY, ezUInt32 uiWidth, ezUInt32 uiHeight) = 0;
 
     void SetFullScissorRect();
@@ -298,6 +337,7 @@ namespace RHI
     virtual void SetGraphicResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) = 0;
     virtual void SetComputeResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets) = 0;
     virtual void SetVertexBufferInternal(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer, ezUInt32 uiOffset) = 0;
+    virtual void PushConstantsInternal(ezUInt32 uiSlot, ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize) = 0;
     virtual void UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pSourceData, ezUInt32 uiSize) = 0;
     virtual void CopyBufferInternal(ezSharedPtr<spBuffer> pSourceBuffer, ezUInt32 uiSourceOffset, ezSharedPtr<spBuffer> pDestBuffer, ezUInt32 uiDestOffset, ezUInt32 uiSize) = 0;
     virtual void CopyTextureInternal(ezSharedPtr<spTexture> pSourceTexture, ezUInt32 uiSourceX, ezUInt32 uiSourceY, ezUInt32 uiSourceZ, ezUInt32 uiSourceMipLevel, ezUInt32 uiSourceBaseArrayLayer, ezSharedPtr<spTexture> pDestinationTexture, ezUInt32 uiDestX, ezUInt32 uiDestY, ezUInt32 uiDestZ, ezUInt32 uiDestMipLevel, ezUInt32 uiDestBaseArrayLayer, ezUInt32 uiWidth, ezUInt32 uiHeight, ezUInt32 uiDepth, ezUInt32 uiLayerCount) = 0;
