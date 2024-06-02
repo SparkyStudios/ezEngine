@@ -88,12 +88,16 @@ namespace RHI
 
     void EnsureNoRenderPass();
     void EndCurrentRenderPass();
+
     void EnsureNoBlitEncoder();
+
     void EnsureNoComputeEncoder();
 
     bool EnsureRenderPass();
     void EnsureBlitEncoder();
     void EnsureComputeEncoder();
+
+    bool HasAnyUnsetClearValues();
 
     bool BeginCurrentRenderPass();
 

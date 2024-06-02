@@ -144,6 +144,8 @@ namespace RHI
     spCommandListPushRestoreFramebuffer(spCommandList* pCommandList, ezSharedPtr<spFramebuffer> pFramebuffer);
     ~spCommandListPushRestoreFramebuffer();
 
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spFramebuffer> GetPreviousFramebuffer() const { return m_pOldFramebuffer; }
+
   private:
     spCommandList* m_pCommandList;
     ezSharedPtr<spFramebuffer> m_pOldFramebuffer;

@@ -85,6 +85,8 @@ namespace RHI
   class SP_RHI_DLL spDeferredDeviceResource
   {
   public:
+    virtual ~spDeferredDeviceResource() = default;
+
     void EnsureResourceCreated();
 
     /// \brief Gets whether the resource has been created.

@@ -64,7 +64,7 @@ namespace RHI
   {
     SP_RHI_MTL_RELEASE(m_pCommandBuffer);
 
-    auto* pDevice = static_cast<spDeviceMTL*>(m_pDevice);
+    const auto* pDevice = static_cast<spDeviceMTL*>(m_pDevice);
 
     m_pCommandBuffer = pDevice->GetCommandQueue()->commandBuffer();
 
@@ -88,6 +88,9 @@ namespace RHI
   {
     EZ_ASSERT_DEV(pComputePipeline != nullptr, "Invalid compute pipeline handle");
 
+    if (m_pComputePipeline == pComputePipeline)
+      return;
+
     m_ComputeResourceSets.EnsureCount(pComputePipeline->GetResourceLayouts().GetCount());
     m_ActiveComputeResourceSets.EnsureCount(pComputePipeline->GetResourceLayouts().GetCount());
 
@@ -98,6 +101,9 @@ namespace RHI
   void spCommandListMTL::SetGraphicPipeline(ezSharedPtr<spGraphicPipeline> pGraphicPipeline)
   {
     EZ_ASSERT_DEV(pGraphicPipeline != nullptr, "Invalid graphics pipeline handle");
+
+    if (m_pGraphicPipeline == pGraphicPipeline)
+      return;
 
     m_GraphicResourceSets.EnsureCount(pGraphicPipeline->GetResourceLayouts().GetCount());
     m_ActiveGraphicResourceSets.EnsureCount(pGraphicPipeline->GetResourceLayouts().GetCount());
@@ -209,10 +215,8 @@ namespace RHI
     EnsureNoBlitEncoder();
     EnsureNoComputeEncoder();
 
-    if (!m_bCurrentFramebufferEverActive && m_pFramebuffer != nullptr)
-    {
+    if (!m_bCurrentFramebufferEverActive && m_pFramebuffer != nullptr && HasAnyUnsetClearValues())
       BeginCurrentRenderPass();
-    }
 
     EnsureNoRenderPass();
   }
@@ -358,10 +362,8 @@ namespace RHI
     if (!m_bCurrentFramebufferEverActive && m_pFramebuffer != nullptr)
     {
       // This ensures that any submitted clear values will be used even if nothing has been drawn.
-      if (EnsureRenderPass())
-      {
+      if (HasAnyUnsetClearValues() && EnsureRenderPass())
         EndCurrentRenderPass();
-      }
     }
 
     EnsureNoRenderPass();
@@ -798,7 +800,7 @@ namespace RHI
       m_pRenderCommandEncoder->setTriangleFillMode(pGraphicPipelineMTL->GetFillMode());
       m_pRenderCommandEncoder->setDepthBias(pGraphicPipelineMTL->GetDepthBias(), pGraphicPipelineMTL->GetSlopeScaledDepthBias(), pGraphicPipelineMTL->GetDepthBiasClamp());
 
-      const ezColor blendColor = pGraphicPipelineMTL->GetBlendColor();
+      const ezColor& blendColor = pGraphicPipelineMTL->GetBlendColor();
       m_pRenderCommandEncoder->setBlendColor(blendColor.r, blendColor.g, blendColor.b, blendColor.a);
 
       if (!m_pFramebuffer->GetDepthTarget().IsInvalidated())
@@ -964,6 +966,16 @@ namespace RHI
     EZ_ASSERT_DEV(!IsBlitCommandEncoderActive(), "Invalid state. The blit encoder is active.");
   }
 
+  bool spCommandListMTL::HasAnyUnsetClearValues()
+  {
+    // If we have valid clear values, we need to end the current render pass.
+    bool bShouldEndRenderPass = ezMath::IsFinite(m_fClearDepth);
+    for (const auto& clearColor : m_ClearColors)
+      bShouldEndRenderPass |= clearColor.IsValid();
+
+    return bShouldEndRenderPass;
+  }
+
   bool spCommandListMTL::BeginCurrentRenderPass()
   {
     if (!m_pFramebuffer->IsRenderable())
@@ -977,7 +989,7 @@ namespace RHI
         auto* attachment = rpDesc->colorAttachments()->object(i);
         attachment->setLoadAction(MTL::LoadActionClear);
         attachment->setStoreAction(MTL::StoreActionStore);
-        ezColor c = m_ClearColors[i];
+        const ezColor& c = m_ClearColors[i];
         attachment->setClearColor(MTL::ClearColor(c.r, c.g, c.b, c.a));
         m_ClearColors[i] = ezColor::MakeNaN();
       }
@@ -1010,7 +1022,6 @@ namespace RHI
       SP_RHI_MTL_RETAIN(m_pRenderCommandEncoder);
     }
 
-    // SP_RHI_MTL_RELEASE(rpDesc);
     m_bCurrentFramebufferEverActive = true;
 
     if (m_bIsInDebugGroup)
