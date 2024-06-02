@@ -53,8 +53,7 @@ namespace RPI
   {
     const RHI::spDeviceCapabilities& capabilities = spRenderSystem::GetSingleton()->GetDevice()->GetCapabilities();
     const ezClipSpaceDepthRange::Enum depthRange = capabilities.m_bIsDepthRangeZeroToOne ? ezClipSpaceDepthRange::ZeroToOne : ezClipSpaceDepthRange::MinusOneToOne;
-    const auto data = m_RenderViewDataBuffer.Read();
-    return ezFrustum::MakeFromMVP(data->m_Projection, depthRange, ezHandedness::LeftHanded);
+    return ezFrustum::MakeFromMVP(m_ProjectionMatrix * m_ViewMatrix, depthRange, ezHandedness::LeftHanded);
   }
 } // namespace RPI
 

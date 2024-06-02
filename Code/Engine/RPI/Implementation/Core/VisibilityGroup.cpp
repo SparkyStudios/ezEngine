@@ -53,18 +53,23 @@ namespace RPI
 
     const ezFrustum frustum = pView->GetFrustum();
 
-    ezTaskSystem::ParallelForIndexed(0, m_RenderObjects.m_Items.GetCount(), [&](ezUInt32 uiStartIndex, ezUInt32 uiEndIndex)
+    ezTaskSystem::ParallelForIndexed(0, m_RenderObjects.GetCount(), [&](ezUInt32 uiStartIndex, ezUInt32 uiEndIndex)
       {
       for (ezUInt32 i = uiStartIndex; i < uiEndIndex; ++i)
       {
         spRenderObject* pRenderObject = m_RenderObjects.m_Items[i];
 
+        // Frustum culling
         if (pView->GetCullingMode() == spRenderViewCullingMode::Frustum
           && pRenderObject->m_BoundingBox.IsValid()
           && frustum.GetObjectPosition(pRenderObject->m_BoundingBox.GetBox()) == ezVolumePosition::Outside)
         {
           return;
         }
+
+        // Render mask
+        if (!pView->GetRenderGroup().IsSet(pRenderObject->m_eRenderGroup))
+          return;
 
         pView->m_VisibleRenderObjects.Add(pRenderObject);
 
