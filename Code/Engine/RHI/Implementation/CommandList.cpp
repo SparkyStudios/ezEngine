@@ -54,6 +54,18 @@ namespace RHI
 
 #pragma endregion
 
+#pragma region spCommandListPushConstant
+
+  spCommandListPushConstant::spCommandListPushConstant(ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize)
+    : m_eStage(eStage)
+    , m_pData(pData)
+    , m_uiOffset(uiOffset)
+    , m_uiSize(uiSize)
+  {
+  }
+
+#pragma endregion
+
 #pragma region spCommandListPushFramebuffer
 
   spCommandListPushRestoreFramebuffer::spCommandListPushRestoreFramebuffer(spCommandList* pCommandList, ezSharedPtr<spFramebuffer> pFramebuffer)
@@ -334,6 +346,14 @@ namespace RHI
     EZ_ASSERT_DEV(pVertexBuffer->GetUsage().IsSet(spBufferUsage::VertexBuffer), "Buffer is not a vertex buffer.");
 
     SetVertexBufferInternal(uiSlot, pVertexBuffer, uiOffset);
+  }
+
+  void spCommandList::PushConstants(ezUInt32 uiSlot, ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize)
+  {
+    EZ_ASSERT_DEV(uiSize <= 128, "Push constants must not exceed 128 bytes.");
+    EZ_ASSERT_DEV(pData != nullptr, "Push contants data cannot be null.");
+
+    PushConstantsInternal(uiSlot, eStage, pData, uiOffset, uiSize);
   }
 
   void spCommandList::SetFullScissorRect()
