@@ -27,6 +27,12 @@ namespace RHI
     /// \brief The number of samples to use for multisampling.
     ezEnum<spTextureSampleCount> m_eSampleCount;
 
+    /// \brief Whether the render target has a depth buffer.
+    bool m_bHasDepth{false};
+
+    /// \brief Whether the render target has a stencil buffer.
+    bool m_bHasStencil{false};
+
     /// \brief Compares this render target description to another for equality.
     EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spRenderTargetDescription& rhs) const
     {
@@ -39,9 +45,9 @@ namespace RHI
 
   class SP_RHI_DLL spRenderTarget : public spDeviceResource
   {
-    EZ_ADD_DYNAMIC_REFLECTION(spRenderTarget, spDeviceResource);
-
     friend class spDeviceResourceFactory;
+
+    EZ_ADD_DYNAMIC_REFLECTION(spRenderTarget, spDeviceResource);
 
     // spDeviceResource
 
@@ -52,7 +58,7 @@ namespace RHI
 
   public:
     /// \brief Gets the texture on which the render target will be rendered. This will be the framebuffer back texture.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spTexture> GetTexture() const { return m_pTexture; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spTexture> GetTexture() const { return m_pColorTexture; }
 
     /// \brief Gets the framebuffer on which the render target will be rendered.
     EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spFramebuffer> GetFramebuffer() const { return m_pFramebuffer; }
@@ -65,7 +71,9 @@ namespace RHI
 
     void GenerateFramebuffer();
 
-    ezSharedPtr<spTexture> m_pTexture{nullptr};
+    ezSharedPtr<spTexture> m_pDepthStencilTexture{nullptr};
+    ezSharedPtr<spTexture> m_pColorTexture{nullptr};
+
     ezSharedPtr<spFramebuffer> m_pFramebuffer{nullptr};
 
     spRenderTargetDescription m_Description;
