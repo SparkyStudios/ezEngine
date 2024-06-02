@@ -219,6 +219,9 @@ namespace RHI
       m_uiNonVertexBufferCount += layout->GetBufferCount();
     }
 
+    if (description.m_bSupportsPushConstants)
+      m_uiNonVertexBufferCount++;
+
     const ezUInt32 uiVertexBuffersCount = description.m_ShaderPipeline.m_InputLayouts.GetCount();
 
     ezDynamicArray<spInputLayoutDescription> inputLayouts;

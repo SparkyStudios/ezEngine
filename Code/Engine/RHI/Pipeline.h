@@ -64,16 +64,36 @@ namespace RHI
 
     /// \brief The Z dimension of the thread group size.
     ezUInt32 m_uiThreadGroupSizeZ{1};
+
+    /// \brief Whether the pipeline supports push constants. This is only relevant for
+    /// Metal and D3D11 backends where the resource binding model is different and there
+    /// is no native support of push constants.
+    bool m_bSupportsPushConstants{true};
   };
 
   /// \brief Describes a \a spGraphicPipeline, for creation using a \a spDeviceResourceFactory.
   struct spGraphicPipelineDescription : ezHashableStruct<spGraphicPipelineDescription>
   {
+    /// \brief Defines the rendering state of the graphics pipeline.
     spRenderingState m_RenderingState;
+
+    /// \brief The primitive topology to use.
     ezEnum<spPrimitiveTopology> m_ePrimitiveTopology;
+
+    /// \brief The shader pipeline to use.
     spShaderPipeline m_ShaderPipeline;
+
+    /// \brief The framebuffer's output description.
     spOutputDescription m_Output;
+
+    /// \brief An array of \a spResourceLayout, which controls the layout of the shader
+    /// resources in this pipeline.
     ezDynamicArray<spResourceHandle> m_ResourceLayouts;
+
+    /// \brief Whether the pipeline supports push constants. This is only relevant for
+    /// Metal and D3D11 backends where the resource binding model is different and there
+    /// is no native support of push constants.
+    bool m_bSupportsPushConstants{false};
   };
 
   class SP_RHI_DLL spPipeline : public spDeviceResource
@@ -111,6 +131,8 @@ namespace RHI
   public:
     EZ_NODISCARD EZ_ALWAYS_INLINE bool IsComputePipeline() const override { return true; }
 
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool SupportsPushConstants() const { return m_Description.m_bSupportsPushConstants; }
+
   protected:
     explicit spComputePipeline(spComputePipelineDescription description);
 
@@ -130,6 +152,8 @@ namespace RHI
     EZ_NODISCARD EZ_ALWAYS_INLINE ezEnum<spPrimitiveTopology> GetPrimitiveTopology() const { return m_Description.m_ePrimitiveTopology; }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const { return m_Description.m_Output; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool SupportsPushConstants() const { return m_Description.m_bSupportsPushConstants; }
 
   protected:
     explicit spGraphicPipeline(spGraphicPipelineDescription description);

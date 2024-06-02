@@ -123,6 +123,7 @@ namespace RPI
     if (m_pGraphicPipeline == nullptr)
     {
       RHI::spGraphicPipelineDescription desc{};
+      desc.m_bSupportsPushConstants = true;
       desc.m_Output = pRenderStage->GetOutputDescription(pRenderView);
       desc.m_ePrimitiveTopology = RHI::spPrimitiveTopology::Triangles;
       desc.m_RenderingState = pRenderStage->GetRenderingState(pRenderObject);
@@ -150,6 +151,7 @@ namespace RPI
       m_PushConstants.transform = pMeshRenderObject->m_Transform.GetAsMat4();
       m_PushConstants.values = pMeshRenderObject->m_PreviousTransform.GetAsMat4();
       cl->PushConstants(0, RHI::spShaderStage::VertexShader, &m_PushConstants, 0, sizeof(PushConstantTest));
+      cl->PushConstants(RHI::spShaderStage::VertexShader, &m_PushConstants, 0, sizeof(PushConstantTest));
       // cl->UpdateBuffer(m_PushConstantBuffer, 0, constants.Borrow(), 1);
 
       cl->DrawIndexedIndirect(mesh.GetRHIIndirectBuffer(), 0, drawCommands.GetCount(), cl->GetDevice()->GetIndexedIndirectCommandSize());

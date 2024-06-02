@@ -348,12 +348,12 @@ namespace RHI
     SetVertexBufferInternal(uiSlot, pVertexBuffer, uiOffset);
   }
 
-  void spCommandList::PushConstants(ezUInt32 uiSlot, ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize)
+  void spCommandList::PushConstants(ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize)
   {
     EZ_ASSERT_DEV(uiSize <= 128, "Push constants must not exceed 128 bytes.");
     EZ_ASSERT_DEV(pData != nullptr, "Push contants data cannot be null.");
 
-    PushConstantsInternal(uiSlot, eStage, pData, uiOffset, uiSize);
+    PushConstantsInternal(eStage, pData, uiOffset, uiSize);
   }
 
   void spCommandList::SetFullScissorRect()
