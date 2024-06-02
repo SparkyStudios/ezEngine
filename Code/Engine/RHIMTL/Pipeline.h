@@ -68,6 +68,9 @@ namespace RHI
     EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Winding GetWinding() const { return m_Winding; }
     EZ_NODISCARD EZ_ALWAYS_INLINE MTL::TriangleFillMode GetFillMode() const { return m_FillMode; }
     EZ_NODISCARD EZ_ALWAYS_INLINE MTL::DepthClipMode GetDepthClipMode() const { return m_DepthClipMode; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE float GetDepthBias() const { return m_fDepthBias; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE float GetDepthBiasClamp() const { return m_fDepthBiasClamp; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE float GetSlopeScaledDepthBias() const { return m_fSlopeScaledDepthBias; }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE ezColor GetBlendColor() const { return m_BlendColor; }
 
@@ -81,6 +84,9 @@ namespace RHI
     MTL::Winding m_Winding{MTL::WindingCounterClockwise};
     MTL::TriangleFillMode m_FillMode{MTL::TriangleFillModeFill};
     MTL::DepthClipMode m_DepthClipMode{MTL::DepthClipModeClip};
+    float m_fDepthBias{0.0f};
+    float m_fDepthBiasClamp{0.0f};
+    float m_fSlopeScaledDepthBias{0.0f};
 
     MTL::RenderPipelineState* m_pPipelineState{nullptr};
     MTL::DepthStencilState* m_pDepthStencilState{nullptr};

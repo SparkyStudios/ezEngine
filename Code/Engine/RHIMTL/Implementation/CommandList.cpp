@@ -393,7 +393,6 @@ namespace RHI
     if (set.m_hResourceSet == pResourceSet->GetHandle() && ezMemoryUtils::IsEqual(set.m_Offsets.GetPtr(), pDynamicOffsets, uiDynamicOffsetCount))
       return;
 
-    set.m_Offsets.Clear();
     set = spCommandListResourceSet(pResourceSet->GetHandle(), uiDynamicOffsetCount, pDynamicOffsets);
     m_ActiveComputeResourceSets[uiSlot] = false;
   }
@@ -405,7 +404,6 @@ namespace RHI
     if (set.m_hResourceSet == pResourceSet->GetHandle() && ezMemoryUtils::IsEqual(set.m_Offsets.GetPtr(), pDynamicOffsets, uiDynamicOffsetCount))
       return;
 
-    set.m_Offsets.Clear();
     set = spCommandListResourceSet(pResourceSet->GetHandle(), uiDynamicOffsetCount, pDynamicOffsets);
     m_ActiveGraphicResourceSets[uiSlot] = false;
   }
@@ -798,6 +796,7 @@ namespace RHI
       m_pRenderCommandEncoder->setCullMode(pGraphicPipelineMTL->GetCullMode());
       m_pRenderCommandEncoder->setFrontFacingWinding(pGraphicPipelineMTL->GetWinding());
       m_pRenderCommandEncoder->setTriangleFillMode(pGraphicPipelineMTL->GetFillMode());
+      m_pRenderCommandEncoder->setDepthBias(pGraphicPipelineMTL->GetDepthBias(), pGraphicPipelineMTL->GetSlopeScaledDepthBias(), pGraphicPipelineMTL->GetDepthBiasClamp());
 
       const ezColor blendColor = pGraphicPipelineMTL->GetBlendColor();
       m_pRenderCommandEncoder->setBlendColor(blendColor.r, blendColor.g, blendColor.b, blendColor.a);

@@ -239,6 +239,9 @@ namespace RHI
     m_CullMode = spToMTL(description.m_RenderingState.m_RasterizerState.m_eFaceCulling);
     m_Winding = spToMTL(description.m_RenderingState.m_RasterizerState.m_eFrontFace);
     m_FillMode = spToMTL(description.m_RenderingState.m_RasterizerState.m_ePolygonFillMode);
+    m_fDepthBias = description.m_RenderingState.m_RasterizerState.m_fDepthBias;
+    m_fDepthBiasClamp = description.m_RenderingState.m_RasterizerState.m_fDepthBiasClamp;
+    m_fSlopeScaledDepthBias = description.m_RenderingState.m_RasterizerState.m_fSlopeScaledDepthBias;
 
     m_bScissorTestEnabled = description.m_RenderingState.m_RasterizerState.m_bScissorTestEnabled;
 
