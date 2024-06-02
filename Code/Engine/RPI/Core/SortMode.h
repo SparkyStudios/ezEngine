@@ -24,6 +24,8 @@ namespace RPI
   class spRenderView;
 
   /// \brief Specifies the sort mode for \a spRenderObject.
+  ///
+  /// \see spSortKey
   class SP_RPI_DLL spSortMode : public ezReflectedClass
   {
     EZ_ADD_DYNAMIC_REFLECTION(spSortMode, ezReflectedClass);
@@ -33,8 +35,64 @@ namespace RPI
 
     /// \brief Generates a sort key for a \a spRenderObject.
     /// \param pRenderView The render view.
-    /// \param pRenderData The render data.
+    /// \param pRenderObject The render object.
     /// \param out_sortKey The generated sort key.
-    virtual void GenerateSortKey(const spRenderView& pRenderView, const spRenderObject& pRenderData, spSortKey& out_sortKey) = 0;
+    virtual void GenerateSortKey(const spRenderView* pRenderView, const spRenderObject* pRenderObject, spSortKey& out_sortKey) = 0;
+
+    /// \brief Generates sort keys for a list of \a spRenderObject.
+    /// \param pRenderView The render view.
+    /// \param renderObjects The list of render objects.
+    /// \param out_sortKeys The generated sort keys.
+    virtual void GenerateSortKeys(const spRenderView* pRenderView, ezArrayPtr<spRenderObject* const> renderObjects, ezArrayPtr<spSortKey> out_sortKeys);
+  };
+
+  /// \brief Compute a \c spSortKey for a \c spRenderObject based on
+  /// the distance between the render object and the render view.
+  class SP_RHI_DLL spDistanceSortMode : public spSortMode
+  {
+    EZ_ADD_DYNAMIC_REFLECTION(spDistanceSortMode, spSortMode);
+
+    // spSortMode
+
+  public:
+    ~spDistanceSortMode() override = default;
+
+    void GetSortKey(const spRenderObject* pRenderObject, const ezPlane& plane, spSortKey& out_sortKey) const;
+    void GenerateSortKey(const spRenderView* pRenderView, const spRenderObject* pRenderObject, spSortKey& out_sortKey) override;
+
+    void GenerateSortKeys(const spRenderView* pRenderView, ezArrayPtr<spRenderObject* const> renderObjects, ezArrayPtr<spSortKey> out_sortKeys) override;
+
+    // spDistanceSortMode
+
+  public:
+    explicit spDistanceSortMode(bool bSortBackToFront = false);
+
+  private:
+    static ezUInt32 ComputeDistance(float fDistance);
+    static spSortKey CreateSortKey(float fDistance);
+
+    bool m_bSortBackToFront{false};
+  };
+
+  class SP_RHI_DLL spFrontToBackSortMode : public spDistanceSortMode
+  {
+    EZ_ADD_DYNAMIC_REFLECTION(spFrontToBackSortMode, spDistanceSortMode);
+
+    // spFrontToBackSortMode
+
+  public:
+    spFrontToBackSortMode();
+    ~spFrontToBackSortMode() override = default;
+  };
+
+  class SP_RHI_DLL spBackToFrontSortMode : public spDistanceSortMode
+  {
+    EZ_ADD_DYNAMIC_REFLECTION(spBackToFrontSortMode, spDistanceSortMode);
+
+    // spBackToFrontSortMode
+
+  public:
+    spBackToFrontSortMode();
+    ~spBackToFrontSortMode() override = default;
   };
 } // namespace RPI

@@ -19,6 +19,8 @@
 #include <RPI/Core/RenderGroup.h>
 #include <RPI/Core/RenderNodeReference.h>
 
+#include <Foundation/Math/BoundingBoxSphere.h>
+
 namespace RPI
 {
   class spRenderContext;
@@ -39,11 +41,6 @@ namespace RPI
     EZ_ADD_DYNAMIC_REFLECTION(spRenderObject, ezReflectedClass);
 
   public:
-    spRenderObject() = default;
-    ~spRenderObject() override = default;
-
-    virtual void Draw(const spRenderContext* pRenderContext);
-
     /// \brief Specifies the caching behavior used by the render object.
     struct CachingBehavior
     {
@@ -64,10 +61,20 @@ namespace RPI
       };
     };
 
+    spRenderObject() = default;
+    ~spRenderObject() override = default;
+
+    virtual void Draw(const spRenderContext* pRenderContext);
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezBoundingBoxSphere& GetBoundingBox() const { return m_BoundingBox; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderNodeReference& GetVisibilityGroupReference() const { return m_VisibilityGroupReference; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderNodeReference& GetRenderFeatureRefenrence() const { return m_RenderFeatureReference; }
+
   protected:
     ezEnum<CachingBehavior> m_eCachingBehavior{CachingBehavior::OnlyIfStatic};
     ezEnum<spRenderGroup> m_eRenderGroup{spRenderGroup::None};
-    ezBoundingBox m_BoundingBox;
+    ezBoundingBoxSphere m_BoundingBox;
 
     spRenderFeature* m_pRenderFeature{nullptr};
 

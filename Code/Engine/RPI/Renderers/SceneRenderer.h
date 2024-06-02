@@ -28,11 +28,15 @@ namespace RPI
 
   public:
     void Render() override;
+    void Initialize(const spSceneContext* pSceneContext) override;
 
     // spSceneRenderer
 
   public:
     spSceneRenderer();
     ~spSceneRenderer() override = default;
+
+  private:
+    ezSharedPtr<RHI::spRenderTarget> m_pRenderTarget{nullptr};
   };
 } // namespace RPI

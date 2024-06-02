@@ -101,11 +101,9 @@ namespace RPI
   {
     ezBoundingBoxSphere bounds = ezBoundingBoxSphere::MakeInvalid();
 
-    bool bAlwaysVisible = false;
-
-    if (GetLocalBounds(bounds, bAlwaysVisible).Succeeded())
+    if (bool bAlwaysVisible = false; GetLocalBounds(bounds, bAlwaysVisible).Succeeded())
     {
-      ezSpatialData::Category category = GetOwner()->IsDynamic() ? ezDefaultSpatialDataCategories::RenderDynamic : ezDefaultSpatialDataCategories::RenderStatic;
+      const ezSpatialData::Category category = GetOwner()->IsDynamic() ? ezDefaultSpatialDataCategories::RenderDynamic : ezDefaultSpatialDataCategories::RenderStatic;
 
       if (bounds.IsValid())
       {

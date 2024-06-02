@@ -53,6 +53,11 @@ namespace RPI
   {
     m_pBuffer->GetDevice()->UpdateBuffer(m_pBuffer, uiOffsetInBytes, pData, uiSizeInBytes);
   }
+
+  void spConstantBufferBase::SetDebugName(ezStringView sName) const
+  {
+    m_pBuffer->SetDebugName(sName);
+  }
 } // namespace RPI
 
 EZ_STATICLINK_FILE(RPI, RPI_Implementation_Shaders_ConstantBuffer);

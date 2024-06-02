@@ -61,7 +61,7 @@ namespace RPI
 
         if (pView->GetCullingMode() == spRenderViewCullingMode::Frustum
           && pRenderObject->m_BoundingBox.IsValid()
-          && frustum.GetObjectPosition(pRenderObject->m_BoundingBox) == ezVolumePosition::Outside)
+          && frustum.GetObjectPosition(pRenderObject->m_BoundingBox.GetBox()) == ezVolumePosition::Outside)
         {
           return;
         }
@@ -70,7 +70,7 @@ namespace RPI
 
         if (pRenderObject->m_BoundingBox.IsValid())
         {
-          pView->m_BoundingBox.ExpandToInclude(pRenderObject->m_BoundingBox);
+          pView->m_BoundingBox.ExpandToInclude(pRenderObject->m_BoundingBox.GetBox());
         }
       } });
 

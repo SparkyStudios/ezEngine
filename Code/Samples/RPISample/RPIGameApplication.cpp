@@ -1,9 +1,6 @@
 #include "RPIGameApplication.h"
 
-#include "Core/Input/InputManager.h"
-#include "RPI/Shaders/ShaderTypes.h"
-
-#include <Core/Input/DeviceTypes/Controller.h>
+#include <Core/Input/InputManager.h>
 #include <Core/ResourceManager/ResourceManager.h>
 #include <Core/System/ControllerInput.h>
 #include <Core/System/Window.h>
@@ -23,7 +20,9 @@
 #include <RPI/Pipeline/RenderPass.h>
 #include <RPI/Renderers/CameraRenderer.h>
 #include <RPI/Renderers/ClearRenderer.h>
+#include <RPI/Renderers/DeferredRenderer.h>
 #include <RPI/Renderers/SceneRenderer.h>
+#include <RPI/Renderers/SequenceRenderer.h>
 
 #if EZ_ENABLED(EZ_PLATFORM_WINDOWS_DESKTOP)
 #  include <RHID3D11/Device.h>
@@ -193,28 +192,41 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
 
     {
       ezGameObjectDesc cubeDesc;
-      cubeDesc.m_sName.Assign("Cube");
-      cubeDesc.m_LocalPosition = ezVec3(0.0f, 0.0f, 0.0f);
+      cubeDesc.m_sName.Assign("Cube1");
+      cubeDesc.m_LocalPosition = ezVec3(+50.0f, 0.0f, 0.0f);
       cubeDesc.m_LocalUniformScaling = 1.0f;
-      m_pWorld->CreateObject(cubeDesc, m_pCube);
+      m_pWorld->CreateObject(cubeDesc, m_pCube1);
 
-      spShaderTransform t = m_pCube->GetGlobalTransform();
-
-      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_pCube);
+      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_pCube1);
       if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
         pComponent->SetMeshFile(":project/objects/teapot.spMesh");
+    }
+
+    {
+      ezGameObjectDesc cubeDesc;
+      cubeDesc.m_sName.Assign("Cube2");
+      cubeDesc.m_LocalPosition = ezVec3(-50.0f, 0.0f, 0.0f);
+      cubeDesc.m_LocalUniformScaling = 50.0f;
+      m_pWorld->CreateObject(cubeDesc, m_pCube2);
+
+      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_pCube2);
+      if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
+        pComponent->SetMeshFile(":project/objects/male.spMesh");
     }
 
     {
       ezGameObjectDesc cameraDesc;
       cameraDesc.m_sName.Assign("Camera");
       cameraDesc.m_bDynamic = true;
-      cameraDesc.m_LocalPosition = ezVec3(-50.0f, 0.0f, 0.0f);
+      cameraDesc.m_LocalPosition = ezVec3(-550.0f, 0.0f, 0.0f);
       m_pWorld->CreateObject(cameraDesc, m_pCamera);
 
       ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spCameraComponentManager>()->CreateComponent(m_pCamera);
       if (spCameraComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spCameraComponentManager>()->TryGetComponent(hComponent, pComponent))
+      {
         pComponent->SetCameraSlot("Main");
+        pComponent->SetCullingEnabled(false);
+      }
     }
   }
 }
@@ -382,14 +394,26 @@ void spRPIGameApplication::Init_SetupGraphicsDevice()
 
     EZ_ASSERT_DEV(pRenderSystem->GetDevice() != nullptr, "Device creation failed");
 
+    pRenderSystem->GetCompositor()->SetViewportSize({g_uiWindowWidth, g_uiWindowHeight});
+    pRenderSystem->GetCompositor()->SetRenderSize({g_uiWindowWidth, g_uiWindowHeight});
+    pRenderSystem->GetCompositor()->SetEnableHDR(false);
+
     pRenderSystem->GetCompositor()->CreateCameraSlot("Main");
-    pRenderSystem->GetCompositor()->m_pGameRenderer = EZ_DEFAULT_NEW(spCameraRenderer);
-    static_cast<spCameraRenderer*>(pRenderSystem->GetCompositor()->m_pGameRenderer)->SetCameraSlot("Main");
-    m_pRenderer = EZ_DEFAULT_NEW(spClearRenderer);
-    static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearFlags(spClearRenderer::ClearFlags::Default);
-    static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearDepth(1.0f);
-    static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearStencil(0);
-    static_cast<spCameraRenderer*>(pRenderSystem->GetCompositor()->m_pGameRenderer)->SetChildRenderer(m_pRenderer.Borrow());
+    pRenderSystem->GetCompositor()->m_pGameRenderer = EZ_DEFAULT_NEW(spSceneRenderer);
+    static_cast<spSceneRenderer*>(pRenderSystem->GetCompositor()->m_pGameRenderer)->SetChildRenderer(EZ_DEFAULT_NEW(spCameraRenderer));
+    static_cast<spCameraRenderer*>(static_cast<spSceneRenderer*>(pRenderSystem->GetCompositor()->m_pGameRenderer)->GetChildRenderer())->SetCameraSlot("Main");
+    m_pRenderer = EZ_DEFAULT_NEW(spSequenceRenderer);
+    // spClearRenderer* pClearRenderer = EZ_DEFAULT_NEW(spClearRenderer);
+    // pClearRenderer->SetClearFlags(spClearRenderer::ClearFlags::Default);
+    // pClearRenderer->SetClearDepth(1.0f);
+    // pClearRenderer->SetClearStencil(0);
+    // static_cast<spSequenceRenderer*>(m_pRenderer.Borrow())->PushBack(pClearRenderer);
+    static_cast<spSequenceRenderer*>(m_pRenderer.Borrow())->PushBack(EZ_DEFAULT_NEW(spDeferredRenderer));
+    // m_pRenderer = EZ_DEFAULT_NEW(spClearRenderer);
+    // static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearFlags(spClearRenderer::ClearFlags::Default);
+    // static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearDepth(1.0f);
+    // static_cast<spClearRenderer*>(m_pRenderer.Borrow())->SetClearStencil(0);
+    static_cast<spCameraRenderer*>(static_cast<spSceneRenderer*>(pRenderSystem->GetCompositor()->m_pGameRenderer)->GetChildRenderer())->SetChildRenderer(m_pRenderer.Borrow());
   }
 }
 

@@ -106,6 +106,7 @@ namespace RPI
 
   class SP_RPI_DLL spRenderView final : public ezReflectedClass
   {
+    friend class spCamera;
     friend class spRenderSystem;
     friend class spRenderContext;
     friend class spVisibilityGroup;
@@ -113,7 +114,7 @@ namespace RPI
     EZ_ADD_DYNAMIC_REFLECTION(spRenderView, ezReflectedClass);
 
   public:
-    spRenderView() = default;
+    spRenderView();
     ~spRenderView() override;
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const spConstantBuffer<spRenderViewData>& GetDataBuffer() const { return m_RenderViewDataBuffer; }
@@ -138,7 +139,12 @@ namespace RPI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezBitflags<spRenderViewUsage>& GetUsage() const { return m_eUsage; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() const { return m_VisibleRenderObjects; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezMat4& GetViewMatrix() const { return m_ViewMatrix; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezMat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
+
+    // EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() const { return m_VisibleRenderObjects; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() { return m_VisibleRenderObjects; }
 
     EZ_NODISCARD ezFrustum GetFrustum() const;
 
@@ -147,7 +153,7 @@ namespace RPI
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezRectU32& GetViewport() const { return m_Viewport; }
 
   private:
-    ezUInt64 m_uiLastCollectedFrame;
+    ezUInt64 m_uiLastCollectedFrame{0};
 
     spConstantBuffer<spRenderViewData> m_RenderViewDataBuffer;
 
@@ -155,6 +161,8 @@ namespace RPI
     ezBitflags<spRenderGroup> m_eRenderGroup{spRenderGroup::Default};
     ezEnum<spRenderViewCullingMode> m_eCullingMode{spRenderViewCullingMode::Default};
     ezBitflags<spRenderViewUsage> m_eUsage{spRenderViewUsage::Default};
+    ezMat4 m_ViewMatrix{ezMat4::MakeIdentity()};
+    ezMat4 m_ProjectionMatrix{ezMat4::MakeIdentity()};
 
     spConcurrentCollector<spRenderObject*> m_VisibleRenderObjects;
 

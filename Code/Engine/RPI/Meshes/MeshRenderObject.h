@@ -30,5 +30,7 @@ namespace RPI
 
   private:
     RAI::spMeshResourceHandle m_hMeshResource;
+    ezTransform m_Transform{ezTransform::MakeIdentity()};
+    ezTransform m_PreviousTransform{ezTransform::MakeIdentity()};
   };
 }

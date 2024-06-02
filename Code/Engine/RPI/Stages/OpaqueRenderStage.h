@@ -28,10 +28,6 @@ namespace RPI
     // spRenderStage
 
   public:
-    void Filter(const spRenderView& renderView, const ezArrayPtr<spRenderObject>& renderObjects, ezArrayPtr<spRenderObject>& out_filteredRenderObjects, ezArrayPtr<spRenderObject>& out_unfilteredRenderObjects) override;
-
-    void Sort(const spRenderView& renderView, const ezArrayPtr<spRenderObject>& renderObjects, ezArrayPtr<spRenderObject>& out_sortedRenderObjects) override;
-
     bool IsActiveForRenderObject(const spRenderObject* pRenderObject) const override;
 
     RHI::spRenderingState GetRenderingState(const spRenderObject* pRenderObject) const override;

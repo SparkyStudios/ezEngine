@@ -53,6 +53,8 @@ namespace RPI
     spCompositor() = default;
     ~spCompositor() override;
 
+#pragma region Camera Slot Management
+
     spCameraSlotHandle CreateCameraSlot(ezStringView sName);
     void DeleteCameraSlot(const spCameraSlotHandle& hSlot);
     EZ_NODISCARD const spCameraSlot* GetCameraSlot(const spCameraSlotHandle& hSlot) const;
@@ -62,6 +64,21 @@ namespace RPI
     void AssignSlotToCamera(const spCameraSlotHandle& hSlot, spCamera* pCamera);
 
     EZ_NODISCARD spCamera* GetCameraBySlot(const spCameraSlotHandle& hSlot) const;
+
+#pragma endregion
+
+#pragma region Renderer Settings
+
+    EZ_ALWAYS_INLINE void SetEnableHDR(bool bEnable) { m_bEnableHDR = bEnable; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsHDR() const { return m_bEnableHDR; }
+
+    EZ_ALWAYS_INLINE void SetViewportSize(const ezRectU32& rect) { m_ViewportSize = rect; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezRectU32 GetViewportSize() const { return m_ViewportSize; }
+
+    EZ_ALWAYS_INLINE void SetRenderSize(const ezRectU32& rect) { m_RenderSize = rect; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezRectU32 GetRenderSize() const { return m_RenderSize; }
+
+#pragma endregion
 
     // Cached values
     spRenderer* m_pGameRenderer{nullptr};
@@ -74,5 +91,10 @@ namespace RPI
     spCameraSlotTable m_CameraSlots;
     ezArrayMap<ezStringView, spCameraSlotHandleId> m_CameraSlotsByName;
     ezArrayMap<spCameraSlotHandleId, spCamera*> m_AssignedCameraSlots;
+
+    ezRectU32 m_ViewportSize;
+    ezRectU32 m_RenderSize;
+
+    bool m_bEnableHDR{false};
   };
 } // namespace RPI

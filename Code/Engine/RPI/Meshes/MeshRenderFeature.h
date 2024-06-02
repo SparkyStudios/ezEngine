@@ -18,6 +18,7 @@
 
 #include <RPI/Features/RenderFeature.h>
 #include <RPI/Meshes/MeshRenderFeatureExtractor.h>
+#include <RPI/Shaders/ConstantBuffer.h>
 
 #include <RAI/Resources/ShaderResource.h>
 
@@ -40,6 +41,12 @@ namespace RPI
     ~spMeshRenderFeature() override = default;
 
   private:
+    struct PushConstantTest
+    {
+      ezMat4 transform;
+      ezMat4 values;
+    };
+
     ezTypedResourceHandle<RAI::spShaderResource> m_hShader;
     ezSharedPtr<RHI::spShader> m_pVertexShader;
     ezSharedPtr<RHI::spShader> m_pPixelShader;
@@ -47,5 +54,8 @@ namespace RPI
     ezSharedPtr<RHI::spResourceLayout> m_pResourceLayout;
     ezSharedPtr<RHI::spResourceSet> m_pResourceSet;
     ezSharedPtr<RHI::spGraphicPipeline> m_pGraphicPipeline;
+
+    // ezSharedPtr<RHI::spBuffer> m_PushConstantBuffer;
+    PushConstantTest m_PushConstants;
   };
 } // namespace RPI

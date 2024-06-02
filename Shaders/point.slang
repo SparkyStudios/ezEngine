@@ -27,12 +27,7 @@ TransientStream VSMain(InputStream input)
 {
   TransientStream output;
 
-  Transform t;
-  t.r0 = float4(1.0f, 0.0f, 0.0f, 0.0f);
-  t.r1 = float4(0.0f, 1.0f, 0.0f, 0.0f);
-  t.r2 = float4(0.0f, 0.0f, 1.0f, 0.0f);
-
-  float4x4 objectToWorld = TransformToMatrix(t);
+  float4x4 objectToWorld = Buffer_PerPass.Transform;
 
   float4 wp = mul(objectToWorld, float4(input.Position, 1.0));
   output.WorldPosition = wp.xyz;

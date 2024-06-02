@@ -29,14 +29,6 @@ namespace RPI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
-  void spOpaqueRenderStage::Filter(const spRenderView& renderView, const ezArrayPtr<spRenderObject>& renderObjects, ezArrayPtr<spRenderObject>& out_filteredRenderObjects, ezArrayPtr<spRenderObject>& out_unfilteredRenderObjects)
-  {
-  }
-
-  void spOpaqueRenderStage::Sort(const spRenderView& renderView, const ezArrayPtr<spRenderObject>& renderObjects, ezArrayPtr<spRenderObject>& out_sortedRenderObjects)
-  {
-  }
-
   bool spOpaqueRenderStage::IsActiveForRenderObject(const spRenderObject* pRenderObject) const
   {
     // TODO: Get the material from the render object and check if it is active for this render stage (not transparent).
@@ -102,5 +94,7 @@ namespace RPI
   spOpaqueRenderStage::spOpaqueRenderStage()
     : spRenderStage("Opaque")
   {
+    // TODO: Add a filter after having the material system
+    m_pSortMode = EZ_DEFAULT_NEW(spFrontToBackSortMode);
   }
 } // namespace RPI
