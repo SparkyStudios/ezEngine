@@ -51,16 +51,16 @@ namespace RPI
         // Static Opaque/G-Buffer Pass
         pRenderContext->GetExtractionData().m_pRenderStage = m_pOpaqueRenderStage.Borrow();
         {
-          // Filter
           ezDynamicArray<spRenderObject*> opaqueObjects;
+
+          // Filter
           m_pOpaqueRenderStage->Filter(pRenderView, visibleObjects.GetArrayPtr(), &opaqueObjects, nullptr);
 
           // Sort
-          ezDynamicArray<spRenderObject*> sortedObjects;
-          m_pOpaqueRenderStage->Sort(pRenderView, opaqueObjects, sortedObjects);
+          m_pOpaqueRenderStage->Sort(pRenderView, opaqueObjects, opaqueObjects);
 
           // TODO: Add a check to see if the render view has changed since the last frame
-          if (!sortedObjects.IsEmpty())
+          if (!opaqueObjects.IsEmpty())
           {
             auto pushRestore = cl->PushRestoreFramebuffer(m_pOpaqueRenderStage->GetOutputFramebuffer(pRenderView));
 
@@ -73,7 +73,7 @@ namespace RPI
             cl->ClearDepthStencilTarget(1.0f, 0);
 
             // Draw
-            m_pOpaqueRenderStage->Draw(pRenderContext, sortedObjects);
+            m_pOpaqueRenderStage->Draw(pRenderContext, opaqueObjects);
           }
         }
 

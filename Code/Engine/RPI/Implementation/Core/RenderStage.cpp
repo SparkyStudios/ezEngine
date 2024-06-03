@@ -90,7 +90,8 @@ namespace RPI
 
   void spRenderStage::Sort(const spRenderView* pRenderView, const ezArrayPtr<spRenderObject* const>& renderObjects, ezDynamicArray<spRenderObject*>& out_sortedRenderObjects)
   {
-    out_sortedRenderObjects = renderObjects;
+    if (out_sortedRenderObjects.GetData() != renderObjects.GetPtr())
+      out_sortedRenderObjects = renderObjects;
 
     const spSortKeyComprarer comparer(pRenderView, m_pSortMode.Borrow());
     out_sortedRenderObjects.Sort(comparer);
