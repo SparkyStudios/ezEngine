@@ -449,6 +449,15 @@ bool ezVec3Template<Type>::IsEqual(const ezVec3Template<Type>& rhs, Type fEpsilo
 }
 
 template <typename Type>
+template <typename U, std::enable_if_t<std::is_arithmetic_v<U>, bool>>
+inline ezVec3Template<U> ezVec3Template<Type>::Cast() const
+{
+  EZ_NAN_ASSERT(this);
+
+  return ezVec3Template<U>(static_cast<U>(x), static_cast<U>(y), static_cast<U>(z));
+}
+
+template <typename Type>
 EZ_ALWAYS_INLINE bool operator==(const ezVec3Template<Type>& v1, const ezVec3Template<Type>& v2)
 {
   return v1.IsIdentical(v2);

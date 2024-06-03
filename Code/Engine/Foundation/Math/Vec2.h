@@ -162,6 +162,9 @@ public:
   /// \brief Equality Check with epsilon
   bool IsEqual(const ezVec2Template<Type>& rhs, Type fEpsilon) const; // [tested]
 
+  /// \brief Casts this vector to another type.
+  template <typename U, std::enable_if_t<std::is_arithmetic_v<U>, bool> = false>
+  ezVec2Template<U> Cast() const;
 
   // *** Common vector operations ***
 public:
