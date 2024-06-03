@@ -31,6 +31,25 @@ namespace RPI
     m_pRenderFeature->Draw(this, pRenderContext);
   }
 
+  bool spRenderObject::CanBeInstanceOf(spRenderObject* pRenderObject) const
+  {
+    return false;
+  }
+
+  ezResult spRenderObject::Instantiate(spRenderObject* pRenderObject)
+  {
+    return EZ_FAILURE;
+  }
+
+  void spRenderObject::MakeRootInstance()
+  {
+  }
+
+  bool spRenderObject::HasInstances()
+  {
+    return false;
+  }
+
   spRenderObjectCollection::spRenderObjectCollection(spVisibilityGroup* pVisibilityGroup)
     : m_pVisibilityGroup(pVisibilityGroup)
   {

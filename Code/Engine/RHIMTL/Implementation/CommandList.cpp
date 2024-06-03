@@ -415,7 +415,7 @@ namespace RHI
   {
     spCommandListResourceSet& set = m_GraphicResourceSets[uiSlot];
 
-    if (set.m_hResourceSet == pResourceSet->GetHandle() && ezMemoryUtils::IsEqual(set.m_Offsets.GetPtr(), pDynamicOffsets, uiDynamicOffsetCount))
+    if (set.m_hResourceSet == pResourceSet->GetHandle() && ((set.m_Offsets.GetPtr() == pDynamicOffsets && set.m_Offsets.GetCount() == uiDynamicOffsetCount) || ezMemoryUtils::IsEqual(set.m_Offsets.GetPtr(), pDynamicOffsets, uiDynamicOffsetCount)))
       return;
 
     set = spCommandListResourceSet(pResourceSet->GetHandle(), uiDynamicOffsetCount, pDynamicOffsets);

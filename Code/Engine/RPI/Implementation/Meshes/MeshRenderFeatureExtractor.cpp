@@ -42,11 +42,6 @@ namespace RPI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
-  ezResult spExtractMeshRenderObjectMessage::AddMeshResource(const ezTransform& transform, RAI::spMeshResourceHandle hMeshResource)
-  {
-    return ezResult(EZ_SUCCESS);
-  }
-
   void spMeshRenderFeatureExtractor::Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext)
   {
     spExtractMeshRenderObjectMessage message;

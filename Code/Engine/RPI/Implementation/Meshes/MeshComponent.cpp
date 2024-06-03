@@ -138,8 +138,8 @@ namespace RPI
     m_RenderObject.m_Transform = GetOwner()->GetGlobalTransform();
     m_RenderObject.m_PreviousTransform = GetOwner()->GetLastGlobalTransform();
     m_RenderObject.m_eRenderGroup = spRenderGroup::All;
+    m_RenderObject.m_uiUniqueID = GetHandle().GetInternalID().m_Data;
 
-    // TODO
     ref_msg.m_Objects->Add(&m_RenderObject);
   }
 

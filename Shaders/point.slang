@@ -12,40 +12,67 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <Core.slang>
+
 #define USE_WORLDPOS
+#define USE_VELOCITY
 #define USE_NORMAL
 #define USE_TANGENT
 #define USE_BITANGENT
 #define USE_TEXCOORD0
+
+#if SP_ENABLED(SP_FEATURE_VERTEX_SKINNING)
+#define USE_SKINNING
+#endif
 
 #include <Common.slang>
 #include <Materials.slang>
 #include <RenderingContext.slang>
 
 [shader("vertex")]
-TransientStream VSMain(InputStream input)
+func VSMain(input: InputStream) -> TransientStream
 {
   TransientStream output;
 
-  float4x4 objectToWorld = Buffer_PerPass.Transform;
+  // Set the instance ID
+  output.InstanceID = input.InstanceID;
 
-  float4 wp = mul(objectToWorld, float4(input.Position, 1.0));
-  output.WorldPosition = wp.xyz;
-  float4 oc = mul(Buffer_PerView.ViewMatrix, wp);
-  output.Position = mul(Buffer_PerView.ProjectionMatrix, oc);
-  output.Normal = input.Normal;
+  // Get the instance data
+  PerInstanceData instance = GetInstanceData(output.InstanceID);
+
+  // Normal
+  matrix normalMatrix = TransformToMatrix(instance.NormalTransform);
+  output.Normal = normalize(mul((float3x3)normalMatrix, input.Normal));
+
+  // Position
+  matrix worldMatrix = TransformToMatrix(instance.WorldTransform);
+  float4 worldPosition = mul(worldMatrix, float4(input.Position, 1.0));
+
+  output.WorldPosition = worldPosition.xyz;
+  output.Position = mul(Buffer_PerView.ViewProjectionMatrix, worldPosition);
+
+#ifdef USE_VELOCITY
+  matrix preiousWorldMatrix = TransformToMatrix(instance.PreviousWorldTransform);
+  float4 previousWorldPosition = mul(preiousWorldMatrix, float4(input.Position, 1.0));
+
+  output.PreviousWorldPosition = previousWorldPosition.xyz;
+  output.PreviousPosition = mul(Buffer_PerView.ViewProjectionMatrix, previousWorldPosition).xyz;
+#endif
+
+  // TODO
   output.Tangent = input.Tangent;
   output.BiTangent = input.BiTangent;
   output.TexCoord0 = input.TexCoord0;
-  output.InstanceID = input.InstanceID;
 
   return output;
 }
-
 
 [shader("pixel")]
 float4 PSMain(TransientStream input)
   : SV_Target
 {
-  return float4(input.Normal.xyz, 1.0f);
+  if (Buffer_PerFrame.HDREnabled)
+    return float4(input.Normal.xyz, 1.0f);
+
+  return float4(normalize(input.Normal.xyz), 1.0f);
 }

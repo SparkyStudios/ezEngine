@@ -32,7 +32,7 @@ namespace RAI
     if (ezMath::IsNaN(fValue))
       return 0;
 
-    float fMaxValue = ((1 << Bits) - 1);
+    const float fMaxValue = ((1 << Bits) - 1);
     return static_cast<ezUInt32>(ezMath::Saturate(fValue) * fMaxValue + 0.5f);
   }
 
@@ -41,18 +41,18 @@ namespace RAI
   {
     // Implemented according to
     // https://docs.microsoft.com/en-us/windows/desktop/direct3d10/d3d10-graphics-programming-guide-resources-data-conversion
-    ezUInt32 uiMaxValue = ((1 << Bits) - 1);
-    float fMaxValue = ((1 << Bits) - 1);
+    const ezUInt32 uiMaxValue = ((1 << Bits) - 1);
+    const float fMaxValue = ((1 << Bits) - 1);
     return (value & uiMaxValue) * (1.0f / fMaxValue);
   }
 
-  static void GetDrawCommandsInternal(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands, const spMesh::Node& node)
+  static void GetDrawCommandsInternal(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands, const spMesh::Node& node, ezUInt32 uiInstanceCount)
   {
     for (const auto& entry : node.m_Entries)
     {
       RHI::spDrawIndexedIndirectCommand cmd;
       cmd.m_uiCount = entry.m_uiIndexCount;
-      cmd.m_uiInstanceCount = 1;
+      cmd.m_uiInstanceCount = uiInstanceCount;
       cmd.m_uiFirstIndex = entry.m_uiBaseIndex;
       cmd.m_uiBaseVertex = entry.m_uiBaseVertex;
       cmd.m_uiBaseInstance = 0;
@@ -61,7 +61,7 @@ namespace RAI
     }
 
     for (const auto& child : node.m_Children)
-      GetDrawCommandsInternal(out_DrawCommands, child);
+      GetDrawCommandsInternal(out_DrawCommands, child, uiInstanceCount);
   }
 
   spMesh::~spMesh() noexcept
@@ -251,9 +251,9 @@ namespace RAI
 #endif
   }
 
-  void spMesh::GetDrawCommands(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands) const
+  void spMesh::GetDrawCommands(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands, ezUInt32 uiInstanceCount) const
   {
-    GetDrawCommandsInternal(out_DrawCommands, m_Root);
+    GetDrawCommandsInternal(out_DrawCommands, m_Root, uiInstanceCount);
   }
 
   ezUInt32 spMeshDataBuilder::AddVertexStream(const RAI::spMesh::VertexStream& stream)

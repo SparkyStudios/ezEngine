@@ -96,6 +96,15 @@ namespace RPI
     out_sortedRenderObjects.Sort(comparer);
   }
 
+  void spRenderStage::Draw(const spRenderContext* pRenderContext, const ezArrayPtr<spRenderObject* const>& renderObjects)
+  {
+    ezDynamicArray<spRenderObject*> batchedRenderObjects;
+    BatchInstances(renderObjects, batchedRenderObjects);
+
+    for (const auto& pObject : batchedRenderObjects)
+      pObject->Draw(pRenderContext);
+  }
+
   RHI::spOutputDescription spRenderStage::GetOutputDescription(const spRenderView* pRenderView) const
   {
     const ezUInt32 uiIndex = m_RenderViewFramebuffers.Find(pRenderView);
@@ -112,5 +121,31 @@ namespace RPI
       return nullptr;
 
     return m_RenderViewFramebuffers.GetValue(uiIndex);
+  }
+
+  void spRenderStage::BatchInstances(const ezArrayPtr<spRenderObject* const>& renderObjects, ezDynamicArray<spRenderObject*>& out_batchedRenderObjects)
+  {
+    for (const auto& pRenderObject : renderObjects)
+    {
+      // Find for root instance
+      spRenderObject* pRootInstance = nullptr;
+      for (const auto& pObject : out_batchedRenderObjects)
+      {
+        if (!pRenderObject->CanBeInstanceOf(pObject))
+          continue;
+
+        pRootInstance = pObject;
+        break;
+      }
+
+      if (pRootInstance == nullptr || pRootInstance->Instantiate(pRenderObject).Failed())
+      {
+        // Either the root instance doesn't exists or it failed to create an instance of this render object (maybe instancing is not supported).
+        // In any case, add this render object as a root instance.
+
+        pRenderObject->MakeRootInstance();
+        out_batchedRenderObjects.PushBack(pRenderObject);
+      }
+    }
   }
 } // namespace RPI
