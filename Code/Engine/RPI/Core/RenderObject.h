@@ -66,6 +66,17 @@ namespace RPI
 
     virtual void Draw(const spRenderContext* pRenderContext);
 
+    virtual bool CanBeInstanceOf(spRenderObject* pRenderObject) const;
+
+    /// \brief Transforms the given render object into an instance of this one.
+    /// \param pRenderObject The render object to transform.
+    /// \returns \c EZ_SUCCESS on success, \c EZ_FAILURE otherwise.
+    virtual ezResult Instantiate(spRenderObject* pRenderObject);
+
+    virtual void MakeRootInstance();
+
+    virtual bool HasInstances();
+
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezBoundingBoxSphere& GetBoundingBox() const { return m_BoundingBox; }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderNodeReference& GetVisibilityGroupReference() const { return m_VisibilityGroupReference; }
@@ -75,6 +86,7 @@ namespace RPI
     ezEnum<CachingBehavior> m_eCachingBehavior{CachingBehavior::OnlyIfStatic};
     ezEnum<spRenderGroup> m_eRenderGroup{spRenderGroup::None};
     ezBoundingBoxSphere m_BoundingBox;
+    ezUInt64 m_uiUniqueID{0};
 
     spRenderFeature* m_pRenderFeature{nullptr};
 
@@ -101,6 +113,10 @@ namespace RPI
     void Remove(spRenderObject* pRenderObject);
 
     EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetCount() const { return m_Items.GetCount(); }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsEmpty() const { return m_Items.IsEmpty(); }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<spRenderObject* const> GetItems() const { return m_Items.GetArrayPtr(); }
 
   private:
     ezHybridArray<spRenderObject*, 64> m_Items;

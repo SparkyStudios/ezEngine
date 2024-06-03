@@ -190,14 +190,28 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
   {
     EZ_LOCK(m_pWorld->GetWriteMarker());
 
+    m_Objects.SetCount(3);
+
     {
       ezGameObjectDesc cubeDesc;
       cubeDesc.m_sName.Assign("Cube1");
       cubeDesc.m_LocalPosition = ezVec3(+50.0f, 0.0f, 0.0f);
       cubeDesc.m_LocalUniformScaling = 1.0f;
-      m_pWorld->CreateObject(cubeDesc, m_pCube1);
+      m_pWorld->CreateObject(cubeDesc, m_Objects[0]);
 
-      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_pCube1);
+      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[0]);
+      if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
+        pComponent->SetMeshFile(":project/objects/teapot.spMesh");
+    }
+
+    {
+      ezGameObjectDesc cubeDesc;
+      cubeDesc.m_sName.Assign("Cube1");
+      cubeDesc.m_LocalPosition = ezVec3(+50.0f, -300.0f, 0.0f);
+      cubeDesc.m_LocalUniformScaling = 1.0f;
+      m_pWorld->CreateObject(cubeDesc, m_Objects[1]);
+
+      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[1]);
       if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
         pComponent->SetMeshFile(":project/objects/teapot.spMesh");
     }
@@ -207,9 +221,9 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
       cubeDesc.m_sName.Assign("Cube2");
       cubeDesc.m_LocalPosition = ezVec3(-50.0f, 0.0f, 0.0f);
       cubeDesc.m_LocalUniformScaling = 50.0f;
-      m_pWorld->CreateObject(cubeDesc, m_pCube2);
+      m_pWorld->CreateObject(cubeDesc, m_Objects[2]);
 
-      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_pCube2);
+      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[2]);
       if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
         pComponent->SetMeshFile(":project/objects/male.spMesh");
     }

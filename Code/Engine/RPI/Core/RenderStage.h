@@ -28,6 +28,7 @@ namespace RPI
   class spRenderObject;
   class spRenderView;
   class spRenderStage;
+  class spRenderContext;
 
   /// \brief Specifies how to filter \a spRenderObject from a \a spRenderStage.
   class SP_RPI_DLL spRenderStageFilter : public ezReflectedClass
@@ -71,6 +72,8 @@ namespace RPI
     virtual void Filter(const spRenderView* pRenderView, const ezArrayPtr<spRenderObject* const>& renderObjects, ezDynamicArray<spRenderObject*>* out_passedRenderObjects, ezDynamicArray<spRenderObject*>* out_failedRenderObjects);
     virtual void Sort(const spRenderView* pRenderView, const ezArrayPtr<spRenderObject* const>& renderObjects, ezDynamicArray<spRenderObject*>& out_sortedRenderObjects);
 
+    virtual void Draw(const spRenderContext* pRenderContext, const ezArrayPtr<spRenderObject* const>& renderObjects);
+
     virtual bool IsActiveForRenderObject(const spRenderObject* pRenderObject) const = 0;
 
     virtual RHI::spOutputDescription GetOutputDescription(const spRenderView* pRenderView) const;
@@ -83,6 +86,8 @@ namespace RPI
     EZ_NODISCARD EZ_ALWAYS_INLINE spRenderNodeReference GetRenderSystemReference() const { return m_RenderSystemReference; }
 
   protected:
+    virtual void BatchInstances(const ezArrayPtr<spRenderObject* const>& renderObjects, ezDynamicArray<spRenderObject*>& out_batchedRenderObjects);
+
     ezHashedString m_sName;
 
     ezUniquePtr<spSortMode> m_pSortMode{nullptr};

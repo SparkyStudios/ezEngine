@@ -17,9 +17,23 @@
 #include <RPI/RPIDLL.h>
 
 #include <RPI/Core/RenderObject.h>
+#include <RPI/Shaders/ShaderTypes.h>
+
+#include <RAI/Resources/MeshResource.h>
 
 namespace RPI
 {
+  // TODO: Find a better place for this.
+  struct alignas(16) spPerInstanceData
+  {
+    EZ_DECLARE_POD_TYPE();
+
+    spShaderTransform m_Transform;
+    spShaderTransform m_PreviousTransform;
+
+    spShaderTransform m_NormalTransform;
+  };
+
   class SP_RPI_DLL spMeshRenderObject final : public spRenderObject
   {
     friend class spMeshComponent;
@@ -28,9 +42,31 @@ namespace RPI
 
     EZ_ADD_DYNAMIC_REFLECTION(spMeshRenderObject, spRenderObject);
 
+    // spRenderObject
+
+  public:
+    bool CanBeInstanceOf(spRenderObject* pRenderObject) const override;
+    ezResult Instantiate(spRenderObject* pRenderObject) override;
+    void MakeRootInstance() override;
+    bool HasInstances() override;
+
   private:
+    void FillInstanceData(spPerInstanceData& instance) const;
+    EZ_NODISCARD ezUInt32 GetBufferSize() const;
+    void CreateBuffer();
+    void UpdateBuffer();
+
     RAI::spMeshResourceHandle m_hMeshResource;
     ezTransform m_Transform{ezTransform::MakeIdentity()};
     ezTransform m_PreviousTransform{ezTransform::MakeIdentity()};
+
+    ezArrayMap<ezUInt64, ezUInt32> m_Instances;
+    ezDynamicArray<spPerInstanceData, ezAlignedAllocatorWrapper> m_PerInstanceData;
+
+    ezSharedPtr<RHI::spBuffer> m_pPerInstanceDataBuffer;
+
+    ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper> m_DrawCommands;
+    ezSharedPtr<RHI::spBuffer> m_pIndirectBuffer;
+    bool m_bIndirectBufferDirty{true};
   };
-}
+} // namespace RPI

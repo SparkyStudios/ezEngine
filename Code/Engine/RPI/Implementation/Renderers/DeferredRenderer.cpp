@@ -51,16 +51,6 @@ namespace RPI
         // Static Opaque/G-Buffer Pass
         pRenderContext->GetExtractionData().m_pRenderStage = m_pOpaqueRenderStage.Borrow();
         {
-          auto pushRestore = cl->PushRestoreFramebuffer(m_pOpaqueRenderStage->GetOutputFramebuffer(pRenderView));
-
-          const ezRectU32 viewport = pRenderView->GetViewport();
-          const RHI::spViewport vp(viewport.x, viewport.y, viewport.width, viewport.height, 0.0f, 1.0f);
-          cl->SetViewport(0, vp);
-
-          // Clear
-          cl->ClearColorTarget(0, ezColor::Black);
-          cl->ClearDepthStencilTarget(1.0f, 0);
-
           // Filter
           ezDynamicArray<spRenderObject*> opaqueObjects;
           m_pOpaqueRenderStage->Filter(pRenderView, visibleObjects.GetArrayPtr(), &opaqueObjects, nullptr);
@@ -69,9 +59,22 @@ namespace RPI
           ezDynamicArray<spRenderObject*> sortedObjects;
           m_pOpaqueRenderStage->Sort(pRenderView, opaqueObjects, sortedObjects);
 
-          // Draw
-          for (const auto& pObject : sortedObjects)
-            pObject->Draw(GetSceneContext()->GetRenderContext());
+          // TODO: Add a check to see if the render view has changed since the last frame
+          if (!sortedObjects.IsEmpty())
+          {
+            auto pushRestore = cl->PushRestoreFramebuffer(m_pOpaqueRenderStage->GetOutputFramebuffer(pRenderView));
+
+            const ezRectU32 viewport = pRenderView->GetViewport();
+            const RHI::spViewport vp(viewport.x, viewport.y, viewport.width, viewport.height, 0.0f, 1.0f);
+            cl->SetViewport(0, vp);
+
+            // Clear
+            cl->ClearColorTarget(0, ezColor::Black);
+            cl->ClearDepthStencilTarget(1.0f, 0);
+
+            // Draw
+            m_pOpaqueRenderStage->Draw(pRenderContext, sortedObjects);
+          }
         }
 
         // Dynamic Opaque/G-Buffer Pass

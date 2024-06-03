@@ -155,6 +155,8 @@ namespace RHI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool SupportsPushConstants() const { return m_Description.m_bSupportsPushConstants; }
 
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spGraphicPipelineDescription& GetDescription() const { return m_Description; }
+
   protected:
     explicit spGraphicPipeline(spGraphicPipelineDescription description);
 

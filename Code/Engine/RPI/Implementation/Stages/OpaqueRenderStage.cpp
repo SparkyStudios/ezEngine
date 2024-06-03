@@ -12,11 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #include <RPI/RPIPCH.h>
 
+#include <RPI/Core/RenderObject.h>
 #include <RPI/Core/RenderSystem.h>
 #include <RPI/Core/RenderView.h>
+#include <RPI/Meshes/MeshRenderObject.h>
 #include <RPI/Stages/OpaqueRenderStage.h>
 
 #include <RHI/Device.h>
@@ -32,7 +33,7 @@ namespace RPI
   bool spOpaqueRenderStage::IsActiveForRenderObject(const spRenderObject* pRenderObject) const
   {
     // TODO: Get the material from the render object and check if it is active for this render stage (not transparent).
-    return true;
+    return pRenderObject->IsInstanceOf<spMeshRenderObject>();
   }
 
   RHI::spRenderingState spOpaqueRenderStage::GetRenderingState(const spRenderObject* pRenderObject) const

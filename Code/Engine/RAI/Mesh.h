@@ -306,7 +306,8 @@ namespace RAI
 
     /// \brief Generate draw commands.
     /// \param [out] out_DrawCommands The generated array of draw commands.
-    void GetDrawCommands(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands) const;
+    /// \param uiInstanceCount
+    void GetDrawCommands(ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper>& out_DrawCommands, ezUInt32 uiInstanceCount = 1) const;
 
   private:
     ezSharedPtr<RHI::spBuffer> m_pRHIVertexBuffer{nullptr};

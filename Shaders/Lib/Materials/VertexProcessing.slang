@@ -14,18 +14,29 @@
 
 #pragma once
 
+#include <Common/Math/Transform.slang>
 #include <Materials/Material.slang>
 #include <Materials/Streams.slang>
 #include <RenderingContext.slang>
 
 struct PerInstanceData
 {
-  matrix WorldMatrix;
-  matrix NormalMatrix;
-  matrix ViewMatrix;
+  Transform WorldTransform;
+  Transform PreviousWorldTransform;
+
+  Transform NormalTransform;
 }
 
-StructuredBuffer<PerInstanceData> Buffer_PerInstance;
+[[vk_binding(3, 0)]]
+StructuredBuffer<PerInstanceData> Buffer_PerInstance : register(b3, space0);
+
+/// \brief Gets the instance data for the given instance ID.
+/// \param instanceID The ID of the instance.
+/// \return The instance data.
+func GetInstanceData(instanceID: uint) -> PerInstanceData
+{
+  return Buffer_PerInstance[instanceID];
+}
 
 /// \brief Gets the previous transform of the currently drawn object.
 matrix GetPreviousTransform() { return Buffer_PerPass.Values; }

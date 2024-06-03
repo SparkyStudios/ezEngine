@@ -30,9 +30,6 @@ namespace RPI
   {
     EZ_DECLARE_MESSAGE_TYPE(spExtractMeshRenderObjectMessage, ezMessage);
 
-    /// \brief Adds a mesh resource to the render object collection.
-    ezResult AddMeshResource(const ezTransform& transform, RAI::spMeshResourceHandle hMeshResource);
-
     /// \brief The \a spRenderContext in which data are being extracted.
     const spRenderContext* m_pRenderContext{nullptr};
 

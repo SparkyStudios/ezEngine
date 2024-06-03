@@ -34,49 +34,117 @@ namespace RPI
   void spMeshRenderFeature::Draw(spRenderObject* pRenderObject, const spRenderContext* pRenderingContext)
   {
     const auto cl = pRenderingContext->GetCommandList();
-    const auto pMeshRenderObject = static_cast<spMeshRenderObject*>(pRenderObject);
+    const auto pMeshRenderObject = ezStaticCast<spMeshRenderObject*>(pRenderObject);
 
     const ezResourceLock resource(pMeshRenderObject->m_hMeshResource, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
     if (!resource.IsValid())
       return; // ezLog::Error("Unable to get the mesh resource!");
 
+    // Make sure the instances buffer is updated.
+    pMeshRenderObject->UpdateBuffer();
+
     auto& mesh = resource.GetPointerNonConst()->GetLOD(0);
 
     mesh.CreateRHIVertexBuffer();
     mesh.CreateRHIIndexBuffer();
-    mesh.CreateRHIIndirectBuffer();
     mesh.CreateRHIInputLayout();
 
     const spRenderView* pRenderView = pRenderingContext->GetExtractionData().m_pRenderView;
     const spRenderStage* pRenderStage = pRenderingContext->GetExtractionData().m_pRenderStage;
 
-    if (m_pVertexShader == nullptr)
+    {
+      RHI::spResourceSetDescription desc{};
+      desc.m_hResourceLayout = m_pResourceLayout->GetHandle();
+      desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerFrame"), pRenderingContext->GetFrameDataBuffer().GetHandle());
+      desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerView"), pRenderView->GetDataBuffer().GetHandle());
+      desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerInstance"), pMeshRenderObject->m_pPerInstanceDataBuffer->GetHandle());
+
+      m_pResourceSet = cl->GetDevice()->GetResourceFactory()->CreateResourceSet(desc);
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+      m_pResourceSet->SetDebugName("MeshRenderFeature_ResourceSet_0");
+#endif
+    }
+
+    {
+      RHI::spGraphicPipelineDescription desc{};
+      desc.m_bSupportsPushConstants = true;
+      desc.m_Output = pRenderStage->GetOutputDescription(pRenderView);
+      desc.m_ePrimitiveTopology = RHI::spPrimitiveTopology::Triangles;
+      desc.m_RenderingState = pRenderStage->GetRenderingState(pRenderObject);
+      desc.m_ShaderPipeline.m_hShaderProgram = m_pShaderProgram->GetHandle();
+      desc.m_ShaderPipeline.m_InputLayouts.PushBack(mesh.GetRHIInputLayout()->GetHandle());
+      desc.m_ResourceLayouts.PushBack(m_pResourceLayout->GetHandle());
+
+      if (m_pGraphicPipeline == nullptr || m_pGraphicPipeline->GetDescription().CalculateHash() == desc.CalculateHash())
+      {
+        m_pGraphicPipeline = cl->GetDevice()->GetResourceFactory()->CreateGraphicPipeline(desc);
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+        m_pGraphicPipeline->SetDebugName("MeshRenderFeature_GraphicPipeline");
+#endif
+      }
+    }
+
+    cl->PushDebugGroup("spMeshRenderFeature");
+    {
+      cl->SetGraphicPipeline(m_pGraphicPipeline);
+
+      cl->SetGraphicResourceSet(0, m_pResourceSet);
+
+      cl->SetVertexBuffer(0, mesh.GetRHIVertexBuffer());
+      cl->SetIndexBuffer(mesh.GetRHIIndexBuffer(), RHI::spIndexFormat::UInt16);
+
+      m_PushConstants.transform = pMeshRenderObject->m_Transform.GetAsMat4().GetTranspose();
+      m_PushConstants.values = pMeshRenderObject->m_PreviousTransform.GetAsMat4().GetTranspose();
+      cl->PushConstants(RHI::spShaderStage::VertexShader, &m_PushConstants, 0, sizeof(PushConstantTest));
+
+      cl->DrawIndexedIndirect(pMeshRenderObject->m_pIndirectBuffer, 0, pMeshRenderObject->m_DrawCommands.GetCount(), cl->GetDevice()->GetIndexedIndirectCommandSize());
+    }
+    cl->PopDebugGroup();
+  }
+
+  spMeshRenderFeature::spMeshRenderFeature()
+    : spRenderFeature(EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spMeshRenderFeatureExtractor))
+  {
+    m_hShader = ezResourceManager::LoadResource<RAI::spShaderResource>(":shaders/point.slang");
+
+    auto* pDevice = spRenderSystem::GetSingleton()->GetDevice();
+
     {
       spShaderCompilerSetup setup;
       setup.m_eStage = RHI::spShaderStage::VertexShader;
+      setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
 
       m_pVertexShader = spShaderManager::GetSingleton()->CompileShader(m_hShader, setup);
-      m_pVertexShader->SetDebugName("vs");
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+      m_pVertexShader->SetDebugName("MeshRenderFeature_VertexShader");
+#endif
     }
 
-    if (m_pPixelShader == nullptr)
     {
       spShaderCompilerSetup setup;
       setup.m_eStage = RHI::spShaderStage::PixelShader;
+      setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
 
       m_pPixelShader = spShaderManager::GetSingleton()->CompileShader(m_hShader, setup);
-      m_pPixelShader->SetDebugName("ps");
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+      m_pPixelShader->SetDebugName("MeshRenderFeature_PixelShader");
+#endif
     }
 
-    if (m_pShaderProgram == nullptr)
     {
-      m_pShaderProgram = cl->GetDevice()->GetResourceFactory()->CreateShaderProgram();
+      m_pShaderProgram = pDevice->GetResourceFactory()->CreateShaderProgram();
       m_pShaderProgram->Attach(m_pVertexShader);
       m_pShaderProgram->Attach(m_pPixelShader);
-      m_pShaderProgram->SetDebugName("spo");
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+      m_pShaderProgram->SetDebugName("MeshRenderFeature_ShaderProgram");
+#endif
     }
 
-    if (m_pResourceLayout == nullptr)
     {
       RHI::spResourceLayoutDescription desc{};
 
@@ -92,64 +160,22 @@ namespace RPI
       perViewBuffer.m_eShaderStage = RHI::spShaderStage::VertexShader | RHI::spShaderStage::PixelShader;
       perViewBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
 
+      RHI::spResourceLayoutElementDescription perInstanceBuffer{};
+      perInstanceBuffer.m_sName = ezMakeHashedString("Buffer_PerInstance");
+      perInstanceBuffer.m_eType = RHI::spShaderResourceType::ReadOnlyStructuredBuffer;
+      perInstanceBuffer.m_eShaderStage = RHI::spShaderStage::VertexShader;
+      perInstanceBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
+
       desc.m_Elements.PushBack(perFrameBuffer);
       desc.m_Elements.PushBack(perViewBuffer);
+      desc.m_Elements.PushBack(perInstanceBuffer);
 
-      m_pResourceLayout = cl->GetDevice()->GetResourceFactory()->CreateResourceLayout(desc);
-      m_pResourceLayout->SetDebugName("layout");
+      m_pResourceLayout = pDevice->GetResourceFactory()->CreateResourceLayout(desc);
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+      m_pResourceLayout->SetDebugName("MeshRenderFeature_ResourceLayout");
+#endif
     }
-
-    if (m_pResourceSet == nullptr)
-    {
-      RHI::spResourceSetDescription desc{};
-      desc.m_hResourceLayout = m_pResourceLayout->GetHandle();
-      desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerFrame"), pRenderingContext->GetFrameDataBuffer().GetHandle());
-      desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerView"), pRenderView->GetDataBuffer().GetHandle());
-
-      m_pResourceSet = cl->GetDevice()->GetResourceFactory()->CreateResourceSet(desc);
-      m_pResourceSet->SetDebugName("set0");
-    }
-
-    if (m_pGraphicPipeline == nullptr)
-    {
-      RHI::spGraphicPipelineDescription desc{};
-      desc.m_bSupportsPushConstants = true;
-      desc.m_Output = pRenderStage->GetOutputDescription(pRenderView);
-      desc.m_ePrimitiveTopology = RHI::spPrimitiveTopology::Triangles;
-      desc.m_RenderingState = pRenderStage->GetRenderingState(pRenderObject);
-      desc.m_ShaderPipeline.m_hShaderProgram = m_pShaderProgram->GetHandle();
-      desc.m_ShaderPipeline.m_InputLayouts.PushBack(mesh.GetRHIInputLayout()->GetHandle());
-      desc.m_ResourceLayouts.PushBack(m_pResourceLayout->GetHandle());
-
-      m_pGraphicPipeline = cl->GetDevice()->GetResourceFactory()->CreateGraphicPipeline(desc);
-      m_pGraphicPipeline->SetDebugName("gpo");
-    }
-
-    ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper> drawCommands;
-    mesh.GetDrawCommands(drawCommands);
-
-    cl->PushDebugGroup("spMeshRenderFeature");
-    {
-      cl->SetGraphicPipeline(m_pGraphicPipeline);
-
-      cl->SetGraphicResourceSet(0, m_pResourceSet);
-
-      cl->SetVertexBuffer(0, mesh.GetRHIVertexBuffer());
-      cl->SetIndexBuffer(mesh.GetRHIIndexBuffer(), RHI::spIndexFormat::UInt16);
-
-      m_PushConstants.transform = pMeshRenderObject->m_Transform.GetAsMat4().GetTranspose();
-      m_PushConstants.values = pMeshRenderObject->m_PreviousTransform.GetAsMat4().GetTranspose();
-      cl->PushConstants(RHI::spShaderStage::VertexShader, &m_PushConstants, 0, sizeof(PushConstantTest));
-
-      cl->DrawIndexedIndirect(mesh.GetRHIIndirectBuffer(), 0, drawCommands.GetCount(), cl->GetDevice()->GetIndexedIndirectCommandSize());
-    }
-    cl->PopDebugGroup();
-  }
-
-  spMeshRenderFeature::spMeshRenderFeature()
-    : spRenderFeature(EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spMeshRenderFeatureExtractor))
-  {
-    m_hShader = ezResourceManager::LoadResource<RAI::spShaderResource>(":shaders/point.slang");
   }
 } // namespace RPI
 
