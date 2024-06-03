@@ -450,6 +450,15 @@ inline bool ezVec4Template<Type>::IsEqual(const ezVec4Template<Type>& rhs, Type 
 }
 
 template <typename Type>
+template <typename U, std::enable_if_t<std::is_arithmetic_v<U>, bool>>
+ezVec4Template<U> ezVec4Template<Type>::Cast() const
+{
+  EZ_NAN_ASSERT(this);
+
+  return ezVec4Template<U>(static_cast<U>(x), static_cast<U>(y), static_cast<U>(z), static_cast<U>(w));
+}
+
+template <typename Type>
 EZ_ALWAYS_INLINE bool operator==(const ezVec4Template<Type>& v1, const ezVec4Template<Type>& v2)
 {
   return v1.IsIdentical(v2);
