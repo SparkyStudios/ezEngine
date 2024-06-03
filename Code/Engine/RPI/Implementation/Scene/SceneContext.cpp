@@ -35,7 +35,7 @@ namespace RPI
     m_pCommandList = pDevice->GetResourceFactory()->CreateCommandList(spCommandListDescription());
     m_pFence = pDevice->GetResourceFactory()->CreateFence(spFenceDescription(false));
 
-    m_pRenderContext = EZ_NEW(pDevice->GetAllocator(), spRenderContext, pDevice);
+    m_pRenderContext = EZ_NEW(pDevice->GetAllocator(), spRenderContext, this);
     m_pVisibilityGroup = EZ_NEW(pDevice->GetAllocator(), spVisibilityGroup, this);
   }
 
@@ -164,11 +164,11 @@ namespace RPI
   {
     m_pRenderContext->EndFrame(m_pFence);
 
-    Flush();
+    Reset();
 
     m_pDevice->EndFrame();
 
-    Reset();
+    Flush();
 
     spRenderSystem::s_uiFrameCount++;
   }
@@ -182,6 +182,10 @@ namespace RPI
 
   void spSceneContext::Reset()
   {
+    // Reset render feature states
+    for (const auto& feature : m_RenderFeatureCollector)
+      feature->Reset();
+
     m_pRenderContext->Reset();
     m_pVisibilityGroup->Reset();
   }

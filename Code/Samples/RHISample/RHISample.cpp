@@ -232,7 +232,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
     // Create a scene context
     // Since this sample is to showcase how to use the RHI, we need to manually create a scene context here.
-    m_pSceneContext = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spSceneContext, m_pRenderSystem->GetDevice().Borrow());
+    m_pSceneContext = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spSceneContext, m_pRenderSystem->GetDevice());
   }
 
   // now that we have a window and device, tell the engine to initialize the rendering infrastructure
@@ -262,7 +262,7 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
   // --- Begin Experimental render graph
 
   // 1. Setup graph
-  graphBuilder = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spRenderGraphBuilder, m_pRenderSystem->GetDevice().Borrow());
+  graphBuilder = EZ_NEW(m_pRenderSystem->GetDevice()->GetAllocator(), spRenderGraphBuilder, m_pRenderSystem->GetDevice());
 
   spResourceHandle importedTex = graphBuilder->Import(imageResource.GetPointer()->GetRHITexture()); // Import a resource in the graph
   spResourceHandle importedSmp = graphBuilder->Import(imageResource.GetPointer()->GetRHISampler()); // Import a resource in the graph
@@ -508,7 +508,7 @@ ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* p
     data.m_pGraphicPipeline->SetDebugName("gpo");
   }
 
-  const spCallbackRenderPass::ExecuteCallback executeCallback = [=](const spRenderGraphResourcesTable& resources, spRenderContext* context, ezVariant& passData) -> void
+  const spCallbackRenderPass::ExecuteCallback executeCallback = [=](const spRenderGraphResourcesTable& resources, const spRenderContext* context, ezVariant& passData) -> void
   {
     spRenderGraphResource* cbo = nullptr;
     resources.TryGetValue(data.m_hConstantBuffer.GetInternalID(), cbo);
@@ -548,7 +548,7 @@ ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* p
 
       cl->SetGraphicResourceSet(0, data.m_pResourceSet);
 
-      cl->DrawIndexedIndirect(idb->m_pRHIResource.Downcast<spBuffer>(), 0, m_PassData.m_DrawCommands.GetCount(), context->GetDevice()->GetIndexedIndirectCommandSize());
+      cl->DrawIndexedIndirect(idb->m_pRHIResource.Downcast<spBuffer>(), 0, m_PassData.m_DrawCommands.GetCount(), context->GetSceneContext()->GetDevice()->GetIndexedIndirectCommandSize());
     }
     cl->PopProfileScope(pTestScopeProfiler);
 

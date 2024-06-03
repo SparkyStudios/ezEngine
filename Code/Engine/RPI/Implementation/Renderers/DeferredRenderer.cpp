@@ -31,6 +31,8 @@ namespace RPI
     const auto cl = pRenderContext->GetCommandList();
     const spRenderView* pRenderView = pRenderContext->GetExtractionData().m_pRenderView;
 
+    const auto& visibleObjects = pRenderContext->GetExtractionData().m_pRenderView->GetVisibleRenderObjects();
+
     cl->PushDebugGroup("Deferred Renderer");
     {
       // FIXME: Temporary hack to have something displayed on screen
@@ -56,12 +58,8 @@ namespace RPI
           cl->SetViewport(0, vp);
 
           // Clear
-          cl->InsertDebugMarker("Clear Opaque G-Buffer Start");
-          cl->ClearColorTarget(0, ezColor::SkyBlue);
+          cl->ClearColorTarget(0, ezColor::Black);
           cl->ClearDepthStencilTarget(1.0f, 0);
-          cl->InsertDebugMarker("Clear Opaque G-Buffer End");
-
-          const auto& visibleObjects = GetSceneContext()->GetRenderContext()->GetExtractionData().m_pRenderView->GetVisibleRenderObjects();
 
           // Filter
           ezDynamicArray<spRenderObject*> opaqueObjects;

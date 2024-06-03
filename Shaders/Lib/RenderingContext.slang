@@ -30,7 +30,7 @@ struct PerFrameBuffer
   float2 InverseViewportSize;
 
   uint Options;
-  uint HDREnabled;
+  bool HDREnabled;
   float HDRMaxNits;
   float HDRWhitePoint;
 }
@@ -68,17 +68,20 @@ struct PerPassBuffer
   matrix Values;
 };
 
-ConstantBuffer<PerFrameBuffer> Buffer_PerFrame;
-ConstantBuffer<PerViewBuffer> Buffer_PerView : register(b1, space0);
+[[vk_binding(1, 0)]]
+ConstantBuffer<PerFrameBuffer> Buffer_PerFrame : register(b1, space0);
+
+[[vk_binding(2, 0)]]
+ConstantBuffer<PerViewBuffer> Buffer_PerView : register(b2, space0);
 
 [[push_constant]]
 PerPassBuffer Buffer_PerPass : register(b0, space0); // Push constants have the requirement to be at binding 0.
 
 /// \brief Gets the index in the materials buffer for the current rendering object.
-uint GetMaterialIndex() { return /*uint(Buffer_PerPass.Values._m03)*/ 0; }
+func GetMaterialIndex() -> uint { return uint(Buffer_PerPass.Values._m03); }
 
 /// \brief Checks if the current rendering object is transparent.
-bool IsTransparent() { return Buffer_PerPass.Values._m13 == 1.0f; }
+func IsTransparent() -> bool { return Buffer_PerPass.Values._m13 == 1.0f; }
 
 /// \brief Checks if the current rendering object is opaque.
-bool IsOpaque() { return !IsTransparent(); }
+func IsOpaque() -> bool { return !IsTransparent(); }

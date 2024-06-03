@@ -39,7 +39,7 @@ namespace RPI
       return; // No camera found for the given slot, nothing to do.
 
     const spRenderContext* pRenderContext = GetSceneContext()->GetRenderContext();
-    const RHI::spDevice* pDevice = pRenderContext->GetDevice();
+    const RHI::spDevice* pDevice = GetSceneContext()->GetDevice();
 
     const auto cl = pRenderContext->GetCommandList();
     const auto pFramebuffer = pDevice->GetMainSwapchain()->GetFramebuffer();

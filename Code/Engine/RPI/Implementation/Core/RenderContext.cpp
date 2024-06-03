@@ -16,16 +16,23 @@
 
 #include <RPI/Core/RenderContext.h>
 #include <RPI/Core/RenderSystem.h>
+#include <RPI/Scene/SceneContext.h>
+
+#include <Core/World/World.h>
 
 using namespace RHI;
 
 namespace RPI
 {
-  spRenderContext::spRenderContext(spDevice* pDevice)
-    : m_pDevice(pDevice)
+  spRenderContext::spRenderContext(const spSceneContext* pSceneContext)
+    : m_pSceneContext(pSceneContext)
     , m_Data()
   {
     m_pShaderManager = EZ_DEFAULT_NEW(spShaderManager);
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+    m_FrameDataBuffer.SetDebugName("Buffer_PerFrame");
+#endif
   }
 
   spRenderContext::~spRenderContext()
@@ -43,8 +50,36 @@ namespace RPI
     Reset();
   }
 
+  void spRenderContext::SetCommandList(const spCommandListDescription& description)
+  {
+    m_pCommandList = m_pSceneContext->GetDevice()->GetResourceFactory()->CreateCommandList(description);
+    Reset();
+  }
+
   void spRenderContext::BeginFrame()
   {
+    {
+      const auto pFrameData = m_FrameDataBuffer.Write();
+      const auto pRenderSystem = spRenderSystem::GetSingleton();
+      const auto pCompositor = pRenderSystem->GetCompositor();
+
+      pFrameData->m_fGlobalTime = ezClock::GetGlobalClock()->GetAccumulatedTime().AsFloatInSeconds();
+      pFrameData->m_fCurrentTime = m_pSceneContext->GetWorld()->GetClock().GetAccumulatedTime().AsFloatInSeconds();
+      pFrameData->m_fDeltaTime = m_pSceneContext->GetWorld()->GetClock().GetTimeDiff().AsFloatInSeconds();
+      pFrameData->m_uiFrame = spRenderSystem::GetFrameCount();
+
+      pFrameData->m_vRenderSize = pCompositor->GetRenderSize().GetExtents().Cast<float>();
+      pFrameData->m_vInverseRenderSize = {1.0f / pFrameData->m_vRenderSize.x, 1.0f / pFrameData->m_vRenderSize.y};
+      pFrameData->m_vViewportSize = pCompositor->GetViewportSize().GetExtents().Cast<float>();
+      pFrameData->m_vInverseViewportSize = {1.0f / pFrameData->m_vViewportSize.x, 1.0f / pFrameData->m_vViewportSize.y};
+
+      // TODO
+      pFrameData->m_uiOptions = 0;
+      pFrameData->m_bHDREnabled = pCompositor->IsHDR();
+      pFrameData->m_fHDRMaxNits = 0;
+      pFrameData->m_fHDRWhitePoint = 0;
+    }
+
     m_pCommandList->Begin();
   }
 
@@ -52,7 +87,9 @@ namespace RPI
   {
     m_pCommandList->End();
 
-    m_pDevice->SubmitCommandList(m_pCommandList, pFence);
+    m_pSceneContext->GetDevice()->SubmitCommandList(m_pCommandList, pFence);
+
+    m_FrameDataBuffer.Swap();
   }
 
   void spRenderContext::Reset()

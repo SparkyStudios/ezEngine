@@ -23,9 +23,10 @@ using namespace RHI;
 
 namespace RPI
 {
-  spConstantBufferBase::spConstantBufferBase(ezUInt32 uiSizeInBytes, spBufferUsage::Enum eUsage)
+  spConstantBufferBase::spConstantBufferBase(ezUInt32 uiSizeInBytes, ezBitflags<spBufferUsage> eUsage)
   {
-    const spBufferDescription desc(uiSizeInBytes, spBufferUsage::ConstantBuffer | eUsage);
+    eUsage.Add(spBufferUsage::ConstantBuffer | spBufferUsage::Dynamic);
+    const spBufferDescription desc(uiSizeInBytes, eUsage);
     m_pBuffer = spRenderSystem::GetSingleton()->GetDevice()->GetResourceFactory()->CreateBuffer(desc);
   }
 
@@ -52,6 +53,11 @@ namespace RPI
   void spConstantBufferBase::UpdateBuffer(ezUInt32 uiOffsetInBytes, ezUInt32 uiSizeInBytes, const void* pData) const
   {
     m_pBuffer->GetDevice()->UpdateBuffer(m_pBuffer, uiOffsetInBytes, pData, uiSizeInBytes);
+  }
+
+  spResourceHandle spConstantBufferBase::GetHandle() const
+  {
+    return m_pBuffer->GetHandle();
   }
 
   void spConstantBufferBase::SetDebugName(ezStringView sName) const
