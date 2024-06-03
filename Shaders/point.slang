@@ -40,9 +40,27 @@ func VSMain(input: InputStream) -> TransientStream
   // Get the instance data
   PerInstanceData instance = GetInstanceData(output.InstanceID);
 
-  // Normal
+  // Normal/Tangent/BiTangent
+#ifdef USE_NORMAL
   matrix normalMatrix = TransformToMatrix(instance.NormalTransform);
-  output.Normal = normalize(mul((float3x3)normalMatrix, input.Normal));
+  float3 normal =  unpack(input.Normal);
+
+  output.Normal = normalize(mul((float3x3)normalMatrix, normal));
+
+#ifdef USE_TANGENT
+  float3 tangent = unpack(input.Tangent.xyz);
+
+#ifdef USE_BITANGENT
+  float3 bitangent = unpack(input.BiTangent.xyz);
+#else
+  float magnitude = unpack(input.Tangent.w);
+  float3 bitangent = cross(normal, tangent) * magnitude;
+#endif
+
+  output.Tangent = normalize(mul((float3x3)normalMatrix, tangent));
+  output.BiTangent = normalize(mul((float3x3)normalMatrix, bitangent));
+#endif
+#endif
 
   // Position
   matrix worldMatrix = TransformToMatrix(instance.WorldTransform);
@@ -59,20 +77,24 @@ func VSMain(input: InputStream) -> TransientStream
   output.PreviousPosition = mul(Buffer_PerView.ViewProjectionMatrix, previousWorldPosition).xyz;
 #endif
 
-  // TODO
-  output.Tangent = input.Tangent;
-  output.BiTangent = input.BiTangent;
+  // Texture Coordinates
+#ifdef USE_TEXCOORD0
   output.TexCoord0 = input.TexCoord0;
+
+#ifdef USE_TEXCOORD1
+  output.TexCoord1 = input.TexCoord1;
+#endif
+#endif
 
   return output;
 }
 
 [shader("pixel")]
-float4 PSMain(TransientStream input)
-  : SV_Target
+func PSMain(input: TransientStream) -> float4
 {
-  if (Buffer_PerFrame.HDREnabled)
-    return float4(input.Normal.xyz, 1.0f);
+  OutputStream output;
 
-  return float4(normalize(input.Normal.xyz), 1.0f);
+  output.Albedo = float4(input.BiTangent.xyz, 1.0f);
+
+  return output.Albedo;
 }

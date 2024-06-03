@@ -26,10 +26,10 @@ struct InputStream
 #endif
 
 #ifdef USE_TANGENT
-  float3 Tangent : TANGENT;
+  float4 Tangent : TANGENT;
 
 #ifdef USE_BITANGENT
-  float3 BiTangent : BITANGENT;
+  float4 BiTangent : BITANGENT;
 #endif
 #endif
 
