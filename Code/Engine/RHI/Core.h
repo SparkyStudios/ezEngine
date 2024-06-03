@@ -844,6 +844,7 @@ namespace RHI
       /// \brief Indicates that a buffer should use persistent mapping if available on the running platform. When PersistentMapping
       /// is enabled, any calls to spGraphicDevice::Map() on this buffer will return the same pointer.
       /// This flag can be combined with any other flags.
+      /// \note The Metal backend have this behavior by default.
       PersistentMapping = EZ_BIT(8),
 
       /// \brief Indicates that a buffer is double buffered. Double buffering will consume twice the buffer size in memory.

@@ -77,6 +77,15 @@ namespace RPI
     m_pExtractor->Extract(pSceneContext, pRenderContext);
   }
 
+  void spRenderFeature::Reset()
+  {
+    // Clear render objects
+    for (auto& pObject : m_RenderObjects)
+      pObject->m_RenderFeatureReference = spRenderNodeReference::MakeInvalid();
+
+    m_RenderObjects.Clear();
+  }
+
   bool spRenderFeature::TryAddRenderObject(spRenderObject* pRenderObject)
   {
     EZ_ASSERT_DEV(pRenderObject != nullptr, "Render object must not be nullptr.");

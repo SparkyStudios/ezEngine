@@ -1,6 +1,7 @@
 #include <RPI/RPIPCH.h>
 
 #include <RPI/Pipeline/Passes/MainSwapchainRenderPass.h>
+#include <RPI/Scene/SceneContext.h>
 
 using namespace RHI;
 
@@ -26,7 +27,7 @@ namespace RPI
     spRenderGraphResource* input = nullptr;
     resources.TryGetValue(data.m_hInputTexture.GetInternalID(), input);
 
-    auto pDevice = context->GetDevice();
+    auto pDevice = context->GetSceneContext()->GetDevice();
     auto pFramebuffer = pDevice->GetMainSwapchain()->GetFramebuffer();
 
     auto const output = pDevice->GetResourceManager()->GetResource<spTexture>(pFramebuffer->GetColorTargets()[data.m_uiColorAttachmentIndex]);

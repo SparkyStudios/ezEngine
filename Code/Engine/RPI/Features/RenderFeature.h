@@ -66,6 +66,9 @@ namespace RPI
     /// \param [in] pRenderContext The rendering context in which the extraction occurs.
     void Extract(spSceneContext* pSceneContext, const spRenderContext* pRenderContext) const;
 
+    /// \brief Resets the state of the render feature.
+    virtual void Reset();
+
   protected:
     /// \brief Tries to add a \a spRenderObject in the feature.
     /// \note The default implementation always add the render object to the feature

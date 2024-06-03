@@ -50,16 +50,6 @@ namespace RPI
     const spRenderView* pRenderView = pRenderingContext->GetExtractionData().m_pRenderView;
     const spRenderStage* pRenderStage = pRenderingContext->GetExtractionData().m_pRenderStage;
 
-    // if (m_PushConstantBuffer == nullptr)
-    // {
-    //   RHI::spBufferDescription desc;
-    //   desc.m_eUsage = RHI::spBufferUsage::ConstantBuffer | RHI::spBufferUsage::Dynamic;
-    //   desc.m_uiSize = sizeof(PushConstantTest);
-    //
-    //   m_PushConstantBuffer = cl->GetDevice()->GetResourceFactory()->CreateBuffer(desc);
-    //   m_PushConstantBuffer->SetDebugName("Buffer_PerPass");
-    // }
-
     if (m_pVertexShader == nullptr)
     {
       spShaderCompilerSetup setup;
@@ -90,20 +80,20 @@ namespace RPI
     {
       RHI::spResourceLayoutDescription desc{};
 
+      RHI::spResourceLayoutElementDescription perFrameBuffer{};
+      perFrameBuffer.m_sName = ezMakeHashedString("Buffer_PerFrame");
+      perFrameBuffer.m_eType = RHI::spShaderResourceType::ConstantBuffer;
+      perFrameBuffer.m_eShaderStage = RHI::spShaderStage::VertexShader | RHI::spShaderStage::PixelShader;
+      perFrameBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
+
       RHI::spResourceLayoutElementDescription perViewBuffer{};
       perViewBuffer.m_sName = ezMakeHashedString("Buffer_PerView");
       perViewBuffer.m_eType = RHI::spShaderResourceType::ConstantBuffer;
-      perViewBuffer.m_eShaderStage = RHI::spShaderStage::VertexShader;
-      perViewBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::DynamicBinding;
+      perViewBuffer.m_eShaderStage = RHI::spShaderStage::VertexShader | RHI::spShaderStage::PixelShader;
+      perViewBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
 
-      // RHI::spResourceLayoutElementDescription perPassBuffer{};
-      // perPassBuffer.m_sName = ezMakeHashedString("Buffer_PerPass");
-      // perPassBuffer.m_eType = RHI::spShaderResourceType::ConstantBuffer;
-      // perPassBuffer.m_eShaderStage = RHI::spShaderStage::VertexShader;
-      // perPassBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
-
+      desc.m_Elements.PushBack(perFrameBuffer);
       desc.m_Elements.PushBack(perViewBuffer);
-      // desc.m_Elements.PushBack(perPassBuffer);
 
       m_pResourceLayout = cl->GetDevice()->GetResourceFactory()->CreateResourceLayout(desc);
       m_pResourceLayout->SetDebugName("layout");
@@ -113,11 +103,11 @@ namespace RPI
     {
       RHI::spResourceSetDescription desc{};
       desc.m_hResourceLayout = m_pResourceLayout->GetHandle();
-      desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerView"), pRenderView->GetDataBuffer().GetBuffer()->GetHandle());
-      // desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerPass"), m_PushConstantBuffer->GetHandle());
+      desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerFrame"), pRenderingContext->GetFrameDataBuffer().GetHandle());
+      desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerView"), pRenderView->GetDataBuffer().GetHandle());
 
       m_pResourceSet = cl->GetDevice()->GetResourceFactory()->CreateResourceSet(desc);
-      m_pResourceSet->SetDebugName("set");
+      m_pResourceSet->SetDebugName("set0");
     }
 
     if (m_pGraphicPipeline == nullptr)
@@ -142,17 +132,14 @@ namespace RPI
     {
       cl->SetGraphicPipeline(m_pGraphicPipeline);
 
-      const ezUInt32 offsets[] = {pRenderView->GetDataBuffer().GetBuffer()->GetCurrentRange()->GetOffset()};
-      cl->SetGraphicResourceSet(0, m_pResourceSet, 1, offsets);
+      cl->SetGraphicResourceSet(0, m_pResourceSet);
 
       cl->SetVertexBuffer(0, mesh.GetRHIVertexBuffer());
       cl->SetIndexBuffer(mesh.GetRHIIndexBuffer(), RHI::spIndexFormat::UInt16);
 
-      m_PushConstants.transform = pMeshRenderObject->m_Transform.GetAsMat4();
-      m_PushConstants.values = pMeshRenderObject->m_PreviousTransform.GetAsMat4();
-      cl->PushConstants(0, RHI::spShaderStage::VertexShader, &m_PushConstants, 0, sizeof(PushConstantTest));
+      m_PushConstants.transform = pMeshRenderObject->m_Transform.GetAsMat4().GetTranspose();
+      m_PushConstants.values = pMeshRenderObject->m_PreviousTransform.GetAsMat4().GetTranspose();
       cl->PushConstants(RHI::spShaderStage::VertexShader, &m_PushConstants, 0, sizeof(PushConstantTest));
-      // cl->UpdateBuffer(m_PushConstantBuffer, 0, constants.Borrow(), 1);
 
       cl->DrawIndexedIndirect(mesh.GetRHIIndirectBuffer(), 0, drawCommands.GetCount(), cl->GetDevice()->GetIndexedIndirectCommandSize());
     }

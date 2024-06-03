@@ -20,7 +20,7 @@
 
 namespace RPI
 {
-  template <typename T>
+  template <typename T, RHI::spBufferUsage::Enum Usage>
   class spConstantBufferView;
 
   /// \brief Base class for constant buffer storages.
@@ -48,6 +48,9 @@ namespace RPI
     /// \param[in] pData The data to write.
     void UpdateBuffer(ezUInt32 uiOffsetInBytes, ezUInt32 uiSizeInBytes, const void* pData) const;
 
+    /// \brief Gets the handle to the buffer resource.
+    EZ_NODISCARD RHI::spResourceHandle GetHandle() const;
+
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
     /// \brief Sets the debug name of the buffer.
     /// \param[in] sName The name to set.
@@ -59,7 +62,7 @@ namespace RPI
     /// \brief Creates a new constant buffer wrapper with the given size.
     /// \param[in] uiSizeInBytes The size of the buffer.
     /// \param[in] eUsage The usage of the buffer.
-    spConstantBufferBase(ezUInt32 uiSizeInBytes, RHI::spBufferUsage::Enum eUsage);
+    spConstantBufferBase(ezUInt32 uiSizeInBytes, ezBitflags<RHI::spBufferUsage> eUsage);
 
     /// \brief Destroys the constant buffer wrapper and frees all allocated resources.
     virtual ~spConstantBufferBase();
@@ -77,8 +80,8 @@ namespace RPI
   template <typename T, RHI::spBufferUsage::Enum Usage = RHI::spBufferUsage::Dynamic>
   class spConstantBuffer final : public spConstantBufferBase, public ezRefCounted
   {
-    friend class spConstantBufferView<T>;
-    friend class spConstantBufferView<const T>;
+    friend class spConstantBufferView<T, Usage>;
+    friend class spConstantBufferView<const T, Usage>;
 
   public:
     static constexpr ezUInt64 DataSize = sizeof(T);
@@ -107,17 +110,17 @@ namespace RPI
     /// \brief Get a view to the constant buffer for writing.
     /// \note The view will automatically unmap the buffer when it goes out of scope.
     /// \return A view to the constant buffer for writing.
-    EZ_FORCE_INLINE spConstantBufferView<T> Write() const
+    EZ_FORCE_INLINE spConstantBufferView<T, Usage> Write() const
     {
-      return spConstantBufferView<T>(this);
+      return spConstantBufferView<T, Usage>(this);
     }
 
     /// \brief Get a view to the constant buffer for reading.
     /// \note The view will automatically unmap the buffer when it goes out of scope.
     /// \return A view to the constant buffer for reading.
-    EZ_FORCE_INLINE spConstantBufferView<const T> Read() const
+    EZ_FORCE_INLINE spConstantBufferView<const T, Usage> Read() const
     {
-      return spConstantBufferView<const T>(this);
+      return spConstantBufferView<const T, Usage>(this);
     }
 
     /// \brief Sets the value of the constant buffer.
@@ -143,11 +146,11 @@ namespace RPI
   /// The buffer is guaranteed to be unmapped when the view goes out of scope.
   ///
   /// \tparam T The data type of the buffer. It's recommended to be a struct with 16-bit alignment.
-  template <typename T>
+  template <typename T, RHI::spBufferUsage::Enum Usage = RHI::spBufferUsage::Dynamic>
   class spConstantBufferView
   {
   public:
-    explicit spConstantBufferView(const spConstantBuffer<std::remove_const_t<T>>* pBuffer)
+    explicit spConstantBufferView(const spConstantBuffer<std::remove_const_t<T>, Usage>* pBuffer)
     {
       m_pBuffer = pBuffer;
       m_uiDataHash = pBuffer->GetHash();
@@ -163,10 +166,12 @@ namespace RPI
 
       {
         const RHI::spMappedResource resource = m_pBuffer->Map();
+
         ezMemoryUtils::RawByteCopy(
           static_cast<ezUInt8*>(resource.GetData()) + m_pBuffer->m_pBuffer->GetCurrentRange()->GetOffset(),
           m_pBuffer->m_RawData.GetPtr(),
           m_pBuffer->m_RawData.GetCount());
+
         m_pBuffer->Unmap();
       }
     }
@@ -189,6 +194,6 @@ namespace RPI
 
   private:
     ezUInt32 m_uiDataHash{0};
-    const spConstantBuffer<std::remove_const_t<T>>* m_pBuffer{nullptr};
+    const spConstantBuffer<std::remove_const_t<T>, Usage>* m_pBuffer{nullptr};
   };
 } // namespace RPI

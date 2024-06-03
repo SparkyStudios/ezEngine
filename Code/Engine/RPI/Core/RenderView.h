@@ -143,7 +143,7 @@ namespace RPI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezMat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
 
-    // EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() const { return m_VisibleRenderObjects; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() const { return m_VisibleRenderObjects; }
     EZ_NODISCARD EZ_ALWAYS_INLINE spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() { return m_VisibleRenderObjects; }
 
     EZ_NODISCARD ezFrustum GetFrustum() const;

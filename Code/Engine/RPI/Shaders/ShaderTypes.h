@@ -19,6 +19,12 @@
 #include <Foundation/Math/Mat3.h>
 #include <Foundation/Math/Transform.h>
 
+/// \brief An alias for the \c ezVec2 class used for shaders.
+typedef ezVec2 spShaderVec2;
+
+/// \brief An alias for the \c ezVec3 class used for shaders.
+typedef ezVec3 spShaderVec3;
+
 /// \brief A wrapper class that converts a ezMat3 into the correct data layout for shaders.
 class spShaderMat3
 {

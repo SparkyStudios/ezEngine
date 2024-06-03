@@ -20,7 +20,6 @@
 #include <RHI/Device.h>
 #include <RHI/Fence.h>
 
-#include <RPI/Core/RenderContext.h>
 #include <RPI/Core/RenderStage.h>
 #include <RPI/Core/RenderView.h>
 #include <RPI/Core/Threading/ConcurrentCollector.h>
@@ -31,6 +30,7 @@
 namespace RPI
 {
   class spSceneContext;
+  class spRenderContext;
 
   struct spSceneContextCollectEvent
   {

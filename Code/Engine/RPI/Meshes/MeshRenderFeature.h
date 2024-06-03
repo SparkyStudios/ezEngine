@@ -55,7 +55,6 @@ namespace RPI
     ezSharedPtr<RHI::spResourceSet> m_pResourceSet;
     ezSharedPtr<RHI::spGraphicPipeline> m_pGraphicPipeline;
 
-    // ezSharedPtr<RHI::spBuffer> m_PushConstantBuffer;
     PushConstantTest m_PushConstants;
   };
 } // namespace RPI
