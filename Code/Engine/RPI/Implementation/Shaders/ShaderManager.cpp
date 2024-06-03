@@ -57,7 +57,6 @@ struct spSlangByteBlob final : slang::IBlob
     return m_pData.GetCount();
   }
 
-private:
   ISlangUnknown* getInterface(const SlangUUID& uuid)
   {
     if (uuid == SLANG_UUID_ISlangBlob)
@@ -220,12 +219,14 @@ namespace RPI
       }
 
       slang::ProgramLayout* pShaderLayout = pShaderProgram->getLayout();
+      const ezUInt32 uiKernelSize = pShaderKernel->getBufferSize();
 
       RHI::spShaderDescription desc;
       desc.m_eShaderStage = ref_compilerSetup.m_eStage;
       desc.m_sEntryPoint.Assign(pShaderLayout->getEntryPointByIndex(0)->getName());
-      desc.m_Buffer = EZ_DEFAULT_NEW_ARRAY(ezUInt8, pShaderKernel->getBufferSize());
-      desc.m_Buffer.CopyFrom(ezMakeByteArrayPtr(pShaderKernel->getBufferPointer(), pShaderKernel->getBufferSize()));
+      desc.m_Buffer = EZ_DEFAULT_NEW_ARRAY(ezUInt8, uiKernelSize + 1);
+      ezMemoryUtils::RawByteCopy(desc.m_Buffer.GetPtr(), pShaderKernel->getBufferPointer(), uiKernelSize);
+      desc.m_Buffer[uiKernelSize] = '\0';
       desc.m_bOwnBuffer = true;
 
       const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<RHI::spDevice>();
