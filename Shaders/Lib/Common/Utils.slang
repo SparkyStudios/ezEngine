@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include <RenderingContext.slang>
+#include <Common/RenderingContext.slang>
 
 float4 ClipToView(in float4 clip)
 {

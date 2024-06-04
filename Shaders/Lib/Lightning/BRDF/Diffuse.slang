@@ -64,9 +64,9 @@ struct DiffuseOrenNayar : IBRDF
 
   __init(Surface surface)
   {
-    this.albedo = surface.albedo;
-    this.roughness = surface.roughnessLinear;
-    this.roughnessA = surface.roughness;
+    this.albedo = surface.Albedo;
+    this.roughness = surface.LinearRoughness;
+    this.roughnessA = surface.Roughness;
   }
 
   float3 evaluate(inout Surface surface, AngularInfo angularInfo)

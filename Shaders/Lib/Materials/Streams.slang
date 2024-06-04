@@ -16,7 +16,7 @@
 
 #include <Core.slang>
 
-/// \brief Vertex buffer input.
+/// Vertex buffer input.
 struct InputStream
 {
   float3 Position : POSITION;
@@ -53,12 +53,9 @@ struct InputStream
   float4 BoneWeigths : BONEWEIGHTS0;
   uint4  BoneIndices : BONEINDICES0;
 #endif
-
-  uint InstanceID : SV_InstanceID;
-  uint VertexID   : SV_VertexID;
 }
 
-/// \brief Transient data between shader stages.
+/// Transient data between shader stages.
 struct TransientStream
 {
   float4 Position : SV_Position;
@@ -100,10 +97,11 @@ struct TransientStream
 #endif
 #endif
 
-  uint InstanceID : SV_InstanceID;
+  uint InstanceID  : InstanceID;
+  bool IsFrontFace : IsFrontFace;
 }
 
-/// \brief G-Buffer output.
+/// G-Buffer output.
 struct OutputStream
 {
   float4 Albedo   : SV_Target0;

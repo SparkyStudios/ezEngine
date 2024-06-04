@@ -14,41 +14,111 @@
 
 #pragma once
 
+#include <Common/Material.slang>
+#include <Common/Math/Utils.slang>
+
+/// Describes a geometry surface.
+///
+/// This structure stores all the required data used to describe a
+/// surface for each fragment.
 struct Surface
 {
-  float3 albedo;
-  float3 specular;
-  float3 emissive;
-  float roughnessLinear;
-  float roughness;
-  float roughness2;
-  float metalness;
-  float diffuseOcclusion;
-  float speculatOcclusion;
-  float specularF0;
-  float cavity;
-  float opacity;
+  /// The albedo color.
+  float3 Albedo;
 
-  float clearcoat;
-  float clearcoatRoughness;
-  float3 clearcoatNormal;
+  /// The specular color.
+  float3 Specular;
 
-  float anisotropic;
-  float anisotropicRotation;
+  /// The emissive color.
+  float3 Emissive;
 
-  float sheen;
-  float sheenTintFactor;
+  /// The roughness value as specified by the
+  /// roughness texture.
+  float LinearRoughness;
 
-  float3 worldPosition;
-  float3 worldNormal;
-  float3 vertexNormal;
+  /// The metalness value.
+  float Metalness;
 
+  /// The ambient occlusion value.
+  float Occlusion;
+
+  /// Value in the range [0..1] applied on the accumulated
+  /// light values to simulate cavities on surfaces.
+  float Cavity;
+
+  /// The clearcoat value.
+  /// \note A value of \c 0 disables clearcoat.
+  float Clearcoat;
+
+  /// The roughness value for clearcoat shading.
+  /// \note Only applicable if \a Clearcoat > \c 0.
+  float ClearcoatRoughness;
+
+  /// Normal vector used for the clearcoat shading.
+  /// \note Only applicable in \a Clearcoat > \c 0.
+  float3 ClearcoatNormal;
+
+  /// The anisotropic value.
+  /// \note A value of \c 0 disables anisotropy.
+  float Anisotropic;
+
+  /// Noise value used in the anisotropic shading.
+  /// \note Only applicable if \a Anisotropic > \c 0.
+  float AnisotropicRotation;
+
+  /// The specular sheen factor.
+  /// \note A value of \c 0 disables specular sheen.
+  float Sheen;
+
+  /// The specular sheen tint factor.
+  /// \note Only applcicable if \a Sheen > \c 0.
+  float SheenTintFactor;
+
+  float Roughness;
+  float Roughness2;
+  float DiffuseOcclusion;
+  float SpecularOcclusion;
+  float SpecularF0;
+  float Opacity;
+
+  /// The position of this surface fragment in world space..
+  float3 WorldPosition;
+
+  /// The normal vector of this surface fragment in world space.
+  float3 WorldNormal;
+
+  /// The normal vector of this surface fragment in geometry space.
+  float3 VertexNormal;
+
+  /// The total accumulated speculr energy.
   float3 kS;
+
+  /// The total accumulated diffuse energy.
   float3 kD;
 
   __init()
   {
     kS = float3(1.0f);
     kD = float3(1.0f);
+  }
+
+  __init(MaterialData material)
+  {
+    kS = float3(1.0f);
+    kD = float3(1.0f);
+
+    Albedo = material.Color.rgb;
+    LinearRoughness = material.Roughness;
+    Metalness = material.Metalness;
+
+    Clearcoat = material.Clearcoat;
+    ClearcoatRoughness = material.ClearcoatRoughness;
+
+    Anisotropic = material.Anisotropic;
+    AnisotropicRotation = material.AnisotropicRotation;
+
+    Sheen = material.Sheen;
+
+    Opacity = material.Color.a;
   }
 }

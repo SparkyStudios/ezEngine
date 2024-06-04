@@ -14,12 +14,12 @@
 
 #pragma once
 
-#include <RenderingContext.slang>
+#include <Common/RenderingContext.slang>
 
 extern static const float o_GammaSDR = 2.2f; // SDR monitors are likely old, and aim for a simplistic gamma 2.2 curve
 extern static const float o_GammaHDR = 2.4f; // HDR monitors are more likely to aim for the actual sRGB standard, which has a curve that for mid tones to high lights resembles a gamma of 2.4
 
-/// \brief Unpacks an unsigned integer to an RGBA color value.
+/// Unpacks an unsigned integer to an RGBA color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float4.
 func UnpackColor4(x: uint) -> float4
@@ -33,7 +33,7 @@ func UnpackColor4(x: uint) -> float4
   return result / 255.0f;
 }
 
-/// \brief Unpacks an unsigned integer to a 8-bits RGB color value.
+/// Unpacks an unsigned integer to a 8-bits RGB color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float3.
 func UnpackColor3_8Bits(x: uint) -> float3
@@ -46,7 +46,7 @@ func UnpackColor3_8Bits(x: uint) -> float3
   return result / 255.0f;
 }
 
-/// \brief Unpacks an unsigned integer to a 10-bits RGB color value.
+/// Unpacks an unsigned integer to a 10-bits RGB color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float3
 func UnpackColor3_10Bits(x: uint) -> float3
@@ -59,7 +59,7 @@ func UnpackColor3_10Bits(x: uint) -> float3
   return result / 1023.0f;
 }
 
-/// \brief Unpacks an unsigned integer to a 16-bits RG color value.
+/// Unpacks an unsigned integer to a 16-bits RG color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float2.
 func UnpackColor2_16Bits(x: uint) -> float2
@@ -71,7 +71,7 @@ func UnpackColor2_16Bits(x: uint) -> float2
   return result;
 }
 
-/// \brief Unpacks to 16-bit colors (RG and BA) packed into two
+/// Unpacks to 16-bit colors (RG and BA) packed into two
 /// unsigned integers to a single RGBA color value
 /// \param rg The packed RG values.
 /// \param ba The packed BA values.
@@ -81,7 +81,7 @@ func UnpackColor4(rg: uint, ba: uint) -> float4
   return float4(UnpackColor2_16Bits(rg), UnpackColor2_16Bits(ba));
 }
 
-/// \brief Gets the luminance of the given \a color
+/// Gets the luminance of the given \a color
 /// \param color The color to get the luminance from.
 /// \return The color's luminance.
 func GetLuminance(color: float3) -> float
@@ -89,7 +89,7 @@ func GetLuminance(color: float3) -> float
   return dot(color, float3(0.2126, 0.7152, 0.0722));
 }
 
-/// \brief Converts the given \a color from sRGB color space
+/// Converts the given \a color from sRGB color space
 /// to Linear color space.
 /// \param color The color to convert.
 /// \param hdrEnabled Whether HDR support is enabled.
@@ -103,7 +103,7 @@ func SrgbToLinear(color: float3, hdrEnabled: bool) -> float3
   return lerp(linear_low, linear_high, is_high);
 }
 
-/// \brief Converts the given \a color from Linar color space
+/// Converts the given \a color from Linar color space
 /// to sRGB color space.
 /// \param color The color to convert.
 /// \param hdrEnabled Whether HDR support is enabled.
@@ -117,12 +117,12 @@ func LinearToSrgb(color: float3, hdrEnabled: bool) -> float3
   return lerp(srgb_low, srgb_high, is_high);
 }
 
-/// \brief Converts the given \a color from Linear color space
+/// Converts the given \a color from Linear color space
 /// to HDR10 color space.
 /// \param color The color to convert.
 /// \param whitePoint The HDR white point.
 /// \return A new color in the HDR10 color space.
-float3 LinearToHDR10(float3 color, float whitePoint)
+func LinearToHDR10(float3 color, float whitePoint) -> float3
 {
   // convert Rec.709 (similar to srgb) to Rec.2020 color space
   {

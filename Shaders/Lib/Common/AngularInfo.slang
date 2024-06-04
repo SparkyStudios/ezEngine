@@ -16,22 +16,22 @@
 
 #include <Common/Light.slang>
 #include <Common/Surface.slang>
-#include <RenderingContext.slang>
+#include <Common/RenderingContext.slang>
 
-/// \brief Stores precomputed values about common vectors between
+/// Stores precomputed values about common vectors between
 /// the light source and the geometry surface.
 struct AngularInfo
 {
-  /// \brief Outward direction of the geometry surface.
+  /// Outward direction of the geometry surface.
   float3 N;
 
-  /// \brief Direction of the vector from the light source to the geometry surface.
+  /// Direction of the vector from the light source to the geometry surface.
   float3 L;
 
-  /// \brief Direction of the vector from the camera to the geometry surface.
+  /// Direction of the vector from the camera to the geometry surface.
   float3 V;
 
-  /// \brief Direction of the vector between L and V
+  /// Direction of the vector between L and V
   float3 H;
 
   float LoH;
@@ -42,9 +42,9 @@ struct AngularInfo
 
   __init(Light light, Surface surface)
   {
-      N = normalize(surface.worldNormal);
-      L = normalize(light.Position - surface.worldPosition);
-      V = normalize(Buffer_PerView.Position.xyz - surface.worldPosition);
+      N = normalize(surface.WorldNormal);
+      L = normalize(light.Position - surface.WorldPosition);
+      V = normalize(Buffer_PerView.Position.xyz - surface.WorldPosition);
       H = normalize(L + V);
 
       NoL = saturate(dot(N, L));

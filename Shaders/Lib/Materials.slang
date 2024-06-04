@@ -16,6 +16,5 @@
 
 #include <Materials/IMaterial.slang>
 #include <Materials/IShadingTechnique.slang>
-#include <Materials/Material.slang>
 #include <Materials/Streams.slang>
 #include <Materials/VertexProcessing.slang>

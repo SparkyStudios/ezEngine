@@ -16,12 +16,55 @@
 
 #include <Common/AngularInfo.slang>
 #include <Common/Surface.slang>
+#include <Materials/Streams.slang>
 
-interface IMaterial
+extern static bool o_FlipWinding = false;
+extern static bool o_TwoSided = false;
+
+/// Generates a surface for the given vertex from the given material data.
+/// \param material The material used to generate the surface.
+/// \param vertex The output of the vertex shader.
+/// \param data The geometry's material data.
+/// \return The geometry's surface for the given vertex.
+func GenerateSurface(in material: IMaterial, in vertex: TransientStream, in data: MaterialData) -> Surface
 {
-  float3 diffuse(inout Surface surface, AngularInfo angularInfo);
-  float3 specular(inout Surface surface, AngularInfo angularInfo);
-  float3 volumetricFog(inout Surface surface, AngularInfo angularInfo);
-  float3 subsurface(inout Surface surface, AngularInfo angularInfo);
-}
+  Surface surface = Surface(data);
 
+#ifdef USE_WORLDPOS
+  surface.WorldPosition = vertex.WorldPosition;
+#else
+  surface.WorldPosition = float3(0.0f);
+#endif
+
+  float3 worldNormal = normalize(material.GetNormal(data));
+
+  if (o_TwoSided)
+  {
+    if (o_FlipWinding)
+      surface.WorldNormal = vertex.IsFrontFace ? -worldNormal : worldNormal;
+    else
+      surface.WorldNormal = vertex.IsFrontFace ? worldNormal : -worldNormal;
+  }
+  else
+  {
+    surface.WorldNormal = worldNormal;
+  }
+
+#ifdef USE_NORMAL
+  surface.VertexNormal = normalize(vertex.Normal);
+#else
+  surface.VertexNormal = float3(0.0f, 0.0f, 1.0f);
+#endif
+
+  surface.Albedo = material.GetAlbedoColor(data);
+  surface.Specular = material.GetSpecularColor(data);
+  surface.Emissive = material.GetEmissiveColor(data);
+  surface.LinearRoughness = material.GetLinearRoughness(data);
+  surface.Metalness = material.GetMetalness(data);
+  surface.Occlusion = material.GetOcclusion(data);
+  surface.Cavity = material.GetCavity(data);
+  surface.Roughness = pow2(surface.LinearRoughness);
+  surface.Roughness2 = pow2(surface.Roughness);
+
+  return surface;
+}

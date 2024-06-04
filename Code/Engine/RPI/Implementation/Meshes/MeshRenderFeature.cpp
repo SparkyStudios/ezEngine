@@ -107,7 +107,7 @@ namespace RPI
   spMeshRenderFeature::spMeshRenderFeature()
     : spRenderFeature(EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spMeshRenderFeatureExtractor))
   {
-    m_hShader = ezResourceManager::LoadResource<RAI::spShaderResource>(":shaders/point.slang");
+    m_hShader = ezResourceManager::LoadResource<RAI::spShaderResource>(":shaders/RPI/RenderStages/OpaqueRenderStage.slang");
 
     auto* pDevice = spRenderSystem::GetSingleton()->GetDevice();
 

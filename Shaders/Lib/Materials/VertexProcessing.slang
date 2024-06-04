@@ -15,9 +15,12 @@
 #pragma once
 
 #include <Common/Math/Transform.slang>
-#include <Materials/Material.slang>
+#include <Common/Material.slang>
+#include <Common/RenderingContext.slang>
 #include <Materials/Streams.slang>
-#include <RenderingContext.slang>
+
+extern static const bool o_IsClipSpaceYInverted = false;
+extern static const bool o_ReverseDepthRange = false;
 
 struct PerInstanceData
 {
@@ -28,9 +31,9 @@ struct PerInstanceData
 }
 
 [[vk_binding(3, 0)]]
-StructuredBuffer<PerInstanceData> Buffer_PerInstance : register(b3, space0);
+readonly StructuredBuffer<PerInstanceData> Buffer_PerInstance : register(b3, space0);
 
-/// \brief Gets the instance data for the given instance ID.
+/// Gets the instance data for the given instance ID.
 /// \param instanceID The ID of the instance.
 /// \return The instance data.
 func GetInstanceData(instanceID: uint) -> PerInstanceData
@@ -38,20 +41,87 @@ func GetInstanceData(instanceID: uint) -> PerInstanceData
   return Buffer_PerInstance[instanceID];
 }
 
-/// \brief Gets the previous transform of the currently drawn object.
+/// Gets the previous transform of the currently drawn object.
 matrix GetPreviousTransform() { return Buffer_PerPass.Values; }
 
-TransientStream ProcessWorldSpace(InputStream input)
+/// Process the vertex input stream into the world space.
+/// \param input The vertex input stream.
+/// \param instanceId The rendered instance ID.
+/// \param isFrontFace Whether the geometry faces have front-facing normal vectors.
+/// \return A transient data suitable as an input to a pixel shader.
+func ProcessWorldSpace(input: InputStream, instanceId: uint, isFrontFace: bool) -> TransientStream
 {
   TransientStream output;
 
+  // Set the instance ID
+  output.InstanceID = instanceId;
+  output.IsFrontFace = isFrontFace;
+
+  // Get the instance data
+  PerInstanceData instance = GetInstanceData(output.InstanceID);
+
+  // Normal/Tangent/BiTangent
+#ifdef USE_NORMAL
+  matrix normalMatrix = TransformToMatrix(instance.NormalTransform);
+  float3 normal =  unpack(input.Normal);
+
+  output.Normal = normalize(mul((float3x3)normalMatrix, normal));
+
+#ifdef USE_TANGENT
+  float3 tangent = unpack(input.Tangent.xyz);
+
+#ifdef USE_BITANGENT
+  float3 bitangent = unpack(input.BiTangent.xyz);
+#else
+  float magnitude = unpack(input.Tangent.w);
+  float3 bitangent = cross(normal, tangent) * magnitude;
+#endif
+
+  output.Tangent = normalize(mul((float3x3)normalMatrix, tangent));
+  output.BiTangent = normalize(mul((float3x3)normalMatrix, bitangent));
+#endif
+#endif
+
+  // Position
+  matrix worldMatrix = TransformToMatrix(instance.WorldTransform);
+  float4 worldPosition = mul(worldMatrix, float4(input.Position, 1.0));
+
+#ifdef USE_WORLDPOS
+  output.WorldPosition = worldPosition.xyz;
+#endif
+
+  output.Position = mul(Buffer_PerView.ViewProjectionMatrix, worldPosition);
+
+#ifdef USE_VELOCITY
+  matrix preiousWorldMatrix = TransformToMatrix(instance.PreviousWorldTransform);
+  float4 previousWorldPosition = mul(preiousWorldMatrix, float4(input.Position, 1.0));
+
+#ifdef USE_WORLDPOS
+  output.PreviousWorldPosition = previousWorldPosition.xyz;
+#endif
+
+  output.PreviousPosition = mul(Buffer_PerView.ViewProjectionMatrix, previousWorldPosition).xyz;
+#endif
+
+  // Texture Coordinates
 #ifdef USE_TEXCOORD0
-  Material material = GetMaterial();
-  output.TexCoord0 = float2(input.TexCoord0.x * material.UVTiling.x + material.UVOffset.x, input.TexCoord0.y * material.UVTiling.y + material.UVOffset.y);
+  output.TexCoord0 = input.TexCoord0;
+
 #ifdef USE_TEXCOORD1
-  output.TexCoord1 = float2(input.TexCoord1.x * material.UVTiling.x + material.UVOffset.x, input.TexCoord1.y * material.UVTiling.y + material.UVOffset.y);
+  output.TexCoord1 = input.TexCoord1;
 #endif
 #endif
+
+// #ifdef USE_TEXCOORD0
+//   MaterialData material = GetMaterial();
+//   output.TexCoord0 = float2(input.TexCoord0.x * material.UVTiling.x + material.UVOffset.x, input.TexCoord0.y * material.UVTiling.y + material.UVOffset.y);
+// #ifdef USE_TEXCOORD1
+//   output.TexCoord1 = float2(input.TexCoord1.x * material.UVTiling.x + material.UVOffset.x, input.TexCoord1.y * material.UVTiling.y + material.UVOffset.y);
+// #endif
+// #endif
+
+  if (o_ReverseDepthRange)
+    output.Position.z = 1.0f - output.Position.z;
 
   return output;
 }

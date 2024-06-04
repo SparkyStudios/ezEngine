@@ -30,9 +30,9 @@ struct SpecularIsotropic : IBRDF
 
   __init(Surface surface)
   {
-    this.roughness = surface.roughness;
-    this.specular = surface.specular;
-    this.metalness = surface.metalness;
+    this.roughness = surface.Roughness;
+    this.specular = surface.Specular;
+    this.metalness = surface.Metalness;
   }
 
   float3 evaluate(inout Surface surface, AngularInfo angularInfo)
@@ -162,35 +162,4 @@ struct SpecularSheen : IBRDF
 
     return D * V * F;
   }
-}
-
-// Specular Anti-Aliasing technique from this paper:
-// http://www.jp.square-enix.com/tech/library/pdf/ImprovedGeometricSpecularAA.pdf
-float CalculateSpecularAA(in float roughness, in float3 normal, const float strength = 2.0f)
-{
-    // Constants for formula below
-    static const float screenVariance = 0.25f;
-    static const float varianceThresh = 0.18f;
-
-    // Specular Anti-Aliasing
-    float roughness2            = roughness * roughness;
-    float3 dndu                 = ddx_fine(normal);
-    float3 dndv                 = ddy_fine(normal);
-    float variance              = screenVariance * (dot(dndu, dndu) + dot(dndv, dndv));
-    float kernelRoughness2      = min(strength * variance, varianceThresh);
-
-    return saturate(roughness2 + kernelRoughness2);
-}
-
-float3 ComputeDiffuseEnergy(float3 F, float metalness)
-{
-  // Diffuse scattering happens due to light being refracted multiple times by a dielectric medium.
-  // Metals on the other hand either reflect or absorb energy, so diffuse contribution is always zero.
-  // To be energy conserving we must scale diffuse BRDF contribution based on Fresnel factor & metalness.
-
-  float3 kS = F;            // The energy of light that gets reflected - Equal to Fresnel
-  float3 kD = 1.0f - kS;    // Remaining energy, light that gets refracted
-  kD *= 1.0f - metalness;   // Multiply kD by the inverse metalness such that only non-metals have diffuse lighting
-
-  return kD;
 }

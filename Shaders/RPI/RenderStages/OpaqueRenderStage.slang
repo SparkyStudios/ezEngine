@@ -12,21 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <Core.slang>
 
-/// Enables a feature checked with \a SP_ENABLED
-#define SP_ON 1
+#define USE_WORLDPOS
+#define USE_VELOCITY
+#define USE_NORMAL
+#define USE_TANGENT
+#define USE_BITANGENT
+#define USE_TEXCOORD0
 
-/// Disables a feature checked with \a SP_ENABLED
-#define SP_OFF 0
+#include <Common.slang>
+#include <Materials.slang>
 
-/// Checks if the specified feature is enabled
-#define SP_ENABLED(_MACRO_) _MACRO_ == SP_ON
+[shader("vertex")]
+TransientStream VSMain(InputStream input, uint instanceID : SV_InstanceID, uint vertexID : SV_VertexID)
+{
+    return ProcessWorldSpace(input, instanceID, true); // TODO: Metal
+}
 
-/// Checks if the specified feature is disabled
-#define SP_DISABLED(_MACRO_) _MACRO_ == SP_OFF
+[shader("pixel")]
+func PSMain(input: TransientStream) -> float4
+{
+  OutputStream output;
 
-// Disable vertex skinnig by default
-#ifndef SP_FEATURE_VERTEX_SKINNING
-#define SP_FEATURE_VERTEX_SKINNING SP_OFF
-#endif
+  output.Albedo = float4(input.Normal.xyz, 1.0f);
+
+  return output.Albedo;
+}

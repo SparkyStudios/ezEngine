@@ -14,8 +14,6 @@
 
 #pragma once
 
-extern static const bool o_IsClipSpaceYInverted = false;
-
 struct PerFrameBuffer
 {
   float GlobalTime;
@@ -61,7 +59,7 @@ struct PerViewBuffer
   matrix InverseViewProjectionMatrix;
 }
 
-/// \brief 128-bit push constant buffer
+/// 128-bit push constant buffer
 struct PerPassBuffer
 {
   matrix Transform;
@@ -77,11 +75,11 @@ ConstantBuffer<PerViewBuffer> Buffer_PerView : register(b2, space0);
 [[push_constant]]
 PerPassBuffer Buffer_PerPass : register(b0, space0); // Push constants have the requirement to be at binding 0.
 
-/// \brief Gets the index in the materials buffer for the current rendering object.
+/// Gets the index in the materials buffer for the current rendering object.
 func GetMaterialIndex() -> uint { return uint(Buffer_PerPass.Values._m03); }
 
-/// \brief Checks if the current rendering object is transparent.
+/// Checks if the current rendering object is transparent.
 func IsTransparent() -> bool { return Buffer_PerPass.Values._m13 == 1.0f; }
 
-/// \brief Checks if the current rendering object is opaque.
+/// Checks if the current rendering object is opaque.
 func IsOpaque() -> bool { return !IsTransparent(); }
