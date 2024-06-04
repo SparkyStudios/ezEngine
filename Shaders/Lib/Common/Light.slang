@@ -14,9 +14,9 @@
 
 #pragma once
 
-/// \brief Describes a light.
+/// Describes a light.
 struct Light
 {
-  /// \brief Light position in the 3D environment.
+  /// Light position in the 3D environment.
   float3 Position;
 }

@@ -17,7 +17,7 @@
 #include <Common/AngularInfo.slang>
 #include <Common/Surface.slang>
 
-/// \brief The interface for BRDF implementations.
+/// The interface for BRDF implementations.
 ///
 /// This interface is used for both diffuse BRDF implementations as well
 /// as specular BRDF implementations.

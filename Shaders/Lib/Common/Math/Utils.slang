@@ -104,11 +104,8 @@ func fast_cos(x: float) -> float { return abs(abs(x) / PI2 % 4 - 2) - 1; }
 func random(uv: float2) -> float { return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453); }
 
 func IsSaturated(value: float) -> bool { return value == saturate(value); }
-
 func IsSaturated(value: float2) -> bool { return IsSaturated(value.x) && IsSaturated(value.y); }
-
 func IsSaturated(value: float3) -> bool { return IsSaturated(value.x) && IsSaturated(value.y) && IsSaturated(value.z); }
-
 func IsSaturated(value: float4) -> bool { return IsSaturated(value.x) && IsSaturated(value.y) && IsSaturated(value.z) && IsSaturated(value.w); }
 
 func IsValidUV(value: float2) -> bool { return (value.x >= 0.0f && value.x <= 1.0f) || (value.y >= 0.0f && value.y <= 1.0f); }
