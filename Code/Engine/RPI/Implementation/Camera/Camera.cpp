@@ -424,8 +424,8 @@ namespace RPI
     m_pRenderView->SetCullingMode(m_bCullingEnabled ? spRenderViewCullingMode::Frustum : spRenderViewCullingMode::None);
     m_pRenderView->SetUsage(m_eRenderViewUsage);
 
-    m_pRenderView->m_ViewMatrix = m_CachedViewMatrix;
-    m_pRenderView->m_ProjectionMatrix = m_CachedProjectionMatrix;
+    m_pRenderView->SetViewMatrix(m_CachedViewMatrix);
+    m_pRenderView->SetProjectionMatrix(m_CachedProjectionMatrix);
 
     {
       const auto viewData = m_pRenderView->GetDataBuffer().Write();

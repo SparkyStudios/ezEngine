@@ -93,6 +93,15 @@ namespace RPI
     /// \brief Returns the path to the mesh file to be rendered.
     EZ_NODISCARD const char* GetMeshFile() const;
 
+    /// \brief Sets the max distance at which the mesh will be rendered with
+    /// the lowest level of detail.
+    /// \param fMaxDistance The max distance.
+    void SetLODMaxDistance(float fMaxDistance);
+
+    /// \brief Returns the max distance at which the mesh will be rendered with
+    /// the lowest level of detail.
+    EZ_NODISCARD float GetLODMaxDistance() const;
+
 #pragma endregion
 
   private:

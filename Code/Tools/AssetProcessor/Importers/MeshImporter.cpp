@@ -57,7 +57,7 @@ ezResult spMeshImporter::Import(ezStringView sFilePath, ezStringView sOutputPath
       ImportLODMeshes(i, &m, uiVerticesBaseIndex, uiIndicesBaseIndex);
       m.ComputeBounds();
 
-      mesh.SetLOD(m_pContext->m_Nodes[i].m_uiLODLevel, m);
+      mesh.SetLOD(i, m);
     }
   }
   else
@@ -130,7 +130,6 @@ void spMeshImporter::ImportLODMeshes(ezUInt8 uiLODLevel, spMesh* out_pMesh, ezUI
   entries.SetCount(uiMeshCount);
 
   ezDynamicArray<ezUInt32> lodNodes;
-  lodNodes.PushBack(uiLODLevel);
 
   for (ezUInt32 i = 0, l = m_pContext->m_Nodes.GetCount(); i < l; ++i)
     if (m_pContext->m_Nodes[i].m_uiLODLevel == uiLODLevel)
@@ -159,8 +158,16 @@ void spMeshImporter::ImportLODMeshes(ezUInt8 uiLODLevel, spMesh* out_pMesh, ezUI
   }
 
   spMesh::Data meshData;
-  meshData.m_Vertices.PushBackRange(m_pContext->m_MeshData.m_Vertices.GetArrayPtr().GetSubArray(out_uiBaseVertex, uiVerticesUpperBound - out_uiBaseVertex));
-  meshData.m_Indices.PushBackRange(m_pContext->m_MeshData.m_Indices.GetArrayPtr().GetSubArray(out_uiBaseIndex, uiIndicesUpperBound - out_uiBaseIndex));
+  meshData.m_VertexStreams.PushBackRange(m_pContext->m_MeshData.m_VertexStreams);
+
+  meshData.m_Vertices.SetCount((uiVerticesUpperBound - out_uiBaseVertex) * m_pContext->m_MeshData.m_uiVertexSize);
+  ezMemoryUtils::RawByteCopy(meshData.m_Vertices.GetData(), m_pContext->m_MeshData.m_Vertices.GetData() + out_uiBaseVertex * m_pContext->m_MeshData.m_uiVertexSize, meshData.m_Vertices.GetCount());
+
+  meshData.m_Indices.SetCount((uiIndicesUpperBound - out_uiBaseIndex) * sizeof(ezUInt16));
+  ezMemoryUtils::RawByteCopy(meshData.m_Indices.GetData(), m_pContext->m_MeshData.m_Indices.GetData() + out_uiBaseIndex * sizeof(ezUInt16), meshData.m_Indices.GetCount());
+
+  meshData.m_uiVertexSize = m_pContext->m_MeshData.m_uiVertexSize;
+  meshData.m_eTopology = m_pContext->m_MeshData.m_eTopology;
 
   out_uiBaseIndex = uiIndicesUpperBound;
   out_uiBaseVertex = uiVerticesUpperBound;

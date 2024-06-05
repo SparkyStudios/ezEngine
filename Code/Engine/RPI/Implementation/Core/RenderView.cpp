@@ -16,6 +16,8 @@
 
 #include <RPI/Core/RenderView.h>
 
+#include <Foundation/Utilities/GraphicsUtils.h>
+
 // clang-format off
 EZ_BEGIN_STATIC_REFLECTED_BITFLAGS(RPI::spRenderViewUsage, 1)
   EZ_BITFLAGS_CONSTANT(RPI::spRenderViewUsage::Main),
@@ -47,6 +49,19 @@ namespace RPI
   void spRenderView::SetData(const spRenderViewData& data)
   {
     m_RenderViewDataBuffer.Set(data);
+  }
+
+  void spRenderView::SetViewMatrix(const ezMat4& viewMatrix)
+  {
+    m_ViewMatrix = viewMatrix;
+
+    ezVec3 vRight;
+    ezGraphicsUtils::DecomposeViewMatrix(m_Position, m_Direction, vRight, m_Up, m_ViewMatrix);
+  }
+
+  void spRenderView::SetProjectionMatrix(const ezMat4& projectionMatrix)
+  {
+    m_ProjectionMatrix = projectionMatrix;
   }
 
   ezFrustum spRenderView::GetFrustum() const

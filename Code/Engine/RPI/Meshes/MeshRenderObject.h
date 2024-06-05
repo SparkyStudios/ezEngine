@@ -59,6 +59,7 @@ namespace RPI
     RAI::spMeshResourceHandle m_hMeshResource;
     ezTransform m_Transform{ezTransform::MakeIdentity()};
     ezTransform m_PreviousTransform{ezTransform::MakeIdentity()};
+    float m_fLODMaxDistance{1000.0f};
 
     ezArrayMap<ezUInt64, ezUInt32> m_Instances;
     ezDynamicArray<spPerInstanceData, ezAlignedAllocatorWrapper> m_PerInstanceData;
