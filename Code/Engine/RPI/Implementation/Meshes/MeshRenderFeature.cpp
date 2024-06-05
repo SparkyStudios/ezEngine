@@ -58,10 +58,13 @@ namespace RPI
       }
       else
       {
+        const ezUInt32 uiDistanceToCamera = (pRenderView->GetPosition() - pMeshRenderObject->m_Transform.m_vPosition).GetLengthSquared();
+        const float fMaxDistance = ezMath::Square(pMeshRenderObject->m_fLODMaxDistance);
+
         // Constant LOD fetch function
+        if (pMeshRenderObject->m_eLODFetchFunction == spMeshLevelOfDetailFetchFunction::Constant)
         {
-          const ezUInt32 uiDistanceToCamera = (pRenderView->GetPosition() - pMeshRenderObject->m_Transform.m_vPosition).GetLengthSquared();
-          const float fSteps = ezMath::Square(pMeshRenderObject->m_fLODMaxDistance) / static_cast<float>(uiLODCount);
+          const float fSteps = fMaxDistance / static_cast<float>(uiLODCount);
 
           for (ezInt32 i = uiLODCount - 1; i >= 0; i--)
           {
@@ -72,8 +75,38 @@ namespace RPI
             break;
           }
         }
+        // Logarithmic LOD fetch function
+        else if (pMeshRenderObject->m_eLODFetchFunction == spMeshLevelOfDetailFetchFunction::Logarithmic)
+        {
+          float fCurrentMaxDistance = fMaxDistance;
 
-        // TODO: Add more LOD fetch functions (logarithmic, exponential, etc.)
+          for (ezInt32 i = uiLODCount - 1; i >= 0; i--)
+          {
+            fCurrentMaxDistance -= fMaxDistance / ezMath::Pow2(i + 1);
+
+            if (uiDistanceToCamera < fCurrentMaxDistance)
+              continue;
+
+            uiLOD = i;
+            break;
+          }
+        }
+        // Exponential LOD fetch function
+        else if (pMeshRenderObject->m_eLODFetchFunction == spMeshLevelOfDetailFetchFunction::Exponential)
+        {
+          float fCurrentMaxDistance = fMaxDistance;
+
+          for (ezInt32 i = uiLODCount - 1; i >= 0; i--)
+          {
+            fCurrentMaxDistance -= fMaxDistance / ezMath::Pow2(static_cast<ezInt32>(uiLODCount - i));
+
+            if (uiDistanceToCamera < fCurrentMaxDistance)
+              continue;
+
+            uiLOD = i;
+            break;
+          }
+        }
       }
     }
 

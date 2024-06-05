@@ -102,6 +102,13 @@ namespace RPI
     /// the lowest level of detail.
     EZ_NODISCARD float GetLODMaxDistance() const;
 
+    /// \brief Sets the LOD fetch function.
+    /// \param eFetchFunction The LOD fetch function.
+    void SetLODFetchFunction(ezEnum<spMeshLevelOfDetailFetchFunction> eFetchFunction);
+
+    /// \brief Returns the LOD fetch function.
+    EZ_NODISCARD ezEnum<spMeshLevelOfDetailFetchFunction> GetLODFetchFunction() const;
+
 #pragma endregion
 
   private:

@@ -30,7 +30,8 @@ namespace RPI
     EZ_BEGIN_PROPERTIES
     {
       EZ_ACCESSOR_PROPERTY("Mesh", GetMeshFile, SetMeshFile)->AddAttributes(new ezAssetBrowserAttribute("*.spMesh")),
-      EZ_ACCESSOR_PROPERTY("LODMaxDistance", GetLODMaxDistance, SetLODMaxDistance)->AddAttributes(new ezClampValueAttribute(0.0f, {})),
+      EZ_ACCESSOR_PROPERTY("MaxDistance", GetLODMaxDistance, SetLODMaxDistance)->AddAttributes(new ezGroupAttribute("Level Of Detail"), new ezClampValueAttribute(0.0f, {})),
+      EZ_ENUM_ACCESSOR_PROPERTY("FetchFunction", spMeshLevelOfDetailFetchFunction, GetLODFetchFunction, SetLODFetchFunction)->AddAttributes(new ezGroupAttribute("Level Of Detail")),
     }
     EZ_END_PROPERTIES;
 
@@ -167,6 +168,16 @@ namespace RPI
   float spMeshComponent::GetLODMaxDistance() const
   {
     return m_RenderObject.m_fLODMaxDistance;
+  }
+
+  void spMeshComponent::SetLODFetchFunction(ezEnum<spMeshLevelOfDetailFetchFunction> eFetchFunction)
+  {
+    m_RenderObject.m_eLODFetchFunction = eFetchFunction;
+  }
+
+  ezEnum<spMeshLevelOfDetailFetchFunction> spMeshComponent::GetLODFetchFunction() const
+  {
+    return m_RenderObject.m_eLODFetchFunction;
   }
 } // namespace RPI
 
