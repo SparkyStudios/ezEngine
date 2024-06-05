@@ -23,6 +23,26 @@
 
 namespace RPI
 {
+  /// \brief Specifies the function used to fetch the level of detail of a mesh.
+  struct SP_RPI_DLL spMeshLevelOfDetailFetchFunction
+  {
+    typedef ezUInt8 StorageType;
+
+    enum Enum : StorageType
+    {
+      /// \brief The distance between each LOD is constant.
+      Constant,
+
+      /// \brief The distance between each LOD is logarithmic.
+      Logarithmic,
+
+      /// \brief The distance between each LOD is exponential.
+      Exponential,
+
+      Default = Constant,
+    };
+  };
+
   // TODO: Find a better place for this.
   struct alignas(16) spPerInstanceData
   {
@@ -60,6 +80,7 @@ namespace RPI
     ezTransform m_Transform{ezTransform::MakeIdentity()};
     ezTransform m_PreviousTransform{ezTransform::MakeIdentity()};
     float m_fLODMaxDistance{1000.0f};
+    ezEnum<spMeshLevelOfDetailFetchFunction> m_eLODFetchFunction{spMeshLevelOfDetailFetchFunction::Default};
 
     ezArrayMap<ezUInt64, ezUInt32> m_Instances;
     ezDynamicArray<spPerInstanceData, ezAlignedAllocatorWrapper> m_PerInstanceData;
@@ -71,3 +92,5 @@ namespace RPI
     bool m_bIndirectBufferDirty{true};
   };
 } // namespace RPI
+
+EZ_DECLARE_REFLECTABLE_TYPE(SP_RPI_DLL, RPI::spMeshLevelOfDetailFetchFunction);

@@ -16,6 +16,14 @@
 
 #include <RPI/Meshes/MeshRenderObject.h>
 
+// clang-format off
+EZ_BEGIN_STATIC_REFLECTED_ENUM(RPI::spMeshLevelOfDetailFetchFunction, 1)
+  EZ_ENUM_CONSTANT(RPI::spMeshLevelOfDetailFetchFunction::Constant),
+  EZ_ENUM_CONSTANT(RPI::spMeshLevelOfDetailFetchFunction::Logarithmic),
+  EZ_ENUM_CONSTANT(RPI::spMeshLevelOfDetailFetchFunction::Exponential),
+EZ_END_STATIC_REFLECTED_ENUM;
+// clang-format on
+
 namespace RPI
 {
   // clang-format off
