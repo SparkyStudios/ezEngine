@@ -118,7 +118,7 @@ struct spAssimpNode
 {
   ezUInt32 m_uiParentNodeIndex{ezInvalidIndex};
   ezMat4 m_mGlobalTransform;
-  ezUInt8 m_uiLODLevel{0};
+  ezUInt32 m_uiLOD{0};
 
   const aiNode* m_pNode{nullptr};
 };

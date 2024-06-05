@@ -332,11 +332,11 @@ ezResult spMeshProcessor::BuildContext()
 
   // Process nodes
   {
-    ezUInt8 uiLODCount = 0;
+    ezUInt8 uiMaxLOD = 0;
 
-    ProcessNodes(m_pScene->mRootNode, ezInvalidIndex, uiLODCount);
+    ProcessNodes(m_pScene->mRootNode, ezInvalidIndex, uiMaxLOD);
 
-    m_AssimpContext.m_uiLODCount = uiLODCount + 1;
+    m_AssimpContext.m_uiLODCount = uiMaxLOD + 1;
   }
 
   // Set up the mesh data builder
@@ -381,24 +381,24 @@ ezResult spMeshProcessor::BuildContext()
   return EZ_SUCCESS;
 }
 
-void spMeshProcessor::ProcessNodes(const aiNode* pNode, ezUInt32 uiParentIndex, ezUInt8& inout_uiLODCount)
+void spMeshProcessor::ProcessNodes(const aiNode* pNode, ezUInt32 uiParentIndex, ezUInt8& inout_uiMaxLOD)
 {
   bool bShouldSkip = false;
   if (pNode->mMetaData != nullptr && pNode->mMetaData->Get<bool>("spark.mesh.import.skip", bShouldSkip) && bShouldSkip)
     return;
 
-  ezUInt64 uiLODLevel = 0;
+  ezUInt64 uiLOD = ezInvalidIndex;
   if (pNode->mMetaData != nullptr)
-    pNode->mMetaData->Get<ezUInt64>("spark.mesh.lod", uiLODLevel);
+    pNode->mMetaData->Get<ezUInt64>("spark.mesh.lod", uiLOD);
 
   spAssimpNode& node = m_AssimpContext.m_Nodes.ExpandAndGetRef();
 
   node.m_pNode = pNode;
   node.m_uiParentNodeIndex = uiParentIndex;
-  node.m_uiLODLevel = static_cast<ezUInt8>(uiLODLevel);
+  node.m_uiLOD = uiLOD;
 
-  if (node.m_uiLODLevel > inout_uiLODCount)
-    inout_uiLODCount = node.m_uiLODLevel;
+  if (node.m_uiLOD != ezInvalidIndex && node.m_uiLOD > inout_uiMaxLOD)
+    inout_uiMaxLOD = node.m_uiLOD;
 
   const ezMat4 mParentTransform = uiParentIndex == ezInvalidIndex ? ezMat4::MakeIdentity() : m_AssimpContext.m_Nodes[uiParentIndex].m_mGlobalTransform;
   const ezMat4 mLocalTransform = spFromAssimp(pNode->mTransformation);
@@ -406,7 +406,7 @@ void spMeshProcessor::ProcessNodes(const aiNode* pNode, ezUInt32 uiParentIndex, 
 
   const ezUInt32 uiNodeIndex = m_AssimpContext.m_Nodes.GetCount() - 1;
   for (ezUInt32 n = 0; n < pNode->mNumChildren; ++n)
-    ProcessNodes(pNode->mChildren[n], uiNodeIndex, inout_uiLODCount);
+    ProcessNodes(pNode->mChildren[n], uiNodeIndex, inout_uiMaxLOD);
 }
 
 void spMeshProcessor::SetupMeshDataBuilder()
