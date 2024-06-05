@@ -60,7 +60,7 @@ public:
 private:
   ezResult BuildContext();
 
-  void ProcessNodes(const aiNode* pNode, ezUInt32 uiParentIndex, ezUInt8& inout_uiLODCount);
+  void ProcessNodes(const aiNode* pNode, ezUInt32 uiParentIndex, ezUInt8& inout_uiMaxLOD);
 
   void SetupMeshDataBuilder();
 

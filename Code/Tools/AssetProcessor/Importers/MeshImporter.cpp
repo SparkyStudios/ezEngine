@@ -21,20 +21,20 @@
 
 using namespace RAI;
 
-static void ExtractTransform(const aiNode* pNode, spMesh::Node& node)
+static void ExtractTransform(const aiNode* pNode, spMesh::Node& ref_node)
 {
   aiVector3D s, r, p;
   pNode->mTransformation.Decompose(s, r, p);
 
-  node.m_Transform = {spFromAssimp(p), spFromAssimp(s), spFromAssimp(r)};
+  ref_node.m_Transform = {spFromAssimp(p), spFromAssimp(s), spFromAssimp(r)};
 }
 
-static void ExtractMaterial(const aiNode* pNode, spMesh::Node& node)
+static void ExtractMaterial(const aiNode* pNode, spMesh::Node& ref_node)
 {
   // Allow artists to give the name of the material asset used by this node directly from the DCC tool
   aiString sMaterialName;
   if (pNode->mMetaData != nullptr && pNode->mMetaData->Get<aiString>("spark.mesh.material", sMaterialName))
-    node.m_sMaterial.Assign(sMaterialName.C_Str());
+    ref_node.m_sMaterial.Assign(sMaterialName.C_Str());
 }
 
 ezResult spMeshImporter::Import(ezStringView sFilePath, ezStringView sOutputPath)
@@ -54,7 +54,9 @@ ezResult spMeshImporter::Import(ezStringView sFilePath, ezStringView sOutputPath
     for (ezUInt8 i = 0; i < m_pContext->m_uiLODCount; ++i)
     {
       spMesh m;
-      ImportLODMeshes(i, &m, uiVerticesBaseIndex, uiIndicesBaseIndex);
+      if (ImportLODMeshes(i, &m, uiVerticesBaseIndex, uiIndicesBaseIndex).Failed())
+        return EZ_FAILURE;
+
       m.ComputeBounds();
 
       mesh.SetLOD(i, m);
@@ -71,7 +73,7 @@ ezResult spMeshImporter::Import(ezStringView sFilePath, ezStringView sOutputPath
     {
       const spAssimpMesh& assimpMesh = m_pContext->m_Meshes[uiMeshIndex];
 
-      entries[uiMeshIndex].m_sName.Assign(assimpMesh.m_pMesh->mName.C_Str());
+      entries[uiMeshIndex].m_sName = assimpMesh.m_sName;
       entries[uiMeshIndex].m_uiBaseIndex = assimpMesh.m_uiBaseIndex;
       entries[uiMeshIndex].m_uiBaseVertex = assimpMesh.m_uiBaseVertex;
       entries[uiMeshIndex].m_uiIndexCount = assimpMesh.m_uiIndexCount;
@@ -86,7 +88,7 @@ ezResult spMeshImporter::Import(ezStringView sFilePath, ezStringView sOutputPath
     root.m_sName.Assign(m_pContext->m_pScene->mRootNode->mName.C_Str());
     root.m_Transform = {spFromAssimp(p), spFromAssimp(s), spFromAssimp(r)};
 
-    ComputeMeshHierarchy(entries, ezInvalidIndex, root);
+    ComputeMeshHierarchy(entries, 0, ezInvalidIndex, root);
 
     spMesh lod;
     lod.SetData(m_pContext->m_MeshData);
@@ -122,40 +124,60 @@ spMeshImporter::spMeshImporter(const spAssimpImporterConfiguration& configuratio
 {
 }
 
-void spMeshImporter::ImportLODMeshes(ezUInt8 uiLODLevel, spMesh* out_pMesh, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex)
+void spMeshImporter::CollectLODMeshes(ezUInt32 uiNodeIndex, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex, ezDynamicArray<spMesh::Entry>& ref_entries, ezUInt32& ref_uiVerticesUpperBound, ezUInt32& ref_uiIndicesUpperBound)
+{
+  for (ezUInt32 uiMeshIndex = 0, l = m_pContext->m_Meshes.GetCount(); uiMeshIndex < l; ++uiMeshIndex)
+  {
+    const spAssimpMesh& assimpMesh = m_pContext->m_Meshes[uiMeshIndex];
+    if (assimpMesh.m_uiParentNodeIndex != uiNodeIndex)
+      continue;
+
+    auto& entry = ref_entries[uiMeshIndex];
+    entry.m_sName = assimpMesh.m_sName;
+    entry.m_uiBaseIndex = assimpMesh.m_uiBaseIndex - out_uiBaseIndex;
+    entry.m_uiBaseVertex = assimpMesh.m_uiBaseVertex - out_uiBaseVertex;
+    entry.m_uiIndexCount = assimpMesh.m_uiIndexCount;
+    entry.m_uiVertexCount = assimpMesh.m_uiVertexCount;
+
+    out_uiBaseVertex = ezMath::Min(out_uiBaseVertex, assimpMesh.m_uiBaseVertex);
+    ref_uiVerticesUpperBound = ezMath::Max(ref_uiVerticesUpperBound, assimpMesh.m_uiBaseVertex + assimpMesh.m_uiVertexCount);
+
+    out_uiBaseIndex = ezMath::Min(out_uiBaseIndex, assimpMesh.m_uiBaseIndex);
+    ref_uiIndicesUpperBound = ezMath::Max(ref_uiIndicesUpperBound, assimpMesh.m_uiBaseIndex + assimpMesh.m_uiIndexCount);
+
+    for (ezUInt32 i = 0, m = m_pContext->m_Nodes[uiNodeIndex].m_pNode->mNumChildren; i < m; ++i)
+      CollectLODMeshes(i, out_uiBaseVertex, out_uiBaseIndex, ref_entries, ref_uiVerticesUpperBound, ref_uiIndicesUpperBound);
+  }
+}
+
+ezResult spMeshImporter::ImportLODMeshes(ezUInt8 uiLOD, spMesh* out_pMesh, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex)
 {
   const ezUInt32 uiMeshCount = m_pContext->m_Meshes.GetCount();
 
   ezDynamicArray<spMesh::Entry> entries;
   entries.SetCount(uiMeshCount);
 
-  ezDynamicArray<ezUInt32> lodNodes;
+  ezUInt32 uiRootNode = ezInvalidIndex;
 
   for (ezUInt32 i = 0, l = m_pContext->m_Nodes.GetCount(); i < l; ++i)
-    if (m_pContext->m_Nodes[i].m_uiLODLevel == uiLODLevel)
-      lodNodes.PushBack(i);
+  {
+    if (m_pContext->m_Nodes[i].m_uiLOD == uiLOD)
+    {
+      uiRootNode = i;
+      break;
+    }
+  }
+
+  if (uiRootNode == ezInvalidIndex)
+  {
+    ezLog::Error("Could not find root node for LOD '{0}'. Please insure that the mesh has been exported following the Spark LOD specifications.", uiLOD);
+    return EZ_FAILURE;
+  }
 
   ezUInt32 uiVerticesUpperBound = 0;
   ezUInt32 uiIndicesUpperBound = 0;
 
-  for (ezUInt32 uiMeshIndex = 0; uiMeshIndex < uiMeshCount; ++uiMeshIndex)
-  {
-    const spAssimpMesh& assimpMesh = m_pContext->m_Meshes[uiMeshIndex];
-    if (lodNodes.IndexOf(assimpMesh.m_uiParentNodeIndex) == ezInvalidIndex)
-      continue;
-
-    entries[uiMeshIndex].m_sName.Assign(assimpMesh.m_pMesh->mName.C_Str());
-    entries[uiMeshIndex].m_uiBaseIndex = assimpMesh.m_uiBaseIndex - out_uiBaseIndex;
-    entries[uiMeshIndex].m_uiBaseVertex = assimpMesh.m_uiBaseVertex - out_uiBaseVertex;
-    entries[uiMeshIndex].m_uiIndexCount = assimpMesh.m_uiIndexCount;
-    entries[uiMeshIndex].m_uiVertexCount = assimpMesh.m_uiVertexCount;
-
-    out_uiBaseVertex = ezMath::Min(out_uiBaseVertex, assimpMesh.m_uiBaseVertex);
-    uiVerticesUpperBound = ezMath::Max(uiVerticesUpperBound, assimpMesh.m_uiBaseVertex + assimpMesh.m_uiVertexCount);
-
-    out_uiBaseIndex = ezMath::Min(out_uiBaseIndex, assimpMesh.m_uiBaseIndex);
-    uiIndicesUpperBound = ezMath::Max(uiIndicesUpperBound, assimpMesh.m_uiBaseIndex + assimpMesh.m_uiIndexCount);
-  }
+  CollectLODMeshes(uiRootNode, out_uiBaseVertex, out_uiBaseIndex, entries, uiVerticesUpperBound, uiIndicesUpperBound);
 
   spMesh::Data meshData;
   meshData.m_VertexStreams.PushBackRange(m_pContext->m_MeshData.m_VertexStreams);
@@ -173,55 +195,48 @@ void spMeshImporter::ImportLODMeshes(ezUInt8 uiLODLevel, spMesh* out_pMesh, ezUI
   out_uiBaseVertex = uiVerticesUpperBound;
 
   spMesh::Node root;
-  const aiNode* pNode = m_pContext->m_Nodes[uiLODLevel].m_pNode;
+  const aiNode* pNode = m_pContext->m_Nodes[uiRootNode].m_pNode;
 
-  ExtractTransform(pNode, root);
+  aiVector3D s, r, p;
+  pNode->mTransformation.Decompose(s, r, p);
 
   root.m_sName.Assign(pNode->mName.C_Str());
+  root.m_Transform = {spFromAssimp(p), spFromAssimp(s), spFromAssimp(r)};
 
-  for (ezUInt32 m = 0, k = m_pContext->m_Meshes.GetCount(); m < k; ++m)
-  {
-    if (m_pContext->m_Nodes[m_pContext->m_Meshes[m].m_uiParentNodeIndex].m_uiLODLevel == uiLODLevel)
-      root.m_Entries.ExpandAndGetRef() = entries[m];
-  }
-
-  ExtractMaterial(pNode, root);
-
-  ComputeMeshHierarchy(entries, uiLODLevel, root);
+  ComputeMeshHierarchy(entries, 0, uiLOD, root);
 
   out_pMesh->SetData(meshData);
   out_pMesh->SetRootNode(root);
+
+  return EZ_SUCCESS;
 }
 
-void spMeshImporter::ComputeMeshHierarchy(const ezDynamicArray<spMesh::Entry>& nodeEntries, ezUInt32 uiParentIndex, spMesh::Node& ref_root)
+void spMeshImporter::ComputeMeshHierarchy(const ezDynamicArray<spMesh::Entry>& nodeEntries, ezUInt32 uiParentIndex, ezUInt32 uiLOD, spMesh::Node& ref_root)
 {
   for (ezUInt32 i = 0, l = m_pContext->m_Nodes.GetCount(); i < l; ++i)
   {
     const spAssimpNode& assimpNode = m_pContext->m_Nodes[i];
 
-    if (assimpNode.m_uiParentNodeIndex == uiParentIndex)
-    {
-      spMesh::Node node;
+    if (assimpNode.m_uiParentNodeIndex != uiParentIndex || assimpNode.m_uiLOD != uiLOD)
+      continue;
 
-      const aiNode* pNode = assimpNode.m_pNode;
+    spMesh::Node node;
+    const aiNode* pNode = assimpNode.m_pNode;
 
-      node.m_sName.Assign(pNode->mName.C_Str());
+    node.m_sName.Assign(pNode->mName.C_Str());
 
-      ExtractTransform(pNode, node);
+    ExtractTransform(pNode, node);
 
-      for (ezUInt32 m = 0, k = m_pContext->m_Meshes.GetCount(); m < k; ++m)
-      {
-        if (m_pContext->m_Meshes[m].m_uiParentNodeIndex == i)
-          node.m_Entries.ExpandAndGetRef() = nodeEntries[m];
-      }
+    for (ezUInt32 m = 0, k = m_pContext->m_Meshes.GetCount(); m < k; ++m)
+      if (m_pContext->m_Meshes[m].m_uiParentNodeIndex == i)
+        node.m_Entries.ExpandAndGetRef() = nodeEntries[m];
 
-      // Add children if any
-      if (pNode->mNumChildren > 0)
-        ComputeMeshHierarchy(nodeEntries, i, node);
+    // Add children if any
+    if (pNode->mNumChildren > 0)
+      ComputeMeshHierarchy(nodeEntries, i, ezInvalidIndex, node);
 
-      ExtractMaterial(pNode, node);
+    ExtractMaterial(pNode, node);
 
-      ref_root.m_Children.PushBack(std::move(node));
-    }
+    ref_root.m_Children.PushBack(std::move(node));
   }
 }
