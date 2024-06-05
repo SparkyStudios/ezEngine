@@ -36,6 +36,9 @@ namespace RPI
     const auto cl = pRenderingContext->GetCommandList();
     const auto pMeshRenderObject = ezStaticCast<spMeshRenderObject*>(pRenderObject);
 
+    const spRenderView* pRenderView = pRenderingContext->GetExtractionData().m_pRenderView;
+    const spRenderStage* pRenderStage = pRenderingContext->GetExtractionData().m_pRenderStage;
+
     const ezResourceLock resource(pMeshRenderObject->m_hMeshResource, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
     if (!resource.IsValid())
       return; // ezLog::Error("Unable to get the mesh resource!");
@@ -43,14 +46,42 @@ namespace RPI
     // Make sure the instances buffer is updated.
     pMeshRenderObject->UpdateBuffer();
 
-    auto& mesh = resource.GetPointerNonConst()->GetLOD(0);
+    const ezUInt32 uiLODCount = resource.GetPointer()->GetDescriptor().GetNumLODs();
+
+    ezUInt32 uiLOD = 0;
+
+    if (uiLODCount > 1)
+    {
+      if (ezMath::IsEqual(pMeshRenderObject->m_fLODMaxDistance, 0.0f, ezMath::SmallEpsilon<float>()))
+      {
+        uiLOD = uiLODCount - 1;
+      }
+      else
+      {
+        // Constant LOD fetch function
+        {
+          const ezUInt32 uiDistanceToCamera = (pRenderView->GetPosition() - pMeshRenderObject->m_Transform.m_vPosition).GetLengthSquared();
+          const float fSteps = ezMath::Square(pMeshRenderObject->m_fLODMaxDistance) / static_cast<float>(uiLODCount);
+
+          for (ezInt32 i = uiLODCount - 1; i >= 0; i--)
+          {
+            if (uiDistanceToCamera < (i + 1) * fSteps)
+              continue;
+
+            uiLOD = i;
+            break;
+          }
+        }
+
+        // TODO: Add more LOD fetch functions (logarithmic, exponential, etc.)
+      }
+    }
+
+    auto& mesh = resource.GetPointerNonConst()->GetLOD(uiLOD);
 
     mesh.CreateRHIVertexBuffer();
     mesh.CreateRHIIndexBuffer();
     mesh.CreateRHIInputLayout();
-
-    const spRenderView* pRenderView = pRenderingContext->GetExtractionData().m_pRenderView;
-    const spRenderStage* pRenderStage = pRenderingContext->GetExtractionData().m_pRenderStage;
 
     {
       RHI::spResourceSetDescription desc{};

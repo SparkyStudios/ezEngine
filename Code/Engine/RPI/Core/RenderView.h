@@ -140,8 +140,11 @@ namespace RPI
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezBitflags<spRenderViewUsage>& GetUsage() const { return m_eUsage; }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezMat4& GetViewMatrix() const { return m_ViewMatrix; }
-
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezMat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
+
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezVec3& GetPosition() const { return m_Position; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezVec3& GetDirection() const { return m_Direction; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezVec3& GetUp() const { return m_Up; }
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() const { return m_VisibleRenderObjects; }
     EZ_NODISCARD EZ_ALWAYS_INLINE spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() { return m_VisibleRenderObjects; }
@@ -153,6 +156,10 @@ namespace RPI
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezRectU32& GetViewport() const { return m_Viewport; }
 
   private:
+    // Internal. Should only be called by the camera.
+    void SetViewMatrix(const ezMat4& viewMatrix);
+    void SetProjectionMatrix(const ezMat4& projectionMatrix);
+
     ezUInt64 m_uiLastCollectedFrame{0};
 
     spConstantBuffer<spRenderViewData> m_RenderViewDataBuffer;
@@ -161,8 +168,13 @@ namespace RPI
     ezBitflags<spRenderGroup> m_eRenderGroup{spRenderGroup::Default};
     ezEnum<spRenderViewCullingMode> m_eCullingMode{spRenderViewCullingMode::Default};
     ezBitflags<spRenderViewUsage> m_eUsage{spRenderViewUsage::Default};
+
     ezMat4 m_ViewMatrix{ezMat4::MakeIdentity()};
     ezMat4 m_ProjectionMatrix{ezMat4::MakeIdentity()};
+
+    ezVec3 m_Position{ezVec3::MakeZero()};
+    ezVec3 m_Direction{ezVec3::MakeZero()};
+    ezVec3 m_Up{ezVec3::MakeZero()};
 
     spConcurrentCollector<spRenderObject*> m_VisibleRenderObjects;
 

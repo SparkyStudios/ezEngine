@@ -103,7 +103,7 @@ static void MikkTGetTexCoord(const SMikkTSpaceContext* pContext, float fvTexcOut
   const ezConstByteArrayPtr& pTexCoord = pMeshData->GetVertexStreamData(uiStreamIndex, iIndex);
 
   auto* pDest = reinterpret_cast<ezVec2*>(fvTexcOut);
-  spMeshDataUtils::DecodeVec2(pTexCoord, pMeshData->GetStreamFormat(uiStreamIndex), *pDest).IgnoreResult();
+  spMeshDataUtils::DecodeTexCoord(pTexCoord, pMeshData->GetStreamFormat(uiStreamIndex), *pDest).IgnoreResult();
 }
 
 static void MikkTSetTSpace(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fvBiTangent[], const float fMagS, const float fMagT, const tbool bIsOrientationPreserving, const int iFace, const int iVert)
@@ -387,9 +387,9 @@ void spMeshProcessor::ProcessNodes(const aiNode* pNode, ezUInt32 uiParentIndex, 
   if (pNode->mMetaData != nullptr && pNode->mMetaData->Get<bool>("spark.mesh.import.skip", bShouldSkip) && bShouldSkip)
     return;
 
-  ezInt32 uiLODLevel = 0;
+  ezUInt64 uiLODLevel = 0;
   if (pNode->mMetaData != nullptr)
-    pNode->mMetaData->Get<ezInt32>("spark.mesh.lod", uiLODLevel);
+    pNode->mMetaData->Get<ezUInt64>("spark.mesh.lod", uiLODLevel);
 
   spAssimpNode& node = m_AssimpContext.m_Nodes.ExpandAndGetRef();
 

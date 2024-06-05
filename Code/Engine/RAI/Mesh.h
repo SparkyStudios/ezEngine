@@ -140,6 +140,11 @@ namespace RAI
       /// \param [in] uiStreamIndex The index of the stream.
       /// \return The format of the stream at the given index.
       EZ_NODISCARD RHI::spInputElementFormat::Enum GetStreamFormat(ezUInt32 uiStreamIndex) const;
+
+      /// \brief Gets the size of the stream at the given index.
+      /// \param [in] uiStreamIndex The index of the stream.
+      /// \return The size of the stream at the given index.
+      EZ_NODISCARD ezUInt32 GetStreamSize(ezUInt32 uiStreamIndex) const;
     };
 
     /// \brief An entry (sub-mesh) in the mesh.

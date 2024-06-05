@@ -30,6 +30,7 @@ namespace RPI
     EZ_BEGIN_PROPERTIES
     {
       EZ_ACCESSOR_PROPERTY("Mesh", GetMeshFile, SetMeshFile)->AddAttributes(new ezAssetBrowserAttribute("*.spMesh")),
+      EZ_ACCESSOR_PROPERTY("LODMaxDistance", GetLODMaxDistance, SetLODMaxDistance)->AddAttributes(new ezClampValueAttribute(0.0f, {})),
     }
     EZ_END_PROPERTIES;
 
@@ -156,6 +157,16 @@ namespace RPI
   const char* spMeshComponent::GetMeshFile() const
   {
     return m_RenderObject.m_hMeshResource.IsValid() ? m_RenderObject.m_hMeshResource.GetResourceID().GetData() : "";
+  }
+
+  void spMeshComponent::SetLODMaxDistance(float fMaxDistance)
+  {
+    m_RenderObject.m_fLODMaxDistance = fMaxDistance;
+  }
+
+  float spMeshComponent::GetLODMaxDistance() const
+  {
+    return m_RenderObject.m_fLODMaxDistance;
   }
 } // namespace RPI
 

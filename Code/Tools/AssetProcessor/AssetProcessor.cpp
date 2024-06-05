@@ -102,7 +102,7 @@ the -out option is specified with a different value.
 
 ezCommandLineOptionFloat opt_Mesh_Scale("_AssetProcessor_Mesh", "-scale", "The global scale to apply on the processed mesh.", 1.0f, 0.0f);
 
-ezCommandLineOptionBool opt_Mesh_WithSkeleton("_AssetProcessor_Mesh", "-with-skeleton", "Whether to generate skeleton assets from the mesh.", false);
+ezCommandLineOptionBool opt_Mesh_WithSkeleton("_AssetProcessor_Mesh", "-with-skeleton", "Whether to process skeleton assets from the mesh.", false);
 
 ezCommandLineOptionBool opt_Mesh_WithMotions("_AssetProcessor_Mesh", "-with-motions", "Whether to process motion assets from the imported mesh.", false);
 
@@ -111,9 +111,9 @@ ezCommandLineOptionBool opt_Mesh_WithMaterials("_AssetProcessor_Mesh", "-with-ma
 ezCommandLineOptionBool opt_Mesh_WithMeshes("_AssetProcessor_Mesh", "-with-meshes", "Whether to process mesh assets from the mesh.", true);
 
 ezCommandLineOptionBool opt_Mesh_HasLODs("_AssetProcessor_Mesh", "-has-lods", R"(
-Specifies if the mesh support the Spark LOD system.
+Specifies if the mesh supports the Spark LOD system.
 
-LODs will be detected and processed. The mesh need to be exported following the specifications
+LODs will be detected and processed. The mesh needs to be exported following the specifications
 of the Spark LOD system for this option to work.
 )",
   false);
@@ -129,7 +129,7 @@ ezCommandLineOptionBool opt_Mesh_FlipWindingNormals("_AssetProcessor_Mesh", "-fl
 ezCommandLineOptionBool opt_Mesh_Optimize("_AssetProcessor_Mesh", "-optimize", R"(
 Optimizes the mesh for GPU drawing.
 
-This will reorder the index and vertex buffers to reduce the number of data fetch from the GPU.
+This will reorder the index and vertex buffers to reduce the number of data fetches from the GPU.
 It's highly recommended to keep this option enabled.
 )",
   true);

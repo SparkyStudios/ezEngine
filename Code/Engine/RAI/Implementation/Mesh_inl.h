@@ -100,6 +100,12 @@ namespace RAI
     return m_VertexStreams[uiStreamIndex].m_eFormat;
   }
 
+  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 spMesh::Data::GetStreamSize(ezUInt32 uiStreamIndex) const
+  {
+    EZ_ASSERT_DEV(uiStreamIndex < m_VertexStreams.GetCount(), "Invalid stream index.");
+    return RHI::spPixelFormatHelper::GetSizeInBytes(m_VertexStreams[uiStreamIndex].m_eFormat);
+  }
+
   EZ_ALWAYS_INLINE void spMesh::SetData(const RAI::spMesh::Data& data)
   {
     Clear();
