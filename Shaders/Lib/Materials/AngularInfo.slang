@@ -15,8 +15,9 @@
 #pragma once
 
 #include <Common/Light.slang>
-#include <Common/Surface.slang>
 #include <Common/RenderingContext.slang>
+
+#include <Materials/Surface.slang>
 
 /// Stores precomputed values about common vectors between
 /// the light source and the geometry surface.
@@ -40,11 +41,11 @@ struct AngularInfo
   float NoH;
   float NoL;
 
-  __init(Light light, Surface surface)
+  __init(Light light, Surface surface, float3 cameraPosition)
   {
       N = normalize(surface.WorldNormal);
       L = normalize(light.Position - surface.WorldPosition);
-      V = normalize(Buffer_PerView.Position.xyz - surface.WorldPosition);
+      V = normalize(cameraPosition - surface.WorldPosition);
       H = normalize(L + V);
 
       NoL = saturate(dot(N, L));

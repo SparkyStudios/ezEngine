@@ -17,8 +17,5 @@
 #include <Common/Math/Colors.slang>
 #include <Common/Math/Transform.slang>
 #include <Common/Math/Utils.slang>
-#include <Common/AngularInfo.slang>
-#include <Common/Material.slang>
 #include <Common/Utils.slang>
 #include <Common/RenderingContext.slang>
-#include <Common/Surface.slang>

@@ -14,12 +14,13 @@
 
 #pragma once
 
+#include <Common/Constants.slang>
 #include <Common/RenderingContext.slang>
 
-float4 ClipToView(in float4 clip)
+func ClipToView(in inverseProjectionMatrix: matrix, in clip: float4) -> float4
 {
   // View space transform
-  float4 view = mul(Buffer_PerView.InverseProjectionMatrix, clip);
+  float4 view = mul(inverseProjectionMatrix, clip);
 
   // Perspective projection
   view = view / view.w;
@@ -27,10 +28,10 @@ float4 ClipToView(in float4 clip)
   return view;
 }
 
-float4 ScreenToView(in float4 screen)
+func ScreenToView(in inverseProjectionMatrix: matrix, in screen: float4, in renderSize: float2) -> float4
 {
   // Convert to NDC
-  float2 texCoord = screen.xy / Buffer_PerFrame.RenderSize.xy;
+  float2 texCoord = screen.xy / renderSize.xy;
 
   if (o_IsClipSpaceYInverted) {
     texCoord.y = 1.0f - texCoord.y;
@@ -39,5 +40,5 @@ float4 ScreenToView(in float4 screen)
   // Convert to clip space
   float4 clip = float4(texCoord.xy * 2.0f - 1.0f, screen.z, screen.w);
 
-  return ClipToView(clip);
+  return ClipToView(inverseProjectionMatrix, clip);
 }

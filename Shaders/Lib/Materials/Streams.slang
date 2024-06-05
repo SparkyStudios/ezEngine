@@ -14,8 +14,6 @@
 
 #pragma once
 
-#include <Core.slang>
-
 /// Vertex buffer input.
 struct InputStream
 {

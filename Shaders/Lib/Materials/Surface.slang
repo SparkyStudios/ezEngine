@@ -14,8 +14,9 @@
 
 #pragma once
 
-#include <Common/Material.slang>
 #include <Common/Math/Utils.slang>
+
+#include <Materials/MaterialData.slang>
 
 /// Describes a geometry surface.
 ///

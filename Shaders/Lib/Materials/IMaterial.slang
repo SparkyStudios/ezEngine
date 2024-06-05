@@ -14,57 +14,56 @@
 
 #pragma once
 
-#include <Common/AngularInfo.slang>
-#include <Common/Surface.slang>
-#include <Materials/Streams.slang>
+#include <Materials/MaterialData.slang>
 
-extern static bool o_FlipWinding = false;
-extern static bool o_TwoSided = false;
-
-/// Generates a surface for the given vertex from the given material data.
-/// \param material The material used to generate the surface.
-/// \param vertex The output of the vertex shader.
-/// \param data The geometry's material data.
-/// \return The geometry's surface for the given vertex.
-func GenerateSurface(in material: IMaterial, in vertex: TransientStream, in data: MaterialData) -> Surface
+/// A material interface describing all the necessary methods used to generate
+/// surface data for a geometry.
+///
+/// Its the responsibility of the material implementation to ensure valid data are returned.
+interface IMaterial
 {
-  Surface surface = Surface(data);
+  /// Gets the normal vector.
+  /// \param data The geometry's material data.
+  /// \return The surface's normal vector.
+  func GetNormal(in data: MaterialData) -> float3;
 
-#ifdef USE_WORLDPOS
-  surface.WorldPosition = vertex.WorldPosition;
-#else
-  surface.WorldPosition = float3(0.0f);
-#endif
+  /// Gets the albedo color.
+  /// \param data The geometry's material data.
+  /// \return The surface's albedo color.
+  func GetAlbedoColor(in data: MaterialData) -> float3;
 
-  float3 worldNormal = normalize(material.GetNormal(data));
+  /// Gets the specular color.
+  /// \param data The geometry's material data.
+  /// \return The surface's specular color.
+  func GetSpecularColor(in data: MaterialData) -> float3;
 
-  if (o_TwoSided)
-  {
-    if (o_FlipWinding)
-      surface.WorldNormal = vertex.IsFrontFace ? -worldNormal : worldNormal;
-    else
-      surface.WorldNormal = vertex.IsFrontFace ? worldNormal : -worldNormal;
-  }
-  else
-  {
-    surface.WorldNormal = worldNormal;
-  }
+  /// Gets the emissive color.
+  /// \param data The geometry's material data.
+  /// \return The surface's emissive color.
+  func GetEmissiveColor(in data: MaterialData) -> float3;
 
-#ifdef USE_NORMAL
-  surface.VertexNormal = normalize(vertex.Normal);
-#else
-  surface.VertexNormal = float3(0.0f, 0.0f, 1.0f);
-#endif
+  /// Gets the linear roughness.
+  /// \param data The geometry's material data.
+  /// \return The surface's linear roughness.
+  func GetLinearRoughness(in data: MaterialData) -> float;
 
-  surface.Albedo = material.GetAlbedoColor(data);
-  surface.Specular = material.GetSpecularColor(data);
-  surface.Emissive = material.GetEmissiveColor(data);
-  surface.LinearRoughness = material.GetLinearRoughness(data);
-  surface.Metalness = material.GetMetalness(data);
-  surface.Occlusion = material.GetOcclusion(data);
-  surface.Cavity = material.GetCavity(data);
-  surface.Roughness = pow2(surface.LinearRoughness);
-  surface.Roughness2 = pow2(surface.Roughness);
+  /// Gets the opacity.
+  /// \param data The geometry's material data.
+  /// \return The surface's opacity.
+  func GetOpacity(in data: MaterialData) -> float;
 
-  return surface;
+  /// Gets the ambient occlusion.
+  /// \param data The geometry's material data.
+  /// \return The surface's ambient occlusion.
+  func GetOcclusion(in data: MaterialData) -> float;
+
+  /// Gets the cavity factor.
+  /// \param data The geometry's material data.
+  /// \return The surface's cavity.
+  func GetCavity(in data: MaterialData) -> float;
+
+  /// Get the metalness.
+  /// \param data The geometry's material data.
+  /// \return The surface's metalness.
+  func GetMetalness(in data: MaterialData) -> float;
 }
