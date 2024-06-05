@@ -14,8 +14,8 @@
 
 #pragma once
 
-#include <Common/AngularInfo.slang>
-#include <Common/Surface.slang>
+#include <Materials/AngularInfo.slang>
+#include <Materials/Surface.slang>
 
 /// The interface for BRDF implementations.
 ///

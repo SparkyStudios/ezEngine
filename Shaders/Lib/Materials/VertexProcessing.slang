@@ -15,12 +15,10 @@
 #pragma once
 
 #include <Common/Math/Transform.slang>
-#include <Common/Material.slang>
+#include <Common/Constants.slang>
 #include <Common/RenderingContext.slang>
-#include <Materials/Streams.slang>
 
-extern static const bool o_IsClipSpaceYInverted = false;
-extern static const bool o_ReverseDepthRange = false;
+#include <Materials/Streams.slang>
 
 struct PerInstanceData
 {
@@ -30,35 +28,26 @@ struct PerInstanceData
   Transform NormalTransform;
 }
 
-[[vk_binding(3, 0)]]
-readonly StructuredBuffer<PerInstanceData> Buffer_PerInstance : register(b3, space0);
-
-/// Gets the instance data for the given instance ID.
-/// \param instanceID The ID of the instance.
-/// \return The instance data.
-func GetInstanceData(instanceID: uint) -> PerInstanceData
-{
-  return Buffer_PerInstance[instanceID];
-}
-
-/// Gets the previous transform of the currently drawn object.
-matrix GetPreviousTransform() { return Buffer_PerPass.Values; }
-
 /// Process the vertex input stream into the world space.
 /// \param input The vertex input stream.
+/// \param view The rendering view.
+/// \param instance The currently rendered instance.
 /// \param instanceId The rendered instance ID.
 /// \param isFrontFace Whether the geometry faces have front-facing normal vectors.
 /// \return A transient data suitable as an input to a pixel shader.
-func ProcessWorldSpace(input: InputStream, instanceId: uint, isFrontFace: bool) -> TransientStream
+func ProcessWorldSpace(
+  in input: InputStream,
+  in view: PerViewBuffer,
+  in instance: PerInstanceData,
+  in instanceId: uint,
+  in isFrontFace: bool
+) -> TransientStream
 {
   TransientStream output;
 
   // Set the instance ID
   output.InstanceID = instanceId;
   output.IsFrontFace = isFrontFace;
-
-  // Get the instance data
-  PerInstanceData instance = GetInstanceData(output.InstanceID);
 
   // Normal/Tangent/BiTangent
 #ifdef USE_NORMAL
@@ -90,7 +79,7 @@ func ProcessWorldSpace(input: InputStream, instanceId: uint, isFrontFace: bool) 
   output.WorldPosition = worldPosition.xyz;
 #endif
 
-  output.Position = mul(Buffer_PerView.ViewProjectionMatrix, worldPosition);
+  output.Position = mul(view.ViewProjectionMatrix, worldPosition);
 
 #ifdef USE_VELOCITY
   matrix preiousWorldMatrix = TransformToMatrix(instance.PreviousWorldTransform);
@@ -100,7 +89,7 @@ func ProcessWorldSpace(input: InputStream, instanceId: uint, isFrontFace: bool) 
   output.PreviousWorldPosition = previousWorldPosition.xyz;
 #endif
 
-  output.PreviousPosition = mul(Buffer_PerView.ViewProjectionMatrix, previousWorldPosition).xyz;
+  output.PreviousPosition = mul(view.ViewProjectionMatrix, previousWorldPosition).xyz;
 #endif
 
   // Texture Coordinates

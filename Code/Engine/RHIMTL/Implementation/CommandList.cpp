@@ -1028,6 +1028,7 @@ namespace RHI
       return false;
 
     MTL::RenderPassDescriptor* rpDesc = m_pFramebuffer->GetRenderPassDescriptor();
+
     for (ezUInt32 i = 0, l = m_ClearColors.GetCount(); i < l; i++)
     {
       if (m_ClearColors[i].IsValid())

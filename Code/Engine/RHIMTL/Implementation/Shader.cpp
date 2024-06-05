@@ -226,7 +226,10 @@ namespace RHI
     else
     {
       // Otherwise, compile the shader.
-      spScopedMTLResource pShaderCode(NS::String::string(reinterpret_cast<const char*>(m_Description.m_Buffer.GetPtr()), NS::UTF8StringEncoding));
+      const ezStringView sView(reinterpret_cast<const char*>(m_Description.m_Buffer.GetPtr()), m_Description.m_Buffer.GetCount());
+      ezStringBuilder sTemp;
+
+      spScopedMTLResource pShaderCode(NS::String::string(sView.GetData(sTemp), NS::UTF8StringEncoding));
       spScopedMTLResource pCompileOptions(MTL::CompileOptions::alloc()->init());
 
       m_pMTLShaderLibrary = m_pMTLDevice->newLibrary(*pShaderCode, *pCompileOptions, &pError);
@@ -245,6 +248,7 @@ namespace RHI
     }
 
     m_pMTLShaderFunction = m_pMTLShaderLibrary->newFunction(*pEntryPoint);
+
     if (m_pMTLShaderFunction == nullptr)
     {
       EZ_LOG_BLOCK("Shader Compilation Error Message");

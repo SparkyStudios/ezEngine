@@ -12,30 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <Materials/IMaterial.slang>
+#pragma once
+
 #include <Lightning/BRDF.slang>
+#include <Materials/IMaterial.slang>
+
+struct MaterialParams
+{
+};
+
+ParameterBlock<MaterialParams> g_Params;
 
 struct BasicPBRMaterial : IMaterial
 {
-  float3 diffuse(inout Surface surface, AngularInfo angularInfo)
+  func GetNormal(in data: MaterialData) -> float3
   {
-    DiffuseOrenNayar brdf = DiffuseOrenNayar(surface);
-    return brdf.evaluate(surface, angularInfo);
-  }
+    if (data.HasTextureNormal)
+      return float3(0.0f);
 
-  float3 specular(inout Surface surface, AngularInfo angularInfo)
-  {
-    SpecularIsotropic brdf = SpecularIsotropic(surface);
-    return brdf.evaluate(surface, angularInfo);
-  }
-
-  float3 volumetricFog(inout Surface surface, AngularInfo angularInfo)
-  {
-    return 0;
-  }
-
-  float3 subsurface(inout Surface surface, AngularInfo angularInfo)
-  {
-    return 0;
+    return float3(0.0f);
   }
 }

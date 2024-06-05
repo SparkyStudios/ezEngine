@@ -14,24 +14,5 @@
 
 #pragma once
 
-#include <Lightning/BRDF/IBRDF.slang>
-
-#include <Materials/AngularInfo.slang>
-#include <Materials/Surface.slang>
-
-struct AccumulatedLight
-{
-  float3 diffuse;
-  float3 specular;
-}
-
-interface IShadingTechnique
-{
-  associatedtype DiffuseBRDF : IBRDF;
-  associatedtype SpecularBRDF : IBRDF;
-
-  DiffuseBRDF prepareDiffuse(Surface surface, AngularInfo angularInfo);
-  SpecularBRDF prepareSpecular(Surface surface, AngularInfo angularInfo);
-
-  AccumulatedLight process(Surface surface, AngularInfo angularInfo);
-}
+extern static const bool o_IsClipSpaceYInverted = false;
+extern static const bool o_ReverseDepthRange = false;

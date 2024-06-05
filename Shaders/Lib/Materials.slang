@@ -14,7 +14,11 @@
 
 #pragma once
 
+#include <Materials/AngularInfo.slang>
 #include <Materials/IMaterial.slang>
 #include <Materials/IShadingTechnique.slang>
+#include <Materials/MaterialData.slang>
 #include <Materials/Streams.slang>
+#include <Materials/Surface.slang>
+#include <Materials/Utils.slang>
 #include <Materials/VertexProcessing.slang>

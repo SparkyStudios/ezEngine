@@ -62,24 +62,21 @@ struct PerViewBuffer
 /// 128-bit push constant buffer
 struct PerPassBuffer
 {
-  matrix Transform;
-  matrix Values;
+  float4 Values0;
+  float4 Values1;
+  float4 Values2;
+  float4 Values3;
+  float4 Values4;
+  float4 Values5;
+  float4 Values6;
+  float4 Values7;
 };
 
-[[vk_binding(1, 0)]]
-ConstantBuffer<PerFrameBuffer> Buffer_PerFrame : register(b1, space0);
+// [[push_constant]]
+// PerPassBuffer Buffer_PerPass : register(b0, space0); // Push constants have the requirement to be at binding 0.
 
-[[vk_binding(2, 0)]]
-ConstantBuffer<PerViewBuffer> Buffer_PerView : register(b2, space0);
+// /// Checks if the current rendering object is transparent.
+// func IsTransparent() -> bool { return Buffer_PerPass.Values._m13 == 1.0f; }
 
-[[push_constant]]
-PerPassBuffer Buffer_PerPass : register(b0, space0); // Push constants have the requirement to be at binding 0.
-
-/// Gets the index in the materials buffer for the current rendering object.
-func GetMaterialIndex() -> uint { return uint(Buffer_PerPass.Values._m03); }
-
-/// Checks if the current rendering object is transparent.
-func IsTransparent() -> bool { return Buffer_PerPass.Values._m13 == 1.0f; }
-
-/// Checks if the current rendering object is opaque.
-func IsOpaque() -> bool { return !IsTransparent(); }
+// /// Checks if the current rendering object is opaque.
+// func IsOpaque() -> bool { return !IsTransparent(); }
