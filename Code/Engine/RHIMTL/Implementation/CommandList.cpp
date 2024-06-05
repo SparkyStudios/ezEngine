@@ -237,7 +237,7 @@ namespace RHI
   {
     ClearCachedState();
 
-    // TODO
+    m_BoundResources.Clear();
   }
 
   void spCommandListMTL::ClearColorTargetInternal(ezUInt32 uiIndex, ezColor clearColor)
@@ -1189,48 +1189,89 @@ namespace RHI
   void spCommandListMTL::BindBuffer(ezSharedPtr<spBufferRangeMTL> pBuffer, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages)
   {
     pBuffer->EnsureResourceCreated();
-    const ezUInt32 uiBaseBuffer = GetBufferBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
-
     const auto* pMTLBuffer = pBuffer->GetBuffer().Downcast<spBufferMTL>()->GetMTLBuffer();
+
+    const ezUInt32 uiBaseBuffer = GetBufferBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
+    const ezUInt32 uiIndex = uiSlot + uiBaseBuffer;
 
     if (eStages.IsSet(spShaderStage::ComputeShader))
     {
-      m_pComputeCommandEncoder->setBuffer(pMTLBuffer, pBuffer->GetOffset(), (uiSlot + uiBaseBuffer));
+      const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::ComputeShader);
+      const BoundResource resource{pBuffer->GetBuffer()->GetHandle(), uiIndex, pBuffer->GetOffset(), spShaderStage::ComputeShader};
+
+      if (m_BoundResources[uiKey] == resource)
+        return;
+
+      m_BoundResources[uiKey] = resource;
+      m_pComputeCommandEncoder->setBuffer(pMTLBuffer, pBuffer->GetOffset(), uiIndex);
     }
     else
     {
-      if (eStages.IsSet(spShaderStage::VertexShader))
-      {
-        const ezUInt32 index = uiSlot + uiBaseBuffer;
-        m_pRenderCommandEncoder->setVertexBuffer(pMTLBuffer, pBuffer->GetOffset(), index);
-      }
+      const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::VertexShader);
+      const BoundResource resource{pBuffer->GetBuffer()->GetHandle(), uiIndex, pBuffer->GetOffset(), spShaderStage::VertexShader};
 
-      if (eStages.IsSet(spShaderStage::PixelShader))
-      {
-        m_pRenderCommandEncoder->setFragmentBuffer(pMTLBuffer, pBuffer->GetOffset(), (uiSlot + uiBaseBuffer));
-      }
+      if (m_BoundResources[uiKey] == resource)
+        return;
+
+      m_BoundResources[uiKey] = resource;
+      m_pRenderCommandEncoder->setVertexBuffer(pMTLBuffer, pBuffer->GetOffset(), uiIndex);
+    }
+
+    if (eStages.IsSet(spShaderStage::PixelShader))
+    {
+      const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::PixelShader);
+      const BoundResource resource{pBuffer->GetBuffer()->GetHandle(), uiIndex, pBuffer->GetOffset(), spShaderStage::PixelShader};
+
+      if (m_BoundResources[uiKey] == resource)
+        return;
+
+      m_BoundResources[uiKey] = resource;
+      m_pRenderCommandEncoder->setFragmentBuffer(pMTLBuffer, pBuffer->GetOffset(), uiIndex);
     }
   }
 
   void spCommandListMTL::BindTexture(ezSharedPtr<spTextureViewMTL> pTextureView, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages)
   {
     pTextureView->EnsureResourceCreated();
+
     const ezUInt32 uiBaseTexture = GetTextureBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
+    const ezUInt32 uiIndex = uiSlot + uiBaseTexture;
 
     if (eStages.IsSet(spShaderStage::ComputeShader))
     {
-      m_pComputeCommandEncoder->setTexture(pTextureView->GetMTLTargetTexture(), (uiSlot + uiBaseTexture));
+      const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::ComputeShader);
+      const BoundResource resource{pTextureView->GetTexture(), uiIndex, 0, spShaderStage::ComputeShader};
+
+      if (m_BoundResources[uiKey] == resource)
+        return;
+
+      m_BoundResources[uiKey] = resource;
+      m_pComputeCommandEncoder->setTexture(pTextureView->GetMTLTargetTexture(), uiIndex);
     }
     else
     {
       if (eStages.IsSet(spShaderStage::VertexShader))
       {
-        m_pRenderCommandEncoder->setVertexTexture(pTextureView->GetMTLTargetTexture(), (uiSlot + uiBaseTexture));
+        const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::VertexShader);
+        const BoundResource resource{pTextureView->GetTexture(), uiIndex, 0, spShaderStage::VertexShader};
+
+        if (m_BoundResources[uiKey] == resource)
+          return;
+
+        m_BoundResources[uiKey] = resource;
+        m_pRenderCommandEncoder->setVertexTexture(pTextureView->GetMTLTargetTexture(), uiIndex);
       }
 
       if (eStages.IsSet(spShaderStage::PixelShader))
       {
-        m_pRenderCommandEncoder->setFragmentTexture(pTextureView->GetMTLTargetTexture(), (uiSlot + uiBaseTexture));
+        const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::PixelShader);
+        const BoundResource resource{pTextureView->GetTexture(), uiIndex, 0, spShaderStage::PixelShader};
+
+        if (m_BoundResources[uiKey] == resource)
+          return;
+
+        m_BoundResources[uiKey] = resource;
+        m_pRenderCommandEncoder->setFragmentTexture(pTextureView->GetMTLTargetTexture(), uiIndex);
       }
     }
   }
@@ -1238,27 +1279,50 @@ namespace RHI
   void spCommandListMTL::BindSampler(ezSharedPtr<spSamplerMTL> pSampler, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages)
   {
     pSampler->EnsureResourceCreated();
+
     const ezUInt32 uiBaseSampler = GetSamplerBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
+    const ezUInt32 uiIndex = uiSlot + uiBaseSampler;
 
     if (eStages.IsSet(spShaderStage::ComputeShader))
     {
-      m_pComputeCommandEncoder->setSamplerState(pSampler->GetSamplerState()->GetMTLSamplerState(), (uiSlot + uiBaseSampler));
+      const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::ComputeShader);
+      const BoundResource resource{pSampler->GetHandle(), uiIndex, 0, spShaderStage::ComputeShader};
+
+      if (m_BoundResources[uiKey] == resource)
+        return;
+
+      m_BoundResources[uiKey] = resource;
+      m_pComputeCommandEncoder->setSamplerState(pSampler->GetSamplerState()->GetMTLSamplerState(), uiIndex);
     }
     else
     {
       if (eStages.IsSet(spShaderStage::VertexShader))
       {
-        m_pRenderCommandEncoder->setVertexSamplerState(pSampler->GetSamplerState()->GetMTLSamplerState(), (uiSlot + uiBaseSampler));
+        const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::VertexShader);
+        const BoundResource resource{pSampler->GetHandle(), uiIndex, 0, spShaderStage::VertexShader};
+
+        if (m_BoundResources[uiKey] == resource)
+          return;
+
+        m_BoundResources[uiKey] = resource;
+        m_pRenderCommandEncoder->setVertexSamplerState(pSampler->GetSamplerState()->GetMTLSamplerState(), uiIndex);
       }
 
       if (eStages.IsSet(spShaderStage::PixelShader))
       {
-        m_pRenderCommandEncoder->setFragmentSamplerState(pSampler->GetSamplerState()->GetMTLSamplerState(), (uiSlot + uiBaseSampler));
+        const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::PixelShader);
+        const BoundResource resource{pSampler->GetHandle(), uiIndex, 0, spShaderStage::PixelShader};
+
+        if (m_BoundResources[uiKey] == resource)
+          return;
+
+        m_BoundResources[uiKey] = resource;
+        m_pRenderCommandEncoder->setFragmentSamplerState(pSampler->GetSamplerState()->GetMTLSamplerState(), uiIndex);
       }
     }
   }
 
-  ezUInt32 spCommandListMTL::GetBufferBase(ezUInt32 uiSet, bool bIsGraphics)
+  ezUInt32 spCommandListMTL::GetBufferBase(ezUInt32 uiSet, bool bIsGraphics) const
   {
     auto layouts = bIsGraphics ? m_pGraphicPipeline->GetResourceLayouts() : m_pComputePipeline->GetResourceLayouts();
 
@@ -1275,7 +1339,7 @@ namespace RHI
     return uiBase;
   }
 
-  ezUInt32 spCommandListMTL::GetTextureBase(ezUInt32 uiSet, bool bIsGraphics)
+  ezUInt32 spCommandListMTL::GetTextureBase(ezUInt32 uiSet, bool bIsGraphics) const
   {
     auto layouts = bIsGraphics ? m_pGraphicPipeline->GetResourceLayouts() : m_pComputePipeline->GetResourceLayouts();
 
@@ -1289,7 +1353,7 @@ namespace RHI
     return uiBase;
   }
 
-  ezUInt32 spCommandListMTL::GetSamplerBase(ezUInt32 uiSet, bool bIsGraphics)
+  ezUInt32 spCommandListMTL::GetSamplerBase(ezUInt32 uiSet, bool bIsGraphics) const
   {
     auto layouts = bIsGraphics ? m_pGraphicPipeline->GetResourceLayouts() : m_pComputePipeline->GetResourceLayouts();
 

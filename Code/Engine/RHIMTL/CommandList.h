@@ -84,6 +84,21 @@ namespace RHI
     void OnCompleted(MTL::CommandBuffer* pCommandBuffer);
 
   private:
+    struct BoundResource
+    {
+      spResourceHandle m_hResource;
+      ezUInt32 m_uiSlot;
+      ezUInt32 m_uiOffset;
+      spShaderStage::Enum m_eStage;
+
+      EZ_NODISCARD EZ_ALWAYS_INLINE bool Check(spShaderStage::Enum eStage, spResourceHandle hResource) const { return m_hResource == hResource && m_eStage == eStage; }
+
+      EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const BoundResource& other) const
+      {
+        return Check(other.m_eStage, other.m_hResource) && m_uiSlot == other.m_uiSlot && m_uiOffset == other.m_uiOffset;
+      }
+    };
+
     bool PreDraw();
     void PreDispatch();
 
@@ -113,9 +128,9 @@ namespace RHI
     void BindTexture(ezSharedPtr<spTextureViewMTL> pTextureView, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages);
     void BindSampler(ezSharedPtr<spSamplerMTL> pSampler, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages);
 
-    ezUInt32 GetBufferBase(ezUInt32 uiSet, bool bIsGraphics);
-    ezUInt32 GetTextureBase(ezUInt32 uiSet, bool bIsGraphics);
-    ezUInt32 GetSamplerBase(ezUInt32 uiSet, bool bIsGraphics);
+    ezUInt32 GetBufferBase(ezUInt32 uiSet, bool bIsGraphics) const;
+    ezUInt32 GetTextureBase(ezUInt32 uiSet, bool bIsGraphics) const;
+    ezUInt32 GetSamplerBase(ezUInt32 uiSet, bool bIsGraphics) const;
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool IsRenderCommandEncoderActive() const { return m_pRenderCommandEncoder != nullptr; }
     EZ_NODISCARD EZ_ALWAYS_INLINE bool IsBlitCommandEncoderActive() const { return m_pBlitCommandEncoder != nullptr; }
@@ -149,6 +164,8 @@ namespace RHI
     MTL::ComputeCommandEncoder* m_pComputeCommandEncoder{nullptr};
 
     // --- Cached Pipeline State ---
+
+    ezArrayMap<ezUInt32, BoundResource> m_BoundResources;
 
     ezSharedPtr<spBufferMTL> m_pIndexBuffer{nullptr};
     ezUInt32 m_uiIndexBufferOffset{0};
