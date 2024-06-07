@@ -57,7 +57,7 @@ namespace RHI
       pDescriptor->setSampleCount(m_Description.m_eSampleCount);
       pDescriptor->setTextureType(m_eTextureType);
       pDescriptor->setPixelFormat(m_eFormat);
-      pDescriptor->setUsage(spToMTL(m_Description.m_eUsage));
+      pDescriptor->setUsage(spToMTLTextureUsage(m_Description.m_eUsage));
       pDescriptor->setStorageMode(MTL::StorageModePrivate);
 
       m_pTexture = m_pMTLDevice->newTexture(*pDescriptor);
@@ -214,6 +214,8 @@ namespace RHI
   {
     const auto& pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureMTL>(m_Description.m_hTarget);
     EZ_ASSERT_DEV(pTexture != nullptr, "Texture view resource using invalid texture resource as a target.");
+
+    pTexture->EnsureResourceCreated();
 
     if (m_Description.m_uiBaseMipLevel != 0 || m_Description.m_uiMipCount != pTexture->GetMipCount() || m_Description.m_uiBaseArrayLayer != 0 || m_Description.m_uiArrayLayers != pTexture->GetArrayLayerCount() || m_Description.m_eFormat != pTexture->GetFormat())
     {

@@ -16,3 +16,6 @@
 
 extern static const bool o_IsClipSpaceYInverted = false;
 extern static const bool o_ReverseDepthRange = false;
+
+extern static bool o_FlipWinding = false;
+extern static bool o_TwoSided = false;

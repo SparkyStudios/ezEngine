@@ -93,6 +93,29 @@ namespace RHI
 
 #pragma region Conversion Functions
 
+  EZ_ALWAYS_INLINE static MTL::ResourceUsage spToMTL(const ezBitflags<spBufferUsage>& eUsage)
+  {
+    MTL::ResourceUsage usage = MTL::ResourceUsageRead;
+
+    if (eUsage.IsAnySet(spBufferUsage::Dynamic | spBufferUsage::Staging | spBufferUsage::StructuredBufferReadWrite))
+      usage |= MTL::ResourceUsageWrite;
+
+    return usage;
+  }
+
+  EZ_ALWAYS_INLINE static MTL::ResourceUsage spToMTLResourceUsage(const ezBitflags<spTextureUsage>& eUsage)
+  {
+    MTL::ResourceUsage usage = 0;
+
+    if (eUsage.IsAnySet(spTextureUsage::Sampled))
+      usage |= MTL::ResourceUsageSample;
+
+    if (eUsage.IsAnySet(spTextureUsage::Storage | spTextureUsage::Staging))
+      usage |= MTL::ResourceUsageRead | MTL::ResourceUsageWrite;
+
+    return usage;
+  }
+
   EZ_ALWAYS_INLINE static MTL::PixelFormat spToMTL(const ezEnum<spPixelFormat>& eFormat, bool bDepthFormat)
   {
     switch (eFormat)
@@ -661,7 +684,7 @@ namespace RHI
     }
   }
 
-  EZ_ALWAYS_INLINE static MTL::TextureUsage spToMTL(const ezBitflags<spTextureUsage>& eUsage)
+  EZ_ALWAYS_INLINE static MTL::TextureUsage spToMTLTextureUsage(const ezBitflags<spTextureUsage>& eUsage)
   {
     MTL::TextureUsage ret = MTL::TextureUsageUnknown;
 

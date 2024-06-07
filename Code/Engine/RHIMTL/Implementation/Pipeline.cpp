@@ -268,7 +268,7 @@ namespace RHI
 
       for (ezUInt32 i = 0, l = description.m_ShaderPipeline.m_InputLayouts.GetCount(); i < l; ++i)
       {
-        const ezUInt32 uiLayoutIndex = m_uiNonVertexBufferCount + i;
+        const ezUInt32 uiLayoutIndex = m_ResourceLayouts.GetCount() + i;
         MTL::VertexBufferLayoutDescriptor* pLayoutDescriptor = inputDesc->layouts()->object(uiLayoutIndex);
         pLayoutDescriptor->setStride(inputLayouts[i].m_uiStride);
         const ezUInt32 uiStepRate = inputLayouts[i].m_uiInstanceStepRate;
@@ -286,7 +286,7 @@ namespace RHI
         {
           const auto& elementDesc = inputLayoutDescription.m_Elements[j];
           MTL::VertexAttributeDescriptor* pAttributeDescriptor = inputDesc->attributes()->object(uiElement);
-          pAttributeDescriptor->setBufferIndex(m_uiNonVertexBufferCount + i);
+          pAttributeDescriptor->setBufferIndex(m_ResourceLayouts.GetCount() + i);
           pAttributeDescriptor->setFormat(spToMTL(elementDesc.m_eFormat));
           pAttributeDescriptor->setOffset(elementDesc.m_uiOffset != 0 ? elementDesc.m_uiOffset : offset);
           offset += spPixelFormatHelper::GetSizeInBytes(elementDesc.m_eFormat);

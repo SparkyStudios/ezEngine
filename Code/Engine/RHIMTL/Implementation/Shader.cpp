@@ -184,6 +184,11 @@ namespace RHI
     if (m_Description.m_bOwnBuffer)
       EZ_DEFAULT_DELETE_ARRAY(m_Description.m_Buffer);
 
+    for (auto& pair : m_ArgumentEncoders)
+      SP_RHI_MTL_RELEASE(pair.value);
+
+    m_ArgumentEncoders.Clear();
+
     SP_RHI_MTL_RELEASE(m_pMTLShaderFunction);
     SP_RHI_MTL_RELEASE(m_pMTLShaderLibrary);
 
@@ -275,6 +280,31 @@ namespace RHI
   spShaderMTL::~spShaderMTL()
   {
     m_pDevice->GetResourceManager()->ReleaseResource(this);
+  }
+
+  MTL::ArgumentEncoder* spShaderMTL::GetArgumentEncoder(ezUInt32 uiArgumentIndex)
+  {
+    if (const ezUInt32 uiIndex = m_ArgumentEncoders.Find(uiArgumentIndex); uiIndex != ezInvalidIndex)
+      return m_ArgumentEncoders.GetValue(uiIndex);
+
+    MTL::ArgumentEncoder* pArgumentEncoder = GetMTLShaderFunction()->newArgumentEncoder(uiArgumentIndex);
+    m_ArgumentEncoders[uiArgumentIndex] = pArgumentEncoder;
+
+    return pArgumentEncoder;
+  }
+
+  ezSharedPtr<spBufferMTL> spShaderMTL::CreateArgumentBuffer(ezUInt32 uiArgumentIndex, const MTL::ArgumentEncoder* pArgumentEncoder) const
+  {
+    auto pBuffer = m_pDevice->GetResourceFactory()->CreateBuffer(spBufferDescription(pArgumentEncoder->encodedLength(), spBufferUsage::Staging)).Downcast<spBufferMTL>();
+    pBuffer->EnsureResourceCreated();
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+    ezStringBuilder sDebugName;
+    sDebugName.SetFormat("ArgumentBuffer_{0}", uiArgumentIndex);
+    pBuffer->SetDebugName(sDebugName);
+#endif
+
+    return pBuffer;
   }
 
 #pragma endregion
