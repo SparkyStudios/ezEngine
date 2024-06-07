@@ -207,23 +207,21 @@ namespace RPI
 
     {
       RHI::spResourceLayoutDescription desc{};
+      desc.m_eShaderStage = RHI::spShaderStage::VertexShader;
 
       RHI::spResourceLayoutElementDescription perFrameBuffer{};
       perFrameBuffer.m_sName = ezMakeHashedString("Buffer_PerFrame");
       perFrameBuffer.m_eType = RHI::spShaderResourceType::ConstantBuffer;
-      perFrameBuffer.m_eShaderStage = RHI::spShaderStage::VertexShader | RHI::spShaderStage::PixelShader;
       perFrameBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
 
       RHI::spResourceLayoutElementDescription perViewBuffer{};
       perViewBuffer.m_sName = ezMakeHashedString("Buffer_PerView");
       perViewBuffer.m_eType = RHI::spShaderResourceType::ConstantBuffer;
-      perViewBuffer.m_eShaderStage = RHI::spShaderStage::VertexShader | RHI::spShaderStage::PixelShader;
       perViewBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
 
       RHI::spResourceLayoutElementDescription perInstanceBuffer{};
       perInstanceBuffer.m_sName = ezMakeHashedString("Buffer_PerInstance");
       perInstanceBuffer.m_eType = RHI::spShaderResourceType::ReadOnlyStructuredBuffer;
-      perInstanceBuffer.m_eShaderStage = RHI::spShaderStage::VertexShader;
       perInstanceBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
 
       desc.m_Elements.PushBack(perFrameBuffer);

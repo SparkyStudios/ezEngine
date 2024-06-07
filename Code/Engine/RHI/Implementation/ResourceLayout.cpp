@@ -9,6 +9,15 @@ namespace RHI
   EZ_END_DYNAMIC_REFLECTED_TYPE;
   // clang-format on
 
+  ezUInt32 spResourceLayout::GetElementIndex(const ezHashedString& sName) const
+  {
+    for (ezUInt32 i = 0, l = m_Description.m_Elements.GetCount(); i < l; ++i)
+      if (m_Description.m_Elements[i].m_sName == sName)
+        return i;
+
+    return ezInvalidIndex;
+  }
+
   spResourceLayout::spResourceLayout(spResourceLayoutDescription description)
     : m_Description(std::move(description))
   {

@@ -20,6 +20,7 @@ namespace RHI
   class spTextureViewMTL;
   class spSwapchainMTL;
   class spScopeProfilerMTL;
+  class spShaderProgramMTL;
 
   class SP_RHIMTL_DLL spCommandListMTL final : public spCommandList
   {
@@ -99,6 +100,10 @@ namespace RHI
       }
     };
 
+    static bool IsResourceSetEqual(spCommandListResourceSet& set, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets);
+    EZ_NODISCARD EZ_ALWAYS_INLINE static bool GetResourceSetKey(ezUInt32 uiSet, spShaderStage::Enum eStage) { return ezHashingUtils::CombineHashValues32(uiSet, eStage); }
+    EZ_NODISCARD EZ_ALWAYS_INLINE static bool GetResourceSetSlotKey(ezUInt32 uiSet, spShaderStage::Enum eStage, ezUInt32 uiSlot) { return ezHashingUtils::CombineHashValues32(ezHashingUtils::CombineHashValues32(uiSet, eStage), uiSlot); }
+
     bool PreDraw();
     void PreDispatch();
 
@@ -120,6 +125,11 @@ namespace RHI
     void FlushViewports();
     void FlushScissorRects();
 
+    void ClearBoundResources();
+
+    void EnsureArgumentBuffer(ezUInt32 uiSlot, ezSharedPtr<spShaderProgramMTL> pProgram, ezEnum<spShaderStage> eStage);
+    void BindArgumentBuffer(ezUInt32 uiSlot, ezEnum<spShaderStage> eStage);
+
     void ActivateGraphicResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet);
     void ActivateComputeResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet);
     void ActivateResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet);
@@ -127,10 +137,6 @@ namespace RHI
     void BindBuffer(ezSharedPtr<spBufferRangeMTL> pBuffer, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages);
     void BindTexture(ezSharedPtr<spTextureViewMTL> pTextureView, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages);
     void BindSampler(ezSharedPtr<spSamplerMTL> pSampler, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages);
-
-    ezUInt32 GetBufferBase(ezUInt32 uiSet, bool bIsGraphics) const;
-    ezUInt32 GetTextureBase(ezUInt32 uiSet, bool bIsGraphics) const;
-    ezUInt32 GetSamplerBase(ezUInt32 uiSet, bool bIsGraphics) const;
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool IsRenderCommandEncoderActive() const { return m_pRenderCommandEncoder != nullptr; }
     EZ_NODISCARD EZ_ALWAYS_INLINE bool IsBlitCommandEncoderActive() const { return m_pBlitCommandEncoder != nullptr; }
@@ -166,6 +172,9 @@ namespace RHI
     // --- Cached Pipeline State ---
 
     ezArrayMap<ezUInt32, BoundResource> m_BoundResources;
+
+    ezArrayMap<ezUInt32, MTL::ArgumentEncoder*> m_ArgumentEncoders;
+    ezArrayMap<ezUInt32, ezSharedPtr<spBufferMTL>> m_ArgumentBuffers;
 
     ezSharedPtr<spBufferMTL> m_pIndexBuffer{nullptr};
     ezUInt32 m_uiIndexBufferOffset{0};

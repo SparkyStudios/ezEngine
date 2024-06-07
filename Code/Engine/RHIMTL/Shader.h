@@ -84,11 +84,16 @@ namespace RHI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE bool HasFunctionConstants() const { return m_bHasFunctionConstants; }
 
+    EZ_NODISCARD MTL::ArgumentEncoder* GetArgumentEncoder(ezUInt32 uiArgumentIndex);
+    EZ_NODISCARD ezSharedPtr<spBufferMTL> CreateArgumentBuffer(ezUInt32 uiArgumentIndex, const MTL::ArgumentEncoder* pArgumentEncoder) const;
+
   private:
     MTL::Device* m_pMTLDevice{nullptr};
 
     MTL::Library* m_pMTLShaderLibrary{nullptr};
     MTL::Function* m_pMTLShaderFunction{nullptr};
+
+    ezArrayMap<ezUInt32, MTL::ArgumentEncoder*> m_ArgumentEncoders;
 
     bool m_bHasFunctionConstants{false};
   };

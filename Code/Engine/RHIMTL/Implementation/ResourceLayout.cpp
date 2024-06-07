@@ -75,7 +75,7 @@ namespace RHI
       }
 
       m_Bindings[i].m_uiSlot = uiSlot;
-      m_Bindings[i].m_eShaderStage = elements[i].m_eShaderStage;
+      m_Bindings[i].m_eShaderStage = description.m_eShaderStage;
       m_Bindings[i].m_eResourceType = elements[i].m_eType;
       m_Bindings[i].m_bDynamicBuffer = elements[i].m_eOptions.IsSet(spResourceLayoutElementOptions::DynamicBinding);
     }

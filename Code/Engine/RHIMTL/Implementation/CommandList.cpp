@@ -9,6 +9,7 @@
 #include <RHIMTL/ResourceLayout.h>
 #include <RHIMTL/ResourceSet.h>
 #include <RHIMTL/Sampler.h>
+#include <RHIMTL/Shader.h>
 #include <RHIMTL/Swapchain.h>
 #include <RHIMTL/Texture.h>
 
@@ -29,7 +30,8 @@ namespace RHI
     if (IsReleased())
       return;
 
-    EnsureNoRenderPass();
+    End();
+    Reset();
 
     {
       EZ_LOCK(m_SubmittedCommandsLock);
@@ -236,8 +238,7 @@ namespace RHI
   void spCommandListMTL::Reset()
   {
     ClearCachedState();
-
-    m_BoundResources.Clear();
+    ClearBoundResources();
   }
 
   void spCommandListMTL::ClearColorTargetInternal(ezUInt32 uiIndex, ezColor clearColor)
@@ -404,22 +405,26 @@ namespace RHI
   {
     spCommandListResourceSet& set = m_ComputeResourceSets[uiSlot];
 
-    if (set.m_hResourceSet == pResourceSet->GetHandle() && ezMemoryUtils::IsEqual(set.m_Offsets.GetPtr(), pDynamicOffsets, uiDynamicOffsetCount))
+    if (IsResourceSetEqual(set, pResourceSet, uiDynamicOffsetCount, pDynamicOffsets))
       return;
 
     set = spCommandListResourceSet(pResourceSet->GetHandle(), uiDynamicOffsetCount, pDynamicOffsets);
     m_ActiveComputeResourceSets[uiSlot] = false;
+
+    ClearBoundResources();
   }
 
   void spCommandListMTL::SetGraphicResourceSetInternal(ezUInt32 uiSlot, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets)
   {
     spCommandListResourceSet& set = m_GraphicResourceSets[uiSlot];
 
-    if (set.m_hResourceSet == pResourceSet->GetHandle() && ((set.m_Offsets.GetPtr() == pDynamicOffsets && set.m_Offsets.GetCount() == uiDynamicOffsetCount) || ezMemoryUtils::IsEqual(set.m_Offsets.GetPtr(), pDynamicOffsets, uiDynamicOffsetCount)))
+    if (IsResourceSetEqual(set, pResourceSet, uiDynamicOffsetCount, pDynamicOffsets))
       return;
 
     set = spCommandListResourceSet(pResourceSet->GetHandle(), uiDynamicOffsetCount, pDynamicOffsets);
     m_ActiveGraphicResourceSets[uiSlot] = false;
+
+    ClearBoundResources();
   }
 
   void spCommandListMTL::SetVertexBufferInternal(ezUInt32 uiSlot, ezSharedPtr<spBuffer> pVertexBuffer, ezUInt32 uiOffset)
@@ -796,6 +801,11 @@ namespace RHI
     }
   }
 
+  bool spCommandListMTL::IsResourceSetEqual(spCommandListResourceSet& set, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets)
+  {
+    return set.m_hResourceSet == pResourceSet->GetHandle() && ((set.m_Offsets.GetPtr() == pDynamicOffsets && set.m_Offsets.GetCount() == uiDynamicOffsetCount) || ezMemoryUtils::IsEqual(set.m_Offsets.GetPtr(), pDynamicOffsets, uiDynamicOffsetCount));
+  }
+
   bool spCommandListMTL::PreDraw()
   {
     if (!EnsureRenderPass())
@@ -854,7 +864,7 @@ namespace RHI
       m_pRenderCommandEncoder->setVertexBuffer(
         m_VertexBuffers[i]->GetMTLBuffer(),
         m_VertexOffsets[i],
-        pGraphicPipelineMTL->GetNonVertexBufferCount() + i);
+        m_GraphicResourceSets.GetCount() + i);
 
       m_ActiveVertexBuffers[i] = true;
     }
@@ -887,9 +897,7 @@ namespace RHI
     const auto pComputePipelineMTL = m_pComputePipeline.Downcast<spComputePipelineMTL>();
 
     if (m_bComputePipelineChanged)
-    {
       m_pComputeCommandEncoder->setComputePipelineState(pComputePipelineMTL->GetPipelineState());
-    }
 
     for (uint i = 0, l = pComputePipelineMTL->GetResourceLayouts().GetCount(); i < l; i++)
     {
@@ -898,6 +906,17 @@ namespace RHI
 
       ActivateComputeResourceSet(i, m_ComputeResourceSets[i]);
       m_ActiveComputeResourceSets[i] = true;
+    }
+
+    if (m_pComputePipeline->SupportsPushConstants() && m_PushConstant.m_pData != nullptr)
+    {
+      if (m_PushConstant.m_eStage.IsSet(spShaderStage::ComputeShader))
+      {
+        m_pComputeCommandEncoder->setBytes(
+          static_cast<const ezUInt8*>(m_PushConstant.m_pData) + m_PushConstant.m_uiOffset,
+          m_PushConstant.m_uiSize,
+          0);
+      }
     }
   }
 
@@ -1110,16 +1129,128 @@ namespace RHI
     }
   }
 
+  void spCommandListMTL::ClearBoundResources()
+  {
+    m_BoundResources.Clear();
+    m_ArgumentEncoders.Clear();
+    m_ArgumentBuffers.Clear();
+  }
+
+  void spCommandListMTL::EnsureArgumentBuffer(ezUInt32 uiSlot, ezSharedPtr<spShaderProgramMTL> pProgram, ezEnum<spShaderStage> eStage)
+  {
+    const ezUInt32 uiKey = GetResourceSetKey(uiSlot, eStage);
+
+    ezSharedPtr<spShaderMTL> pShader;
+
+    if (eStage == spShaderStage::VertexShader)
+      pShader = pProgram->GetVertexShader();
+    else if (eStage == spShaderStage::PixelShader)
+      pShader = pProgram->GetPixelShader();
+    else if (eStage == spShaderStage::ComputeShader)
+      pShader->EnsureResourceCreated();
+
+    bool bShouldSet = false;
+
+    MTL::ArgumentEncoder* pArgumentEncoder = nullptr;
+    if (const ezUInt32 uiIndex = m_ArgumentEncoders.Find(uiKey); uiIndex == ezInvalidIndex)
+    {
+      pArgumentEncoder = pShader->GetArgumentEncoder(uiSlot);
+      m_ArgumentEncoders[uiKey] = pArgumentEncoder;
+
+      bShouldSet = true;
+    }
+
+    ezSharedPtr<spBufferMTL> pArgumentBuffer = nullptr;
+    if (const ezUInt32 uiIndex = m_ArgumentBuffers.Find(uiKey); uiIndex == ezInvalidIndex)
+    {
+      pArgumentBuffer = pShader->CreateArgumentBuffer(uiSlot, pArgumentEncoder);
+      m_ArgumentBuffers[uiKey] = pArgumentBuffer;
+
+      bShouldSet = true;
+    }
+
+    if (bShouldSet)
+    {
+      pArgumentBuffer->EnsureResourceCreated();
+      pArgumentEncoder->setArgumentBuffer(pArgumentBuffer->GetMTLBuffer(), 0);
+    }
+  }
+
+  void spCommandListMTL::BindArgumentBuffer(ezUInt32 uiSlot, ezEnum<spShaderStage> eStage)
+  {
+    const ezUInt32 uiKey = GetResourceSetKey(uiSlot, eStage);
+    const ezUInt32 uiIndex = m_ArgumentBuffers.Find(uiKey);
+
+    if (uiIndex == ezInvalidIndex)
+      return;
+
+    const auto pArgumentBuffer = m_ArgumentBuffers.GetValue(uiIndex);
+    const BoundResource resource{pArgumentBuffer->GetHandle(), uiSlot, 0, eStage};
+
+    if (m_BoundResources[uiKey] == resource)
+      return;
+
+    m_BoundResources[uiKey] = resource;
+
+    if (eStage == spShaderStage::VertexShader)
+      m_pRenderCommandEncoder->setVertexBuffer(pArgumentBuffer->GetMTLBuffer(), 0, uiSlot);
+    else if (eStage == spShaderStage::PixelShader)
+      m_pRenderCommandEncoder->setFragmentBuffer(pArgumentBuffer->GetMTLBuffer(), 0, uiSlot);
+    else if (eStage == spShaderStage::ComputeShader)
+      m_pComputeCommandEncoder->setBuffer(pArgumentBuffer->GetMTLBuffer(), 0, uiSlot);
+  }
+
   void spCommandListMTL::ActivateGraphicResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet)
   {
     EZ_ASSERT_DEV(IsRenderCommandEncoderActive(), "Invalid state. The render encoder is not active.");
-    ActivateResourceSet(uiSlot, resourceSet);
+
+    const auto pResourceSetMTL = m_pDevice->GetResourceManager()->GetResource<spResourceSetMTL>(resourceSet.m_hResourceSet);
+    const auto pResourceLayoutMTL = m_pDevice->GetResourceManager()->GetResource<spResourceLayoutMTL>(pResourceSetMTL->GetLayout());
+
+    const auto pProgram = m_pDevice->GetResourceManager()->GetResource<spShaderProgramMTL>(m_pGraphicPipeline->GetShaderProgram());
+    EZ_ASSERT_DEV(pProgram != nullptr, "Invalid shader program handle {0} in graphic pipeline", m_pGraphicPipeline->GetShaderProgram().GetInternalID().m_Data);
+
+    if (m_pGraphicPipeline->SupportsPushConstants())
+      uiSlot++;
+
+    const std::initializer_list<spShaderStage::Enum> stages = {spShaderStage::VertexShader, spShaderStage::PixelShader};
+
+    bool bShouldActivate = false;
+
+    for (const auto& stage : stages)
+    {
+      if (!pResourceLayoutMTL->GetShaderStages().IsSet(stage))
+        continue;
+
+      bShouldActivate = true;
+      EnsureArgumentBuffer(uiSlot, pProgram, stage);
+    }
+
+    if (bShouldActivate)
+    {
+      ActivateResourceSet(uiSlot, resourceSet);
+
+      for (const auto& stage : stages)
+        BindArgumentBuffer(uiSlot, stage);
+    }
   }
 
   void spCommandListMTL::ActivateComputeResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet)
   {
     EZ_ASSERT_DEV(IsComputeCommandEncoderActive(), "Invalid state. The compute encoder is not active.");
+
+    const auto pResourceSetMTL = m_pDevice->GetResourceManager()->GetResource<spResourceSetMTL>(resourceSet.m_hResourceSet);
+    const auto pResourceLayoutMTL = m_pDevice->GetResourceManager()->GetResource<spResourceLayoutMTL>(pResourceSetMTL->GetLayout());
+
+    const auto pProgram = m_pDevice->GetResourceManager()->GetResource<spShaderProgramMTL>(m_pGraphicPipeline->GetShaderProgram());
+    EZ_ASSERT_DEV(pProgram != nullptr, "Invalid shader program handle {0} in graphic pipeline", m_pGraphicPipeline->GetShaderProgram().GetInternalID().m_Data);
+
+    if (!pResourceLayoutMTL->GetShaderStages().IsSet(spShaderStage::ComputeShader))
+      return;
+
+    EnsureArgumentBuffer(uiSlot, pProgram, spShaderStage::ComputeShader);
     ActivateResourceSet(uiSlot, resourceSet);
+    BindArgumentBuffer(uiSlot, spShaderStage::ComputeShader);
   }
 
   void spCommandListMTL::ActivateResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet)
@@ -1191,87 +1322,68 @@ namespace RHI
     pBuffer->EnsureResourceCreated();
     const auto* pMTLBuffer = pBuffer->GetBuffer().Downcast<spBufferMTL>()->GetMTLBuffer();
 
-    const ezUInt32 uiBaseBuffer = GetBufferBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
-    const ezUInt32 uiIndex = uiSlot + uiBaseBuffer;
-
     if (eStages.IsSet(spShaderStage::ComputeShader))
     {
-      const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::ComputeShader);
-      const BoundResource resource{pBuffer->GetBuffer()->GetHandle(), uiIndex, pBuffer->GetOffset(), spShaderStage::ComputeShader};
+      MTL::ArgumentEncoder* pArgumentEncoder = m_ArgumentEncoders[GetResourceSetKey(uiSet, spShaderStage::ComputeShader)];
+      EZ_ASSERT_DEV(pArgumentEncoder != nullptr, "Cannot bind buffer to compute kernel. The argument buffer encoder is invalid.");
 
-      if (m_BoundResources[uiKey] == resource)
-        return;
-
-      m_BoundResources[uiKey] = resource;
-      m_pComputeCommandEncoder->setBuffer(pMTLBuffer, pBuffer->GetOffset(), uiIndex);
+      pArgumentEncoder->setBuffer(pMTLBuffer, pBuffer->GetOffset(), uiSlot);
+      m_pComputeCommandEncoder->useResource(pMTLBuffer, spToMTL(pBuffer->GetBuffer()->GetUsage()));
     }
     else
     {
-      const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::VertexShader);
-      const BoundResource resource{pBuffer->GetBuffer()->GetHandle(), uiIndex, pBuffer->GetOffset(), spShaderStage::VertexShader};
+      if (eStages.IsSet(spShaderStage::VertexShader))
+      {
+        MTL::ArgumentEncoder* pArgumentEncoder = m_ArgumentEncoders[GetResourceSetKey(uiSet, spShaderStage::VertexShader)];
+        EZ_ASSERT_DEV(pArgumentEncoder != nullptr, "Cannot bind buffer to vertex kernel. The argument buffer encoder is invalid.");
 
-      if (m_BoundResources[uiKey] == resource)
-        return;
+        pArgumentEncoder->setBuffer(pMTLBuffer, pBuffer->GetOffset(), uiSlot);
+        m_pRenderCommandEncoder->useResource(pMTLBuffer, spToMTL(pBuffer->GetBuffer()->GetUsage()), MTL::RenderStageVertex);
+      }
 
-      m_BoundResources[uiKey] = resource;
-      m_pRenderCommandEncoder->setVertexBuffer(pMTLBuffer, pBuffer->GetOffset(), uiIndex);
-    }
+      if (eStages.IsSet(spShaderStage::PixelShader))
+      {
+        MTL::ArgumentEncoder* pArgumentEncoder = m_ArgumentEncoders[GetResourceSetKey(uiSet, spShaderStage::PixelShader)];
+        EZ_ASSERT_DEV(pArgumentEncoder != nullptr, "Cannot bind buffer to fragment kernel. The argument buffer encoder is invalid.");
 
-    if (eStages.IsSet(spShaderStage::PixelShader))
-    {
-      const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::PixelShader);
-      const BoundResource resource{pBuffer->GetBuffer()->GetHandle(), uiIndex, pBuffer->GetOffset(), spShaderStage::PixelShader};
-
-      if (m_BoundResources[uiKey] == resource)
-        return;
-
-      m_BoundResources[uiKey] = resource;
-      m_pRenderCommandEncoder->setFragmentBuffer(pMTLBuffer, pBuffer->GetOffset(), uiIndex);
+        pArgumentEncoder->setBuffer(pMTLBuffer, pBuffer->GetOffset(), uiSlot);
+        m_pRenderCommandEncoder->useResource(pMTLBuffer, spToMTL(pBuffer->GetBuffer()->GetUsage()), MTL::RenderStageFragment);
+      }
     }
   }
 
   void spCommandListMTL::BindTexture(ezSharedPtr<spTextureViewMTL> pTextureView, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages)
   {
     pTextureView->EnsureResourceCreated();
-
-    const ezUInt32 uiBaseTexture = GetTextureBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
-    const ezUInt32 uiIndex = uiSlot + uiBaseTexture;
+    const auto pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureMTL>(pTextureView->GetTexture());
+    const MTL::Texture* pMTLTexture = pTextureView->GetMTLTargetTexture();
 
     if (eStages.IsSet(spShaderStage::ComputeShader))
     {
-      const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::ComputeShader);
-      const BoundResource resource{pTextureView->GetTexture(), uiIndex, 0, spShaderStage::ComputeShader};
+      MTL::ArgumentEncoder* pArgumentEncoder = m_ArgumentEncoders[GetResourceSetKey(uiSet, spShaderStage::ComputeShader)];
+      EZ_ASSERT_DEV(pArgumentEncoder != nullptr, "Cannot bind texture to compute kernel. The argument buffer encoder is invalid.");
 
-      if (m_BoundResources[uiKey] == resource)
-        return;
-
-      m_BoundResources[uiKey] = resource;
-      m_pComputeCommandEncoder->setTexture(pTextureView->GetMTLTargetTexture(), uiIndex);
+      pArgumentEncoder->setTexture(pMTLTexture, uiSlot);
+      m_pComputeCommandEncoder->useResource(pMTLTexture, spToMTLResourceUsage(pTexture->GetUsage()));
     }
     else
     {
       if (eStages.IsSet(spShaderStage::VertexShader))
       {
-        const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::VertexShader);
-        const BoundResource resource{pTextureView->GetTexture(), uiIndex, 0, spShaderStage::VertexShader};
+        MTL::ArgumentEncoder* pArgumentEncoder = m_ArgumentEncoders[GetResourceSetKey(uiSet, spShaderStage::VertexShader)];
+        EZ_ASSERT_DEV(pArgumentEncoder != nullptr, "Cannot bind texture to vertex kernel. The argument buffer encoder is invalid.");
 
-        if (m_BoundResources[uiKey] == resource)
-          return;
-
-        m_BoundResources[uiKey] = resource;
-        m_pRenderCommandEncoder->setVertexTexture(pTextureView->GetMTLTargetTexture(), uiIndex);
+        pArgumentEncoder->setTexture(pMTLTexture, uiSlot);
+        m_pRenderCommandEncoder->useResource(pMTLTexture, spToMTLResourceUsage(pTexture->GetUsage()));
       }
 
       if (eStages.IsSet(spShaderStage::PixelShader))
       {
-        const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::PixelShader);
-        const BoundResource resource{pTextureView->GetTexture(), uiIndex, 0, spShaderStage::PixelShader};
+        MTL::ArgumentEncoder* pArgumentEncoder = m_ArgumentEncoders[GetResourceSetKey(uiSet, spShaderStage::PixelShader)];
+        EZ_ASSERT_DEV(pArgumentEncoder != nullptr, "Cannot bind texture to fragment kernel. The argument buffer encoder is invalid.");
 
-        if (m_BoundResources[uiKey] == resource)
-          return;
-
-        m_BoundResources[uiKey] = resource;
-        m_pRenderCommandEncoder->setFragmentTexture(pTextureView->GetMTLTargetTexture(), uiIndex);
+        pArgumentEncoder->setTexture(pMTLTexture, uiSlot);
+        m_pRenderCommandEncoder->useResource(pMTLTexture, spToMTLResourceUsage(pTexture->GetUsage()));
       }
     }
   }
@@ -1279,92 +1391,33 @@ namespace RHI
   void spCommandListMTL::BindSampler(ezSharedPtr<spSamplerMTL> pSampler, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages)
   {
     pSampler->EnsureResourceCreated();
-
-    const ezUInt32 uiBaseSampler = GetSamplerBase(uiSet, !eStages.IsSet(spShaderStage::ComputeShader));
-    const ezUInt32 uiIndex = uiSlot + uiBaseSampler;
+    const MTL::SamplerState* pMTLSamplerState = pSampler->GetSamplerState()->GetMTLSamplerState();
 
     if (eStages.IsSet(spShaderStage::ComputeShader))
     {
-      const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::ComputeShader);
-      const BoundResource resource{pSampler->GetHandle(), uiIndex, 0, spShaderStage::ComputeShader};
+      MTL::ArgumentEncoder* pArgumentEncoder = m_ArgumentEncoders[GetResourceSetKey(uiSet, spShaderStage::ComputeShader)];
+      EZ_ASSERT_DEV(pArgumentEncoder != nullptr, "Cannot bind sampler state to compute kernel. The argument buffer encoder is invalid.");
 
-      if (m_BoundResources[uiKey] == resource)
-        return;
-
-      m_BoundResources[uiKey] = resource;
-      m_pComputeCommandEncoder->setSamplerState(pSampler->GetSamplerState()->GetMTLSamplerState(), uiIndex);
+      pArgumentEncoder->setSamplerState(pMTLSamplerState, uiSlot);
     }
     else
     {
       if (eStages.IsSet(spShaderStage::VertexShader))
       {
-        const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::VertexShader);
-        const BoundResource resource{pSampler->GetHandle(), uiIndex, 0, spShaderStage::VertexShader};
+        MTL::ArgumentEncoder* pArgumentEncoder = m_ArgumentEncoders[GetResourceSetKey(uiSet, spShaderStage::VertexShader)];
+        EZ_ASSERT_DEV(pArgumentEncoder != nullptr, "Cannot bind sampler state to vertex kernel. The argument buffer encoder is invalid.");
 
-        if (m_BoundResources[uiKey] == resource)
-          return;
-
-        m_BoundResources[uiKey] = resource;
-        m_pRenderCommandEncoder->setVertexSamplerState(pSampler->GetSamplerState()->GetMTLSamplerState(), uiIndex);
+        pArgumentEncoder->setSamplerState(pMTLSamplerState, uiSlot);
       }
 
       if (eStages.IsSet(spShaderStage::PixelShader))
       {
-        const ezUInt32 uiKey = ezHashingUtils::CombineHashValues32(uiIndex, spShaderStage::PixelShader);
-        const BoundResource resource{pSampler->GetHandle(), uiIndex, 0, spShaderStage::PixelShader};
+        MTL::ArgumentEncoder* pArgumentEncoder = m_ArgumentEncoders[GetResourceSetKey(uiSet, spShaderStage::PixelShader)];
+        EZ_ASSERT_DEV(pArgumentEncoder != nullptr, "Cannot bind sampler state to fragment kernel. The argument buffer encoder is invalid.");
 
-        if (m_BoundResources[uiKey] == resource)
-          return;
-
-        m_BoundResources[uiKey] = resource;
-        m_pRenderCommandEncoder->setFragmentSamplerState(pSampler->GetSamplerState()->GetMTLSamplerState(), uiIndex);
+        pArgumentEncoder->setSamplerState(pMTLSamplerState, uiSlot);
       }
     }
-  }
-
-  ezUInt32 spCommandListMTL::GetBufferBase(ezUInt32 uiSet, bool bIsGraphics) const
-  {
-    auto layouts = bIsGraphics ? m_pGraphicPipeline->GetResourceLayouts() : m_pComputePipeline->GetResourceLayouts();
-
-    const bool bSupportsPushConstants = bIsGraphics ? m_pGraphicPipeline->SupportsPushConstants() : m_pComputePipeline->SupportsPushConstants();
-
-    ezUInt32 uiBase = bSupportsPushConstants ? 1 : 0;
-
-    for (int i = 0; i < uiSet; i++)
-    {
-      EZ_ASSERT_DEV(layouts[i] != nullptr, "Invalid resource layout.");
-      uiBase += layouts[i].Downcast<spResourceLayoutMTL>()->GetBufferCount();
-    }
-
-    return uiBase;
-  }
-
-  ezUInt32 spCommandListMTL::GetTextureBase(ezUInt32 uiSet, bool bIsGraphics) const
-  {
-    auto layouts = bIsGraphics ? m_pGraphicPipeline->GetResourceLayouts() : m_pComputePipeline->GetResourceLayouts();
-
-    ezUInt32 uiBase = 0;
-    for (int i = 0; i < uiSet; i++)
-    {
-      EZ_ASSERT_DEV(layouts[i] != nullptr, "Invalid resource layout.");
-      uiBase += layouts[i].Downcast<spResourceLayoutMTL>()->GetTextureCount();
-    }
-
-    return uiBase;
-  }
-
-  ezUInt32 spCommandListMTL::GetSamplerBase(ezUInt32 uiSet, bool bIsGraphics) const
-  {
-    auto layouts = bIsGraphics ? m_pGraphicPipeline->GetResourceLayouts() : m_pComputePipeline->GetResourceLayouts();
-
-    ezUInt32 uiBase = 0;
-    for (int i = 0; i < uiSet; i++)
-    {
-      EZ_ASSERT_DEV(layouts[i] != nullptr, "Invalid resource layout.");
-      uiBase += layouts[i].Downcast<spResourceLayoutMTL>()->GetSamplerCount();
-    }
-
-    return uiBase;
   }
 
   ezSharedPtr<spBufferMTL> spCommandListMTL::GetFreeStagingBuffer(ezUInt32 uiSize)

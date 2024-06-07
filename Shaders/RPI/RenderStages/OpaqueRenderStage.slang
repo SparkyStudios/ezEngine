@@ -24,23 +24,31 @@
 #include <Common.slang>
 #include <Materials.slang>
 
-ConstantBuffer<PerFrameBuffer> Buffer_PerFrame;
+struct Params
+{
+  ConstantBuffer<PerFrameBuffer> Buffer_PerFrame;
+  ConstantBuffer<PerViewBuffer> Buffer_PerView;
+  StructuredBuffer<PerInstanceData> Buffer_PerInstance;
+  // StructuredBuffer<MaterialData> Buffer_PerMaterial;
+}
 
-ConstantBuffer<PerViewBuffer> Buffer_PerView;
-
-readonly StructuredBuffer<PerInstanceData> Buffer_PerInstance;
+ParameterBlock<Params> g_Params;
 
 /// Gets the instance data for the given instance ID.
 /// \param instanceID The ID of the instance.
 /// \return The instance data.
-func GetInstanceData(instanceID: uint) -> PerInstanceData { return Buffer_PerInstance[instanceID]; }
+func GetInstanceData(instanceID: uint) -> PerInstanceData { return g_Params.Buffer_PerInstance[instanceID]; }
+
+/// Returns the material instance for the current rendering object.
+/// \param materialID The ID of the material to get.
+// func GetMaterial(in materialID: uint) -> MaterialData { return Buffer_PerMaterial[materialID]; }
 
 [shader("vertex")]
 TransientStream VSMain(InputStream input, uint instanceID : SV_InstanceID, uint vertexID : SV_VertexID)
 {
   return ProcessWorldSpace(
     input,
-    Buffer_PerView,
+    g_Params.Buffer_PerView,
     GetInstanceData(instanceID),
     instanceID,
     false, // TODO: Check how to get this value on Metal
