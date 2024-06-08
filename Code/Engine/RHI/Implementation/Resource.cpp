@@ -294,7 +294,7 @@ namespace RHI
       uiOffset);
   }
 
-  ezSharedPtr<spBufferRange> spResourceHelper::GetBufferRange(const spDevice* pDevice, spShaderResource* pResource, ezUInt32 uiOffset)
+  ezSharedPtr<spBufferRange> spResourceHelper::GetBufferRange(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource, ezUInt32 uiOffset)
   {
     if (pResource == nullptr)
       return nullptr;
@@ -305,6 +305,9 @@ namespace RHI
       pSource = pBufferRange;
     else if (const auto* pBuffer = ezDynamicCast<spBuffer*>(pResource); pBuffer != nullptr)
       pSource = pBuffer->GetCurrentRange();
+
+    if (pSource == nullptr)
+      return nullptr;
 
     return pDevice->GetResourceFactory()->CreateBufferRange(spBufferRangeDescription(pSource->GetBuffer()->GetHandle(), pSource->GetOffset() + uiOffset, pSource->GetSize()));
   }

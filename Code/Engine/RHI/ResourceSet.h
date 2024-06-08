@@ -16,7 +16,7 @@ namespace RHI
 
     /// \brief An array of \a spShaderResource objects.
     /// The number and type of resources must match those specified in the \a spResourceLayout resource.
-    ezArrayMap<ezHashedString, spResourceHandle> m_BoundResources;
+    ezArrayMap<ezTempHashedString, spResourceHandle> m_BoundResources;
   };
 
   class SP_RHI_DLL spResourceSet : public spDeviceResource
@@ -27,8 +27,9 @@ namespace RHI
 
   public:
     EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetLayout() const { return m_Description.m_hResourceLayout; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezArrayMap<ezHashedString, spResourceHandle>& GetBoundResources() const { return m_Description.m_BoundResources; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetResource(ezUInt32 uiIndex) const { return m_Description.m_BoundResources.GetValue(uiIndex); }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezArrayMap<ezTempHashedString, spResourceHandle>& GetBoundResources() const { return m_Description.m_BoundResources; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetBoundResource(ezUInt32 uiIndex) const { return m_Description.m_BoundResources.GetValue(uiIndex); }
+    EZ_NODISCARD spResourceHandle GetBoundResource(const ezTempHashedString& sName) const;
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceSetDescription& GetDescription() const { return m_Description; }
 

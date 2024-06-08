@@ -30,6 +30,7 @@ namespace RHI
 
   public:
     static ezSharedPtr<spTextureMTL> FromNative(spDeviceMTL* pDevice, MTL::Texture* pNative, spTextureDescription& out_Description);
+    static MTL::TextureDescriptor* GetTextureDescriptor(MTL::Texture* pTexture);
 
     spTextureMTL(spDeviceMTL* pDevice, const spTextureDescription& description);
     ~spTextureMTL() override;

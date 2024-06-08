@@ -558,7 +558,7 @@ namespace RHI
   {
   public:
     static ezSharedPtr<spBufferRange> GetBufferRange(const spDevice* pDevice, spResourceHandle hResource, ezUInt32 uiOffset);
-    static ezSharedPtr<spBufferRange> GetBufferRange(const spDevice* pDevice, spShaderResource* pResource, ezUInt32 uiOffset);
+    static ezSharedPtr<spBufferRange> GetBufferRange(const spDevice* pDevice, ezSharedPtr<spShaderResource> pResource, ezUInt32 uiOffset);
   };
 } // namespace RHI
 

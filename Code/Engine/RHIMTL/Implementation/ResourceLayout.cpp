@@ -50,23 +50,23 @@ namespace RHI
 
     for (ezUInt32 i = 0, l = m_Bindings.GetCount(); i < l; ++i)
     {
-      ezUInt32 uiSlot = 0;
+      ezUInt32 uiResourceSlot = 0;
 
       switch (elements[i].m_eType)
       {
         case spShaderResourceType::ConstantBuffer:
         case spShaderResourceType::ReadOnlyStructuredBuffer:
         case spShaderResourceType::ReadWriteStructuredBuffer:
-          uiSlot = uiBufferIndex++;
+          uiResourceSlot = uiBufferIndex++;
           break;
 
         case spShaderResourceType::ReadOnlyTexture:
         case spShaderResourceType::ReadWriteTexture:
-          uiSlot = uiTextureIndex++;
+          uiResourceSlot = uiTextureIndex++;
           break;
 
         case spShaderResourceType::Sampler:
-          uiSlot = uiSamplerIndex++;
+          uiResourceSlot = uiSamplerIndex++;
           break;
 
         default:
@@ -74,7 +74,8 @@ namespace RHI
           break;
       }
 
-      m_Bindings[i].m_uiSlot = uiSlot;
+      m_Bindings[i].m_uiSlot = i;
+      m_Bindings[i].m_uiResourceSlot = uiResourceSlot;
       m_Bindings[i].m_eShaderStage = description.m_eShaderStage;
       m_Bindings[i].m_eResourceType = elements[i].m_eType;
       m_Bindings[i].m_bDynamicBuffer = elements[i].m_eOptions.IsSet(spResourceLayoutElementOptions::DynamicBinding);

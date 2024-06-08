@@ -44,7 +44,7 @@ namespace RHI
       auto pResource = pDevice->GetResourceManager()->GetResource<spShaderResource>(hResource.value);
       EZ_ASSERT_DEV(pResource != nullptr, "Unable to find a resource for the resource set.");
 
-      m_Resources.Insert(hResource.key, pResource);
+      m_Resources[hResource.key] = pResource;
     }
   }
 

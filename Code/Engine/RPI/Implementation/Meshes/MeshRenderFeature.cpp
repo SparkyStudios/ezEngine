@@ -169,14 +169,15 @@ namespace RPI
   {
     m_hShader = ezResourceManager::LoadResource<RAI::spShaderResource>(":shaders/RPI/RenderStages/OpaqueRenderStage.slang");
 
-    auto* pDevice = spRenderSystem::GetSingleton()->GetDevice();
+    const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<spRenderSystem>()->GetDevice();
+    auto* pShaderManager = ezSingletonRegistry::GetRequiredSingletonInstance<spShaderManager>();
 
     {
       spShaderCompilerSetup setup;
       setup.m_eStage = RHI::spShaderStage::VertexShader;
       setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
 
-      m_pVertexShader = spShaderManager::GetSingleton()->CompileShader(m_hShader, setup);
+      m_pVertexShader = pShaderManager->CompileShader(m_hShader, setup);
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
       m_pVertexShader->SetDebugName("MeshRenderFeature_VertexShader");
@@ -188,7 +189,7 @@ namespace RPI
       setup.m_eStage = RHI::spShaderStage::PixelShader;
       setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
 
-      m_pPixelShader = spShaderManager::GetSingleton()->CompileShader(m_hShader, setup);
+      m_pPixelShader = pShaderManager->CompileShader(m_hShader, setup);
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
       m_pPixelShader->SetDebugName("MeshRenderFeature_PixelShader");
