@@ -49,13 +49,22 @@ struct MaterialData
   float SubsurfaceScattering;
   private uint Flags;
 
-  float Sheen;
-  float3 SheenTint;
+  float4 SheenTint_Sheen;
 
   float Anisotropic;
   float AnisotropicRotation;
   float Clearcoat;
   float ClearcoatRoughness;
+
+  property Sheen: float
+  {
+    get { return SheenTint_Sheen.w; }
+  }
+
+  property SheenTint: float3
+  {
+    get { return SheenTint_Sheen.xyz; }
+  }
 
   property HasTextureAlbedo: bool
   {
@@ -69,6 +78,3 @@ struct MaterialData
 
   // TODO: Other flags
 }
-
-[[vk_binding(4, 0)]]
-readonly StructuredBuffer<MaterialData> Buffer_Materials : register(b4, space0);
