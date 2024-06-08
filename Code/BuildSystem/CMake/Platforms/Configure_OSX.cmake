@@ -4,6 +4,7 @@ message(STATUS "Configuring Platform: OSX")
 
 set_property(GLOBAL PROPERTY EZ_CMAKE_PLATFORM_OSX ON)
 set_property(GLOBAL PROPERTY EZ_CMAKE_PLATFORM_POSIX ON)
+set_property(GLOBAL PROPERTY EZ_CMAKE_PLATFORM_SUPPORTS_VULKAN ON)
 
 macro(ez_platform_pull_properties)
 
