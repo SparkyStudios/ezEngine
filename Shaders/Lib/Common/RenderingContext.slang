@@ -35,14 +35,11 @@ struct PerFrameBuffer
 
 struct PerViewBuffer
 {
-  float3 Position;
-  float NearClipPlane;
+  float4 Position_NearClipPlane;
 
-  float3 PreviousPosition;
-  float FarClipPlane;
+  float4 PreviousPosition_FarClipPlane;
 
-  float3 Direction;
-  float ShutterSpeed;
+  float4 Direction_ShutterSpeed;
 
   float Exposure;
   float Aperture;
@@ -57,6 +54,36 @@ struct PerViewBuffer
 
   matrix ViewProjectionMatrix;
   matrix InverseViewProjectionMatrix;
+
+  property Position: float3
+  {
+    get { return Position_NearClipPlane.xyz; }
+  }
+
+  property NearClipPlane: float
+  {
+    get { return Position_NearClipPlane.w; }
+  }
+
+  property PreviousPosition: float3
+  {
+    get { return PreviousPosition_FarClipPlane.xyz; }
+  }
+
+  property FarClipPlane: float
+  {
+    get { return PreviousPosition_FarClipPlane.w; }
+  }
+
+  property Direction: float3
+  {
+    get { return Direction_ShutterSpeed.xyz; }
+  }
+
+  property ShutterSpeed: float
+  {
+    get { return Direction_ShutterSpeed.w; }
+  }
 }
 
 /// 128-bit push constant buffer

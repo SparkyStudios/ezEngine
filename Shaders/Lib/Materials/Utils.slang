@@ -14,20 +14,12 @@
 
 #pragma once
 
+#include <Common/Constants.slang>
+
 #include <Materials/AngularInfo.slang>
 #include <Materials/IMaterial.slang>
 #include <Materials/Streams.slang>
 #include <Materials/Surface.slang>
-
-extern static bool o_FlipWinding = false;
-extern static bool o_TwoSided = false;
-
-/// Returns the material instance for the current rendering object.
-/// \param materialID The ID of the material to get.
-func GetMaterial(in materialID: uint) -> MaterialData
-{
-  return Buffer_Materials[materialID];
-}
 
 /// Generates a surface for the given vertex from the given material data.
 /// \param material The material used to generate the surface.
