@@ -1,25 +1,34 @@
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #pragma once
 
-#include <RHIMTL/RHIMTLDLL.h>
+#include <RHIVK/RHIVKDLL.h>
 
 #include <RHI/Device.h>
 
-#include <RHIMTL/Core.h>
-
 namespace RHI
 {
-  class spDeviceResourceManagerMTL;
-  class spDeviceResourceFactoryMTL;
-  class spTextureSamplerManagerMTL;
-  class spSwapchainMTL;
-  class spBufferMTL;
-  class spFenceMTL;
-  class spShaderMTL;
-  class spCommandListMTL;
-
-  class SP_RHIMTL_DLL spDeviceMTL final : public spDevice
+  struct SP_RHIVK_DLL spDeviceDescriptionVK final : public spDeviceDescription
   {
-    EZ_DECLARE_SINGLETON_OF_INTERFACE(spDeviceMTL, spDevice);
+    ezDynamicArray<ezStringView> m_InstanceExtensions;
+    ezDynamicArray<ezStringView> m_DeviceExtensions;
+  };
+
+  class SP_RHIVK_DLL spDeviceVK final : public spDevice
+  {
+    EZ_DECLARE_SINGLETON_OF_INTERFACE(spDeviceVK, spDevice);
 
     // spDevice
 
@@ -60,49 +69,32 @@ namespace RHI
     void UnMapInternal(ezSharedPtr<spTexture> pTexture, ezUInt32 uiSubresource) override;
     void UpdateBufferInternal(ezSharedPtr<spBuffer> pBuffer, ezUInt32 uiOffset, const void* pData, ezUInt32 uiSize) override;
 
-    // spDeviceMTL
+    // spDeviceVK
 
   public:
-    spDeviceMTL(ezAllocator* pAllocator, const spDeviceDescription& deviceDescription);
-    ~spDeviceMTL() override;
-
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Device* GetMTLDevice() const { return m_pMTLDevice; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spMTLSupportedFeatureSet& GetSupportedFeatures() const { return m_SupportedFeatures; }
-
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::CommandQueue* GetCommandQueue() const { return m_pCommandQueue; }
-
-    MTL::ComputePipelineState* GetUnalignedBufferCopyComputePipelineState();
+    spDeviceVK(ezAllocator* pAllocator, const spDeviceDescriptionVK& description);
+    ~spDeviceVK() override;
 
   private:
-    void OnCommandBufferCompleted(MTL::CommandBuffer* pCommandBuffer);
+    EZ_NODISCARD bool HasSurfaceExtension(ezStringView sExtensionName) const;
+    void EnableDebugCallback(vk::DebugReportFlagsEXT flags = vk::DebugReportFlagsEXT(vk::DebugReportFlagBitsEXT::eWarning | vk::DebugReportFlagBitsEXT::eError)) const;
 
-    MTL::Device* m_pMTLDevice{nullptr};
-
-    spDeviceResourceFactoryMTL* m_pResourceFactory{nullptr};
-    spTextureSamplerManagerMTL* m_pTextureSamplerManager{nullptr};
-
-    ezSharedPtr<spSwapchainMTL> m_pMainSwapchain{nullptr};
-
-    MTL::CommandQueue* m_pCommandQueue{nullptr};
-    MTL::HandlerFunction m_CompletionHandler{nullptr};
+    void CreateInstance(const spDeviceDescriptionVK& description);
+    void CreatePhysicalDevice();
 
     bool m_bIsDebugEnabled{false};
-    ezArrayMap<ezUInt8, bool> m_SupportedSampleCounts;
+    vk::DebugReportCallbackEXT* m_pDebugCallback{nullptr};
 
-    spMTLSupportedFeatureSet m_SupportedFeatures;
+    ezSet<ezStringView> m_SurfaceExtensions;
+    bool m_bStandardValidationLayerAvailable{false};
+    bool m_bKhronosValidationLayerAvailable{false};
 
-    ezSharedPtr<spShaderMTL> m_pUnalignedBufferCopyShader{nullptr};
-    MTL::ComputePipelineState* m_pUnalignedBufferCopyPipelineState{nullptr};
-    ezMutex m_UnalignedBufferCopyPipelineStateMutex;
+    vk::Instance m_Instance{nullptr};
+    vk::PhysicalDevice m_PhysicalDevice{nullptr};
+    vk::PhysicalDeviceProperties m_PhysicalDeviceProperties{};
+    vk::PhysicalDeviceFeatures m_PhysicalDeviceFeatures{};
+    vk::PhysicalDeviceMemoryProperties m_PhysicalDeviceMemoryProperties{};
 
-    MTL::CommandBuffer* m_pLastSubmittedCommandBuffer{nullptr};
-
-    ezMutex m_SubmittedCommandsMutex;
-    ezMap<MTL::CommandBuffer*, ezSharedPtr<spCommandListMTL>> m_SubmittedCommands;
-
-    ezMutex m_MappedResourcesMutex;
-    ezMap<spMappedResourceCacheKey, spMappedResource> m_MappedResourcesCache;
+    PFN_vkGetPhysicalDeviceProperties2 m_vkGetPhysicalDeviceProperties2{nullptr};
   };
 } // namespace RHI
-
-EZ_DECLARE_REFLECTABLE_TYPE(SP_RHIMTL_DLL, RHI::spDeviceMTL);

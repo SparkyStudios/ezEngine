@@ -14,26 +14,13 @@
 
 #pragma once
 
-#include <Foundation/Basics.h>
+#include <RHIVK/RHIVKDLL.h>
 
-#include <RHI/RHIDLL.h>
+namespace RHI
+{
+  static SP_RHIVK_DLL ezSet<ezStringView> EnumerateInstanceLayers();
 
-#include <vk_mem_alloc.h>
-#include <vulkan/vulkan.hpp>
+  static SP_RHIVK_DLL ezSet<ezStringView> GetInstanceExtensions();
 
-// Configure the DLL Import/Export Define
-#if EZ_ENABLED(EZ_COMPILE_ENGINE_AS_DLL)
-#  ifdef BUILDSYSTEM_BUILDING_RHIVK_LIB
-#    define SP_RHIVK_DLL EZ_DECL_EXPORT
-#  else
-#    define SP_RHIVK_DLL EZ_DECL_IMPORT
-#  endif
-#else
-#  define SP_RHIVK_DLL
-#endif
-
-#define SP_RHI_VK_CHECK_RESULT_RETURN(_result_, _value_) \
-  if ((_result_) != vk::Result::eSuccess)                \
-    return _value_;
-
-#define SP_RHI_VK_CHECK_RESULT(_result_) EZ_ASSERT_DEV((_result_) == vk::Result::eSuccess, "Operation failed")
+  static SP_RHIVK_DLL bool IsVulkanLoaded();
+} // namespace RHI
