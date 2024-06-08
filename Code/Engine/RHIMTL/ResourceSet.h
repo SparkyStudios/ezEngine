@@ -15,21 +15,22 @@ namespace RHI
 
     EZ_ADD_DYNAMIC_REFLECTION(spResourceSetMTL, spResourceSet);
 
-  public:
     // spDeviceResource
 
+  public:
     void ReleaseResource() override;
     bool IsReleased() const override;
 
     // spResourceSetMTL
 
+  public:
     spResourceSetMTL(spDeviceMTL* pDevice, const spResourceSetDescription& description);
     ~spResourceSetMTL() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezArrayMap<ezHashedString, ezSharedPtr<spShaderResource>>& GetResources() const { return m_Resources; }
+    EZ_NODISCARD EZ_ALWAYS_INLINE const ezArrayMap<ezTempHashedString, ezSharedPtr<spShaderResource>>& GetResources() const { return m_Resources; }
 
   private:
     ezSharedPtr<spResourceLayoutMTL> m_pLayout{nullptr};
-    ezArrayMap<ezHashedString, ezSharedPtr<spShaderResource>> m_Resources;
+    ezArrayMap<ezTempHashedString, ezSharedPtr<spShaderResource>> m_Resources;
   };
-}
+} // namespace RHI

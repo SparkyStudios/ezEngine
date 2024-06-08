@@ -25,6 +25,7 @@ namespace RHI
     struct BindingInfo
     {
       ezUInt32 m_uiSlot{0};
+      ezUInt32 m_uiResourceSlot{0};
       ezBitflags<spShaderStage> m_eShaderStage;
       ezEnum<spShaderResourceType> m_eResourceType;
       bool m_bDynamicBuffer{false};

@@ -1231,7 +1231,12 @@ namespace RHI
       ActivateResourceSet(uiSlot, resourceSet);
 
       for (const auto& stage : stages)
+      {
+        if (!pResourceLayoutMTL->GetShaderStages().IsSet(stage))
+          continue;
+
         BindArgumentBuffer(uiSlot, stage);
+      }
     }
   }
 
@@ -1260,10 +1265,12 @@ namespace RHI
 
     ezUInt32 uiDynamicOffsetIndex = 0;
 
-    for (ezUInt32 i = 0, l = pResourceSetMTL->GetResources().GetCount(); i < l; i++)
+    const auto& elements = pResourceLayoutMTL->GetElements();
+    for (ezUInt32 i = 0, l = elements.GetCount(); i < l; i++)
     {
-      const auto bindingInfo = pResourceLayoutMTL->GetBinding(i);
-      const auto hResource = pResourceSetMTL->GetResource(i);
+      const auto& sName = elements[i].m_sName;
+      const auto& bindingInfo = pResourceLayoutMTL->GetBinding(i);
+      const auto& hResource = pResourceSetMTL->GetBoundResource(sName);
 
       ezUInt32 uiBufferOffset = 0;
       if (bindingInfo.m_bDynamicBuffer)
@@ -1275,41 +1282,29 @@ namespace RHI
       switch (bindingInfo.m_eResourceType)
       {
         case spShaderResourceType::ConstantBuffer:
-        {
-          const auto pRange = spResourceHelper::GetBufferRange(m_pDevice, hResource, uiBufferOffset).Downcast<spBufferRangeMTL>();
-          BindBuffer(pRange, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
-          break;
-        }
-        case spShaderResourceType::ReadOnlyTexture:
-        {
-          const auto pTexView = spTextureSamplerManager::GetTextureView(m_pDevice, hResource).Downcast<spTextureViewMTL>();
-          BindTexture(pTexView, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
-          break;
-        }
-        case spShaderResourceType::ReadWriteTexture:
-        {
-          const auto pTexViewRW = spTextureSamplerManager::GetTextureView(m_pDevice, hResource).Downcast<spTextureViewMTL>();
-          BindTexture(pTexViewRW, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
-          break;
-        }
-        case spShaderResourceType::Sampler:
-        {
-          const auto pSampler = m_pDevice->GetResourceManager()->GetResource<spSamplerMTL>(hResource);
-          BindSampler(pSampler, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
-          break;
-        }
         case spShaderResourceType::ReadOnlyStructuredBuffer:
-        {
-          const auto pRange = spResourceHelper::GetBufferRange(m_pDevice, hResource, uiBufferOffset).Downcast<spBufferRangeMTL>();
-          BindBuffer(pRange, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
-          break;
-        }
         case spShaderResourceType::ReadWriteStructuredBuffer:
         {
           const auto pRange = spResourceHelper::GetBufferRange(m_pDevice, hResource, uiBufferOffset).Downcast<spBufferRangeMTL>();
           BindBuffer(pRange, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
           break;
         }
+
+        case spShaderResourceType::ReadWriteTexture:
+        case spShaderResourceType::ReadOnlyTexture:
+        {
+          const auto pTexView = spTextureSamplerManager::GetTextureView(m_pDevice, hResource).Downcast<spTextureViewMTL>();
+          BindTexture(pTexView, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
+          break;
+        }
+
+        case spShaderResourceType::Sampler:
+        {
+          const auto pSampler = m_pDevice->GetResourceManager()->GetResource<spSamplerMTL>(hResource);
+          BindSampler(pSampler, uiSlot, bindingInfo.m_uiSlot, bindingInfo.m_eShaderStage);
+          break;
+        }
+
         default:
           EZ_ASSERT_NOT_IMPLEMENTED;
           break;

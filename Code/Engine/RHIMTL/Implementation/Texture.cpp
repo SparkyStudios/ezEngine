@@ -121,6 +121,29 @@ namespace RHI
     return pResult;
   }
 
+  MTL::TextureDescriptor* spTextureMTL::GetTextureDescriptor(MTL::Texture* pTexture)
+  {
+    MTL::TextureDescriptor* pDescriptor = MTL::TextureDescriptor::alloc()->init();
+
+    pDescriptor->setWidth(pTexture->width());
+    pDescriptor->setHeight(pTexture->height());
+    pDescriptor->setDepth(pTexture->depth());
+    pDescriptor->setMipmapLevelCount(pTexture->mipmapLevelCount());
+    pDescriptor->setArrayLength(pTexture->arrayLength());
+    pDescriptor->setPixelFormat(pTexture->pixelFormat());
+    pDescriptor->setSampleCount(pTexture->sampleCount());
+    pDescriptor->setTextureType(pTexture->textureType());
+    pDescriptor->setUsage(pTexture->usage());
+    pDescriptor->setStorageMode(pTexture->storageMode());
+    pDescriptor->setCompressionType(pTexture->compressionType());
+    pDescriptor->setResourceOptions(pTexture->resourceOptions());
+    pDescriptor->setCpuCacheMode(pTexture->cpuCacheMode());
+    pDescriptor->setHazardTrackingMode(pTexture->hazardTrackingMode());
+    pDescriptor->setAllowGPUOptimizedContents(pTexture->allowGPUOptimizedContents());
+
+    return pDescriptor;
+  }
+
   spTextureMTL::spTextureMTL(spDeviceMTL* pDevice, const spTextureDescription& description)
     : spTexture(description)
   {
