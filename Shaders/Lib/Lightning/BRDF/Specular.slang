@@ -17,21 +17,23 @@
 #include <Common/Math/Colors.slang>
 #include <Common/Math/Utils.slang>
 
-#include <Lightning/BRDF/IBRDF.slang>
 #include <Lightning/BRDF/Distribution.slang>
 #include <Lightning/BRDF/Fresnel.slang>
+#include <Lightning/BRDF/IBRDF.slang>
 #include <Lightning/BRDF/Visibility.slang>
+
+#include <Materials/Utils.slang>
 
 struct SpecularIsotropic : IBRDF
 {
-  private float roughness;
+  private float  roughness;
   private float3 specular;
-  private float metalness;
+  private float  metalness;
 
   __init(Surface surface)
   {
     this.roughness = surface.Roughness;
-    this.specular = surface.Specular;
+    this.specular  = surface.Specular;
     this.metalness = surface.Metalness;
   }
 
@@ -53,18 +55,18 @@ struct SpecularIsotropic : IBRDF
 
 struct SpecularAnisotropic : IBRDF
 {
-  float roughness;
+  float  roughness;
   float3 specular;
-  float metalness;
-  float anisotropic;
-  float anisotropicRotation;
+  float  metalness;
+  float  anisotropic;
+  float  anisotropicRotation;
 
   __init(float anisotropic, float anisotropicRotation, float roughnessA, float3 specular, float metalness)
   {
-    this.roughness = roughnessA;
-    this.specular = specular;
-    this.metalness = metalness;
-    this.anisotropic = anisotropic;
+    this.roughness           = roughnessA;
+    this.specular            = specular;
+    this.metalness           = metalness;
+    this.anisotropic         = anisotropic;
     this.anisotropicRotation = anisotropicRotation;
   }
 
@@ -76,10 +78,10 @@ struct SpecularAnisotropic : IBRDF
     float3x3 TBN = float3x3(t, b, angularInfo.N);
 
     // Rotate tangent and bitagent
-    float rotation   = max(anisotropicRotation * PI2, FLT_MIN);           // convert material property to a full rotation
-    float2 direction = float2(cos(rotation), sin(rotation));              // convert rotation to direction
-    t                = normalize(mul(float3(direction, 0.0f), TBN).xyz);  // compute direction derived tangent
-    b                = normalize(cross(angularInfo.N, t));                // re-compute bitangent
+    float  rotation  = max(anisotropicRotation * PI2, FLT_MIN);          // convert material property to a full rotation
+    float2 direction = float2(cos(rotation), sin(rotation));             // convert rotation to direction
+    t                = normalize(mul(float3(direction, 0.0f), TBN).xyz); // compute direction derived tangent
+    b                = normalize(cross(angularInfo.N, t));               // re-compute bitangent
 
     float alpha_ggx = roughness;
     float aspect    = sqrt(1.0 - anisotropic * 0.9);
@@ -89,10 +91,10 @@ struct SpecularAnisotropic : IBRDF
     float YdotH     = dot(b, angularInfo.H);
 
     // specular anisotropic BRDF
-    float D   = D_GGX_Anisotropic(angularInfo.NoH, ax, ay, XdotH, YdotH);
-    float V   = V_GGX_anisotropic_2cos(angularInfo.NoV, ax, ay, XdotH, YdotH) * V_GGX_anisotropic_2cos(angularInfo.NoV, ax, ay, XdotH, YdotH);
-    float f90 = saturate(dot(specular, 50.0 * GetLuminance(specular)));
-    float3 F  = F_Schlick(specular, f90, angularInfo.LoH);
+    float  D   = D_GGX_Anisotropic(angularInfo.NoH, ax, ay, XdotH, YdotH);
+    float  V   = V_GGX_anisotropic_2cos(angularInfo.NoV, ax, ay, XdotH, YdotH) * V_GGX_anisotropic_2cos(angularInfo.NoV, ax, ay, XdotH, YdotH);
+    float  f90 = saturate(dot(specular, 50.0 * GetLuminance(specular)));
+    float3 F   = F_Schlick(specular, f90, angularInfo.LoH);
 
     surface.kD *= ComputeDiffuseEnergy(F, metalness);
     surface.kS *= F;
@@ -119,8 +121,8 @@ struct SpecularClearCoat : IBRDF
     float a2 = max(roughness * roughness, 0.0005);
     float a4 = a2 * a2;
 
-    float D  = D_GGX(a4, angularInfo.NoH);
-    float V  = V_Kelemen(angularInfo.VoH);
+    float  D = D_GGX(a4, angularInfo.NoH);
+    float  V = V_Kelemen(angularInfo.VoH);
     float3 F = F_Schlick(0.04, 1.0, angularInfo.VoH) * clearcoat;
 
     surface.kD *= ComputeDiffuseEnergy(F, metalness);
@@ -132,29 +134,29 @@ struct SpecularClearCoat : IBRDF
 
 struct SpecularSheen : IBRDF
 {
-  float factor;
-  float roughness;
-  float sheen;
+  float  factor;
+  float  roughness;
+  float  sheen;
   float3 specular;
-  float metalness;
+  float  metalness;
 
   __init(float sheen, float sheenTintFactor, float roughness, float metalness, float3 specular)
   {
-    this.sheen = sheen;
-    this.factor = sheenTintFactor;
+    this.sheen     = sheen;
+    this.factor    = sheenTintFactor;
     this.roughness = roughness;
     this.metalness = metalness;
-    this.specular = specular;
+    this.specular  = specular;
   }
 
   float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     // Mix between white and using base color for sheen reflection
-    float tint = factor * factor;
-    float3 f0  = lerp(1.0f, specular, tint);
+    float  tint = factor * factor;
+    float3 f0   = lerp(1.0f, specular, tint);
 
-    float D  = D_Charlie(roughness, angularInfo.NoH);
-    float V  = V_Neubelt(angularInfo.NoV, angularInfo.NoL);
+    float  D = D_Charlie(roughness, angularInfo.NoH);
+    float  V = V_Neubelt(angularInfo.NoV, angularInfo.NoL);
     float3 F = f0 * sheen;
 
     surface.kD *= ComputeDiffuseEnergy(F, metalness);

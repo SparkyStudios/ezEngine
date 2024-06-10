@@ -27,29 +27,26 @@ struct DiffuseLambert : IBRDF
     this.albedo = albedo;
   }
 
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo)
-  {
-    return albedo * INV_PI * angularInfo.NoL;
-  }
+  float3 evaluate(inout Surface surface, AngularInfo angularInfo) { return albedo * INV_PI * angularInfo.NoL; }
 }
 
 // [Burley 2012, "Physically-Based Shading at Disney"]
 struct DiffuseBurley : IBRDF
 {
   float3 albedo;
-  float roughness;
+  float  roughness;
 
   __init(float3 albedo, float linearRoughness)
   {
-    this.albedo = albedo;
+    this.albedo    = albedo;
     this.roughness = linearRoughness;
   }
 
   float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     float FD90 = 0.5 + 2 * angularInfo.VoH * angularInfo.VoH * roughness;
-    float FdV = 1 + (FD90 - 1) * pow(1 - angularInfo.NoV, 5);
-    float FdL = 1 + (FD90 - 1) * pow(1 - angularInfo.NoL, 5);
+    float FdV  = 1 + (FD90 - 1) * pow(1 - angularInfo.NoV, 5);
+    float FdL  = 1 + (FD90 - 1) * pow(1 - angularInfo.NoL, 5);
 
     return albedo * (INV_PI * FdV * FdL) * angularInfo.NoL;
   }
@@ -59,22 +56,22 @@ struct DiffuseBurley : IBRDF
 struct DiffuseOrenNayar : IBRDF
 {
   private float3 albedo;
-  private float roughness;
-  private float roughnessA;
+  private float  roughness;
+  private float  roughnessA;
 
   __init(Surface surface)
   {
-    this.albedo = surface.Albedo;
-    this.roughness = surface.LinearRoughness;
+    this.albedo     = surface.Diffuse;
+    this.roughness  = surface.LinearRoughness;
     this.roughnessA = surface.Roughness;
   }
 
   float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     float a     = roughnessA;
-    float s     = a;                    // ( 1.29 + 0.5 * a );
+    float s     = a;                                         // ( 1.29 + 0.5 * a );
     float s2    = s * s;
-    float VoL   = 2 * angularInfo.VoH * angularInfo.VoH - 1;    // double angle identity
+    float VoL   = 2 * angularInfo.VoH * angularInfo.VoH - 1; // double angle identity
     float Cosri = VoL - angularInfo.NoV * angularInfo.NoL;
     float C1    = 1 - 0.5 * s2 / (s2 + 0.33);
     float C2    = 0.45 * s2 / (s2 + 0.09) * Cosri * (Cosri >= 0 ? rcp(max(angularInfo.NoL, angularInfo.NoV + 0.0001f)) : 1);
@@ -88,11 +85,11 @@ struct DiffuseOrenNayar : IBRDF
 struct DiffuseFrostbite : IBRDF
 {
   float3 albedo;
-  float roughness;
+  float  roughness;
 
   __init(float3 albedo, float linearRoughness)
   {
-    this.albedo = albedo;
+    this.albedo    = albedo;
     this.roughness = linearRoughness;
   }
 
@@ -100,11 +97,11 @@ struct DiffuseFrostbite : IBRDF
   {
     const float3 f0 = float3(1.0, 1.0, 1.0);
 
-    float energyBias = lerp(0.0, 0.5, roughness);
+    float energyBias   = lerp(0.0, 0.5, roughness);
     float energyFactor = lerp(1.0, 1.0 / 1.51, roughness);
-    float fd90 = energyBias + 2.0 * angularInfo.VoH * angularInfo.VoH * roughness;
+    float fd90         = energyBias + 2.0 * angularInfo.VoH * angularInfo.VoH * roughness;
     float lightScatter = F_Schlick(f0, fd90, angularInfo.NoL).r;
-    float viewScatter = F_Schlick(f0, fd90, angularInfo.NoV).r;
+    float viewScatter  = F_Schlick(f0, fd90, angularInfo.NoV).r;
 
     return albedo * lightScatter * viewScatter * energyFactor * INV_PI * angularInfo.NoL;
   }
@@ -115,11 +112,11 @@ struct DiffuseFrostbite : IBRDF
 struct DiffuseTitanFall : IBRDF
 {
   float3 albedo;
-  float roughness;
+  float  roughness;
 
   __init(float3 albedo, float roughnessA)
   {
-    this.albedo = albedo;
+    this.albedo    = albedo;
     this.roughness = roughnessA;
   }
 
@@ -129,7 +126,7 @@ struct DiffuseTitanFall : IBRDF
 
     // Squared length of L + V <=> | L + V |^2
     float LplusV_LenSq = 2.0 + 2.0 * saturate(dot(angularInfo.V, angularInfo.L));
-    float NdotH = (angularInfo.NoL + angularInfo.NoV) * rsqrt(LplusV_LenSq);
+    float NdotH        = (angularInfo.NoL + angularInfo.NoV) * rsqrt(LplusV_LenSq);
 
     float facing = LplusV_LenSq * 0.25;
 

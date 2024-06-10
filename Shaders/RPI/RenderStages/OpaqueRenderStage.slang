@@ -12,55 +12,109 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <Core.slang>
-
-#define USE_WORLDPOS
-#define USE_VELOCITY
-#define USE_NORMAL
-#define USE_TANGENT
-#define USE_BITANGENT
-#define USE_TEXCOORD0
-
 #include <Common.slang>
 #include <Materials.slang>
 
 struct Params
 {
+  /// Buffer containing data updated per frames.
   ConstantBuffer<PerFrameBuffer> Buffer_PerFrame;
+
+  /// Buffer containing data updated per views.
   ConstantBuffer<PerViewBuffer> Buffer_PerView;
-  StructuredBuffer<PerInstanceData> Buffer_PerInstance;
-  // StructuredBuffer<MaterialData> Buffer_PerMaterial;
+
+  /// Buffer containing data per mesh instances.
+  StructuredBuffer<InstanceData> Buffer_PerInstance;
+
+  /// Buffer containing data per mesh materials.
+  StructuredBuffer<MaterialData> Buffer_PerMaterial;
 }
 
+/// Shader parameters provided by this render stage.
 ParameterBlock<Params> g_Params;
 
 /// Gets the instance data for the given instance ID.
 /// \param instanceID The ID of the instance.
 /// \return The instance data.
-func GetInstanceData(instanceID: uint) -> PerInstanceData { return g_Params.Buffer_PerInstance[instanceID]; }
+[ForceInline]
+InstanceData GetInstanceData(in uint instanceID) { return g_Params.Buffer_PerInstance[instanceID]; }
 
-/// Returns the material instance for the current rendering object.
-/// \param materialID The ID of the material to get.
-// func GetMaterial(in materialID: uint) -> MaterialData { return Buffer_PerMaterial[materialID]; }
+/// Gets the material data for the given material ID.
+/// \param materialID The ID of the material.
+/// \return The material data.
+[ForceInline]
+MaterialData GetMaterialData(in uint materialID) { return g_Params.Buffer_PerMaterial[materialID]; }
 
 [shader("vertex")]
-TransientStream VSMain(InputStream input, uint instanceID : SV_InstanceID, uint vertexID : SV_VertexID)
+TransientStream VSMain(InputStream input, uint instanceID: SV_InstanceID, uint vertexID: SV_VertexID)
 {
+  const InstanceData instance = GetInstanceData(instanceID);
+  const MaterialData material = GetMaterialData(instance.MaterialIndex);
+
   return ProcessWorldSpace(
     input,
     g_Params.Buffer_PerView,
-    GetInstanceData(instanceID),
+    instance,
+    material,
     instanceID,
     false, // TODO: Check how to get this value on Metal
   );
 }
 
 [shader("pixel")]
-float4 PSMain(TransientStream input) : SV_Target0
+float4 PSMain<T : IMaterial>(TransientStream input)
+  : SV_Target0
 {
+  /// Create the material shader instance
+  T shader = T.create();
+
   OutputStream output;
 
-  output.Albedo = float4(input.Normal.xyz, 1.0f);
+  InstanceData instance = GetInstanceData(input.InstanceID);
+  MaterialData material = GetMaterialData(instance.MaterialIndex);
 
-  return output.Albedo;
+  Surface surface = GenerateSurface(shader, input, material);
+
+#ifdef USE_WORLDPOS
+  if (surface.Opacity <= GetAlphaThreshold(input.WorldPosition, g_Params.Buffer_PerView.Position))
+    discard;
+#else
+  if (surface.Opacity <= o_DefaultAlphaThreshold)
+    discard;
+#endif
+
+#ifdef USE_VELOCITY
+  // Convert to ndc
+  float2 position         = (input.Position.xy / input.Position.w);
+  float2 previousPosition = (input.PreviousPosition.xy / input.PreviousPosition.w);
+
+  // Remove the ndc jitter
+  // position  -= g_Params.Buffer_PerFrame.taa_jitter_current;
+  // previousPosition -= g_Params.Buffer_PerFrame.taa_jitter_previous;
+
+  // G-Buffer Velocity output
+  output.Velocity = ndc2uv(position) - ndc2uv(previousPosition);
+#endif
+
+  // G-Buffer Diffuse output
+  output.Diffuse = float4(
+    surface.Diffuse + surface.Emissive,
+    GetLuminance(surface.Emissive)
+  );
+
+  // G-Buffer Normal output
+  output.Normal = float4(
+    surface.WorldNormal,
+    instance.MaterialIndex
+  );
+
+  // G-Buffer Material output
+  output.Material = float4(
+    surface.Metalness,
+    surface.Roughness,
+    surface.Occlusion,
+    surface.Cavity
+  );
+
+  return output.Diffuse;
 }

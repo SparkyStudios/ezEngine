@@ -26,7 +26,25 @@
 /// Checks if the specified feature is disabled
 #define SP_DISABLED(_MACRO_) _MACRO_ == SP_OFF
 
+/// The OpenGL RHI backend
+#define SP_RHI_OPENGL 0
+
+/// The OpenGLES RHI backend
+#define SP_RHI_OPENGLES 1
+
+/// The D3D11 RHI backend
+#define SP_RHI_D3D11 2
+
+/// The D3D12 RHI backend
+#define SP_RHI_D3D12 3
+
+/// The Vulkan RHI backend
+#define SP_RHI_VULKAN 4
+
+/// The Metal RHI backend
+#define SP_RHI_METAL 5
+
 // Disable vertex skinnig by default
 #ifndef SP_FEATURE_VERTEX_SKINNING
-#define SP_FEATURE_VERTEX_SKINNING SP_OFF
+#  define SP_FEATURE_VERTEX_SKINNING SP_OFF
 #endif

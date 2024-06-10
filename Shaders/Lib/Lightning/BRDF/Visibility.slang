@@ -36,10 +36,10 @@ inline float V_SmithJointApprox(float a, float NoV, float NoL)
 
 float V_GGX_anisotropic_2cos(float cos_theta_m, float alpha_x, float alpha_y, float cos_phi, float sin_phi)
 {
-  float cos2  = pow2(cos_theta_m);
-  float sin2  = (1.0 - cos2);
-  float s_x   = alpha_x * cos_phi;
-  float s_y   = alpha_y * sin_phi;
+  float cos2 = pow2(cos_theta_m);
+  float sin2 = (1.0 - cos2);
+  float s_x  = alpha_x * cos_phi;
+  float s_y  = alpha_y * sin_phi;
   return 1.0 / max(cos_theta_m + sqrt(cos2 + (s_x * s_x + s_y * s_y) * sin2), 0.001);
 }
 
@@ -51,7 +51,4 @@ float V_Kelemen(float NoH)
 }
 
 // Neubelt and Pettineo 2013, "Crafting a Next-gen Material Pipeline for The Order: 1886"
-float V_Neubelt(float NoV, float NoL)
-{
-  return saturate16(1.0 / (4.0 * (NoL + NoV - NoL * NoV)));
-}
+float V_Neubelt(float NoV, float NoL) { return saturate16(1.0 / (4.0 * (NoL + NoV - NoL * NoV))); }

@@ -14,9 +14,9 @@
 
 #pragma once
 
-#include <Lightning/BRDF/IBRDF.slang>
 #include <Lightning/BRDF/Diffuse.slang>
 #include <Lightning/BRDF/Distribution.slang>
 #include <Lightning/BRDF/Fresnel.slang>
+#include <Lightning/BRDF/IBRDF.slang>
 #include <Lightning/BRDF/Specular.slang>
 #include <Lightning/BRDF/Visibility.slang>

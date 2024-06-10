@@ -43,15 +43,15 @@ struct AngularInfo
 
   __init(Light light, Surface surface, float3 cameraPosition)
   {
-      N = normalize(surface.WorldNormal);
-      L = normalize(light.Position - surface.WorldPosition);
-      V = normalize(cameraPosition - surface.WorldPosition);
-      H = normalize(L + V);
+    N = normalize(surface.WorldNormal);
+    L = normalize(light.Position - surface.WorldPosition);
+    V = normalize(cameraPosition - surface.WorldPosition);
+    H = normalize(L + V);
 
-      NoL = saturate(dot(N, L));
-      NoV = saturate(dot(N, V));
-      NoH = saturate(dot(N, H));
-      LoH = saturate(dot(L, H));
-      VoH = saturate(dot(V, H));
+    NoL = saturate(dot(N, L));
+    NoV = saturate(dot(N, V));
+    NoH = saturate(dot(N, H));
+    LoH = saturate(dot(L, H));
+    VoH = saturate(dot(V, H));
   }
 }

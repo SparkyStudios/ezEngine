@@ -15,6 +15,7 @@
 #pragma once
 
 #include <Materials/MaterialData.slang>
+#include <Materials/Streams.slang>
 
 /// A material interface describing all the necessary methods used to generate
 /// surface data for a geometry.
@@ -22,48 +23,60 @@
 /// Its the responsibility of the material implementation to ensure valid data are returned.
 interface IMaterial
 {
+  /// Creates a new default instance of the material.
+  static This create();
+
   /// Gets the normal vector.
+  /// \param vertex The output of the vertex shader.
   /// \param data The geometry's material data.
   /// \return The surface's normal vector.
-  func GetNormal(in data: MaterialData) -> float3;
+  float3 GetNormal(in TransientStream vertex, in MaterialData data);
 
-  /// Gets the albedo color.
+  /// Gets the diffuse color.
+  /// \param vertex The output of the vertex shader.
   /// \param data The geometry's material data.
-  /// \return The surface's albedo color.
-  func GetAlbedoColor(in data: MaterialData) -> float3;
+  /// \return The surface's diffuse color.
+  float3 GetDiffuseColor(in TransientStream vertex, in MaterialData data);
 
   /// Gets the specular color.
+  /// \param vertex The output of the vertex shader.
   /// \param data The geometry's material data.
   /// \return The surface's specular color.
-  func GetSpecularColor(in data: MaterialData) -> float3;
+  float3 GetSpecularColor(in TransientStream vertex, in MaterialData data);
 
   /// Gets the emissive color.
+  /// \param vertex The output of the vertex shader.
   /// \param data The geometry's material data.
   /// \return The surface's emissive color.
-  func GetEmissiveColor(in data: MaterialData) -> float3;
+  float3 GetEmissiveColor(in TransientStream vertex, in MaterialData data);
 
   /// Gets the linear roughness.
+  /// \param vertex The output of the vertex shader.
   /// \param data The geometry's material data.
   /// \return The surface's linear roughness.
-  func GetLinearRoughness(in data: MaterialData) -> float;
+  float GetLinearRoughness(in TransientStream vertex, in MaterialData data);
 
   /// Gets the opacity.
+  /// \param vertex The output of the vertex shader.
   /// \param data The geometry's material data.
   /// \return The surface's opacity.
-  func GetOpacity(in data: MaterialData) -> float;
+  float GetOpacity(in TransientStream vertex, in MaterialData data);
 
   /// Gets the ambient occlusion.
+  /// \param vertex The output of the vertex shader.
   /// \param data The geometry's material data.
   /// \return The surface's ambient occlusion.
-  func GetOcclusion(in data: MaterialData) -> float;
+  float GetOcclusion(in TransientStream vertex, in MaterialData data);
 
   /// Gets the cavity factor.
+  /// \param vertex The output of the vertex shader.
   /// \param data The geometry's material data.
   /// \return The surface's cavity.
-  func GetCavity(in data: MaterialData) -> float;
+  float GetCavity(in TransientStream vertex, in MaterialData data);
 
   /// Get the metalness.
+  /// \param vertex The output of the vertex shader.
   /// \param data The geometry's material data.
   /// \return The surface's metalness.
-  func GetMetalness(in data: MaterialData) -> float;
+  float GetMetalness(in TransientStream vertex, in MaterialData data);
 }

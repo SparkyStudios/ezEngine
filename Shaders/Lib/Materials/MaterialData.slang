@@ -14,27 +14,32 @@
 
 #pragma once
 
-static constexpr uint kHasTextureAlbedoFlagShift = 0;
-static constexpr uint kHasTextureNormalFlagShift = 1;
-static constexpr uint kHasTextureMetalnessFlagShift = 2;
-static constexpr uint kHasTextureRoughnessFlagShift = 3;
-static constexpr uint kHasTextureOcclusionFlagShift = 4;
-static constexpr uint kHasTextureCavityFlagShift = 5;
-static constexpr uint kHasTextureORMCFlagShift = 6;
+static constexpr uint k_HasTextureAlbedoMask    = 0;
+static constexpr uint k_HasTextureNormalMask    = 1;
+static constexpr uint k_HasTextureMetalnessMask = 2;
+static constexpr uint k_HasTextureRoughnessMask = 3;
+static constexpr uint k_HasTextureOcclusionMask = 4;
+static constexpr uint k_HasTextureCavityMask    = 5;
+static constexpr uint k_HasTextureORMCMask      = 6;
+static constexpr uint k_HasTextureSpecularMask  = 7;
+static constexpr uint k_HasTextureEmissiveMask  = 8;
+static constexpr uint k_HasTextureAlphaMask     = 9;
 
-/// Checks wether the given feature (shift) is enabled in the given flag.
-/// \param flags The material flag.
-/// \param shift The feature shift in the flag.
-/// \return \c true if the feature is enabled, \c false otherwise.
-func CheckMaterialFlag(in flags: uint, in shift: uint) -> bool
-{
-  return (flags & uint(1U << shift)) == 1U;
-}
+/// The maximum value for reserved flag masks. You should use this value
+/// for your custom flags, by adding at least one.
+/// Example:
+///```slang
+/// static constexpr uint k_MyCustomMaterialMask1 = k_MaxReservedMateriaMask + 1;
+/// static constexpr uint k_MyCustomMaterialMask2 = k_MaxReservedMateriaMask + 2;
+/// ```
+static constexpr uint k_MaxReservedMateriaMask = 9;
 
 /// Describes a material for every object in the world.
 struct MaterialData
 {
-  float4 Color;
+  float4 AlbedoColor;
+  float4 SpecularColor;
+  float4 EmissiveColor;
 
   float2 UVTiling;
   float2 UVOffset;
@@ -44,9 +49,9 @@ struct MaterialData
   float NormalIntensity;
   float Height;
 
-  float WorldSpaceHeight;
-  float IOR;
-  float SubsurfaceScattering;
+  float        WorldSpaceHeight;
+  float        IOR;
+  float        SubsurfaceScattering;
   private uint Flags;
 
   float4 SheenTint_Sheen;
@@ -56,25 +61,78 @@ struct MaterialData
   float Clearcoat;
   float ClearcoatRoughness;
 
-  property Sheen: float
+  property DiffuseColor : float3
+  {
+    get {
+      return lerp(AlbedoColor.rgb, float3(0.0f), Metalness);
+    }
+  }
+
+  property Sheen : float
   {
     get { return SheenTint_Sheen.w; }
   }
 
-  property SheenTint: float3
+  property SheenTint : float3
   {
-    get { return SheenTint_Sheen.xyz; }
+    get {
+      return SheenTint_Sheen.xyz;
+    }
   }
 
-  property HasTextureAlbedo: bool
+  property HasTextureAlbedo : bool
   {
-    get { return CheckMaterialFlag(Flags, kHasTextureAlbedoFlagShift); }
+    get { return CheckFlag(k_HasTextureAlbedoMask); }
   }
 
-  property HasTextureNormal: bool
+  property HasTextureNormal : bool
   {
-    get { return CheckMaterialFlag(Flags, kHasTextureNormalFlagShift); }
+    get { return CheckFlag(k_HasTextureNormalMask); }
   }
 
-  // TODO: Other flags
+  property HasTextureMetalness : bool
+  {
+    get { return CheckFlag(k_HasTextureMetalnessMask); }
+  }
+
+  property HasTextureRoughness : bool
+  {
+    get { return CheckFlag(k_HasTextureRoughnessMask); }
+  }
+
+  property HasTextureCavity : bool
+  {
+    get { return CheckFlag(k_HasTextureCavityMask); }
+  }
+
+  property HasTextureOcclusion : bool
+  {
+    get { return CheckFlag(k_HasTextureOcclusionMask); }
+  }
+
+  property HasTextureORMC : bool
+  {
+    get { return CheckFlag(k_HasTextureORMCMask); }
+  }
+
+  property HasTextureSpecular : bool
+  {
+    get { return CheckFlag(k_HasTextureSpecularMask); }
+  }
+
+  property HasTextureEmissive : bool
+  {
+    get { return CheckFlag(k_HasTextureEmissiveMask); }
+  }
+
+  property HasTextureAlpha : bool
+  {
+    get { return CheckFlag(k_HasTextureAlphaMask); }
+  }
+
+  /// Checks wether the given feature (shift) is enabled in the given flag.
+  /// \param flags The material flag.
+  /// \param shift The feature shift in the flag.
+  /// \return \c true if the feature is enabled, \c false otherwise.
+  bool CheckFlag(uint shift) { return (Flags & uint(1U << shift)) == 1U; }
 }
