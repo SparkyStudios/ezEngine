@@ -19,7 +19,7 @@ struct PerFrameBuffer
   float GlobalTime;
   float CurrentTime;
   float DeltaTime;
-  uint Frame;
+  uint  Frame;
 
   float2 RenderSize;
   float2 InverseRenderSize;
@@ -27,8 +27,8 @@ struct PerFrameBuffer
   float2 ViewportSize;
   float2 InverseViewportSize;
 
-  uint Options;
-  bool HDREnabled;
+  uint  Options;
+  bool  HDREnabled;
   float HDRMaxNits;
   float HDRWhitePoint;
 }
@@ -55,32 +55,41 @@ struct PerViewBuffer
   matrix ViewProjectionMatrix;
   matrix InverseViewProjectionMatrix;
 
-  property Position: float3
+  matrix PreviousViewProjectionMatrix;
+  matrix PreviousInverseViewProjectionMatrix;
+
+  property Position : float3
   {
-    get { return Position_NearClipPlane.xyz; }
+    get {
+      return Position_NearClipPlane.xyz;
+    }
   }
 
-  property NearClipPlane: float
+  property NearClipPlane : float
   {
     get { return Position_NearClipPlane.w; }
   }
 
-  property PreviousPosition: float3
+  property PreviousPosition : float3
   {
-    get { return PreviousPosition_FarClipPlane.xyz; }
+    get {
+      return PreviousPosition_FarClipPlane.xyz;
+    }
   }
 
-  property FarClipPlane: float
+  property FarClipPlane : float
   {
     get { return PreviousPosition_FarClipPlane.w; }
   }
 
-  property Direction: float3
+  property Direction : float3
   {
-    get { return Direction_ShutterSpeed.xyz; }
+    get {
+      return Direction_ShutterSpeed.xyz;
+    }
   }
 
-  property ShutterSpeed: float
+  property ShutterSpeed : float
   {
     get { return Direction_ShutterSpeed.w; }
   }

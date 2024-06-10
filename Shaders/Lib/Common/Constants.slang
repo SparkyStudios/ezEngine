@@ -14,8 +14,8 @@
 
 #pragma once
 
-extern static const bool o_IsClipSpaceYInverted = false;
-extern static const bool o_ReverseDepthRange = false;
-
-extern static bool o_FlipWinding = false;
-extern static bool o_TwoSided = false;
+extern static const bool  o_IsClipSpaceYInverted  = false;
+extern static const bool  o_ReverseDepthRange     = false;
+extern static const bool  o_FlipWinding           = false;
+extern static const bool  o_TwoSided              = false;
+extern static const float o_DefaultAlphaThreshold = 0.6f;

@@ -17,7 +17,7 @@
 #include <Common/Constants.slang>
 #include <Common/RenderingContext.slang>
 
-func ClipToView(in inverseProjectionMatrix: matrix, in clip: float4) -> float4
+float4 ClipToView(in matrix inverseProjectionMatrix, in float4 clip)
 {
   // View space transform
   float4 view = mul(inverseProjectionMatrix, clip);
@@ -28,14 +28,13 @@ func ClipToView(in inverseProjectionMatrix: matrix, in clip: float4) -> float4
   return view;
 }
 
-func ScreenToView(in inverseProjectionMatrix: matrix, in screen: float4, in renderSize: float2) -> float4
+float4 ScreenToView(in matrix inverseProjectionMatrix, in float4 screen, in float2 renderSize)
 {
   // Convert to NDC
   float2 texCoord = screen.xy / renderSize.xy;
 
-  if (o_IsClipSpaceYInverted) {
+  if (o_IsClipSpaceYInverted)
     texCoord.y = 1.0f - texCoord.y;
-  }
 
   // Convert to clip space
   float4 clip = float4(texCoord.xy * 2.0f - 1.0f, screen.z, screen.w);

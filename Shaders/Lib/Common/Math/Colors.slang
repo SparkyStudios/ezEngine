@@ -22,11 +22,11 @@ extern static const float o_GammaHDR = 2.4f; // HDR monitors are more likely to 
 /// Unpacks an unsigned integer to an RGBA color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float4.
-func UnpackColor4(x: uint) -> float4
+float4 UnpackColor4(uint x)
 {
   float4 result;
   result.r = x & 0xFF;
-  result.g = (x >> 8)  & 0xFF;
+  result.g = (x >> 8) & 0xFF;
   result.b = (x >> 16) & 0xFF;
   result.a = (x >> 24) & 0xFF;
 
@@ -36,11 +36,11 @@ func UnpackColor4(x: uint) -> float4
 /// Unpacks an unsigned integer to a 8-bits RGB color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float3.
-func UnpackColor3_8Bits(x: uint) -> float3
+float3 UnpackColor3_8Bits(uint x)
 {
   float3 result;
   result.r = x & 0xFF;
-  result.g = (x >> 8)  & 0xFF;
+  result.g = (x >> 8) & 0xFF;
   result.b = (x >> 16) & 0xFF;
 
   return result / 255.0f;
@@ -49,7 +49,7 @@ func UnpackColor3_8Bits(x: uint) -> float3
 /// Unpacks an unsigned integer to a 10-bits RGB color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float3
-func UnpackColor3_10Bits(x: uint) -> float3
+float3 UnpackColor3_10Bits(uint x)
 {
   float3 result;
   result.r = x & 0x3FF;
@@ -62,7 +62,7 @@ func UnpackColor3_10Bits(x: uint) -> float3
 /// Unpacks an unsigned integer to a 16-bits RG color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float2.
-func UnpackColor2_16Bits(x: uint) -> float2
+float2 UnpackColor2_16Bits(uint x)
 {
   float2 result;
   result.r = f16tof32(x);
@@ -76,27 +76,21 @@ func UnpackColor2_16Bits(x: uint) -> float2
 /// \param rg The packed RG values.
 /// \param ba The packed BA values.
 /// \return The unpacked color as a \c float4.
-func UnpackColor4(rg: uint, ba: uint) -> float4
-{
-  return float4(UnpackColor2_16Bits(rg), UnpackColor2_16Bits(ba));
-}
+float4 UnpackColor4(uint rg, uint ba) { return float4(UnpackColor2_16Bits(rg), UnpackColor2_16Bits(ba)); }
 
 /// Gets the luminance of the given \a color
 /// \param color The color to get the luminance from.
 /// \return The color's luminance.
-func GetLuminance(color: float3) -> float
-{
-  return dot(color, float3(0.2126, 0.7152, 0.0722));
-}
+float GetLuminance(float3 color) { return dot(color, float3(0.2126, 0.7152, 0.0722)); }
 
 /// Converts the given \a color from sRGB color space
 /// to Linear color space.
 /// \param color The color to convert.
 /// \param hdrEnabled Whether HDR support is enabled.
 /// \return A new color in the Linear color space.
-func SrgbToLinear(color: float3, hdrEnabled: bool) -> float3
+float3 SrgbToLinear(float3 color, bool hdrEnabled)
 {
-  float gamma        = hdrEnabled ? o_GammaHDR : o_GammaSDR;
+  float  gamma       = hdrEnabled ? o_GammaHDR : o_GammaSDR;
   float3 linear_low  = color / 12.92;
   float3 linear_high = pow((color + 0.055) / 1.055, gamma);
   float3 is_high     = step(0.0404482362771082, color);
@@ -108,9 +102,9 @@ func SrgbToLinear(color: float3, hdrEnabled: bool) -> float3
 /// \param color The color to convert.
 /// \param hdrEnabled Whether HDR support is enabled.
 /// \return A new color in the sRGB color space.
-func LinearToSrgb(color: float3, hdrEnabled: bool) -> float3
+float3 LinearToSrgb(float3 color, bool hdrEnabled)
 {
-  float gamma      = hdrEnabled ? o_GammaHDR : o_GammaSDR;
+  float  gamma     = hdrEnabled ? o_GammaHDR : o_GammaSDR;
   float3 srgb_low  = color * 12.92;
   float3 srgb_high = 1.055 * pow(color, 1.0 / gamma) - 0.055;
   float3 is_high   = step(0.00313066844250063, color);
@@ -122,16 +116,16 @@ func LinearToSrgb(color: float3, hdrEnabled: bool) -> float3
 /// \param color The color to convert.
 /// \param whitePoint The HDR white point.
 /// \return A new color in the HDR10 color space.
-func LinearToHDR10(float3 color, float whitePoint) -> float3
+float3 LinearToHDR10(float3 color, float whitePoint)
 {
   // convert Rec.709 (similar to srgb) to Rec.2020 color space
   {
     static const float3x3 from709to2020 =
-    {
-      { 0.6274040f, 0.3292820f, 0.0433136f },
-      { 0.0690970f, 0.9195400f, 0.0113612f },
-      { 0.0163916f, 0.0880132f, 0.8955950f }
-    };
+      {
+        { 0.6274040f, 0.3292820f, 0.0433136f },
+        { 0.0690970f, 0.9195400f, 0.0113612f },
+        { 0.0163916f, 0.0880132f, 0.8955950f }
+      };
 
     color = mul(from709to2020, color);
   }
@@ -147,7 +141,7 @@ func LinearToHDR10(float3 color, float whitePoint) -> float3
     static const float c1 = 3424.0 / 4096.0;
     static const float c2 = 2413.0 / 4096.0 * 32;
     static const float c3 = 2392.0 / 4096.0 * 32;
-    float3 cp             = pow(abs(color), m1);
+    float3             cp = pow(abs(color), m1);
     color                 = pow((c1 + c2 * cp) / (1 + c3 * cp), m2);
   }
 

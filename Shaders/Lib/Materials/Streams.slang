@@ -26,25 +26,25 @@ struct InputStream
 #ifdef USE_TANGENT
   float4 Tangent : TANGENT;
 
-#ifdef USE_BITANGENT
+#  ifdef USE_BITANGENT
   float4 BiTangent : BITANGENT;
-#endif
+#  endif
 #endif
 
 #ifdef USE_TEXCOORD0
   float2 TexCoord0 : TEXCOORD0;
 
-#ifdef USE_TEXCOORD1
+#  ifdef USE_TEXCOORD1
   float2 TexCoord1 : TEXCOORD1;
-#endif
+#  endif
 #endif
 
 #ifdef USE_COLOR0
   float4 Color0 : COLOR0;
 
-#ifdef USE_COLOR1
+#  ifdef USE_COLOR1
   float4 Color1 : COLOR1;
-#endif
+#  endif
 #endif
 
 #ifdef USE_SKINNING
@@ -59,15 +59,15 @@ struct TransientStream
   float4 Position : SV_Position;
 
 #ifdef USE_VELOCITY
-  float3 PreviousPosition : PREVPOS;
+  float4 PreviousPosition : PREVPOS;
 #endif
 
 #ifdef USE_WORLDPOS
   float3 WorldPosition : WORLDPOS;
 
-#ifdef USE_VELOCITY
+#  ifdef USE_VELOCITY
   float3 PreviousWorldPosition : PREVWORLDPOS;
-#endif
+#  endif
 #endif
 
 #ifdef USE_NORMAL
@@ -82,28 +82,28 @@ struct TransientStream
 #ifdef USE_TEXCOORD0
   float2 TexCoord0 : TEXCOORD0;
 
-#ifdef USE_TEXCOORD1
+#  ifdef USE_TEXCOORD1
   float2 TexCoord1 : TEXCOORD1;
-#endif
+#  endif
 #endif
 
 #ifdef USE_COLOR0
   float4 Color0 : COLOR0;
 
-#ifdef USE_COLOR1
+#  ifdef USE_COLOR1
   float4 Color1 : COLOR1;
-#endif
+#  endif
 #endif
 
-  uint InstanceID  : InstanceID;
+  uint InstanceID : InstanceID;
   bool IsFrontFace : IsFrontFace;
 }
 
 /// G-Buffer output.
 struct OutputStream
 {
-  float4 Albedo   : SV_Target0;
-  float4 Normal   : SV_Target1;
+  float4 Diffuse : SV_Target0;
+  float4 Normal : SV_Target1;
   float4 Material : SV_Target2;
   float2 Velocity : SV_Target3;
 }

@@ -30,7 +30,7 @@ interface IShadingTechnique
   associatedtype DiffuseBRDF : IBRDF;
   associatedtype SpecularBRDF : IBRDF;
 
-  DiffuseBRDF prepareDiffuse(Surface surface, AngularInfo angularInfo);
+  DiffuseBRDF  prepareDiffuse(Surface surface, AngularInfo angularInfo);
   SpecularBRDF prepareSpecular(Surface surface, AngularInfo angularInfo);
 
   AccumulatedLight process(Surface surface, AngularInfo angularInfo);

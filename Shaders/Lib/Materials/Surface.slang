@@ -24,8 +24,8 @@
 /// surface for each fragment.
 struct Surface
 {
-  /// The albedo color.
-  float3 Albedo;
+  /// The diffuse color.
+  float3 Diffuse;
 
   /// The specular color.
   float3 Specular;
@@ -108,18 +108,21 @@ struct Surface
     kS = float3(1.0f);
     kD = float3(1.0f);
 
-    Albedo = material.Color.rgb;
+    Diffuse         = material.DiffuseColor;
     LinearRoughness = material.Roughness;
-    Metalness = material.Metalness;
+    Metalness       = material.Metalness;
 
-    Clearcoat = material.Clearcoat;
+    Roughness  = pow2(LinearRoughness);
+    Roughness2 = pow2(Roughness);
+
+    Clearcoat          = material.Clearcoat;
     ClearcoatRoughness = material.ClearcoatRoughness;
 
-    Anisotropic = material.Anisotropic;
+    Anisotropic         = material.Anisotropic;
     AnisotropicRotation = material.AnisotropicRotation;
 
     Sheen = material.Sheen;
 
-    Opacity = material.Color.a;
+    Opacity = material.AlbedoColor.a;
   }
 }
