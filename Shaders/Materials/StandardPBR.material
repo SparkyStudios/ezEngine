@@ -1,0 +1,230 @@
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include <Core.slang>
+
+#define USE_WORLDPOS
+#define USE_VELOCITY
+#define USE_NORMAL
+#define USE_TANGENT
+#define USE_BITANGENT
+#define USE_TEXCOORD0
+
+#if SP_ENABLED(SP_FEATURE_VERTEX_SKINNING)
+#  define USE_SKINNING
+#endif
+
+#include <Lightning.slang>
+#include <Materials.slang>
+
+// BEGIN_MATERIAL_DESCRIPTOR
+__ignored_block
+{
+  Name        = StandardPBRMaterial;
+  Description = "The standard PBR material";
+
+  Flags
+  {
+    HasTextureAlbedo    = isset(@AlbedoTexture);
+    HasTextureNormal    = isset(@NormalTexture);
+    HasTextureMetalness = isset(@MetalnessTexture);
+    HasTextureRoughness = isset(@RoughnessTexture);
+    HasTextureOcclusion = isset(@OcclusionTexture);
+    HasTextureORMC      = false;
+    HasTextureCavity    = false;
+    HasTextureSpecular  = isset(@SpecularTexture);
+    HasTextureEmissive  = isset(@EmissiveTexture);
+    HasTextureAlpha     = false;
+  }
+
+  Data
+  {
+    NormalIntensity = @NormalIntensity;
+
+    AlbedoColor   = @AlbedoTint;
+    SpecularColor = @SpecularColor;
+    EmissiveColor = @EmissiveColor;
+
+    UVTiling = @Tiling;
+    UVOffset = @Offset;
+
+    Roughness = @RoughnessValue;
+    Metalness = @MetalnessValue;
+  }
+
+  SpecializationConstants
+  {
+  }
+
+  Properties
+  {
+    // group UV
+    // {
+    float2 Tiling = float2(1, 1);
+    float2 Offset = float2(0, 0);
+    // }
+
+    // group Geometry
+    // {
+    Texture2D NormalTexture;
+    [min(0.0)]
+    float NormalIntensity = 1.0;
+    // }
+
+    // group Shading
+    // {
+    Texture2D AlbedoTexture;
+    Color     AlbedoTint = Color(1, 1, 1, 1);
+
+    Texture2D RoughnessTexture;
+    [clamp(0.0, 1.0)]
+    float RoughnessValue = 0.0;
+
+    Texture2D MetalnessTexture;
+    [clamp(0.0, 1.0)]
+    float MetalnessValue = 0.0;
+
+    Texture2D OcclusionTexture;
+
+    Texture2D SpecularTexture;
+    Color     SpecularColor = Color(0.4, 0.4, 0.4, 1.0);
+
+    Texture2D EmissiveTexture;
+    Color     EmissiveColor = Color(0, 0, 0, 1);
+    // }
+  }
+}
+// END_MATERIAL_DESCRIPTOR
+
+struct MaterialParams
+{
+  Sampler2D NormalTexture;
+  Sampler2D AlbedoTexture;
+  Sampler2D RoughnessTexture;
+  Sampler2D MetalnessTexture;
+  Sampler2D OcclusionTexture;
+  Sampler2D SpecularTexture;
+  Sampler2D EmissiveTexture;
+};
+
+ParameterBlock<MaterialParams> g_MaterialParams;
+
+/// The Standard PBR material.
+struct StandardPBRMaterial : IMaterial
+{
+  static func create()->This
+  {
+    This material = {};
+    return material;
+  }
+
+  float3 GetNormal(in TransientStream vertex, in MaterialData data)
+  {
+    [branch]
+    if (data.HasTextureNormal)
+    {
+      float  normalIntensity = max(0.012f, data.NormalIntensity);
+      float3 normalTS        = DecodeNormalTexture(g_MaterialParams.NormalTexture.Sample(vertex.TexCoord0.xy), normalIntensity);
+      return TangentToWorldSpace(normalTS, vertex);
+    }
+    else
+    {
+      return vertex.Normal;
+    }
+  }
+
+  float3 GetDiffuseColor(in TransientStream vertex, in MaterialData data)
+  {
+    const float3 albedo = GetAlbedoColor(vertex, data);
+
+    [branch]
+    if (data.HasTextureSpecular)
+      return albedo;
+    else
+      return lerp(albedo, float3(0.0f), GetMetalness(vertex, data));
+  }
+
+  float3 GetSpecularColor(in TransientStream vertex, in MaterialData data)
+  {
+    [branch]
+    if (data.HasTextureSpecular)
+      return g_MaterialParams.SpecularTexture.Sample(vertex.TexCoord0.xy).rgb;
+    else
+      return lerp(data.SpecularColor.rgb, GetAlbedoColor(vertex, data), GetMetalness(vertex, data));
+  }
+
+  float3 GetEmissiveColor(in TransientStream vertex, in MaterialData data)
+  {
+    [branch]
+    if (data.HasTextureEmissive)
+      return g_MaterialParams.EmissiveTexture.Sample(vertex.TexCoord0.xy).rgb * data.EmissiveColor.rgb;
+    else
+      return data.EmissiveColor.rgb;
+  }
+
+  float GetLinearRoughness(in TransientStream vertex, in MaterialData data)
+  {
+    [branch]
+    if (data.HasTextureRoughness)
+      return data.Roughness * g_MaterialParams.RoughnessTexture.Sample(vertex.TexCoord0.xy).r;
+    else
+      return data.Roughness;
+  }
+
+  float GetOpacity(in TransientStream vertex, in MaterialData data)
+  {
+    float opacity = data.AlbedoColor.a;
+
+    [branch]
+    if (data.HasTextureAlbedo)
+      opacity *= g_MaterialParams.AlbedoTexture.Sample(vertex.TexCoord0.xy).a;
+
+    return opacity;
+  }
+
+  float GetOcclusion(in TransientStream vertex, in MaterialData data)
+  {
+    [branch]
+    if (data.HasTextureOcclusion)
+      return g_MaterialParams.OcclusionTexture.Sample(vertex.TexCoord0.xy).r;
+    else
+      return 1.0f;
+  }
+
+  float GetCavity(in TransientStream vertex, in MaterialData data) { return 1.0f; }
+
+  float GetMetalness(in TransientStream vertex, in MaterialData data)
+  {
+    [branch]
+    if (data.HasTextureMetalness)
+      return data.Metalness * g_MaterialParams.MetalnessTexture.Sample(vertex.TexCoord0.xy).r;
+    else
+      return data.Metalness;
+  }
+
+  private float3 GetAlbedoColor(in TransientStream vertex, in MaterialData data)
+  {
+    float3 albedo = data.AlbedoColor.rgb;
+
+#ifdef USE_COLOR0
+    albedo *= vertex.Color0;
+#endif
+
+    [branch]
+    if (data.HasTextureAlbedo)
+      albedo *= g_MaterialParams.AlbedoTexture.Sample(vertex.TexCoord0.xy).rgb;
+
+    return albedo;
+  }
+}

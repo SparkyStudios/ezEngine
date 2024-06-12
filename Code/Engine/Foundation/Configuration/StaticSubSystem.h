@@ -33,12 +33,19 @@
 ///
 /// EZ_END_SUBSYSTEM_DECLARATION;
 
+/// \brief Use this to add a subsystem forward declaration.
+///
+/// The first parameter is the name of the group, in which the subsystem resides, the second is the name of the subsystem itself.
+#define SP_DECLARE_SUBSYSTEM(GroupName, SubsystemName) \
+  class GroupName##SubsystemName##SubSystem
+
 /// \brief Put this in some cpp file of a subsystem to start its startup / shutdown sequence declaration.
 ///
 /// The first parameter is the name of the group, in which the subsystem resides, the second is the name of the subsystem itself.
 #define EZ_BEGIN_SUBSYSTEM_DECLARATION(GroupName, SubsystemName) \
-  class GroupName##SubsystemName##SubSystem;                     \
-  class GroupName##SubsystemName##SubSystem : public ezSubSystem \
+  SP_DECLARE_SUBSYSTEM(GroupName, SubsystemName);                \
+  SP_DECLARE_SUBSYSTEM(GroupName, SubsystemName)                 \
+    : public ezSubSystem                                         \
   {                                                              \
   public:                                                        \
     virtual ezStringView GetGroupName() const override           \
@@ -110,4 +117,4 @@ public:                                                     \
   }
 
 /// \brief This inserts a friend declaration into a class, such that the given group/subsystem can access private functions which it might need.
-#define EZ_MAKE_SUBSYSTEM_STARTUP_FRIEND(GroupName, SubsystemName) friend class GroupName##SubsystemName##SubSystem;
+#define EZ_MAKE_SUBSYSTEM_STARTUP_FRIEND(GroupName, SubsystemName) friend SP_DECLARE_SUBSYSTEM(GroupName, SubsystemName)
