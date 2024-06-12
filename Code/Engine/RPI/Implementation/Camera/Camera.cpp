@@ -416,6 +416,9 @@ namespace RPI
     if (m_pRenderView == nullptr)
       return;
 
+    const ezMat4 previousViewProjectionMatrix = m_CachedViewProjectionMatrix;
+    const ezMat4 previousInverseViewProjectionMatrix = m_CachedViewProjectionMatrix.GetInverse(0.0f);
+
     CacheViewMatrix();
     CacheProjectionMatrix();
     CacheViewProjectionMatrix();
@@ -445,43 +448,41 @@ namespace RPI
       viewData->m_InverseView = m_CachedViewMatrix.GetInverse(0.0f);
       viewData->m_ViewProjection = m_CachedViewProjectionMatrix;
       viewData->m_InverseViewProjection = m_CachedViewProjectionMatrix.GetInverse(0.0f);
+      viewData->m_PreviousViewProjection = previousViewProjectionMatrix;
+      viewData->m_PreviousInverseViewProjection = previousInverseViewProjectionMatrix;
     }
   }
 
   ezVec3 spCamera::MapExternalToInternal(const ezVec3& v) const
   {
-    if (m_pCoordinateSystemProvider)
-    {
-      ezCoordinateSystem system;
-      m_pCoordinateSystemProvider->GetCoordinateSystem(m_vPosition, system);
+    if (m_pCoordinateSystemProvider == nullptr)
+      return v;
 
-      ezMat3 m;
-      m.SetRow(0, system.m_vForwardDir);
-      m.SetRow(1, system.m_vRightDir);
-      m.SetRow(2, system.m_vUpDir);
+    ezCoordinateSystem system;
+    m_pCoordinateSystemProvider->GetCoordinateSystem(m_vPosition, system);
 
-      return m * v;
-    }
+    ezMat3 m;
+    m.SetRow(0, system.m_vForwardDir);
+    m.SetRow(1, system.m_vRightDir);
+    m.SetRow(2, system.m_vUpDir);
 
-    return v;
+    return m * v;
   }
 
   ezVec3 spCamera::MapInternalToExternal(const ezVec3& v) const
   {
-    if (m_pCoordinateSystemProvider)
-    {
-      ezCoordinateSystem system;
-      m_pCoordinateSystemProvider->GetCoordinateSystem(m_vPosition, system);
+    if (m_pCoordinateSystemProvider == nullptr)
+      return v;
 
-      ezMat3 m;
-      m.SetColumn(0, system.m_vForwardDir);
-      m.SetColumn(1, system.m_vRightDir);
-      m.SetColumn(2, system.m_vUpDir);
+    ezCoordinateSystem system;
+    m_pCoordinateSystemProvider->GetCoordinateSystem(m_vPosition, system);
 
-      return m * v;
-    }
+    ezMat3 m;
+    m.SetColumn(0, system.m_vForwardDir);
+    m.SetColumn(1, system.m_vRightDir);
+    m.SetColumn(2, system.m_vUpDir);
 
-    return v;
+    return m * v;
   }
 } // namespace RPI
 

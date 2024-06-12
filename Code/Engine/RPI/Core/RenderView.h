@@ -55,6 +55,9 @@ namespace RPI
 
     spShaderMat4 m_ViewProjection;
     spShaderMat4 m_InverseViewProjection;
+
+    spShaderMat4 m_PreviousViewProjection;
+    spShaderMat4 m_PreviousInverseViewProjection;
   };
 
   /// \brief Specifies how the render view should cull render objects.
