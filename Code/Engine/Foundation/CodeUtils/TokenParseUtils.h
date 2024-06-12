@@ -7,6 +7,13 @@ namespace ezTokenParseUtils
 {
   using TokenStream = ezHybridArray<const ezToken*, 32>;
 
+  /// \brief Moves ref_uiCurToken forward as it is not the given token type with the given token value.
+  /// \param tokens Token input.
+  /// \param ref_uiCurToken Current location inside 'tokens'. On return, will either stay the same or move forward.
+  /// \param eTokenType The wanted token type.
+  /// \param sExpectedToken The expected token value.
+  EZ_FOUNDATION_DLL void SkipUntil(const TokenStream& tokens, ezUInt32& ref_uiCurToken, ezTokenType::Enum eTokenType, ezStringView sExpectedToken);
+
   /// \brief Moves ref_uiCurToken forward as long as it is a whitespace token (Whitespace, BlockComment, LineComment).
   /// \param tokens Token input.
   /// \param ref_uiCurToken Current location inside 'tokens'. On return, will either stay the same or move forward.
