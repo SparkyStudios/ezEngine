@@ -29,8 +29,12 @@ namespace RHI
 
     EZ_NODISCARD EZ_ALWAYS_INLINE const ezArrayMap<ezTempHashedString, ezSharedPtr<spShaderResource>>& GetResources() const { return m_Resources; }
 
+    EZ_NODISCARD ezSharedPtr<spBufferMTL> GetArgumentBuffer(const MTL::ArgumentEncoder* pArgumentEncoder);
+
   private:
     ezSharedPtr<spResourceLayoutMTL> m_pLayout{nullptr};
     ezArrayMap<ezTempHashedString, ezSharedPtr<spShaderResource>> m_Resources;
+
+    ezSharedPtr<spBufferMTL> m_ArgumentBuffer{nullptr};
   };
 } // namespace RHI

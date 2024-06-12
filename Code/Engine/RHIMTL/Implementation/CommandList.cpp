@@ -1136,7 +1136,7 @@ namespace RHI
     m_ArgumentBuffers.Clear();
   }
 
-  void spCommandListMTL::EnsureArgumentBuffer(ezUInt32 uiSlot, ezSharedPtr<spShaderProgramMTL> pProgram, ezEnum<spShaderStage> eStage)
+  void spCommandListMTL::EnsureArgumentBuffer(ezUInt32 uiSlot, ezSharedPtr<spShaderProgramMTL> pProgram, ezSharedPtr<spResourceSetMTL> pResourceSet, ezEnum<spShaderStage> eStage)
   {
     const ezUInt32 uiKey = GetResourceSetKey(uiSlot, eStage);
 
@@ -1163,7 +1163,7 @@ namespace RHI
     ezSharedPtr<spBufferMTL> pArgumentBuffer = nullptr;
     if (const ezUInt32 uiIndex = m_ArgumentBuffers.Find(uiKey); uiIndex == ezInvalidIndex)
     {
-      pArgumentBuffer = pShader->CreateArgumentBuffer(uiSlot, pArgumentEncoder);
+      pArgumentBuffer = pResourceSet->GetArgumentBuffer(pArgumentEncoder);
       m_ArgumentBuffers[uiKey] = pArgumentBuffer;
 
       bShouldSet = true;
@@ -1223,7 +1223,7 @@ namespace RHI
         continue;
 
       bShouldActivate = true;
-      EnsureArgumentBuffer(uiSlot, pProgram, stage);
+      EnsureArgumentBuffer(uiSlot, pProgram, pResourceSetMTL, stage);
     }
 
     if (bShouldActivate)
@@ -1253,7 +1253,7 @@ namespace RHI
     if (!pResourceLayoutMTL->GetShaderStages().IsSet(spShaderStage::ComputeShader))
       return;
 
-    EnsureArgumentBuffer(uiSlot, pProgram, spShaderStage::ComputeShader);
+    EnsureArgumentBuffer(uiSlot, pProgram, pResourceSetMTL, spShaderStage::ComputeShader);
     ActivateResourceSet(uiSlot, resourceSet);
     BindArgumentBuffer(uiSlot, spShaderStage::ComputeShader);
   }
