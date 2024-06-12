@@ -1,5 +1,8 @@
 #pragma once
 
+#include "ResourceSet.h"
+
+
 #include <RHIMTL/RHIMTLDLL.h>
 
 #include <RHI/CommandList.h>
@@ -127,7 +130,7 @@ namespace RHI
 
     void ClearBoundResources();
 
-    void EnsureArgumentBuffer(ezUInt32 uiSlot, ezSharedPtr<spShaderProgramMTL> pProgram, ezEnum<spShaderStage> eStage);
+    void EnsureArgumentBuffer(ezUInt32 uiSlot, ezSharedPtr<spShaderProgramMTL> pProgram, ezSharedPtr<spResourceSetMTL> pResourceSet, ezEnum<spShaderStage> eStage);
     void BindArgumentBuffer(ezUInt32 uiSlot, ezEnum<spShaderStage> eStage);
 
     void ActivateGraphicResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet);

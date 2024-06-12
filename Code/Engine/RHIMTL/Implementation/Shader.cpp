@@ -293,20 +293,6 @@ namespace RHI
     return pArgumentEncoder;
   }
 
-  ezSharedPtr<spBufferMTL> spShaderMTL::CreateArgumentBuffer(ezUInt32 uiArgumentIndex, const MTL::ArgumentEncoder* pArgumentEncoder) const
-  {
-    auto pBuffer = m_pDevice->GetResourceFactory()->CreateBuffer(spBufferDescription(pArgumentEncoder->encodedLength(), spBufferUsage::Staging)).Downcast<spBufferMTL>();
-    pBuffer->EnsureResourceCreated();
-
-#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-    ezStringBuilder sDebugName;
-    sDebugName.SetFormat("ArgumentBuffer_{0}", uiArgumentIndex);
-    pBuffer->SetDebugName(sDebugName);
-#endif
-
-    return pBuffer;
-  }
-
 #pragma endregion
 } // namespace RHI
 

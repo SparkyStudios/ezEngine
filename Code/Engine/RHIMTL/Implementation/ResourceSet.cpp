@@ -52,6 +52,23 @@ namespace RHI
   {
     m_pDevice->GetResourceManager()->ReleaseResource(this);
   }
+
+  ezSharedPtr<spBufferMTL> spResourceSetMTL::GetArgumentBuffer(const MTL::ArgumentEncoder* pArgumentEncoder)
+  {
+    if (m_ArgumentBuffer == nullptr)
+    {
+      m_ArgumentBuffer = m_pDevice->GetResourceFactory()->CreateBuffer(spBufferDescription(pArgumentEncoder->encodedLength(), spBufferUsage::Staging)).Downcast<spBufferMTL>();
+      m_ArgumentBuffer->EnsureResourceCreated();
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+      ezStringBuilder sDebugName;
+      sDebugName.SetFormat("{0}__ArgumentBuffer", m_sDebugName);
+      m_ArgumentBuffer->SetDebugName(sDebugName);
+#endif
+    }
+
+    return m_ArgumentBuffer;
+  }
 } // namespace RHI
 
 EZ_STATICLINK_FILE(RHIMTL, RHIMTL_Implementation_ResourceSet);
