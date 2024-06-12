@@ -5,6 +5,12 @@
 
 namespace ezTokenParseUtils
 {
+  void SkipUntil(const TokenStream& tokens, ezUInt32& ref_uiCurToken, ezTokenType::Enum eTokenType, ezStringView sExpectedToken)
+  {
+    while (ref_uiCurToken < tokens.GetCount() && (tokens[ref_uiCurToken]->m_iType != eTokenType || tokens[ref_uiCurToken]->m_DataView != sExpectedToken))
+      ++ref_uiCurToken;
+  }
+
   void SkipWhitespace(const TokenStream& tokens, ezUInt32& ref_uiCurToken)
   {
     while (ref_uiCurToken < tokens.GetCount() && ((tokens[ref_uiCurToken]->m_iType == ezTokenType::Whitespace) || (tokens[ref_uiCurToken]->m_iType == ezTokenType::BlockComment) || (tokens[ref_uiCurToken]->m_iType == ezTokenType::LineComment)))
