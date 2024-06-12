@@ -21,9 +21,6 @@ template <typename T>
 class spLazy
 {
 public:
-  /// \brief Default constructor.
-  constexpr spLazy() = default;
-
   /// \brief Creates a new initialized lazy value.
   /// \param value The value to initialize with.
   constexpr spLazy(const T& value);
@@ -41,7 +38,7 @@ private:
   std::function<T()> m_Initializer;
   bool m_bInitialized{false};
 
-  T m_Value{T()};
+  T m_Value;
 };
 
 #include <Foundation/Types/Implementation/Lazy_inl.h>
