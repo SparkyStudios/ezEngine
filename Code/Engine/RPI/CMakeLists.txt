@@ -21,6 +21,9 @@ get_filename_component(PROJECT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME_WE)
 
 ez_create_target(LIBRARY ${PROJECT_NAME})
 
+set(PUBLIC_SHADERS_LIB_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/${EZ_SUBMODULE_PREFIX_PATH}/Shaders/Lib/Public")
+target_include_directories(${PROJECT_NAME} PRIVATE ${PUBLIC_SHADERS_LIB_INCLUDE_DIRS})
+
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
   Core

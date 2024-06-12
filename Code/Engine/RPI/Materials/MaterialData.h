@@ -14,22 +14,35 @@
 
 #pragma once
 
-#include <Lightning/BRDF.slang>
-#include <Materials/IMaterial.slang>
+#include <RPI/RPIDLL.h>
 
-struct MaterialParams
+#include <RPI/Shaders/ShaderTypes.h>
+
+namespace RPI
 {
-};
-
-ParameterBlock<MaterialParams> g_Params;
-
-struct BasicPBRMaterial : IMaterial
-{
-  func GetNormal(in data: MaterialData) -> float3
+  struct alignas(16) spMaterialData
   {
-    if (data.HasTextureNormal)
-      return float3(0.0f);
+    ezColor m_Color;
 
-    return float3(0.0f);
-  }
+    spShaderVec2 m_UVTiling;
+    spShaderVec2 m_UVOffset;
+
+    float m_Roughness;
+    float m_Metalness;
+    float m_NormalIntensity;
+    float m_Height;
+
+    float m_WorldSpaceHeight;
+    float m_IOR;
+    float m_SubsurfaceScattering;
+    ezUInt32 m_Flags;
+
+    spShaderVec3 m_SheenTint;
+    float m_Sheen;
+
+    float m_Anisotropic;
+    float m_AnisotropicRotation;
+    float m_Clearcoat;
+    float m_ClearcoatRoughness;
+  };
 }

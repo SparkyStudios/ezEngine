@@ -333,7 +333,7 @@ namespace RPI
     else if (eGraphicsApi == RHI::spGraphicsApi::OpenGLES)
     {
       targetDesc.format = SLANG_GLSL;
-      targetDesc.profile = m_pGlobalSession->findProfile("glsl_430");
+      targetDesc.profile = m_pGlobalSession->findProfile("glsl_330");
     }
 
     desc.targets = &targetDesc;
@@ -341,24 +341,30 @@ namespace RPI
 
     desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
 
-    ezStringBuilder sEngineShadersPathBuilder(ezFileSystem::GetSdkRootDirectory());
-    sEngineShadersPathBuilder.AppendPath("Shaders", "Lib");
+    ezStringBuilder sEnginePrivateShadersPathBuilder(ezFileSystem::GetSdkRootDirectory());
+    sEnginePrivateShadersPathBuilder.AppendPath("Shaders", "Lib", "Private");
 
-    ezStringBuilder sProjectShadersPathBuilder;
+    ezStringBuilder sEnginePublicShadersPathBuilder(ezFileSystem::GetSdkRootDirectory());
+    sEnginePublicShadersPathBuilder.AppendPath("Shaders", "Lib", "Public");
+
+    ezStringBuilder sProjectPrivateShadersPathBuilder;
+    ezStringBuilder sProjectPublicShadersPathBuilder;
 
     ezDynamicArray<const char*> searchPaths;
-    searchPaths.PushBack(sEngineShadersPathBuilder);
+    searchPaths.PushBack(sEnginePrivateShadersPathBuilder);
+    searchPaths.PushBack(sEnginePublicShadersPathBuilder);
 
-    if (ezFileSystem::ResolvePath(":project/Shaders/Lib", &sProjectShadersPathBuilder, nullptr).Succeeded())
-    {
-      searchPaths.PushBack(sProjectShadersPathBuilder);
-    }
+    if (ezFileSystem::ResolvePath(":project/Shaders/Lib/Private", &sProjectPrivateShadersPathBuilder, nullptr).Succeeded())
+      searchPaths.PushBack(sProjectPrivateShadersPathBuilder);
+    if (ezFileSystem::ResolvePath(":project/Shaders/Lib/Public", &sProjectPublicShadersPathBuilder, nullptr).Succeeded())
+      searchPaths.PushBack(sProjectPublicShadersPathBuilder);
 
     desc.searchPaths = searchPaths.GetData();
     desc.searchPathCount = searchPaths.GetCount();
 
     ezStringBuilder sbTempStorage;
     ref_compilerSetup.m_PredefinedMacros.PushBack({"SP_RHI_API", ezFmt("{}", eGraphicsApi.GetValue()).GetTextCStr(sbTempStorage)});
+    ref_compilerSetup.m_PredefinedMacros.PushBack({"SP_RHI_SHADER", "1"});
 
     desc.preprocessorMacros = ref_compilerSetup.m_PredefinedMacros.GetData();
     desc.preprocessorMacroCount = ref_compilerSetup.m_PredefinedMacros.GetCount();

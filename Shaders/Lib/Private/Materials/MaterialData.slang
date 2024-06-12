@@ -14,25 +14,7 @@
 
 #pragma once
 
-static constexpr uint k_HasTextureAlbedoMask    = 0;
-static constexpr uint k_HasTextureNormalMask    = 1;
-static constexpr uint k_HasTextureMetalnessMask = 2;
-static constexpr uint k_HasTextureRoughnessMask = 3;
-static constexpr uint k_HasTextureOcclusionMask = 4;
-static constexpr uint k_HasTextureCavityMask    = 5;
-static constexpr uint k_HasTextureORMCMask      = 6;
-static constexpr uint k_HasTextureSpecularMask  = 7;
-static constexpr uint k_HasTextureEmissiveMask  = 8;
-static constexpr uint k_HasTextureAlphaMask     = 9;
-
-/// The maximum value for reserved flag masks. You should use this value
-/// for your custom flags, by adding at least one.
-/// Example:
-///```slang
-/// static constexpr uint k_MyCustomMaterialMask1 = k_MaxReservedMateriaMask + 1;
-/// static constexpr uint k_MyCustomMaterialMask2 = k_MaxReservedMateriaMask + 2;
-/// ```
-static constexpr uint k_MaxReservedMateriaMask = 9;
+#include <MaterialFlags.h>
 
 /// Describes a material for every object in the world.
 struct MaterialData
