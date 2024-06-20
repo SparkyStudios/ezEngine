@@ -53,7 +53,7 @@ public:
   void Unregister();
 
   /// \brief Returns the resource descriptor for this resource.
-  EZ_NODISCARD const ezAmplitudeAudioControlCollectionResourceDescriptor& GetDescriptor() const;
+  [[nodiscard]] const ezAmplitudeAudioControlCollectionResourceDescriptor& GetDescriptor() const;
 
 private:
   void RegisterTrigger(const char* szTriggerName, const char* szControlFile);

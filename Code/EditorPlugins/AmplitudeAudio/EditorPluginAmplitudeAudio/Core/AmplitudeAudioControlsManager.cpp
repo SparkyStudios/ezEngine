@@ -38,7 +38,7 @@ ezResult ezAmplitudeAudioControlsManager::ReloadControls()
   }
 
   if (ezFileSystem::FindDataDirectoryWithRoot("atl") == nullptr)
-    ezFileSystem::AddDataDirectory(">project/Sounds/ATL/Amplitude", "ATL", "atl", ezFileSystem::AllowWrites).IgnoreResult();
+    ezFileSystem::AddDataDirectory(">project/Sounds/ATL/Amplitude", "ATL", "atl", ezDataDirUsage::AllowWrites).IgnoreResult();
 
   {
     ezStringBuilder basePath(projectPath);

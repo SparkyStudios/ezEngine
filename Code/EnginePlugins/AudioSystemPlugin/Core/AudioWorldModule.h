@@ -2,8 +2,8 @@
 
 #include <AudioSystemPlugin/AudioSystemPluginDLL.h>
 
-#include <AudioSystemPlugin/Components/AudioSystemComponent.h>
 #include <AudioSystemPlugin/Components/AudioListenerComponent.h>
+#include <AudioSystemPlugin/Components/AudioSystemComponent.h>
 #include <AudioSystemPlugin/Core/AudioSystemAllocator.h>
 
 #include <Core/World/WorldModule.h>
@@ -25,10 +25,10 @@ public:
 
   void AddEnvironment(const ezAudioSystemEnvironmentComponent* pComponent);
   void RemoveEnvironment(const ezAudioSystemEnvironmentComponent* pComponent);
-  EZ_NODISCARD EnvironmentSet::Iterator GetEnvironments() const;
+  [[nodiscard]] EnvironmentSet::Iterator GetEnvironments() const;
 
   void SetDefaultListener(const ezAudioListenerComponent* pListener);
-  EZ_NODISCARD const ezAudioListenerComponent* GetDefaultListener() const;
+  [[nodiscard]] const ezAudioListenerComponent* GetDefaultListener() const;
 
 private:
   EnvironmentSet m_lEnvironmentComponents;

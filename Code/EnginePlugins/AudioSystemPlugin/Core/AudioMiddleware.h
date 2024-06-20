@@ -251,15 +251,15 @@ public:
   /// \brief Gets the audio middleware implementation name.
   /// e.g. "FMOD", "Wwise", "Amplitude", etc.
   /// \return The name of the audio middleware.
-  EZ_NODISCARD virtual const char* GetMiddlewareName() const = 0;
+  [[nodiscard]] virtual const char* GetMiddlewareName() const = 0;
 
   /// \brief Gets the audio middleware's master gain.
   /// \return The master gain.
-  EZ_NODISCARD virtual float GetMasterGain() const = 0;
+  [[nodiscard]] virtual float GetMasterGain() const = 0;
 
   /// \brief Gets the audio middleware's muted state.
   /// \return The muted state.
-  EZ_NODISCARD virtual bool GetMute() const = 0;
+  [[nodiscard]] virtual bool GetMute() const = 0;
 
   /// \brief Called each time the master gain value change.
   /// \param fGain The master gain value.

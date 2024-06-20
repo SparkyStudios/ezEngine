@@ -39,7 +39,7 @@ public:
 
   /// \brief Gets the current state of the switch.
   /// \returns The current state of the switch.
-  EZ_NODISCARD const ezString& GetState() const;
+  [[nodiscard]] const ezString& GetState() const;
 
   /// \brief Event that is triggered when the component receives a
   /// SetSwitchState message.

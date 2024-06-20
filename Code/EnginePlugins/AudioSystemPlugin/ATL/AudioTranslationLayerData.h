@@ -28,7 +28,7 @@ public:
 
   virtual ~ezATLControl() = default;
 
-  EZ_NODISCARD virtual ezAudioSystemDataID GetId() const { return m_uiId; }
+  [[nodiscard]] virtual ezAudioSystemDataID GetId() const { return m_uiId; }
 
 private:
   const ezAudioSystemDataID m_uiId;
@@ -85,7 +85,7 @@ public:
 
   /// \brief Get an attached event. This will fail and return nullptr if an event with the given ID is not
   /// attached to this trigger.
-  EZ_NODISCARD ezResult GetEvent(ezAudioSystemDataID uiEventId, ezAudioSystemEventData*& out_pEventData) const;
+  [[nodiscard]] ezResult GetEvent(ezAudioSystemDataID uiEventId, ezAudioSystemEventData*& out_pEventData) const;
 
   ezAudioSystemTriggerData* const m_pTriggerData;
 
