@@ -53,22 +53,22 @@ public:
   void SetDefault(bool bDefault);
 
   /// \brief Gets the current position of this listener.
-  EZ_NODISCARD ezVec3 GetListenerPosition() const;
+  [[nodiscard]] ezVec3 GetListenerPosition() const;
 
   /// \brief Gets the current velocity of this listener.
-  EZ_NODISCARD ezVec3 GetListenerVelocity() const;
+  [[nodiscard]] ezVec3 GetListenerVelocity() const;
 
   /// \brief Gets the current orientation of this listener.
-  EZ_NODISCARD ezQuat GetListenerRotation() const;
+  [[nodiscard]] ezQuat GetListenerRotation() const;
 
   /// \brief Gets whether this listener is the default one or not.
-  EZ_NODISCARD bool IsDefault() const;
+  [[nodiscard]] bool IsDefault() const;
 
 protected:
   void Update();
 
 private:
-  EZ_NODISCARD const char* _DoNotCall() const;
+  [[nodiscard]] const char* _DoNotCall() const;
 
   ezVec3 m_vListenerPositionOffset{ezVec3::MakeZero()};
 

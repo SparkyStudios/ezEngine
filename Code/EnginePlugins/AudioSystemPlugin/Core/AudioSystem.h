@@ -87,7 +87,7 @@ public:
   bool Startup();
   void Shutdown();
 
-  EZ_NODISCARD bool IsInitialized() const;
+  [[nodiscard]] bool IsInitialized() const;
 
   void SendRequest(ezVariant&& request);
   void SendRequests(ezAudioSystemRequestsQueue& requests);

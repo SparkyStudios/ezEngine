@@ -28,7 +28,7 @@ protected:
   // ezAudioSystemEnvironmentComponent
 
 public:
-  EZ_NODISCARD float GetEnvironmentAmount(ezAudioProxyComponent* pProxyComponent) const override;
+  [[nodiscard]] float GetEnvironmentAmount(ezAudioProxyComponent* pProxyComponent) const override;
 
   // ezAudioSphereEnvironmentComponent
 
@@ -38,7 +38,7 @@ public:
   /// \brief Gets the radius of the sphere that
   /// specifies the environment.
   /// \returns The sphere's radius.
-  EZ_NODISCARD float GetRadius() const;
+  [[nodiscard]] float GetRadius() const;
 
   /// \brief Sets the radius of the sphere that
   /// specifies the environment.

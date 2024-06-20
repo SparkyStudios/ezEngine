@@ -51,7 +51,7 @@ public:
   ///
   /// Entity ids are automatically assigned at the start of the simulation. They may change each time
   /// the game is simulated. You should not assert that the same ID will always be assigned to the same game object every time.
-  EZ_NODISCARD ezAudioSystemDataID GetEntityId() const;
+  [[nodiscard]] ezAudioSystemDataID GetEntityId() const;
 
   /// \brief Unregisters this proxy from the audio system.
   ///

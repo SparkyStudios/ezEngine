@@ -17,7 +17,7 @@ EZ_PLUGIN_ON_LOADED()
   // Control Collection
   {
     // Menu Bar
-    ezActionMapManager::RegisterActionMap("AudioControlCollectionAssetMenuBar").IgnoreResult();
+    ezActionMapManager::RegisterActionMap("AudioControlCollectionAssetMenuBar");
     ezStandardMenus::MapActions("AudioControlCollectionAssetMenuBar", ezStandardMenuTypes::Default | ezStandardMenuTypes::Edit);
     ezProjectActions::MapActions("AudioControlCollectionAssetMenuBar");
     ezDocumentActions::MapMenuActions("AudioControlCollectionAssetMenuBar");
@@ -25,7 +25,7 @@ EZ_PLUGIN_ON_LOADED()
 
     // Tool Bar
     {
-      ezActionMapManager::RegisterActionMap("AudioControlCollectionAssetToolBar").IgnoreResult();
+      ezActionMapManager::RegisterActionMap("AudioControlCollectionAssetToolBar");
       ezDocumentActions::MapToolbarActions("AudioControlCollectionAssetToolBar");
       ezCommandHistoryActions::MapActions("AudioControlCollectionAssetToolBar", "");
       ezAssetActions::MapToolBarActions("AudioControlCollectionAssetToolBar", true);

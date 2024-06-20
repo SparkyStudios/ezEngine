@@ -30,7 +30,7 @@ private:
     float m_fValue;
 
     /// \brief Gets the current value.
-    EZ_NODISCARD float GetValue() const;
+    [[nodiscard]] float GetValue() const;
 
     /// \brief Sets the new value's target.
     /// \param fTarget The value's target.
@@ -64,7 +64,7 @@ private:
 
   ezUInt32 AddObstructionOcclusionState(ezAudioTriggerComponent* pComponent);
   void RemoveObstructionOcclusionState(ezUInt32 uiIndex);
-  EZ_NODISCARD const ObstructionOcclusionState& GetObstructionOcclusionState(ezUInt32 uiIndex) const { return m_ObstructionOcclusionStates[uiIndex]; }
+  [[nodiscard]] const ObstructionOcclusionState& GetObstructionOcclusionState(ezUInt32 uiIndex) const { return m_ObstructionOcclusionStates[uiIndex]; }
 
   void ShootOcclusionRays(ObstructionOcclusionState& state, ezVec3 listenerPos, ezUInt32 uiNumRays, const ezPhysicsWorldModuleInterface* pPhysicsWorldModule);
   void CastRay(ObstructionOcclusionState& state, ezVec3 sourcePos, ezVec3 direction, ezUInt8 collisionLayer, const ezPhysicsWorldModuleInterface* pPhysicsWorldModule, ezUInt32 rayIndex);
@@ -113,7 +113,7 @@ public:
   void SetOcclusionCollisionLayer(ezUInt8 uiCollisionLayer);
 
   /// \brief Gets the current occlusion collision layer.
-  EZ_NODISCARD ezUInt8 GetOcclusionCollisionLayer() const { return m_uiOcclusionCollisionLayer; }
+  [[nodiscard]] ezUInt8 GetOcclusionCollisionLayer() const { return m_uiOcclusionCollisionLayer; }
 
   /// \brief Sets the name of the play trigger. If the provided name is the same than the
   /// current name, nothing will happen.
@@ -125,7 +125,7 @@ public:
   void SetPlayTrigger(ezString sName);
 
   /// \brief Gets the name of the current play trigger.
-  EZ_NODISCARD const ezString& GetPlayTrigger() const;
+  [[nodiscard]] const ezString& GetPlayTrigger() const;
 
   /// \brief Sets the name of the stop trigger. If the provided name is the same than the
   /// current name, nothing will happen.
@@ -134,40 +134,40 @@ public:
   void SetStopTrigger(ezString sName);
 
   /// \brief Gets the name of the current stop trigger.
-  EZ_NODISCARD const ezString& GetStopTrigger() const;
+  [[nodiscard]] const ezString& GetStopTrigger() const;
 
   /// \brief Gets the internal state of the play trigger.
   /// \returns An ezEnum with the value of the play trigger state.
-  EZ_NODISCARD const ezEnum<ezAudioSystemTriggerState>& GetState() const;
+  [[nodiscard]] const ezEnum<ezAudioSystemTriggerState>& GetState() const;
 
   /// \brief Returns whether the play trigger is currently being loaded.
   /// \returns True if the play trigger is currently being loaded, false otherwise.
-  EZ_NODISCARD bool IsLoading() const;
+  [[nodiscard]] bool IsLoading() const;
 
   /// \brief Returns whether the play trigger is ready to be activated.
   /// \returns True if the play trigger is ready to be activated, false otherwise.
-  EZ_NODISCARD bool IsReady() const;
+  [[nodiscard]] bool IsReady() const;
 
   /// \brief Returns whether the play trigger is being activated.
   /// \returns True if the play trigger is being activated, false otherwise.
-  EZ_NODISCARD bool IsStarting() const;
+  [[nodiscard]] bool IsStarting() const;
 
   /// \brief Returns whether the play trigger has been activated and is currently playing.
   /// \returns True if the play trigger is currently playing, false otherwise.
-  EZ_NODISCARD bool IsPlaying() const;
+  [[nodiscard]] bool IsPlaying() const;
 
   /// \brief Returns whether the event is being stopped, either by activating the stop trigger
   /// if defined, or by stopping the event directly.
   /// \returns True if the event is being stopped, false otherwise.
-  EZ_NODISCARD bool IsStopping() const;
+  [[nodiscard]] bool IsStopping() const;
 
   /// \brief Returns whether the play trigger has been activated and is currently stopped.
   /// \returns True if the play trigger is currently stopped, false otherwise.
-  EZ_NODISCARD bool IsStopped() const;
+  [[nodiscard]] bool IsStopped() const;
 
   /// \brief Returns whether the play trigger is being unloaded.
   /// \returns True if the play trigger is currently being unloaded, false otherwise.
-  EZ_NODISCARD bool IsUnloading() const;
+  [[nodiscard]] bool IsUnloading() const;
 
   /// \brief Activates the play trigger. If the play trigger was not loaded on initialization, this will
   /// load the play trigger the first time it's called.

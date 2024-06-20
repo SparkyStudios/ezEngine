@@ -39,7 +39,7 @@ public:
 
   /// \brief Gets the current value of the parameter.
   /// \returns The current value of the parameter.
-  EZ_NODISCARD float GetValue() const;
+  [[nodiscard]] float GetValue() const;
 
   /// \brief Event that is triggered when the component receives a
   /// SetRtpcValue message.

@@ -93,9 +93,9 @@ public:
   ezResult DestroySwitchStateData(ezAudioSystemSwitchStateData* pSwitchStateData) override;
   ezResult DestroyEnvironmentData(ezAudioSystemEnvironmentData* pEnvironmentData) override;
   ezResult SetLanguage(const char* szLanguage) override;
-  EZ_NODISCARD const char* GetMiddlewareName() const override;
-  EZ_NODISCARD float GetMasterGain() const override;
-  EZ_NODISCARD bool GetMute() const override;
+  [[nodiscard]] const char* GetMiddlewareName() const override;
+  [[nodiscard]] float GetMasterGain() const override;
+  [[nodiscard]] bool GetMute() const override;
   void OnMasterGainChange(float fGain) override;
   void OnMuteChange(bool bMute) override;
   void OnLoseFocus() override;
@@ -109,7 +109,7 @@ public:
   ezAmplitude();
   ~ezAmplitude() override;
 
-  EZ_NODISCARD SparkyStudios::Audio::Amplitude::Engine* GetEngine() const { return m_pEngine; }
+  [[nodiscard]] SparkyStudios::Audio::Amplitude::Engine* GetEngine() const { return m_pEngine; }
 
   /// \brief Parses the entry in the controls collection that represent a bank.
   /// \param pBankEntry The stream storing the bank entry.

@@ -57,7 +57,7 @@ public:
 
 protected:
   /// \brief Get the ID of the entity referenced by the proxy.
-  EZ_NODISCARD ezAudioSystemDataID GetEntityId() const;
+  [[nodiscard]] ezAudioSystemDataID GetEntityId() const;
 
   class ezAudioProxyComponent* m_pProxyComponent{nullptr};
 };
@@ -78,14 +78,14 @@ public:
   /// \brief Gets the environment amount for the specified audio proxy component.
   /// \param pProxyComponent The proxy component for which compute the environment amount.
   /// \return The environment amount.
-  EZ_NODISCARD virtual float GetEnvironmentAmount(ezAudioProxyComponent* pProxyComponent) const = 0;
+  [[nodiscard]] virtual float GetEnvironmentAmount(ezAudioProxyComponent* pProxyComponent) const = 0;
 
   /// \brief Gets the ID of the environment in the Audio System.
-  EZ_NODISCARD ezAudioSystemDataID GetEnvironmentId() const;
+  [[nodiscard]] ezAudioSystemDataID GetEnvironmentId() const;
 
   /// \brief Gets the distance from the sphere's origin
   /// at which the environment amount will slightly start to decrease.
-  EZ_NODISCARD virtual float GetMaxDistance() const;
+  [[nodiscard]] virtual float GetMaxDistance() const;
 
   /// \brief Sets the distance from the sphere's origin at which
   /// the environment amount will slightly start to decrease.

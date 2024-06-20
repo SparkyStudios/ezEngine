@@ -19,7 +19,7 @@ public:
 
   /// \brief Gets the current mute state of the audio system.
   /// \returns The audio system's mute state.
-  EZ_NODISCARD bool GetMute() const { return m_bMute; }
+  [[nodiscard]] bool GetMute() const { return m_bMute; }
 
   /// \brief Sets the audio system's gain.
   /// \param fGain The gain value.
@@ -27,7 +27,7 @@ public:
 
   /// \brief Gets the current gain value of the audio system.
   /// \returns The audio system's gain.
-  EZ_NODISCARD float GetGain() const { return m_fGain; }
+  [[nodiscard]] float GetGain() const { return m_fGain; }
 
   /// \brief Synchronise the preferences with the current CVars
   /// values.
