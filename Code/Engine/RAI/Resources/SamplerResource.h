@@ -35,7 +35,7 @@ namespace RAI
 
     void Clear();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spSampler& GetSampler() const { return m_Sampler; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spSampler& GetSampler() const { return m_Sampler; }
 
     EZ_ALWAYS_INLINE void SetSampler(const spSampler& sampler) { m_Sampler = sampler; }
 
@@ -60,7 +60,7 @@ namespace RAI
   public:
     spSamplerResource();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spSamplerResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spSamplerResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
 
   private:
     ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;

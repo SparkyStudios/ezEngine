@@ -34,13 +34,13 @@ namespace RHI
     bool m_bHasStencil{false};
 
     /// \brief Compares this render target description to another for equality.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spRenderTargetDescription& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator==(const spRenderTargetDescription& rhs) const
     {
       return m_uiWidth == rhs.m_uiWidth && m_uiHeight == rhs.m_uiHeight && m_eQuality == rhs.m_eQuality && m_bGenerateMipMaps == rhs.m_bGenerateMipMaps && m_uiMipmapsCount == rhs.m_uiMipmapsCount && m_eSampleCount == rhs.m_eSampleCount;
     }
 
     /// \brief Compares this render target description to another for inequality.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spRenderTargetDescription& rhs) const { return !operator==(rhs); }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator!=(const spRenderTargetDescription& rhs) const { return !operator==(rhs); }
   };
 
   class SP_RHI_DLL spRenderTarget : public spDeviceResource
@@ -58,10 +58,10 @@ namespace RHI
 
   public:
     /// \brief Gets the texture on which the render target will be rendered. This will be the framebuffer back texture.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spTexture> GetTexture() const { return m_pColorTexture; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spTexture> GetTexture() const { return m_pColorTexture; }
 
     /// \brief Gets the framebuffer on which the render target will be rendered.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spFramebuffer> GetFramebuffer() const { return m_pFramebuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spFramebuffer> GetFramebuffer() const { return m_pFramebuffer; }
 
   private:
     spRenderTarget(spDevice* pDevice, ezSharedPtr<spTexture> pTexture);

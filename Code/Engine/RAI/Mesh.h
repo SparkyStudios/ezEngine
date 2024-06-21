@@ -86,13 +86,13 @@ namespace RAI
       /// \brief The size of a single vertex in bytes.
       ezUInt32 m_uiVertexSize{0};
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexCount() const { return m_Vertices.GetCount() / m_uiVertexSize; }
+      [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetVertexCount() const { return m_Vertices.GetCount() / m_uiVertexSize; }
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferSize() const { return m_Vertices.GetCount(); }
+      [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferSize() const { return m_Vertices.GetCount(); }
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexCount() const { return m_Indices.GetCount() / sizeof(ezUInt16); }
+      [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetIndexCount() const { return m_Indices.GetCount() / sizeof(ezUInt16); }
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexBufferSize() const { return m_Indices.GetCount(); }
+      [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetIndexBufferSize() const { return m_Indices.GetCount(); }
 
       template <typename T>
       EZ_ALWAYS_INLINE void SetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex, const T& data);
@@ -107,7 +107,7 @@ namespace RAI
       /// \param [in] uiStreamIndex The index of the vertex stream.
       /// \param [in] uiVertexIndex The index of the vertex.
       /// \return The vertex stream data.
-      EZ_NODISCARD ezConstByteArrayPtr GetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex) const;
+      [[nodiscard]] ezConstByteArrayPtr GetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex) const;
 
       /// \brief Copies the vertex data from the given source buffer.
       /// \param [in] uiVertexIndex The index of the destination vertex.
@@ -122,7 +122,7 @@ namespace RAI
       /// \brief Gets the data of the vertex at the given index.
       /// \param [in] uiVertexIndex The index of the vertex.
       /// \return A pointer to the data of the vertex at the given index.
-      EZ_NODISCARD ezConstByteArrayPtr GetVertexData(ezUInt32 uiVertexIndex) const;
+      [[nodiscard]] ezConstByteArrayPtr GetVertexData(ezUInt32 uiVertexIndex) const;
 
       /// \brief Sets the indices of the primitive at the given index.
       /// \param [in] uiPrimitiveIndex The index of the primitive.
@@ -134,17 +134,17 @@ namespace RAI
       /// \brief Gets the offset of the stream at the given index.
       /// \param [in] uiStreamIndex The index of the stream.
       /// \return The offset of the stream at the given index.
-      EZ_NODISCARD ezUInt32 GetStreamOffset(ezUInt32 uiStreamIndex) const;
+      [[nodiscard]] ezUInt32 GetStreamOffset(ezUInt32 uiStreamIndex) const;
 
       /// \brief Gets the format of the stream at the given index.
       /// \param [in] uiStreamIndex The index of the stream.
       /// \return The format of the stream at the given index.
-      EZ_NODISCARD RHI::spInputElementFormat::Enum GetStreamFormat(ezUInt32 uiStreamIndex) const;
+      [[nodiscard]] RHI::spInputElementFormat::Enum GetStreamFormat(ezUInt32 uiStreamIndex) const;
 
       /// \brief Gets the size of the stream at the given index.
       /// \param [in] uiStreamIndex The index of the stream.
       /// \return The size of the stream at the given index.
-      EZ_NODISCARD ezUInt32 GetStreamSize(ezUInt32 uiStreamIndex) const;
+      [[nodiscard]] ezUInt32 GetStreamSize(ezUInt32 uiStreamIndex) const;
     };
 
     /// \brief An entry (sub-mesh) in the mesh.
@@ -220,7 +220,7 @@ namespace RAI
     ~spMesh() noexcept;
 
     /// \brief Gets the data of this mesh asset.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const Data& GetData() const { return m_Data; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const Data& GetData() const { return m_Data; }
 
     /// \brief Gets the data of this mesh asset.
     EZ_ALWAYS_INLINE Data& GetData() { return m_Data; }
@@ -230,7 +230,7 @@ namespace RAI
     void SetData(const Data& data);
 
     /// \brief Gets the root node of this mesh asset.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const Node& GetRootNode() const { return m_Root; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const Node& GetRootNode() const { return m_Root; }
 
     /// \brief Gets the root node of this mesh asset.
     EZ_ALWAYS_INLINE Node& GetRootNode() { return m_Root; }
@@ -249,25 +249,25 @@ namespace RAI
     void ComputeBounds();
 
     /// \brief Gets the size in bytes of a single vertex in the mesh.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexSize() const { return m_Data.m_uiVertexSize; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetVertexSize() const { return m_Data.m_uiVertexSize; }
 
     /// \brief Gets the number of vertices in the mesh.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexCount() const { return m_Data.GetVertexCount(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetVertexCount() const { return m_Data.GetVertexCount(); }
 
     /// \brief Gets the size in bytes of the entire vertex buffer in the mesh.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferSize() const { return m_Data.GetVertexBufferSize(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferSize() const { return m_Data.GetVertexBufferSize(); }
 
     /// \brief Gets the number of indices in the mesh.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexCount() const { return m_Data.GetIndexCount(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetIndexCount() const { return m_Data.GetIndexCount(); }
 
     /// \brief Gets the size in bytes of the entire index buffer in the mesh.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetIndexBufferSize() const { return m_Data.GetIndexBufferSize(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetIndexBufferSize() const { return m_Data.GetIndexBufferSize(); }
 
     /// \brief Gets the vertex buffer of the mesh.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezConstByteArrayPtr GetVertexBuffer() const { return m_Data.m_Vertices; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezConstByteArrayPtr GetVertexBuffer() const { return m_Data.m_Vertices; }
 
     /// \brief Gets the index buffer of the mesh.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezConstByteArrayPtr GetIndexBuffer() const { return m_Data.m_Indices; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezConstByteArrayPtr GetIndexBuffer() const { return m_Data.m_Indices; }
 
   private:
     void ReadData(ezStreamReader& inout_stream);
@@ -298,16 +298,16 @@ namespace RAI
     void CreateRHIInputLayout();
 
     /// \brief Gets the RHI buffer resource for the vertex buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIVertexBuffer() const { return m_pRHIVertexBuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIVertexBuffer() const { return m_pRHIVertexBuffer; }
 
     /// \brief Gets the RHI buffer resource for the index buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndexBuffer() const { return m_pRHIIndexBuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndexBuffer() const { return m_pRHIIndexBuffer; }
 
     /// \brief Gets the RHI buffer resource for the indirect buffer (draw commands).
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndirectBuffer() const { return m_pRHIIndirectBuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetRHIIndirectBuffer() const { return m_pRHIIndirectBuffer; }
 
     /// \brief Gets the RHI input layout for this mesh.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spInputLayout> GetRHIInputLayout() const { return m_pRHIInputLayout; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<RHI::spInputLayout> GetRHIInputLayout() const { return m_pRHIInputLayout; }
 
     /// \brief Generate draw commands.
     /// \param [out] out_DrawCommands The generated array of draw commands.

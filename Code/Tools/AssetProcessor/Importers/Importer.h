@@ -46,7 +46,7 @@ public:
   virtual ezResult Import(ezStringView sFilePath, ezStringView sOutputPath) = 0;
 
   /// \brief The current importer configuration.
-  EZ_NODISCARD EZ_ALWAYS_INLINE TConfig GetConfiguration() const { return m_Configuration; }
+  [[nodiscard]] EZ_ALWAYS_INLINE TConfig GetConfiguration() const { return m_Configuration; }
 
 protected:
   TConfig m_Configuration;

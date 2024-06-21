@@ -35,32 +35,32 @@ namespace RPI
 
     /// \brief Gets the reference. It's typically the index of the render node
     /// in the collection it is associated with.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezInt32 GetRef() const { return m_iRef; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezInt32 GetRef() const { return m_iRef; }
 
     /// \brief Checks if the reference is invalid.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsInvalid() const { return m_iRef == -1; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsInvalid() const { return m_iRef == -1; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spRenderNodeReference& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator==(const spRenderNodeReference& rhs) const
     {
       return m_iRef == rhs.m_iRef;
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spRenderNodeReference& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator!=(const spRenderNodeReference& rhs) const
     {
       return m_iRef != rhs.m_iRef;
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator<(const spRenderNodeReference& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator<(const spRenderNodeReference& rhs) const
     {
       return m_iRef < rhs.m_iRef;
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderNodeReference operator+(const ezInt32 rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE spRenderNodeReference operator+(const ezInt32 rhs) const
     {
       return spRenderNodeReference(m_iRef + rhs);
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderNodeReference operator*(const ezInt32 rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE spRenderNodeReference operator*(const ezInt32 rhs) const
     {
       return spRenderNodeReference(m_iRef * rhs);
     }

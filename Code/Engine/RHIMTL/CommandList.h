@@ -80,7 +80,7 @@ namespace RHI
     spCommandListMTL(spDeviceMTL* pDeviceMTL, const spCommandListDescription& description);
     ~spCommandListMTL() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::CommandBuffer* GetMTLCommandBuffer() const { return m_pCommandBuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::CommandBuffer* GetMTLCommandBuffer() const { return m_pCommandBuffer; }
 
     MTL::CommandBuffer* Commit();
 
@@ -95,17 +95,17 @@ namespace RHI
       ezUInt32 m_uiOffset;
       spShaderStage::Enum m_eStage;
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE bool Check(spShaderStage::Enum eStage, spResourceHandle hResource) const { return m_hResource == hResource && m_eStage == eStage; }
+      [[nodiscard]] EZ_ALWAYS_INLINE bool Check(spShaderStage::Enum eStage, spResourceHandle hResource) const { return m_hResource == hResource && m_eStage == eStage; }
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const BoundResource& other) const
+      [[nodiscard]] EZ_ALWAYS_INLINE bool operator==(const BoundResource& other) const
       {
         return Check(other.m_eStage, other.m_hResource) && m_uiSlot == other.m_uiSlot && m_uiOffset == other.m_uiOffset;
       }
     };
 
     static bool IsResourceSetEqual(spCommandListResourceSet& set, ezSharedPtr<spResourceSet> pResourceSet, ezUInt32 uiDynamicOffsetCount, const ezUInt32* pDynamicOffsets);
-    EZ_NODISCARD EZ_ALWAYS_INLINE static bool GetResourceSetKey(ezUInt32 uiSet, spShaderStage::Enum eStage) { return ezHashingUtils::CombineHashValues32(uiSet, eStage); }
-    EZ_NODISCARD EZ_ALWAYS_INLINE static bool GetResourceSetSlotKey(ezUInt32 uiSet, spShaderStage::Enum eStage, ezUInt32 uiSlot) { return ezHashingUtils::CombineHashValues32(ezHashingUtils::CombineHashValues32(uiSet, eStage), uiSlot); }
+    [[nodiscard]] EZ_ALWAYS_INLINE static bool GetResourceSetKey(ezUInt32 uiSet, spShaderStage::Enum eStage) { return ezHashingUtils::CombineHashValues32(uiSet, eStage); }
+    [[nodiscard]] EZ_ALWAYS_INLINE static bool GetResourceSetSlotKey(ezUInt32 uiSet, spShaderStage::Enum eStage, ezUInt32 uiSlot) { return ezHashingUtils::CombineHashValues32(ezHashingUtils::CombineHashValues32(uiSet, eStage), uiSlot); }
 
     bool PreDraw();
     void PreDispatch();
@@ -141,9 +141,9 @@ namespace RHI
     void BindTexture(ezSharedPtr<spTextureViewMTL> pTextureView, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages);
     void BindSampler(ezSharedPtr<spSamplerMTL> pSampler, ezUInt32 uiSet, ezUInt32 uiSlot, ezBitflags<spShaderStage> eStages);
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsRenderCommandEncoderActive() const { return m_pRenderCommandEncoder != nullptr; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsBlitCommandEncoderActive() const { return m_pBlitCommandEncoder != nullptr; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsComputeCommandEncoderActive() const { return m_pComputeCommandEncoder != nullptr; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsRenderCommandEncoderActive() const { return m_pRenderCommandEncoder != nullptr; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsBlitCommandEncoderActive() const { return m_pBlitCommandEncoder != nullptr; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsComputeCommandEncoderActive() const { return m_pComputeCommandEncoder != nullptr; }
 
     ezSharedPtr<spBufferMTL> GetFreeStagingBuffer(ezUInt32 uiSize);
 

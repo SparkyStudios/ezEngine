@@ -35,12 +35,12 @@ namespace RHI
     spTextureMTL(spDeviceMTL* pDevice, const spTextureDescription& description);
     ~spTextureMTL() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Texture* GetMTLTexture() const { return m_pTexture; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::TextureType GetMTLTextureType() const { return m_eTextureType; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::Texture* GetMTLTexture() const { return m_pTexture; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::TextureType GetMTLTextureType() const { return m_eTextureType; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Buffer* GetMTLStagingBuffer() const { return m_pStagingBuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::Buffer* GetMTLStagingBuffer() const { return m_pStagingBuffer; }
 
-    EZ_NODISCARD ezUInt32 GetSubresourceSize(ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) const;
+    [[nodiscard]] ezUInt32 GetSubresourceSize(ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer) const;
     void GetSubresourceLayout(ezUInt32 uiMipLevel, ezUInt32 uiArrayLayer, ezUInt32& out_uiRowPitch, ezUInt32& out_uiDepthPitch) const;
 
   private:
@@ -75,7 +75,7 @@ namespace RHI
     spTextureViewMTL(spDeviceMTL* pDevice, const spTextureViewDescription& description);
     ~spTextureViewMTL() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Texture* GetMTLTargetTexture() const { return m_pTargetTexture; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::Texture* GetMTLTargetTexture() const { return m_pTargetTexture; }
 
   private:
     MTL::Device* m_pMTLDevice{nullptr};

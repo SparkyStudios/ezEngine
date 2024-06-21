@@ -102,20 +102,20 @@ namespace RHI
 
   public:
     /// \brief Checks whether the pipeline is active.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsActivated() const { return m_bActivated; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsActivated() const { return m_bActivated; }
 
     /// \brief Checks whether the pipeline is a compute pipeline.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual bool IsComputePipeline() const = 0;
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual bool IsComputePipeline() const = 0;
 
     /// \brief Gets the shader program associated with this pipeline.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetShaderProgram() const { return m_hShaderProgram; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spResourceHandle& GetShaderProgram() const { return m_hShaderProgram; }
 
     /// \brief Gets the resource layouts for this pipeline.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<ezSharedPtr<spResourceLayout>>& GetResourceLayouts() const { return m_ResourceLayouts; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezDynamicArray<ezSharedPtr<spResourceLayout>>& GetResourceLayouts() const { return m_ResourceLayouts; }
 
     /// \brief Gets the resource layout at the given slot.
     /// \param uiSlot The slot to get the resource layout from.
-    EZ_NODISCARD ezSharedPtr<spResourceLayout> GetResourceLayout(ezUInt32 uiSlot) const;
+    [[nodiscard]] ezSharedPtr<spResourceLayout> GetResourceLayout(ezUInt32 uiSlot) const;
 
   protected:
     bool m_bActivated{false};
@@ -129,9 +129,9 @@ namespace RHI
     EZ_ADD_DYNAMIC_REFLECTION(spComputePipeline, spPipeline);
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsComputePipeline() const override { return true; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsComputePipeline() const override { return true; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool SupportsPushConstants() const { return m_Description.m_bSupportsPushConstants; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool SupportsPushConstants() const { return m_Description.m_bSupportsPushConstants; }
 
   protected:
     explicit spComputePipeline(spComputePipelineDescription description);
@@ -145,17 +145,17 @@ namespace RHI
     EZ_ADD_DYNAMIC_REFLECTION(spGraphicPipeline, spPipeline);
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsComputePipeline() const override { return false; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsComputePipeline() const override { return false; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderingState& GetRenderingState() const { return m_Description.m_RenderingState; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spRenderingState& GetRenderingState() const { return m_Description.m_RenderingState; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezEnum<spPrimitiveTopology> GetPrimitiveTopology() const { return m_Description.m_ePrimitiveTopology; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezEnum<spPrimitiveTopology> GetPrimitiveTopology() const { return m_Description.m_ePrimitiveTopology; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const { return m_Description.m_Output; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const { return m_Description.m_Output; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool SupportsPushConstants() const { return m_Description.m_bSupportsPushConstants; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool SupportsPushConstants() const { return m_Description.m_bSupportsPushConstants; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spGraphicPipelineDescription& GetDescription() const { return m_Description; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spGraphicPipelineDescription& GetDescription() const { return m_Description; }
 
   protected:
     explicit spGraphicPipeline(spGraphicPipelineDescription description);

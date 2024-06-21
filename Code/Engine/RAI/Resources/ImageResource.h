@@ -35,8 +35,8 @@ namespace RAI
 
     void Clear();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spImage& GetImage() const { return m_Image; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE spImage& GetImage() { return m_Image; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spImage& GetImage() const { return m_Image; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spImage& GetImage() { return m_Image; }
 
     EZ_ALWAYS_INLINE void SetImage(const spImage& image) { m_Image = image; }
 
@@ -60,7 +60,7 @@ namespace RAI
   public:
     spImageResource();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spImageResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spImageResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
 
   private:
     ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;

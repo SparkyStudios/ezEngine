@@ -225,7 +225,7 @@ namespace RPI
     static Slang::ComPtr<slang::IModule> CreateSpecializationConstantsCode(Slang::ComPtr<slang::ISession> pSession, const spShaderCompilerSetup& compilerSetup);
 
     /// \brief Creates a new Slang shader compilation session.
-    EZ_NODISCARD Slang::ComPtr<slang::ISession> CreateSlangSession(spShaderCompilerSetup& ref_compilerSetup) const;
+    [[nodiscard]] Slang::ComPtr<slang::ISession> CreateSlangSession(spShaderCompilerSetup& ref_compilerSetup) const;
 
     static Slang::ComPtr<slang::IEntryPoint> GetEntryPointForStage(Slang::ComPtr<slang::IModule> pModule, ezEnum<RHI::spShaderStage> eStage);
 

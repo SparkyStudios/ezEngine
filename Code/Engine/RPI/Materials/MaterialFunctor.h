@@ -30,7 +30,7 @@ namespace RPI
 
     virtual ezVariant Evaluate(const ezArrayPtr<ezVariant>& arguments) const = 0;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezHashedString& GetName() const { return m_sName; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezHashedString& GetName() const { return m_sName; }
 
   private:
     ezHashedString m_sName;
@@ -41,7 +41,7 @@ namespace RPI
     const spMaterialFunctor* m_pFunctor{nullptr};
     ezDynamicArray<ezVariant> m_Arguments;
 
-    EZ_NODISCARD EZ_FORCE_INLINE ezVariant operator()(const ezArrayPtr<ezVariant>& arguments)
+    [[nodiscard]] EZ_FORCE_INLINE ezVariant operator()(const ezArrayPtr<ezVariant>& arguments)
     {
       return m_pFunctor->Evaluate(m_Arguments.GetArrayPtr());
     }
@@ -59,9 +59,9 @@ namespace RPI
     void Register(spMaterialFunctor* pMaterialFunctor);
     void Unregister(spMaterialFunctor* pMaterialFunctor);
 
-    EZ_NODISCARD static const spMaterialFunctor* Get(ezTempHashedString sName);
+    [[nodiscard]] static const spMaterialFunctor* Get(ezTempHashedString sName);
 
-    EZ_NODISCARD static bool Contains(ezTempHashedString sName);
+    [[nodiscard]] static bool Contains(ezTempHashedString sName);
 
   private:
     ezHybridArray<spMaterialFunctor*, 16> m_Functors;

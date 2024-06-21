@@ -79,11 +79,11 @@ namespace RPI
     virtual RHI::spOutputDescription GetOutputDescription(const spRenderView* pRenderView) const;
     virtual RHI::spRenderingState GetRenderingState(const spRenderObject* pRenderObject) const = 0;
 
-    EZ_NODISCARD ezSharedPtr<RHI::spFramebuffer> GetOutputFramebuffer(const spRenderView* pRenderView) const;
+    [[nodiscard]] ezSharedPtr<RHI::spFramebuffer> GetOutputFramebuffer(const spRenderView* pRenderView) const;
 
     virtual void CreateOutputFramebuffer(const spRenderView* pRenderView) = 0;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderNodeReference GetRenderSystemReference() const { return m_RenderSystemReference; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spRenderNodeReference GetRenderSystemReference() const { return m_RenderSystemReference; }
 
   protected:
     virtual void BatchInstances(const ezArrayPtr<spRenderObject* const>& renderObjects, ezDynamicArray<spRenderObject*>& out_batchedRenderObjects);

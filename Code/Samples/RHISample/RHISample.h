@@ -98,7 +98,7 @@ public:
     ezDynamicArray<spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper> m_DrawCommands;
   };
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetTarget() const { return m_PassData.m_hRenderTarget; }
+  [[nodiscard]] EZ_ALWAYS_INLINE spResourceHandle GetTarget() const { return m_PassData.m_hRenderTarget; }
 
   ezResult Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources) override;
   ezUniquePtr<spRenderPass> Compile(spRenderGraphBuilder* pBuilder) override;

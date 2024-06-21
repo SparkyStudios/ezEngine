@@ -36,7 +36,7 @@ namespace RAI
 
     void Clear();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spTexture& GetTexture() const { return m_Texture; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spTexture& GetTexture() const { return m_Texture; }
 
     EZ_ALWAYS_INLINE void SetTexture(const spTexture& texture) { m_Texture = texture; }
 
@@ -65,8 +65,8 @@ namespace RAI
     spTexture2DResource();
     explicit spTexture2DResource(DoUpdate ResourceUpdateThread);
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spTexture> GetRHITexture() const { return m_RHITexture[m_uiLoadedTextures - 1]; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spSampler> GetRHISampler() const { return m_RHISampler; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<RHI::spTexture> GetRHITexture() const { return m_RHITexture[m_uiLoadedTextures - 1]; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<RHI::spSampler> GetRHISampler() const { return m_RHISampler; }
 
   private:
     ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;

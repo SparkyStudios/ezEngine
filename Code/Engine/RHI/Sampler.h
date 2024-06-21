@@ -100,7 +100,7 @@ namespace RHI
     EZ_ADD_DYNAMIC_REFLECTION(spSamplerState, spDeviceResource);
 
   public:
-    EZ_NODISCARD virtual spSamplerDescription GetSamplerDescription() const = 0;
+    [[nodiscard]] virtual spSamplerDescription GetSamplerDescription() const = 0;
   };
 
   class SP_RHI_DLL spSampler : public spShaderResource
@@ -108,9 +108,9 @@ namespace RHI
     EZ_ADD_DYNAMIC_REFLECTION(spSampler, spShaderResource);
 
   public:
-    EZ_NODISCARD virtual ezSharedPtr<spSamplerState> GetSamplerWithMipMap() const = 0;
+    [[nodiscard]] virtual ezSharedPtr<spSamplerState> GetSamplerWithMipMap() const = 0;
 
-    EZ_NODISCARD virtual ezSharedPtr<spSamplerState> GetSamplerWithoutMipMap() const = 0;
+    [[nodiscard]] virtual ezSharedPtr<spSamplerState> GetSamplerWithoutMipMap() const = 0;
   };
 } // namespace RHI
 

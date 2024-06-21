@@ -23,7 +23,7 @@ namespace RHI
     // spSamplerStateMTL
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::SamplerState* GetMTLSamplerState() const { return m_pSamplerState; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::SamplerState* GetMTLSamplerState() const { return m_pSamplerState; }
 
     spSamplerStateMTL(spDeviceMTL* pDevice, const spSamplerDescription& description);
     ~spSamplerStateMTL() override;
@@ -53,15 +53,15 @@ namespace RHI
     // spSampler
 
   public:
-    EZ_NODISCARD ezSharedPtr<spSamplerState> GetSamplerWithMipMap() const override;
-    EZ_NODISCARD ezSharedPtr<spSamplerState> GetSamplerWithoutMipMap() const override;
+    [[nodiscard]] ezSharedPtr<spSamplerState> GetSamplerWithMipMap() const override;
+    [[nodiscard]] ezSharedPtr<spSamplerState> GetSamplerWithoutMipMap() const override;
 
     // spSamplerMTL
 
   public:
     ~spSamplerMTL() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spSamplerStateMTL> GetSamplerState() const { return m_pSamplerState; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spSamplerStateMTL> GetSamplerState() const { return m_pSamplerState; }
 
   private:
     spSamplerMTL(spDeviceMTL* pDevice, const spSamplerDescription& description);

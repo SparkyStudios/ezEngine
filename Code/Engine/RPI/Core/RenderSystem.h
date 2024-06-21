@@ -37,26 +37,26 @@ namespace RPI
     EZ_DECLARE_SINGLETON(spRenderSystem);
 
   public:
-    EZ_NODISCARD static bool IsMultiThreadedRendering();
+    [[nodiscard]] static bool IsMultiThreadedRendering();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE static ezUInt64 GetFrameCount() { return s_uiFrameCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE static ezUInt64 GetFrameCount() { return s_uiFrameCount; }
 
-    EZ_NODISCARD EZ_FORCE_INLINE static ezUInt32 GetDataIndexForExtraction() { return IsMultiThreadedRendering() ? (s_uiFrameCount & 1) : 0; }
+    [[nodiscard]] EZ_FORCE_INLINE static ezUInt32 GetDataIndexForExtraction() { return IsMultiThreadedRendering() ? (s_uiFrameCount & 1) : 0; }
 
-    EZ_NODISCARD EZ_FORCE_INLINE static ezUInt32 GetDataIndexForRendering() { return IsMultiThreadedRendering() ? ((s_uiFrameCount + 1) & 1) : 0; }
+    [[nodiscard]] EZ_FORCE_INLINE static ezUInt32 GetDataIndexForRendering() { return IsMultiThreadedRendering() ? ((s_uiFrameCount + 1) & 1) : 0; }
 
     spRenderSystem();
 
     void Startup(ezUniquePtr<RHI::spDevice>&& pDevice);
     void Shutdown();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spDevice* GetDevice() const { return m_pDevice.Borrow(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE RHI::spDevice* GetDevice() const { return m_pDevice.Borrow(); }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderThread* GetRenderThread() const { return m_pRenderThread.Borrow(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE spRenderThread* GetRenderThread() const { return m_pRenderThread.Borrow(); }
 
-    EZ_NODISCARD ezSharedPtr<spCompositor> GetCompositor() const;
+    [[nodiscard]] ezSharedPtr<spCompositor> GetCompositor() const;
 
-    EZ_NODISCARD spSceneContext* GetSceneContextFromWorld(const ezWorld* pWorld) const;
+    [[nodiscard]] spSceneContext* GetSceneContextFromWorld(const ezWorld* pWorld) const;
 
     spSceneContext* CreateSceneForWorld(ezWorld* pWorld);
 
@@ -80,10 +80,10 @@ namespace RPI
     spRenderStage* GetRenderStage(ezUInt32 uiIndex) const;
 
     /// \brief Gets the number of registered render stages.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetRenderStageCount() const { return m_RenderStages.GetCount(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetRenderStageCount() const { return m_RenderStages.GetCount(); }
 
     /// \brief Gets all registered render stages.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<spRenderStage* const> GetRenderStages() const { return m_RenderStages.GetArrayPtr(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezArrayPtr<spRenderStage* const> GetRenderStages() const { return m_RenderStages.GetArrayPtr(); }
 
 #pragma endregion
 

@@ -52,7 +52,7 @@ namespace RPI
     void Deinitialize();
 
     /// \brief Gets the name of the feature.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezStringView GetName() const { return m_sName.GetView(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezStringView GetName() const { return m_sName.GetView(); }
 
     /// \brief Sets the name of the feature.
     /// \param sName The new name to assign to the feature.

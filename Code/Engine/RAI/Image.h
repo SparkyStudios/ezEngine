@@ -40,12 +40,12 @@ namespace RAI
   public:
     spImage() = default;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetWidth(ezUInt32 uiMipLevel = 0) const { return RHI::spTextureHelper::GetMipDimension(m_uiWidth, uiMipLevel); }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetHeight(ezUInt32 uiMipLevel = 0) const { return RHI::spTextureHelper::GetMipDimension(m_uiHeight, uiMipLevel); }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetDepth(ezUInt32 uiMipLevel = 0) const { return RHI::spTextureHelper::GetMipDimension(m_uiDepth, uiMipLevel); }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetMipCount() const { return m_uiMipCount; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetArrayLayerCount() const { return m_uiArrayLayers; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezEnum<RHI::spPixelFormat>& GetPixelFormat() const { return m_eFormat; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetWidth(ezUInt32 uiMipLevel = 0) const { return RHI::spTextureHelper::GetMipDimension(m_uiWidth, uiMipLevel); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetHeight(ezUInt32 uiMipLevel = 0) const { return RHI::spTextureHelper::GetMipDimension(m_uiHeight, uiMipLevel); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetDepth(ezUInt32 uiMipLevel = 0) const { return RHI::spTextureHelper::GetMipDimension(m_uiDepth, uiMipLevel); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetMipCount() const { return m_uiMipCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetArrayLayerCount() const { return m_uiArrayLayers; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezEnum<RHI::spPixelFormat>& GetPixelFormat() const { return m_eFormat; }
 
     EZ_ALWAYS_INLINE void SetWidth(ezUInt32 value) { m_uiWidth = value; }
     EZ_ALWAYS_INLINE void SetHeight(ezUInt32 value) { m_uiHeight = value; }
@@ -54,10 +54,10 @@ namespace RAI
     EZ_ALWAYS_INLINE void SetArrayLayerCount(ezUInt32 value) { m_uiArrayLayers = value; }
     EZ_ALWAYS_INLINE void SetPixelFormat(const ezEnum<RHI::spPixelFormat>& value) { m_eFormat = value; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezContiguousMemoryStreamStorage& GetData() const { return m_Storage; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezContiguousMemoryStreamStorage& GetData() const { return m_Storage; }
     EZ_ALWAYS_INLINE ezContiguousMemoryStreamStorage& GetData() { return m_Storage; }
 
-    EZ_NODISCARD ezByteBlobPtr GetImageData(ezUInt32 uiMipLevel = 0, ezUInt32 uiDepth = 0, ezUInt32 uiArrayLayer = 0) const;
+    [[nodiscard]] ezByteBlobPtr GetImageData(ezUInt32 uiMipLevel = 0, ezUInt32 uiDepth = 0, ezUInt32 uiArrayLayer = 0) const;
 
   private:
     ezResult LoadImageData();

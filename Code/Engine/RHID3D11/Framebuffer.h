@@ -31,9 +31,9 @@ namespace RHI
 
     // spFramebuffer
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const override { return m_OutputDescription; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetWidth() const override { return m_uiWidth; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetHeight() const override { return m_uiHeight; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const override { return m_OutputDescription; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetWidth() const override { return m_uiWidth; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetHeight() const override { return m_uiHeight; }
     void SetColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target) override;
     void Snapshot(ezUInt32 uiColorTargetIndex, ezUInt32 uiArrayLayer, ezUInt32 uiMipLevel, ezByteArrayPtr& out_Pixels) override;
 
@@ -42,12 +42,12 @@ namespace RHI
     spFramebufferD3D11(spDeviceD3D11* pDevice, const spFramebufferDescription& description);
     ~spFramebufferD3D11() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<ID3D11RenderTargetView*> GetRenderTargetViews() { return m_ColorTargets.GetArrayPtr(); }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11RenderTargetView* GetRenderTargetView(ezUInt32 uiSlot) const { return m_ColorTargets[uiSlot]; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DepthStencilView* GetDepthStencilView() const { return m_pDepthTarget; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezArrayPtr<ID3D11RenderTargetView*> GetRenderTargetViews() { return m_ColorTargets.GetArrayPtr(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ID3D11RenderTargetView* GetRenderTargetView(ezUInt32 uiSlot) const { return m_ColorTargets[uiSlot]; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ID3D11DepthStencilView* GetDepthStencilView() const { return m_pDepthTarget; }
 
-    EZ_NODISCARD ezSharedPtr<spTextureD3D11> GetColorTarget(ezUInt32 uiColorTargetIndex) const;
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spSwapchainD3D11> GetParentSwapchain() const { return m_pParentSwapchain; }
+    [[nodiscard]] ezSharedPtr<spTextureD3D11> GetColorTarget(ezUInt32 uiColorTargetIndex) const;
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spSwapchainD3D11> GetParentSwapchain() const { return m_pParentSwapchain; }
 
   private:
     void ApplyColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target);

@@ -19,7 +19,7 @@ namespace RAI
 
     void Clear();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spSkeleton& GetSkeleton() const { return m_Skeleton; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spSkeleton& GetSkeleton() const { return m_Skeleton; }
 
     EZ_ALWAYS_INLINE void SetSkeleton(const spSkeleton& skeleton) { m_Skeleton = skeleton; }
 

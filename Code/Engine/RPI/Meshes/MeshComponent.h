@@ -31,7 +31,7 @@ namespace RPI
     explicit spMeshComponentManager(ezWorld* pWorld);
     ~spMeshComponentManager() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE spMeshRenderFeature* GetMeshRenderFeature() const { return m_pRenderFeature.Borrow(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE spMeshRenderFeature* GetMeshRenderFeature() const { return m_pRenderFeature.Borrow(); }
 
   protected:
     void Initialize() override;
@@ -91,7 +91,7 @@ namespace RPI
     void SetMeshFile(const char* szMeshFile);
 
     /// \brief Returns the path to the mesh file to be rendered.
-    EZ_NODISCARD const char* GetMeshFile() const;
+    [[nodiscard]] const char* GetMeshFile() const;
 
     /// \brief Sets the max distance at which the mesh will be rendered with
     /// the lowest level of detail.
@@ -100,14 +100,14 @@ namespace RPI
 
     /// \brief Returns the max distance at which the mesh will be rendered with
     /// the lowest level of detail.
-    EZ_NODISCARD float GetLODMaxDistance() const;
+    [[nodiscard]] float GetLODMaxDistance() const;
 
     /// \brief Sets the LOD fetch function.
     /// \param eFetchFunction The LOD fetch function.
     void SetLODFetchFunction(ezEnum<spMeshLevelOfDetailFetchFunction> eFetchFunction);
 
     /// \brief Returns the LOD fetch function.
-    EZ_NODISCARD ezEnum<spMeshLevelOfDetailFetchFunction> GetLODFetchFunction() const;
+    [[nodiscard]] ezEnum<spMeshLevelOfDetailFetchFunction> GetLODFetchFunction() const;
 
 #pragma endregion
 

@@ -485,36 +485,36 @@ namespace RHI
 
   public:
     /// \brief Gets the format of individual texture elements stored in this instance.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spPixelFormat> GetFormat() const { return m_Description.m_eFormat; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezEnum<spPixelFormat> GetFormat() const { return m_Description.m_eFormat; }
 
     /// \brief Gets the total width of this instance.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetWidth() const { return m_Description.m_uiWidth; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetWidth() const { return m_Description.m_uiWidth; }
 
     /// \brief Gets the total height of this instance.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetHeight() const { return m_Description.m_uiHeight; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetHeight() const { return m_Description.m_uiHeight; }
 
     /// \brief Gets the total depth of this instance.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetDepth() const { return m_Description.m_uiDepth; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetDepth() const { return m_Description.m_uiDepth; }
 
     /// \brief Gets the total number of mipmaps of this instance.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetMipCount() const { return m_Description.m_uiMipCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetMipCount() const { return m_Description.m_uiMipCount; }
 
     /// \brief Gets the total number of array slices of this instance.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetArrayLayerCount() const { return m_Description.m_uiArrayLayers; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetArrayLayerCount() const { return m_Description.m_uiArrayLayers; }
 
     /// \brief Gets the usage flags given when this instance was created. This property controls how
     /// this instance is permitted to be used, and it is an error to attempt to use the texture outside of those contexts.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezBitflags<spTextureUsage> GetUsage() const { return m_Description.m_eUsage; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezBitflags<spTextureUsage> GetUsage() const { return m_Description.m_eUsage; }
 
     /// \brief Gets the dimensions of this instance.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spTextureDimension> GetDimension() const { return m_Description.m_eDimension; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezEnum<spTextureDimension> GetDimension() const { return m_Description.m_eDimension; }
 
     /// \brief Gets the number os samples in this instance. If this returns any value other than
     /// \a spTextureSampleCount::None, the instance is considered a multisampled texture.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spTextureSampleCount> GetSampleCount() const { return m_Description.m_eSampleCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezEnum<spTextureSampleCount> GetSampleCount() const { return m_Description.m_eSampleCount; }
 
     /// \brief Gets the \a spTextureDescription used to create this texture.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spTextureDescription& GetDescription() const { return m_Description; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spTextureDescription& GetDescription() const { return m_Description; }
 
   protected:
     explicit spTexture(spTextureDescription description);
@@ -531,28 +531,28 @@ namespace RHI
 
   public:
     /// \brief Gets the target \a spTexture resource to be sampled via this instance.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual spResourceHandle GetTexture() const { return m_Description.m_hTarget; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual spResourceHandle GetTexture() const { return m_Description.m_hTarget; }
 
     /// \brief Gets the base mip level visible in the view.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetBaseMipLevel() const { return m_Description.m_uiBaseMipLevel; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetBaseMipLevel() const { return m_Description.m_uiBaseMipLevel; }
 
     /// \brief Gets the number of mipmaps in the view.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetMipCount() const { return m_Description.m_uiMipCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetMipCount() const { return m_Description.m_uiMipCount; }
 
     /// \brief Gets the base array layer visible in the view.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetBaseArrayLayer() const { return m_Description.m_uiBaseArrayLayer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetBaseArrayLayer() const { return m_Description.m_uiBaseArrayLayer; }
 
     /// \brief Gets the number of array layers in the view.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetArrayLayerCount() const { return m_Description.m_uiArrayLayers; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetArrayLayerCount() const { return m_Description.m_uiArrayLayers; }
 
     /// \brief Gets the format used to interpret the contents of the target texture.
     ///
     /// \note This may be different than the format specified in the target texture, but
     /// it should be of the same size.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezEnum<spPixelFormat> GetFormat() const { return m_Description.m_eFormat; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezEnum<spPixelFormat> GetFormat() const { return m_Description.m_eFormat; }
 
     /// \brief Gets the \a spTextureViewDescription used to create the view.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spTextureViewDescription& GetDescription() const { return m_Description; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spTextureViewDescription& GetDescription() const { return m_Description; }
 
   protected:
     explicit spTextureView(spTextureViewDescription description);

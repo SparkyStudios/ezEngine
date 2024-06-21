@@ -49,7 +49,7 @@ namespace RPI
     void UpdateBuffer(ezUInt32 uiOffsetInBytes, ezUInt32 uiSizeInBytes, const void* pData) const;
 
     /// \brief Gets the handle to the buffer resource.
-    EZ_NODISCARD RHI::spResourceHandle GetHandle() const;
+    [[nodiscard]] RHI::spResourceHandle GetHandle() const;
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
     /// \brief Sets the debug name of the buffer.
@@ -131,7 +131,7 @@ namespace RPI
     }
 
     /// \brief Gets the hash of the constant buffer's value.
-    EZ_NODISCARD EZ_FORCE_INLINE ezUInt32 GetHash() const
+    [[nodiscard]] EZ_FORCE_INLINE ezUInt32 GetHash() const
     {
       return ezHashingUtils::xxHash32(m_RawData.GetPtr(), m_RawData.GetCount());
     }

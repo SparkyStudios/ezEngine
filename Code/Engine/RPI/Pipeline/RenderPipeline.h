@@ -49,7 +49,7 @@ namespace RPI
     explicit spRenderPipeline(spRenderGraphResourcesTable&& resources);
     ~spRenderPipeline() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderGraphResourcesTable& GetResources() const { return m_PipelineResources; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spRenderGraphResourcesTable& GetResources() const { return m_PipelineResources; }
 
     void Execute(const spRenderContext* pContext);
 

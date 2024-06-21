@@ -30,7 +30,7 @@ namespace RHI
 
   public:
     /// \brief Gets the name of the profiled scope.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezStringView GetScopeName() const { return m_sName; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezStringView GetScopeName() const { return m_sName; }
 
     /// \brief Gets the time at which the profiler was started.
     virtual ezTime GetBeginTime() = 0;

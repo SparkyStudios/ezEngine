@@ -55,22 +55,22 @@ namespace RHI
     spDeviceResource() = default;
 
     /// \brief Gets the handle of this resource.
-    EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetHandle() const { return m_Handle; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spResourceHandle GetHandle() const { return m_Handle; }
 
     /// \brief Gets the debug name of the resource.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezStringView GetDebugName() const { return m_sDebugName; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezStringView GetDebugName() const { return m_sDebugName; }
 
     /// \brief Sets the debug name of the resource.
     EZ_ALWAYS_INLINE virtual void SetDebugName(ezStringView sDebugName) { m_sDebugName = sDebugName; }
 
     /// \brief Gets the graphics device in which this resource has been created.
-    EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
 
     /// \brief Releases the resource.
     virtual void ReleaseResource() = 0;
 
     /// \brief Check whether the resource has been released.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual bool IsReleased() const { return m_bReleased; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual bool IsReleased() const { return m_bReleased; }
 
   protected:
     spResourceHandle m_Handle;
@@ -90,7 +90,7 @@ namespace RHI
     void EnsureResourceCreated();
 
     /// \brief Gets whether the resource has been created.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsResourceCreated() const { return m_bIsResourceCreated; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsResourceCreated() const { return m_bIsResourceCreated; }
 
     /// \brief Creates the resource, or do nothing if the resource
     /// is already created.
@@ -137,28 +137,28 @@ namespace RHI
     spMappedResource(const spResourceHandle& hResource, const ezEnum<spMapAccess>& eAccess, const ezByteArrayPtr& data);
 
     /// \brief Checks whether the mapped resource is valid.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsValid() const { return !m_hResource.IsInvalidated() && m_pData != nullptr; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsValid() const { return !m_hResource.IsInvalidated() && m_pData != nullptr; }
 
     /// \brief Gets the mapped resource.
-    EZ_NODISCARD const spResourceHandle& GetResource() const;
+    [[nodiscard]] const spResourceHandle& GetResource() const;
 
     /// \brief Gets the mapped resource access mode.
-    EZ_NODISCARD ezEnum<spMapAccess> GetAccess() const;
+    [[nodiscard]] ezEnum<spMapAccess> GetAccess() const;
 
     /// \brief Gets the mapped resource data pointer.
-    EZ_NODISCARD void* GetData() const;
+    [[nodiscard]] void* GetData() const;
 
     /// \brief Gets the mapped resource size.
-    EZ_NODISCARD ezUInt32 GetSize() const;
+    [[nodiscard]] ezUInt32 GetSize() const;
 
     /// \brief Gets the mapped resource sub-resource.
-    EZ_NODISCARD ezUInt32 GetSubResource() const;
+    [[nodiscard]] ezUInt32 GetSubResource() const;
 
     /// \brief Gets the mapped resource row pitch.
-    EZ_NODISCARD ezUInt32 GetRowPitch() const;
+    [[nodiscard]] ezUInt32 GetRowPitch() const;
 
     /// \brief Gets the mapped resource depth pitch.
-    EZ_NODISCARD ezUInt32 GetDepthPitch() const;
+    [[nodiscard]] ezUInt32 GetDepthPitch() const;
 
   private:
     /// \brief The mapped resource.
@@ -193,14 +193,14 @@ namespace RHI
   {
   public:
     /// \brief The \a spMappedResource viewed by this instance.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spMappedResource& GetMappedResource() const { return m_MappedResource; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spMappedResource& GetMappedResource() const { return m_MappedResource; }
 
     /// \brief The total size in bytes of the mapped resource.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetSize() const { return m_uiSize; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetSize() const { return m_uiSize; }
 
     /// \brief The total number of structures that is contained in the mapped resource.
     /// This is effectively the total number of bytes divided by the size of the structure type.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezInt32 GetCount() const { return m_uiCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezInt32 GetCount() const { return m_uiCount; }
 
     /// \brief Creates a typed view of the given \a spMappedResource.
     explicit spMappedResourceView(const spMappedResource& resource)
@@ -332,7 +332,7 @@ namespace RHI
 
   public:
     /// \brief Gets the graphics device for which resources are created.
-    EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
 
     /// \brief Creates a new spShader resource.
     /// \param [in] description The description of the shader resource to create.
@@ -457,7 +457,7 @@ namespace RHI
     ~spDeviceResourceManager() override;
 
     /// \brief Gets the graphics device for which resources are created.
-    EZ_NODISCARD EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
 
     /// \brief Registers a resource in the manager.
     /// \param [in] pResource The resource to register.
@@ -479,12 +479,12 @@ namespace RHI
     /// \brief Increments the reference count of the given resource.
     /// \param [in] hResource The handle of the resource to increment the reference count.
     /// \return The new reference count.
-    EZ_NODISCARD ezUInt32 IncrementResourceRef(const spResourceHandle& hResource) const;
+    [[nodiscard]] ezUInt32 IncrementResourceRef(const spResourceHandle& hResource) const;
 
     /// \brief Decrements the reference count of the given resource.
     /// \param [in] hResource The handle of the resource to decrement the reference count.
     /// \return The new reference count.
-    EZ_NODISCARD ezUInt32 DecrementResourceRef(const spResourceHandle& hResource) const;
+    [[nodiscard]] ezUInt32 DecrementResourceRef(const spResourceHandle& hResource) const;
 
     /// \brief Enqueue a resource for deallocation at the end of the current frame.
     /// \param [in] hResource The resource to be deallocated.
@@ -511,7 +511,7 @@ namespace RHI
     /// \brief Gets a registered resource from the manager using the given handle.
     /// \param [in] hResource The handle to the resource.
     /// \return The pointer of the found resource, or nullptr if the resource is not registered in this manager.
-    EZ_NODISCARD spDeviceResource* GetResource(const spResourceHandle& hResource) const;
+    [[nodiscard]] spDeviceResource* GetResource(const spResourceHandle& hResource) const;
 
     spDevice* m_pDevice;
     ezAllocator* m_pAllocator;

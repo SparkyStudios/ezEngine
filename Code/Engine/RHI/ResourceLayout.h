@@ -37,26 +37,26 @@ namespace RHI
     friend class spDeviceResourceFactory;
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezBitflags<spShaderStage> GetShaderStages() const { return m_Description.m_eShaderStage; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezBitflags<spShaderStage> GetShaderStages() const { return m_Description.m_eShaderStage; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<spResourceLayoutElementDescription>& GetElements() const { return m_Description.m_Elements; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezDynamicArray<spResourceLayoutElementDescription>& GetElements() const { return m_Description.m_Elements; }
 
     /// \brief Gets the number of elements in the layout.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetElementCount() const { return m_Description.m_Elements.GetCount(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetElementCount() const { return m_Description.m_Elements.GetCount(); }
 
-    EZ_NODISCARD ezUInt32 GetElementIndex(const ezHashedString& sName) const;
+    [[nodiscard]] ezUInt32 GetElementIndex(const ezHashedString& sName) const;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceLayoutElementDescription& GetElement(ezUInt32 uiIndex) const
+    [[nodiscard]] EZ_ALWAYS_INLINE const spResourceLayoutElementDescription& GetElement(ezUInt32 uiIndex) const
     {
       EZ_ASSERT_DEV(uiIndex < m_Description.m_Elements.GetCount(), "Index out of bounds.");
       return m_Description.m_Elements[uiIndex];
     }
 
     /// \brief Gets the description used to create the layout.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceLayoutDescription& GetDescription() const { return m_Description; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spResourceLayoutDescription& GetDescription() const { return m_Description; }
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetDynamicBufferCount() const { return m_uiDynamicBufferCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetDynamicBufferCount() const { return m_uiDynamicBufferCount; }
 #endif
 
   protected:

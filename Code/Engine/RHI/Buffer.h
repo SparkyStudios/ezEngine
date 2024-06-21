@@ -129,16 +129,16 @@ namespace RHI
 
   public:
     /// \brief Gets the handle to the parent buffer of this range.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezSharedPtr<spBuffer> GetBuffer() const = 0;
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezSharedPtr<spBuffer> GetBuffer() const = 0;
 
     /// \brief Gets the offset in bytes from which stats this range in the parent buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetOffset() const { return m_Description.m_uiOffset; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetOffset() const { return m_Description.m_uiOffset; }
 
     /// \brief Gets the size of this range.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetSize() const { return m_Description.m_uiSize; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetSize() const { return m_Description.m_uiSize; }
 
     /// \brief Gets the handle of the \see spFence which will control synchronization on this buffer range.
-    EZ_NODISCARD virtual ezSharedPtr<spFence> GetFence() const = 0;
+    [[nodiscard]] virtual ezSharedPtr<spFence> GetFence() const = 0;
 
   protected:
     explicit spBufferRange(spBufferRangeDescription description);
@@ -156,26 +156,26 @@ namespace RHI
   public:
     /// \brief Gets the size in bytes of the buffer. In case of multi-buffered buffers, this
     /// is the size of a single buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetSize() const { return m_Description.m_uiSize; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetSize() const { return m_Description.m_uiSize; }
 
     /// \brief Gets the stride of the structure in bytes.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezUInt32 GetStructureStride() const { return m_Description.m_uiStructureStride; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezUInt32 GetStructureStride() const { return m_Description.m_uiStructureStride; }
 
     /// \brief Gets the usage of the buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezBitflags<spBufferUsage> GetUsage() const { return m_Description.m_eUsage; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezBitflags<spBufferUsage> GetUsage() const { return m_Description.m_eUsage; }
 
     /// \brief Checks whether the buffer is dynamic.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsDynamic() const { return GetUsage().IsAnySet(spBufferUsage::Dynamic | spBufferUsage::PersistentMapping); }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsDynamic() const { return GetUsage().IsAnySet(spBufferUsage::Dynamic | spBufferUsage::PersistentMapping); }
 
     /// \brief Checks whether the buffer is a raw buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsRawBuffer() const { return m_Description.m_bRawBuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsRawBuffer() const { return m_Description.m_bRawBuffer; }
 
     /// \brief Gets the index of the currently bound buffer range in case of multi-buffered buffers.
     /// \note This always returns 0 in case of single-buffered buffers.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetCurrentRangeIndex() const { return m_uiBufferIndex; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetCurrentRangeIndex() const { return m_uiBufferIndex; }
 
     /// \brief Gets the currently used buffer range.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spBufferRange> GetCurrentRange() const { return m_BufferRanges[m_uiBufferIndex]; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spBufferRange> GetCurrentRange() const { return m_BufferRanges[m_uiBufferIndex]; }
 
     /// \brief Gets the buffer ranges stored by this buffer.
     ///
@@ -185,7 +185,7 @@ namespace RHI
     /// - For a triple-buffered buffer, there are three ranges.
     ///
     /// You can use the result of GetBufferIndex() to determine the range of the buffer currently being used.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezStaticArray<ezSharedPtr<spBufferRange>, SP_RHI_MAX_BUFFERING_LEVEL>& GetBufferRanges() const { return m_BufferRanges; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezStaticArray<ezSharedPtr<spBufferRange>, SP_RHI_MAX_BUFFERING_LEVEL>& GetBufferRanges() const { return m_BufferRanges; }
 
     /// \brief Swap buffers in case of multi-buffering. This method is a no-op if the buffer is single-buffered.
     EZ_ALWAYS_INLINE void SwapBuffers() { m_uiBufferIndex = (m_uiBufferIndex + 1) % m_uiBufferCount; }

@@ -33,7 +33,7 @@ namespace RAI
       RHI::spPixelFormatHelper::GetSizeInBytes(m_VertexStreams[uiStreamIndex].m_eFormat));
   }
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezConstByteArrayPtr spMesh::Data::GetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex) const
+  [[nodiscard]] EZ_ALWAYS_INLINE ezConstByteArrayPtr spMesh::Data::GetVertexStreamData(ezUInt32 uiStreamIndex, ezUInt32 uiVertexIndex) const
   {
     EZ_ASSERT_DEV(uiStreamIndex < m_VertexStreams.GetCount(), "Invalid stream index.");
     EZ_ASSERT_DEV(uiVertexIndex < GetVertexCount(), "Invalid vertex index.");
@@ -60,7 +60,7 @@ namespace RAI
     return ezMakeByteArrayPtr(&m_Vertices[uiVertexIndex * m_uiVertexSize], m_uiVertexSize);
   }
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezConstByteArrayPtr spMesh::Data::GetVertexData(ezUInt32 uiVertexIndex) const
+  [[nodiscard]] EZ_ALWAYS_INLINE ezConstByteArrayPtr spMesh::Data::GetVertexData(ezUInt32 uiVertexIndex) const
   {
     EZ_ASSERT_DEV(uiVertexIndex < GetVertexCount(), "Invalid vertex index.");
     return ezMakeByteArrayPtr(&m_Vertices[uiVertexIndex * m_uiVertexSize], m_uiVertexSize);
@@ -88,19 +88,19 @@ namespace RAI
     }
   }
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 spMesh::Data::GetStreamOffset(ezUInt32 uiStreamIndex) const
+  [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 spMesh::Data::GetStreamOffset(ezUInt32 uiStreamIndex) const
   {
     EZ_ASSERT_DEV(uiStreamIndex < m_VertexStreams.GetCount(), "Invalid stream index.");
     return m_VertexStreams[uiStreamIndex].m_uiOffset;
   }
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spInputElementFormat::Enum spMesh::Data::GetStreamFormat(ezUInt32 uiStreamIndex) const
+  [[nodiscard]] EZ_ALWAYS_INLINE RHI::spInputElementFormat::Enum spMesh::Data::GetStreamFormat(ezUInt32 uiStreamIndex) const
   {
     EZ_ASSERT_DEV(uiStreamIndex < m_VertexStreams.GetCount(), "Invalid stream index.");
     return m_VertexStreams[uiStreamIndex].m_eFormat;
   }
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 spMesh::Data::GetStreamSize(ezUInt32 uiStreamIndex) const
+  [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 spMesh::Data::GetStreamSize(ezUInt32 uiStreamIndex) const
   {
     EZ_ASSERT_DEV(uiStreamIndex < m_VertexStreams.GetCount(), "Invalid stream index.");
     return RHI::spPixelFormatHelper::GetSizeInBytes(m_VertexStreams[uiStreamIndex].m_eFormat);

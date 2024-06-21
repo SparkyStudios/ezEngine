@@ -169,43 +169,43 @@ namespace RHI
     ~spDevice() override = default;
 
     /// \brief Gets the allocator used by the device.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezAllocator* GetAllocator() const { return m_pAllocator; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezAllocator* GetAllocator() const { return m_pAllocator; }
 
     /// \brief Gets the hardware info.
-    EZ_NODISCARD virtual HardwareInfo GetHardwareInfo() const = 0;
+    [[nodiscard]] virtual HardwareInfo GetHardwareInfo() const = 0;
 
     /// \brief Gets the currently used graphics API.
-    EZ_NODISCARD virtual ezEnum<spGraphicsApi> GetAPI() const = 0;
+    [[nodiscard]] virtual ezEnum<spGraphicsApi> GetAPI() const = 0;
 
     /// \brief Gets the version of the currently used graphics API.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual spGraphicsApiVersion GetAPIVersion() const { return m_ApiVersion; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual spGraphicsApiVersion GetAPIVersion() const { return m_ApiVersion; }
 
     /// \brief Gets the resource factory associated with this graphics device.
-    EZ_NODISCARD virtual spDeviceResourceFactory* GetResourceFactory() const = 0;
+    [[nodiscard]] virtual spDeviceResourceFactory* GetResourceFactory() const = 0;
 
     /// \brief Gets the resource manager associated with this graphics device.
-    EZ_NODISCARD EZ_ALWAYS_INLINE spDeviceResourceManager* GetResourceManager() const { return m_pResourceManager; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spDeviceResourceManager* GetResourceManager() const { return m_pResourceManager; }
 
     /// \brief Gets the texture/sampler manager associated with this graphics device.
-    EZ_NODISCARD virtual spTextureSamplerManager* GetTextureSamplerManager() const = 0;
+    [[nodiscard]] virtual spTextureSamplerManager* GetTextureSamplerManager() const = 0;
 
     /// \brief Gets the minimum required alignment in bytes for constant buffer offsets.
     /// \note m_uiOffset must be a multiple of this value when used for constant buffers.
-    EZ_NODISCARD virtual ezUInt32 GetConstantBufferMinOffsetAlignment() const = 0;
+    [[nodiscard]] virtual ezUInt32 GetConstantBufferMinOffsetAlignment() const = 0;
 
     /// \brief Gets the minimum required alignment in bytes for structured buffer offsets.
     /// \note m_uiOffset must be a multiple of this value when used for structured buffers.
-    EZ_NODISCARD virtual ezUInt32 GetStructuredBufferMinOffsetAlignment() const = 0;
+    [[nodiscard]] virtual ezUInt32 GetStructuredBufferMinOffsetAlignment() const = 0;
 
     /// \brief Gets the main swapchain used as the default swapchain for new \a spGraphicsDeviceContext
     /// create without a swapchain.
-    EZ_NODISCARD virtual ezSharedPtr<spSwapchain> GetMainSwapchain() const = 0;
+    [[nodiscard]] virtual ezSharedPtr<spSwapchain> GetMainSwapchain() const = 0;
 
     /// \brief Gets the capabilities of this graphics device.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual const spDeviceCapabilities& GetCapabilities() const { return m_Capabilities; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual const spDeviceCapabilities& GetCapabilities() const { return m_Capabilities; }
 
     /// \brief Gets the staging memory pool used by this graphics device.
-    EZ_NODISCARD EZ_ALWAYS_INLINE spStagingMemoryPool* GetStagingMemoryPool() const { return m_pStagingMemoryPool; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spStagingMemoryPool* GetStagingMemoryPool() const { return m_pStagingMemoryPool; }
 
     /// \brief Submits the given \a spCommandList for execution by this device.
     /// \param [in] pCommandList The handle to the command list to execute.
@@ -442,13 +442,13 @@ namespace RHI
     virtual void Destroy() = 0;
 
     /// \brief Returns whether the device has debugging enabled.
-    EZ_NODISCARD virtual bool IsDebugEnabled() const = 0;
+    [[nodiscard]] virtual bool IsDebugEnabled() const = 0;
 
     /// \brief Returns the frame profiler of this device.
-    EZ_NODISCARD EZ_ALWAYS_INLINE virtual ezSharedPtr<spFrameProfiler> GetFrameProfiler() const { return m_pFrameProfiler; }
+    [[nodiscard]] EZ_ALWAYS_INLINE virtual ezSharedPtr<spFrameProfiler> GetFrameProfiler() const { return m_pFrameProfiler; }
 
     /// \brief Gets the total number of processed frames.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetFrameCount() const { return m_uiFrameCounter; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetFrameCount() const { return m_uiFrameCounter; }
 
     /// \brief Begin a frame. This should be called once per frame.
     virtual void BeginFrame();

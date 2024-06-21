@@ -54,7 +54,7 @@ protected:
 
   bool Run_ProcessApplicationInput() override;
   void Run_WorldUpdateAndRender() override;
-  void Run_Present() override;
+  void Run_PresentImage() override;
   void Run_FinishFrame() override;
 
 private:
@@ -83,7 +83,7 @@ public:
 
   bool IsEnabled() const override;
 
-  EZ_NODISCARD EZ_ALWAYS_INLINE spResourceHandle GetTarget() const { return m_hRenderTarget; }
+  [[nodiscard]] EZ_ALWAYS_INLINE spResourceHandle GetTarget() const { return m_hRenderTarget; }
 
 private:
   spResourceHandle m_hRenderTarget;

@@ -75,7 +75,7 @@ namespace RHI
     spCommandListD3D11(spDeviceD3D11* pDeviceD3D11, const spCommandListDescription& description);
     ~spCommandListD3D11() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11CommandList* GetD3D11CommandList() const { return m_pCommandList; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ID3D11CommandList* GetD3D11CommandList() const { return m_pCommandList; }
 
   private:
     static constexpr ezUInt32 s_uiMaxCachedConstantBuffers = 16;

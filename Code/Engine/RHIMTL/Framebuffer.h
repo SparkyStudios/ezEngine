@@ -17,7 +17,7 @@ namespace RHI
     // spFramebufferMTLBase
 
   public:
-    EZ_NODISCARD MTL::RenderPassDescriptor* GetRenderPassDescriptor();
+    [[nodiscard]] MTL::RenderPassDescriptor* GetRenderPassDescriptor();
 
     spFramebufferMTLBase(spDeviceMTL* pDevice, const spFramebufferDescription& description);
     ~spFramebufferMTLBase() override = default;
@@ -49,16 +49,16 @@ namespace RHI
     // spFramebuffer
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const override { return m_OutputDescription; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetWidth() const override { return m_uiWidth; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetHeight() const override { return m_uiHeight; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const override { return m_OutputDescription; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetWidth() const override { return m_uiWidth; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetHeight() const override { return m_uiHeight; }
     void SetColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target) override;
     void Snapshot(ezUInt32 uiColorTargetIndex, ezUInt32 uiArrayLayer, ezUInt32 uiMipLevel, ezByteArrayPtr& out_Pixels) override;
 
     // spFramebufferMTLBase
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsRenderable() const override { return true; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsRenderable() const override { return true; }
 
     // spFramebufferMTL
 
@@ -94,16 +94,16 @@ namespace RHI
     // spFramebuffer
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const override { return m_OutputDescription; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetWidth() const override { return m_uiWidth; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetHeight() const override { return m_uiHeight; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spOutputDescription& GetOutputDescription() const override { return m_OutputDescription; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetWidth() const override { return m_uiWidth; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetHeight() const override { return m_uiHeight; }
     void SetColorTarget(ezUInt32 uiIndex, const spFramebufferAttachmentDescription& target) override;
     void Snapshot(ezUInt32 uiColorTargetIndex, ezUInt32 uiArrayLayer, ezUInt32 uiMipLevel, ezByteArrayPtr& out_Pixels) override;
 
     // spFramebufferMTLBase
 
   public:
-    EZ_NODISCARD bool IsRenderable() const override;
+    [[nodiscard]] bool IsRenderable() const override;
 
     // spFramebufferMTL
 

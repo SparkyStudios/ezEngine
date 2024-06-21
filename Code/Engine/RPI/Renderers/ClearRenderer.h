@@ -59,28 +59,28 @@ namespace RPI
 #pragma region Properties
 
     /// \brief Gets the color to clear the render target to.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezColor GetClearColor() const { return m_ClearColor; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezColor GetClearColor() const { return m_ClearColor; }
 
     /// \brief Sets the color to clear the render target to.
     /// \param color The color to clear the render target to.
     EZ_ALWAYS_INLINE void SetClearColor(const ezColor& color) { m_ClearColor = color; }
 
     /// \brief Gets the depth value used to clear the depth texture.
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetClearDepth() const { return m_fClearDepth; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetClearDepth() const { return m_fClearDepth; }
 
     /// \brief Sets the depth value used to clear the depth texture.
     /// \param fDepth The depth value to clear the depth texture to.
     EZ_ALWAYS_INLINE void SetClearDepth(float fDepth) { m_fClearDepth = fDepth; }
 
     /// \brief Gets the stencil value used to clear the stencil texture.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt8 GetClearStencil() const { return m_uiClearStencil; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt8 GetClearStencil() const { return m_uiClearStencil; }
 
     /// \brief Sets the stencil value used to clear the stencil texture.
     /// \param uiStencil The stencil value to clear the stencil texture to.
     EZ_ALWAYS_INLINE void SetClearStencil(ezUInt8 uiStencil) { m_uiClearStencil = uiStencil; }
 
     /// \brief Gets the clear flags.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezBitflags<ClearFlags> GetClearFlags() const { return m_eClearFlags; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezBitflags<ClearFlags> GetClearFlags() const { return m_eClearFlags; }
 
     /// \brief Sets the clear flags.
     /// \param eFlags The clear flags to set.

@@ -46,19 +46,19 @@ namespace RAI
     }
 
     /// \brief Gets the RHI layer's texture description.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const RHI::spTextureDescription& GetDescription() const { return m_TextureDescription; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const RHI::spTextureDescription& GetDescription() const { return m_TextureDescription; }
 
     /// \brief Sets the RHI layer's texture description.
     EZ_ALWAYS_INLINE void SetDescription(RHI::spTextureDescription description) { m_TextureDescription = std::move(description); }
 
     /// \brief Gets the image asset associated with this texture.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spImageResourceHandle& GetImage() const { return m_hImage; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spImageResourceHandle& GetImage() const { return m_hImage; }
 
     /// \brief Sets the image asset associated with this texture.
     EZ_ALWAYS_INLINE void SetImage(const spImageResourceHandle& hImage) { m_hImage = hImage; }
 
     /// \brief Gets the sampler asset associated with this texture.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spSamplerResourceHandle& GetSampler() const { return m_hSampler; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spSamplerResourceHandle& GetSampler() const { return m_hSampler; }
 
     /// \brief Sets the sampler asset associated with this texture.
     EZ_ALWAYS_INLINE void SetSampler(const spSamplerResourceHandle& hSampler) { m_hSampler = hSampler; }

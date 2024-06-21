@@ -26,12 +26,12 @@ namespace RHI
     friend class spDeviceResourceFactory;
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetLayout() const { return m_Description.m_hResourceLayout; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezArrayMap<ezTempHashedString, spResourceHandle>& GetBoundResources() const { return m_Description.m_BoundResources; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceHandle& GetBoundResource(ezUInt32 uiIndex) const { return m_Description.m_BoundResources.GetValue(uiIndex); }
-    EZ_NODISCARD spResourceHandle GetBoundResource(const ezTempHashedString& sName) const;
+    [[nodiscard]] EZ_ALWAYS_INLINE const spResourceHandle& GetLayout() const { return m_Description.m_hResourceLayout; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezArrayMap<ezTempHashedString, spResourceHandle>& GetBoundResources() const { return m_Description.m_BoundResources; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spResourceHandle& GetBoundResource(ezUInt32 uiIndex) const { return m_Description.m_BoundResources.GetValue(uiIndex); }
+    [[nodiscard]] spResourceHandle GetBoundResource(const ezTempHashedString& sName) const;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spResourceSetDescription& GetDescription() const { return m_Description; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spResourceSetDescription& GetDescription() const { return m_Description; }
 
   protected:
     explicit spResourceSet(spResourceSetDescription description);

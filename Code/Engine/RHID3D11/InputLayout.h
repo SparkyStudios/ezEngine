@@ -16,7 +16,7 @@ namespace RHI
 
   public:
     void ReleaseResource() override;
-    EZ_NODISCARD bool IsReleased() const override;
+    [[nodiscard]] bool IsReleased() const override;
 
     // spInputLayoutD3D11
 

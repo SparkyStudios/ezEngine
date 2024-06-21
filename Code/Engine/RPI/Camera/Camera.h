@@ -60,64 +60,64 @@ namespace RPI
     void SetCoordinateSystem(ezBasisAxis::Enum forwardAxis, ezBasisAxis::Enum rightAxis, ezBasisAxis::Enum axis);
 
     void SetRenderViewUsage(ezBitflags<spRenderViewUsage> eUsage);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezBitflags<spRenderViewUsage> GetRenderViewUsage() const { return m_eRenderViewUsage; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezBitflags<spRenderViewUsage> GetRenderViewUsage() const { return m_eRenderViewUsage; }
 
     void SetProjectionMode(ezEnum<spCameraProjectionMode> eProjectionMode);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezEnum<spCameraProjectionMode> GetProjectionMode() const { return m_eProjectionMode; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezEnum<spCameraProjectionMode> GetProjectionMode() const { return m_eProjectionMode; }
 
     void SetCullingEnabled(bool bIsCullingEnabled);
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsCullingEnabled() const { return m_bCullingEnabled; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsCullingEnabled() const { return m_bCullingEnabled; }
 
     void SetNearPlaneDistance(float fNearPlaneDistance);
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetNearPlaneDistance() const { return m_fNearPlaneDistance; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetNearPlaneDistance() const { return m_fNearPlaneDistance; }
 
     void SetFarPlaneDistance(float fFarPlaneDistance);
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetFarPlaneDistance() const { return m_fFarPlaneDistance; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetFarPlaneDistance() const { return m_fFarPlaneDistance; }
 
     void SetFieldOfView(float fFieldOfView);
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetFieldOfView() const { return m_fFieldOfView; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetFieldOfView() const { return m_fFieldOfView; }
 
     void SetOrthographicSize(float fOrthographicSize);
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetOrthographicSize() const { return m_fOrthographicSize; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetOrthographicSize() const { return m_fOrthographicSize; }
 
     void SetAspectRatio(float fAspectRatio);
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetAspectRatio() const { return m_fAspectRatio; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetAspectRatio() const { return m_fAspectRatio; }
 
     void SetAperture(float fAperture);
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetAperture() const { return m_fAperture; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetAperture() const { return m_fAperture; }
 
     void SetShutterSpeed(ezTime fShutterSpeed);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezTime GetShutterSpeed() const { return m_fShutterSpeed; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezTime GetShutterSpeed() const { return m_fShutterSpeed; }
 
     void SetISOSensitivity(float fISOSensitivity);
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetISOSensitivity() const { return m_fISOSensitivity; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetISOSensitivity() const { return m_fISOSensitivity; }
 
     void SetExposureCompensation(float fExposureCompensation);
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetExposureCompensation() const { return m_fExposureCompensation; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetExposureCompensation() const { return m_fExposureCompensation; }
 
     void SetRenderGroupMask(ezBitflags<spRenderGroup> eRenderGroupMask);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezBitflags<spRenderGroup> GetRenderGroupMask() const { return m_eRenderGroupMask; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezBitflags<spRenderGroup> GetRenderGroupMask() const { return m_eRenderGroupMask; }
 
-    EZ_NODISCARD float GetEV100() const;
-    EZ_NODISCARD float GetExposure() const;
+    [[nodiscard]] float GetEV100() const;
+    [[nodiscard]] float GetExposure() const;
 
-    EZ_NODISCARD ezAngle GetFieldOfViewX() const;
-    EZ_NODISCARD ezAngle GetFieldOfViewY() const;
+    [[nodiscard]] ezAngle GetFieldOfViewX() const;
+    [[nodiscard]] ezAngle GetFieldOfViewY() const;
 
-    EZ_NODISCARD float GetOrthographicSizeX() const;
-    EZ_NODISCARD float GetOrthographicSizeY() const;
+    [[nodiscard]] float GetOrthographicSizeX() const;
+    [[nodiscard]] float GetOrthographicSizeY() const;
 
     void SetPosition(const ezVec3& vPosition);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetPosition() const { return MapInternalToExternal(m_vPosition); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezVec3 GetPosition() const { return MapInternalToExternal(m_vPosition); }
 
     void SetForward(const ezVec3& vForward);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetForward() const { return MapInternalToExternal(m_vForward); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezVec3 GetForward() const { return MapInternalToExternal(m_vForward); }
 
     void SetUp(const ezVec3& vUp);
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetUp() const { return MapInternalToExternal(m_vUp); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezVec3 GetUp() const { return MapInternalToExternal(m_vUp); }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetLeft() const { return GetUp().CrossRH(GetForward()); }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezVec3 GetRight() const { return GetForward().CrossRH(GetUp()); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezVec3 GetLeft() const { return GetUp().CrossRH(GetForward()); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezVec3 GetRight() const { return GetForward().CrossRH(GetUp()); }
 
     /// \brief Repositions the camera such that it looks at the given target position.
     void LookAt(const ezVec3& vCameraPos, const ezVec3& vTargetPos, const ezVec3& vUp);

@@ -38,8 +38,8 @@ namespace RAI
 
     void Clear();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRootMaterial& GetRootMaterial() const { return m_RootMaterial; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE spRootMaterial& GetRootMaterial() { return m_RootMaterial; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spRootMaterial& GetRootMaterial() const { return m_RootMaterial; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spRootMaterial& GetRootMaterial() { return m_RootMaterial; }
 
     EZ_ALWAYS_INLINE void SetRootMaterial(const spRootMaterial& rootMaterial) { m_RootMaterial = rootMaterial; }
 
@@ -62,7 +62,7 @@ namespace RAI
   public:
     spRootMaterialResource();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRootMaterialResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spRootMaterialResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
 
   private:
     ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;

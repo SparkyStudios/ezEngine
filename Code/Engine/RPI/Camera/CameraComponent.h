@@ -72,55 +72,55 @@ namespace RPI
 #pragma region Properties
 
     void SetRenderViewUsage(ezBitflags<spRenderViewUsage> eUsage);
-    EZ_NODISCARD ezBitflags<spRenderViewUsage> GetRenderViewUsage() const;
+    [[nodiscard]] ezBitflags<spRenderViewUsage> GetRenderViewUsage() const;
 
     void SetProjectionMode(ezEnum<spCameraProjectionMode> eProjectionMode);
-    EZ_NODISCARD ezEnum<spCameraProjectionMode> GetProjectionMode() const;
+    [[nodiscard]] ezEnum<spCameraProjectionMode> GetProjectionMode() const;
 
     void SetCullingEnabled(bool bIsCullingEnabled);
-    EZ_NODISCARD bool IsCullingEnabled() const;
+    [[nodiscard]] bool IsCullingEnabled() const;
 
     void SetNearPlaneDistance(float fNearPlaneDistance);
-    EZ_NODISCARD float GetNearPlaneDistance() const;
+    [[nodiscard]] float GetNearPlaneDistance() const;
 
     void SetFarPlaneDistance(float fFarPlaneDistance);
-    EZ_NODISCARD float GetFarPlaneDistance() const;
+    [[nodiscard]] float GetFarPlaneDistance() const;
 
     void SetFieldOfView(float fFieldOfView);
-    EZ_NODISCARD float GetFieldOfView() const;
+    [[nodiscard]] float GetFieldOfView() const;
 
     void SetOrthographicSize(float fOrthographicSize);
-    EZ_NODISCARD float GetOrthographicSize() const;
+    [[nodiscard]] float GetOrthographicSize() const;
 
     void SetAspectRatio(float fAspectRatio);
-    EZ_NODISCARD float GetAspectRatio() const;
+    [[nodiscard]] float GetAspectRatio() const;
 
     void SetAperture(float fAperture);
-    EZ_NODISCARD float GetAperture() const;
+    [[nodiscard]] float GetAperture() const;
 
     void SetShutterSpeed(ezTime fShutterSpeed);
-    EZ_NODISCARD ezTime GetShutterSpeed() const;
+    [[nodiscard]] ezTime GetShutterSpeed() const;
 
     void SetISOSensitivity(float fISOSensitivity);
-    EZ_NODISCARD float GetISOSensitivity() const;
+    [[nodiscard]] float GetISOSensitivity() const;
 
     void SetExposureCompensation(float fExposureCompensation);
-    EZ_NODISCARD float GetExposureCompensation() const;
+    [[nodiscard]] float GetExposureCompensation() const;
 
     void SetRenderGroupMask(ezBitflags<spRenderGroup> eRenderGroupMask);
     ezBitflags<spRenderGroup> GetRenderGroupMask() const;
 
-    EZ_NODISCARD float GetEV100() const;
-    EZ_NODISCARD float GetExposure() const;
+    [[nodiscard]] float GetEV100() const;
+    [[nodiscard]] float GetExposure() const;
 
-    EZ_NODISCARD ezAngle GetFieldOfViewX() const;
-    EZ_NODISCARD ezAngle GetFieldOfViewY() const;
+    [[nodiscard]] ezAngle GetFieldOfViewX() const;
+    [[nodiscard]] ezAngle GetFieldOfViewY() const;
 
-    EZ_NODISCARD float GetOrthographicSizeX() const;
-    EZ_NODISCARD float GetOrthographicSizeY() const;
+    [[nodiscard]] float GetOrthographicSizeX() const;
+    [[nodiscard]] float GetOrthographicSizeY() const;
 
     void SetCameraSlot(const char* szCameraSlot);
-    EZ_NODISCARD const char* GetCameraSlot() const;
+    [[nodiscard]] const char* GetCameraSlot() const;
 
 #pragma endregion
 

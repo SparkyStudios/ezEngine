@@ -18,11 +18,11 @@ namespace RHI
   public:
     explicit spMTLSupportedFeatureSet(MTL::Device* pDevice);
 
-    EZ_NODISCARD bool IsSupported(MTL::FeatureSet feature) const;
-    EZ_NODISCARD bool IsDrawBaseVertexInstanceSupported() const;
-    EZ_NODISCARD bool IsMacOS() const;
+    [[nodiscard]] bool IsSupported(MTL::FeatureSet feature) const;
+    [[nodiscard]] bool IsDrawBaseVertexInstanceSupported() const;
+    [[nodiscard]] bool IsMacOS() const;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::FeatureSet GetMaxFeatureSet() const { return m_MaxFeatureSet; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::FeatureSet GetMaxFeatureSet() const { return m_MaxFeatureSet; }
 
   private:
     ezSet<MTL::FeatureSet> m_SupportedFeatureSet;

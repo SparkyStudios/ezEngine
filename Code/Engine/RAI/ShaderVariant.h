@@ -72,12 +72,12 @@ namespace RAI
     void CreateRHIShaderProgram();
 
     /// \brief Returns the RHI shader program.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spShaderProgram> GetRHIShaderProgram() const { return m_pRHIShaderProgram; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<RHI::spShaderProgram> GetRHIShaderProgram() const { return m_pRHIShaderProgram; }
 
     /// \brief Gets the shader description for a specific shader stage.
     /// \param [in] eStage The shader stage to get the description for.
     /// \param [out] out_description The shader description for the given stage.
-    EZ_NODISCARD ezResult GetRHIShaderDescription(const ezEnum<RHI::spShaderStage>& eStage, RHI::spShaderDescription& out_description);
+    [[nodiscard]] ezResult GetRHIShaderDescription(const ezEnum<RHI::spShaderStage>& eStage, RHI::spShaderDescription& out_description);
 
   private:
     ezSharedPtr<RHI::spShaderProgram> m_pRHIShaderProgram{nullptr};

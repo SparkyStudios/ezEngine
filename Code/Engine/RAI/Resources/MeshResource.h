@@ -33,7 +33,7 @@ namespace RAI
     /// \note An assertion will be thrown if the index is out of bounds during development.
     /// Therefore, this method will crash on production if called with a wrong index.
     /// \param uiLodIndex The index of the LOD to get.
-    EZ_NODISCARD const spMesh& GetLOD(ezUInt32 uiLodIndex = 0) const;
+    [[nodiscard]] const spMesh& GetLOD(ezUInt32 uiLodIndex = 0) const;
 
     /// \brief Gets the LOD at the given index.
     /// \note An assertion will be thrown if the index is out of bounds during development.
@@ -45,7 +45,7 @@ namespace RAI
     /// \note An assertion will be thrown if the index is out of bounds during development.
     /// Therefore, this method will crash on production if called with a wrong index.
     /// \param uiLodIndex The index of the LOD to write.
-    EZ_NODISCARD spMesh& WriteLOD(ezUInt32 uiLodIndex = 0);
+    [[nodiscard]] spMesh& WriteLOD(ezUInt32 uiLodIndex = 0);
 
     /// \brief Clears the LOD data at the given index, without removing the LOD itself.
     /// \param uiLodIndex The index of the LOD to clear.
@@ -57,7 +57,7 @@ namespace RAI
     void SetLOD(ezUInt32 uiLodIndex, const spMesh& mesh);
 
     /// \brief Gets the number of LODs currently set in the mesh.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt8 GetNumLODs() const { return m_uiNumLOD; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt8 GetNumLODs() const { return m_uiNumLOD; }
 
     /// \brief Writes the mesh asset in the given stream.
     /// \param inout_stream The stream in which the mesh asset will be written.
@@ -87,13 +87,13 @@ namespace RAI
   public:
     spMeshResource();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spMeshResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spMeshResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
 
     /// \brief Gets the LOD at the given index.
     /// \note An assertion will be thrown if the index is out of bounds during development.
     /// Therefore, this method will crash on production if called with a wrong index.
     /// \param uiLodIndex The index of the LOD to get.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spMesh& GetLOD(ezUInt32 uiLodIndex = 0) const { return m_Descriptor.GetLOD(uiLodIndex); }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spMesh& GetLOD(ezUInt32 uiLodIndex = 0) const { return m_Descriptor.GetLOD(uiLodIndex); }
 
     /// \brief Gets the LOD at the given index.
     /// \note An assertion will be thrown if the index is out of bounds during development.
