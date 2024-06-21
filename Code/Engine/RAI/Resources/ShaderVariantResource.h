@@ -37,8 +37,8 @@ namespace RAI
 
     void Clear();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spShaderVariant& GetShaderVariant() const { return m_ShaderVariant; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE spShaderVariant& GetShaderVariant() { return m_ShaderVariant; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spShaderVariant& GetShaderVariant() const { return m_ShaderVariant; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spShaderVariant& GetShaderVariant() { return m_ShaderVariant; }
 
     EZ_ALWAYS_INLINE void SetShaderVariant(const spShaderVariant& shaderVariant) { m_ShaderVariant = shaderVariant; }
 
@@ -61,7 +61,7 @@ namespace RAI
   public:
     spShaderVariantResource();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spShaderVariantResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spShaderVariantResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
 
   private:
     ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;

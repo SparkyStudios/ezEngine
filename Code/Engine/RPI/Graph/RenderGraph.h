@@ -73,7 +73,7 @@ namespace RPI
     {
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezStringView GetName() const { return m_sName; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezStringView GetName() const { return m_sName; }
 
     EZ_ALWAYS_INLINE void SetName(ezStringView sName) { m_sName = sName; }
 
@@ -96,11 +96,11 @@ namespace RPI
 
     // --- spDevice shortcuts
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezAllocator* GetAllocator() const { return m_pDevice->GetAllocator(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezAllocator* GetAllocator() const { return m_pDevice->GetAllocator(); }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spDeviceResourceManager* GetResourceManager() const { return m_pDevice->GetResourceManager(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE RHI::spDeviceResourceManager* GetResourceManager() const { return m_pDevice->GetResourceManager(); }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spDeviceResourceFactory* GetResourceFactory() const { return m_pDevice->GetResourceFactory(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE RHI::spDeviceResourceFactory* GetResourceFactory() const { return m_pDevice->GetResourceFactory(); }
 
     // --- spRenderGraphResource creation
 
@@ -127,7 +127,7 @@ namespace RPI
 
     ezUniquePtr<spRenderPipeline> Compile();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderGraphResourcesTable& GetResources() const { return m_GraphResources; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spRenderGraphResourcesTable& GetResources() const { return m_GraphResources; }
 
   private:
     RHI::spResourceHandle Import(const ezSharedPtr<RHI::spDeviceResource>& pResource, const ezEnum<spRenderGraphResourceType>& eType);

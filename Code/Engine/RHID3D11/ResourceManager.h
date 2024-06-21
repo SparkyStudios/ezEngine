@@ -28,14 +28,14 @@ namespace RHI
       ezUInt32 m_uiDescriptionHash{0};
       bool m_bMultisample{false};
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const RasterizerStateCacheKey& rhs) const
+      [[nodiscard]] EZ_ALWAYS_INLINE bool operator==(const RasterizerStateCacheKey& rhs) const
       {
         return m_uiDescriptionHash == rhs.m_uiDescriptionHash && m_bMultisample == rhs.m_bMultisample;
       }
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const RasterizerStateCacheKey& rhs) const { return !(*this == rhs); }
+      [[nodiscard]] EZ_ALWAYS_INLINE bool operator!=(const RasterizerStateCacheKey& rhs) const { return !(*this == rhs); }
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE bool operator<(const RasterizerStateCacheKey& rhs) const
+      [[nodiscard]] EZ_ALWAYS_INLINE bool operator<(const RasterizerStateCacheKey& rhs) const
       {
         if (m_bMultisample == rhs.m_bMultisample)
           return m_bMultisample < rhs.m_bMultisample;
@@ -49,7 +49,7 @@ namespace RHI
       ezArrayPtr<spInputLayoutDescription> m_InputLayouts;
       bool m_bOwned{false};
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE static InputLayoutCacheKey GetTemporaryKey(const ezArrayPtr<spInputLayoutDescription>& inputLayouts)
+      [[nodiscard]] EZ_ALWAYS_INLINE static InputLayoutCacheKey GetTemporaryKey(const ezArrayPtr<spInputLayoutDescription>& inputLayouts)
       {
         InputLayoutCacheKey key;
         key.m_InputLayouts = inputLayouts;
@@ -57,7 +57,7 @@ namespace RHI
         return key;
       }
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE static InputLayoutCacheKey GetPermanentKey(const ezArrayPtr<spInputLayoutDescription>& inputLayouts)
+      [[nodiscard]] EZ_ALWAYS_INLINE static InputLayoutCacheKey GetPermanentKey(const ezArrayPtr<spInputLayoutDescription>& inputLayouts)
       {
         InputLayoutCacheKey key;
 
@@ -160,14 +160,14 @@ namespace RHI
         return *this;
       }
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const InputLayoutCacheKey& rhs) const
+      [[nodiscard]] EZ_ALWAYS_INLINE bool operator==(const InputLayoutCacheKey& rhs) const
       {
         return m_InputLayouts == rhs.m_InputLayouts;
       }
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const InputLayoutCacheKey& rhs) const { return !(*this == rhs); }
+      [[nodiscard]] EZ_ALWAYS_INLINE bool operator!=(const InputLayoutCacheKey& rhs) const { return !(*this == rhs); }
 
-      EZ_NODISCARD EZ_ALWAYS_INLINE bool operator<(const InputLayoutCacheKey& rhs) const
+      [[nodiscard]] EZ_ALWAYS_INLINE bool operator<(const InputLayoutCacheKey& rhs) const
       {
         return m_InputLayouts.GetCount() < rhs.m_InputLayouts.GetCount();
       }

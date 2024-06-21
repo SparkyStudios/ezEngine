@@ -72,7 +72,7 @@ namespace RPI
 
   private:
     void FillInstanceData(spPerInstanceData& instance) const;
-    EZ_NODISCARD ezUInt32 GetBufferSize() const;
+    [[nodiscard]] ezUInt32 GetBufferSize() const;
     void CreateBuffer();
     void UpdateBuffer();
 

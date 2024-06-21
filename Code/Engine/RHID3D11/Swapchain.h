@@ -30,10 +30,10 @@ namespace RHI
     {
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE HWND GetMainWindowHandle() const { return m_pHWND; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE HINSTANCE GetInstance() const { return m_pInstance; }
+    [[nodiscard]] EZ_ALWAYS_INLINE HWND GetMainWindowHandle() const { return m_pHWND; }
+    [[nodiscard]] EZ_ALWAYS_INLINE HINSTANCE GetInstance() const { return m_pInstance; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsFullscreen() const { return m_bIsFullscreen; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsFullscreen() const { return m_bIsFullscreen; }
 
   private:
     HWND m_pHWND;
@@ -54,8 +54,8 @@ namespace RHI
     {
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE void* GetSwapchainPanelNative() const { return m_pSwapchainPanelNative; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetLogicalDpi() const { return m_fLogicalDpi; }
+    [[nodiscard]] EZ_ALWAYS_INLINE void* GetSwapchainPanelNative() const { return m_pSwapchainPanelNative; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetLogicalDpi() const { return m_fLogicalDpi; }
 
   private:
     void* m_pSwapchainPanelNative;
@@ -78,16 +78,16 @@ namespace RHI
 
     // spSwapchain
 
-    EZ_NODISCARD ezSharedPtr<spFramebuffer> GetFramebuffer() const override;
+    [[nodiscard]] ezSharedPtr<spFramebuffer> GetFramebuffer() const override;
     void SetVSync(bool bVSync) override;
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool GetVSync() const override { return m_bVSync; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool GetVSync() const override { return m_bVSync; }
     void Resize(ezUInt32 uiWidth, ezUInt32 uiHeight) override;
     void Present() override;
 
     // spSwapchainD3D11
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE IDXGISwapChain* GetD3D11SwapChain() const { return m_pD3D11SwapChain; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetSyncInterval() const { return m_uiSyncInterval; }
+    [[nodiscard]] EZ_ALWAYS_INLINE IDXGISwapChain* GetD3D11SwapChain() const { return m_pD3D11SwapChain; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetSyncInterval() const { return m_uiSyncInterval; }
 
     spSwapchainD3D11(spDeviceD3D11* pDevice, const spSwapchainDescription& description);
     ~spSwapchainD3D11() override;

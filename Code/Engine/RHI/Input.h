@@ -131,7 +131,7 @@ namespace RHI
     EZ_ADD_DYNAMIC_REFLECTION(spInputLayout, spMappableResource);
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spInputLayoutDescription& GetDescription() const { return m_Description; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spInputLayoutDescription& GetDescription() const { return m_Description; }
 
   protected:
     explicit spInputLayout(spInputLayoutDescription description);

@@ -26,7 +26,7 @@ namespace RHI
     spResourceSetD3D11(spDeviceD3D11* pDevice, const spResourceSetDescription& description);
     ~spResourceSetD3D11() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezArrayMap<ezHashedString, ezSharedPtr<spShaderResource>>& GetResources() const { return m_Resources; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezArrayMap<ezHashedString, ezSharedPtr<spShaderResource>>& GetResources() const { return m_Resources; }
 
   private:
     ezSharedPtr<spResourceLayoutD3D11> m_pLayout{nullptr};

@@ -63,7 +63,7 @@ namespace RHI
     }
 
     /// \brief Gets the aspect ratio of this viewport.
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetAspectRatio() const { return static_cast<float>(m_uiWidth) / m_uiHeight; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetAspectRatio() const { return static_cast<float>(m_uiWidth) / m_uiHeight; }
 
     /// \brief Compares this \a spViewport to an \a other instance for equality.
     EZ_ALWAYS_INLINE bool operator==(const spViewport& other) const
@@ -150,17 +150,17 @@ namespace RHI
     {
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spGraphicsApiVersion& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator==(const spGraphicsApiVersion& rhs) const
     {
       return m_uiMajor == rhs.m_uiMajor && m_uiMinor == rhs.m_uiMinor && m_uiPatch == rhs.m_uiPatch && m_uiRevision == rhs.m_uiRevision;
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spGraphicsApiVersion& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator!=(const spGraphicsApiVersion& rhs) const
     {
       return !(*this == rhs);
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator<(const spGraphicsApiVersion& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator<(const spGraphicsApiVersion& rhs) const
     {
       if (m_uiMajor != rhs.m_uiMajor)
         return m_uiMajor < rhs.m_uiMajor;
@@ -174,17 +174,17 @@ namespace RHI
       return false;
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator>(const spGraphicsApiVersion& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator>(const spGraphicsApiVersion& rhs) const
     {
       return rhs != *this && !(rhs < *this);
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator<=(const spGraphicsApiVersion& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator<=(const spGraphicsApiVersion& rhs) const
     {
       return *this == rhs || *this < rhs;
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator>=(const spGraphicsApiVersion& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator>=(const spGraphicsApiVersion& rhs) const
     {
       return *this == rhs || *this > rhs;
     }

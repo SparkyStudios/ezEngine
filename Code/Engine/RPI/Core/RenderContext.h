@@ -67,10 +67,10 @@ namespace RPI
     void SetCommandList(const RHI::spCommandListDescription& description);
 
     /// \brief Returns the current context's command list.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<RHI::spCommandList> GetCommandList() const { return m_pCommandList; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<RHI::spCommandList> GetCommandList() const { return m_pCommandList; }
 
     /// \brief Gets the device used by this context.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spSceneContext* GetSceneContext() const { return m_pSceneContext; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spSceneContext* GetSceneContext() const { return m_pSceneContext; }
 
     /// \brief Marks the beginning of a render process.
     /// Render passes will be executed after this call and commands will be collected
@@ -89,9 +89,9 @@ namespace RPI
 
 #pragma region Shared Data
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spConstantBuffer<spRenderFrameData, RHI::spBufferUsage::DoubleBuffered>& GetFrameDataBuffer() const { return m_FrameDataBuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spConstantBuffer<spRenderFrameData, RHI::spBufferUsage::DoubleBuffered>& GetFrameDataBuffer() const { return m_FrameDataBuffer; }
 
-    EZ_NODISCARD const spRenderContextData& GetExtractionData() const;
+    [[nodiscard]] const spRenderContextData& GetExtractionData() const;
 
     spRenderContextData& GetExtractionData();
 
@@ -100,7 +100,7 @@ namespace RPI
 #pragma region Shader Management
 
     /// \brief Gets the \a spShaderManager instance associated with the \a spRenderContext.
-    EZ_NODISCARD EZ_ALWAYS_INLINE spShaderManager* GetShaderManager() const { return m_pShaderManager.Borrow(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE spShaderManager* GetShaderManager() const { return m_pShaderManager.Borrow(); }
 
 #pragma endregion
 

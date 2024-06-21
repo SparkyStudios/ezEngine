@@ -24,14 +24,14 @@ namespace RHI
     // spDevice
 
   public:
-    EZ_NODISCARD HardwareInfo GetHardwareInfo() const override;
-    EZ_NODISCARD ezEnum<spGraphicsApi> GetAPI() const override;
-    EZ_NODISCARD spDeviceResourceFactory* GetResourceFactory() const override;
-    EZ_NODISCARD spTextureSamplerManager* GetTextureSamplerManager() const override;
-    EZ_NODISCARD ezUInt32 GetConstantBufferMinOffsetAlignment() const override;
-    EZ_NODISCARD ezUInt32 GetStructuredBufferMinOffsetAlignment() const override;
-    EZ_NODISCARD ezSharedPtr<spSwapchain> GetMainSwapchain() const override;
-    EZ_NODISCARD const spDeviceCapabilities& GetCapabilities() const override;
+    [[nodiscard]] HardwareInfo GetHardwareInfo() const override;
+    [[nodiscard]] ezEnum<spGraphicsApi> GetAPI() const override;
+    [[nodiscard]] spDeviceResourceFactory* GetResourceFactory() const override;
+    [[nodiscard]] spTextureSamplerManager* GetTextureSamplerManager() const override;
+    [[nodiscard]] ezUInt32 GetConstantBufferMinOffsetAlignment() const override;
+    [[nodiscard]] ezUInt32 GetStructuredBufferMinOffsetAlignment() const override;
+    [[nodiscard]] ezSharedPtr<spSwapchain> GetMainSwapchain() const override;
+    [[nodiscard]] const spDeviceCapabilities& GetCapabilities() const override;
     void SubmitCommandList(ezSharedPtr<spCommandList> pCommandList, ezSharedPtr<spFence> pFence) override;
     bool WaitForFence(ezSharedPtr<spFence> pFence) override;
     bool WaitForFence(ezSharedPtr<spFence> pFence, double uiNanosecondsTimeout) override;
@@ -48,7 +48,7 @@ namespace RHI
     ezUInt32 GetIndirectCommandSize() override;
     void ResolveTexture(ezSharedPtr<spTexture> pSource, ezSharedPtr<spTexture> pDestination) override;
     void Destroy() override;
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsDebugEnabled() const override { return m_bIsDebugEnabled; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsDebugEnabled() const override { return m_bIsDebugEnabled; }
     void BeginFrame() override;
     void EndFrame() override;
 
@@ -66,10 +66,10 @@ namespace RHI
     spDeviceMTL(ezAllocator* pAllocator, const spDeviceDescription& deviceDescription);
     ~spDeviceMTL() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Device* GetMTLDevice() const { return m_pMTLDevice; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spMTLSupportedFeatureSet& GetSupportedFeatures() const { return m_SupportedFeatures; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::Device* GetMTLDevice() const { return m_pMTLDevice; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spMTLSupportedFeatureSet& GetSupportedFeatures() const { return m_SupportedFeatures; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::CommandQueue* GetCommandQueue() const { return m_pCommandQueue; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::CommandQueue* GetCommandQueue() const { return m_pCommandQueue; }
 
     MTL::ComputePipelineState* GetUnalignedBufferCopyComputePipelineState();
 

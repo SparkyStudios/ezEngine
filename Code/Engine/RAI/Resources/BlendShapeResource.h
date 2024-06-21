@@ -26,9 +26,9 @@ namespace RAI
     /// \brief Clears the descriptor.
     void Clear();
 
-    EZ_NODISCARD ezArrayPtr<const spBlendShape> GetBlendShapes(ezStringView sMeshName) const;
+    [[nodiscard]] ezArrayPtr<const spBlendShape> GetBlendShapes(ezStringView sMeshName) const;
 
-    EZ_NODISCARD bool GetBlendShape(ezStringView sMeshName, ezStringView sName, const spBlendShape*& out_blendShape) const;
+    [[nodiscard]] bool GetBlendShape(ezStringView sMeshName, ezStringView sName, const spBlendShape*& out_blendShape) const;
 
     void AddBlendShape(ezStringView sMeshName, const spBlendShape& blendShape);
 
@@ -58,7 +58,7 @@ namespace RAI
   public:
     spBlendShapeResource();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spBlendShapeResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spBlendShapeResourceDescriptor& GetDescriptor() const { return m_Descriptor; }
 
   private:
     ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;

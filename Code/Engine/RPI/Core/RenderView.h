@@ -120,43 +120,43 @@ namespace RPI
     spRenderView();
     ~spRenderView() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spConstantBuffer<spRenderViewData>& GetDataBuffer() const { return m_RenderViewDataBuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spConstantBuffer<spRenderViewData>& GetDataBuffer() const { return m_RenderViewDataBuffer; }
 
     void SetData(const spRenderViewData& data);
 
     /// \brief Gets the index of this view in the list of collected views in the \a spSceneContext.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezInt32 GetIndex() const { return m_iIndex; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezInt32 GetIndex() const { return m_iIndex; }
 
     /// \brief Sets the index this view has in the list of collected views in the \a spSceneContext.
     EZ_ALWAYS_INLINE void SetIndex(ezInt32 index) { m_iIndex = index; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezBitflags<spRenderGroup>& GetRenderGroup() const { return m_eRenderGroup; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezBitflags<spRenderGroup>& GetRenderGroup() const { return m_eRenderGroup; }
 
     EZ_ALWAYS_INLINE void SetRenderGroup(const ezBitflags<spRenderGroup>& eGroupMask) { m_eRenderGroup = eGroupMask; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezEnum<spRenderViewCullingMode>& GetCullingMode() const { return m_eCullingMode; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezEnum<spRenderViewCullingMode>& GetCullingMode() const { return m_eCullingMode; }
 
     EZ_ALWAYS_INLINE void SetCullingMode(const ezEnum<spRenderViewCullingMode>& eCullingMode) { m_eCullingMode = eCullingMode; }
 
     EZ_ALWAYS_INLINE void SetUsage(const ezBitflags<spRenderViewUsage>& eUsage) { m_eUsage = eUsage; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezBitflags<spRenderViewUsage>& GetUsage() const { return m_eUsage; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezBitflags<spRenderViewUsage>& GetUsage() const { return m_eUsage; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezMat4& GetViewMatrix() const { return m_ViewMatrix; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezMat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezMat4& GetViewMatrix() const { return m_ViewMatrix; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezMat4& GetProjectionMatrix() const { return m_ProjectionMatrix; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezVec3& GetPosition() const { return m_Position; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezVec3& GetDirection() const { return m_Direction; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezVec3& GetUp() const { return m_Up; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezVec3& GetPosition() const { return m_Position; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezVec3& GetDirection() const { return m_Direction; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezVec3& GetUp() const { return m_Up; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() const { return m_VisibleRenderObjects; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() { return m_VisibleRenderObjects; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() const { return m_VisibleRenderObjects; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spConcurrentCollector<spRenderObject*>& GetVisibleRenderObjects() { return m_VisibleRenderObjects; }
 
-    EZ_NODISCARD ezFrustum GetFrustum() const;
+    [[nodiscard]] ezFrustum GetFrustum() const;
 
     EZ_ALWAYS_INLINE void SetViewport(const ezRectU32& viewport) { m_Viewport = viewport; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezRectU32& GetViewport() const { return m_Viewport; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezRectU32& GetViewport() const { return m_Viewport; }
 
   private:
     // Internal. Should only be called by the camera.

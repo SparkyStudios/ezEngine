@@ -49,7 +49,7 @@ namespace RAI
     };
 
     /// \brief Gets the joints of the skeleton.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezDynamicArray<Joint>& GetJoints() const { return m_Joints; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezDynamicArray<Joint>& GetJoints() const { return m_Joints; }
 
     /// \brief Gets the joints of the skeleton.
     EZ_ALWAYS_INLINE ezDynamicArray<Joint>& GetJoints() { return m_Joints; }

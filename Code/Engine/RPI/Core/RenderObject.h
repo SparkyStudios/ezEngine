@@ -77,10 +77,10 @@ namespace RPI
 
     virtual bool HasInstances();
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezBoundingBoxSphere& GetBoundingBox() const { return m_BoundingBox; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezBoundingBoxSphere& GetBoundingBox() const { return m_BoundingBox; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderNodeReference& GetVisibilityGroupReference() const { return m_VisibilityGroupReference; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spRenderNodeReference& GetRenderFeatureRefenrence() const { return m_RenderFeatureReference; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spRenderNodeReference& GetVisibilityGroupReference() const { return m_VisibilityGroupReference; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spRenderNodeReference& GetRenderFeatureRefenrence() const { return m_RenderFeatureReference; }
 
   protected:
     ezEnum<CachingBehavior> m_eCachingBehavior{CachingBehavior::OnlyIfStatic};
@@ -108,15 +108,15 @@ namespace RPI
 
     void Clear();
 
-    EZ_NODISCARD bool Contains(const spRenderObject* pRenderObject) const;
+    [[nodiscard]] bool Contains(const spRenderObject* pRenderObject) const;
 
     void Remove(spRenderObject* pRenderObject);
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetCount() const { return m_Items.GetCount(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetCount() const { return m_Items.GetCount(); }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsEmpty() const { return m_Items.IsEmpty(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsEmpty() const { return m_Items.IsEmpty(); }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<spRenderObject* const> GetItems() const { return m_Items.GetArrayPtr(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezArrayPtr<spRenderObject* const> GetItems() const { return m_Items.GetArrayPtr(); }
 
   private:
     ezHybridArray<spRenderObject*, 64> m_Items;

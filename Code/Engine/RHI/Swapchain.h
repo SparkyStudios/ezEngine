@@ -61,14 +61,14 @@ namespace RHI
 
   public:
     /// \brief The \a spFramebuffer representing the render target of this swapchain.
-    EZ_NODISCARD virtual ezSharedPtr<spFramebuffer> GetFramebuffer() const = 0;
+    [[nodiscard]] virtual ezSharedPtr<spFramebuffer> GetFramebuffer() const = 0;
 
     /// \brief Sets if the swapchain uses vertical synchronization with the display refresh rate.
     /// \param bVSync If true, the swapchain will (try to) synchronize with the display refresh rate.
     virtual void SetVSync(bool bVSync) = 0;
 
     /// \brief Returns whether the swapchain has VSync enabled.
-    EZ_NODISCARD virtual bool GetVSync() const = 0;
+    [[nodiscard]] virtual bool GetVSync() const = 0;
 
     /// \brief Resizes the \a spFramebuffer of this swapchain.
     /// \param [in] uiWidth The new swapchain width.

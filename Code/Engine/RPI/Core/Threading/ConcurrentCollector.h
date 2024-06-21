@@ -32,7 +32,7 @@ namespace RPI
 
     /// \brief Gets a contiguous range of items. It is valid to call this method
     /// only after the collection is closed.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezHybridArray<T, 16, TAllocatorWrapper>& GetItems() const
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezHybridArray<T, 16, TAllocatorWrapper>& GetItems() const
     {
       EZ_ASSERT_DEBUG(m_pHead == m_pTail, "The collection is not yet closed.");
       return m_pHead->m_Items;
@@ -40,7 +40,7 @@ namespace RPI
 
     /// \brief Gets a contiguous range of items. It is valid to call this method
     /// only after the collection is closed.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezHybridArray<T, 16, TAllocatorWrapper>& GetItems()
+    [[nodiscard]] EZ_ALWAYS_INLINE ezHybridArray<T, 16, TAllocatorWrapper>& GetItems()
     {
       EZ_ASSERT_DEBUG(m_pHead == m_pTail, "The collection is not yet closed.");
       return m_pHead->m_Items;
@@ -48,7 +48,7 @@ namespace RPI
 
     /// \brief Gets the collection as an \c ArrayPtr. It is valid to call this method
     /// only after the collection has been closed.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<const T> GetArrayPtr() const
+    [[nodiscard]] EZ_ALWAYS_INLINE ezArrayPtr<const T> GetArrayPtr() const
     {
       EZ_ASSERT_DEBUG(m_pHead == m_pTail, "The collection is not yet closed.");
       return ezMakeArrayPtr(&m_pHead->m_Items[0], m_uiCount);
@@ -56,17 +56,17 @@ namespace RPI
 
     /// \brief Gets the collection as an \c ArrayPtr. It is valid to call this method
     /// only after the collection has been closed.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezArrayPtr<T> GetArrayPtr()
+    [[nodiscard]] EZ_ALWAYS_INLINE ezArrayPtr<T> GetArrayPtr()
     {
       EZ_ASSERT_DEBUG(m_pHead == m_pTail, "The collection is not yet closed.");
       return ezMakeArrayPtr(&m_pHead->m_Items[0], m_uiCount);
     }
 
     /// \brief Gets the number of items in the collection.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetCount() const { return m_uiCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetCount() const { return m_uiCount; }
 
     /// \brief Checks whether the collection is empty.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsEmpty() const { return m_uiCount == 0; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsEmpty() const { return m_uiCount == 0; }
 
     /// \brief Consolidates all items into a single contiguous array.
     /// \note This method should be called before to access the collection.

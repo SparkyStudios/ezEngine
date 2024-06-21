@@ -27,7 +27,7 @@ namespace RHI
     void Detach(const ezEnum<spShaderStage>& eStage) override;
     void DetachAll() override;
     void Use() override;
-    EZ_NODISCARD ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const override;
+    [[nodiscard]] ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const override;
     void GetResourceLayoutDescriptions(ezDynamicArray<spResourceLayoutDescription>& out_resourceLayouts) const override;
 
     // spShaderProgramD3D11
@@ -36,12 +36,12 @@ namespace RHI
     explicit spShaderProgramD3D11(spDeviceD3D11* pDevice);
     ~spShaderProgramD3D11() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetVertexShader() const { return m_pVertexShader; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetGeometryShader() const { return m_pGeometryShader; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetHullShader() const { return m_pHullShader; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetDomainShader() const { return m_pDomainShader; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetPixelShader() const { return m_pPixelShader; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetComputeShader() const { return m_pComputeShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetVertexShader() const { return m_pVertexShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetGeometryShader() const { return m_pGeometryShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetHullShader() const { return m_pHullShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetDomainShader() const { return m_pDomainShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetPixelShader() const { return m_pPixelShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderD3D11> GetComputeShader() const { return m_pComputeShader; }
 
   private:
     void GetResourceLayoutElementsForStage(const ezEnum<spShaderStage>& eStage, ezDynamicArray<spResourceLayoutElementDescription>& out_elements) const;
@@ -78,9 +78,9 @@ namespace RHI
     spShaderD3D11(spDeviceD3D11* pDevice, const spShaderDescription& description);
     ~spShaderD3D11() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11DeviceChild* GetD3D11Shader() const { return m_pD3D11Shader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ID3D11DeviceChild* GetD3D11Shader() const { return m_pD3D11Shader; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezByteArrayPtr GetShaderByteCode() const { return m_pByteCode; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezByteArrayPtr GetShaderByteCode() const { return m_pByteCode; }
 
   private:
     ID3D11Device* m_pD3D11Device{nullptr};

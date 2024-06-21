@@ -515,9 +515,9 @@ void spRPIGameApplication::Run_WorldUpdateAndRender()
     m_pSceneContext->Draw();
 }
 
-void spRPIGameApplication::Run_Present()
+void spRPIGameApplication::Run_PresentImage()
 {
-  EZ_PROFILE_SCOPE("Run_Present");
+  EZ_PROFILE_SCOPE("Run_PresentImage");
   if (spRenderSystem::IsMultiThreadedRendering())
     spRenderSystem::GetSingleton()->GetRenderThread()->PostAsync(ezMakeDelegate(&spSceneContext::Present, m_pSceneContext.Borrow()));
   else

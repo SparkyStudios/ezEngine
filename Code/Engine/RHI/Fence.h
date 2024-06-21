@@ -45,7 +45,7 @@ namespace RHI
 
   public:
     /// \brief Gets a value indicating whether the fence is currently signaled.
-    EZ_NODISCARD virtual bool IsSignaled() = 0;
+    [[nodiscard]] virtual bool IsSignaled() = 0;
 
   protected:
     explicit spFence(spFenceDescription description);

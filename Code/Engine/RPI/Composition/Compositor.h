@@ -31,7 +31,7 @@ namespace RPI
     EZ_ADD_DYNAMIC_REFLECTION(spCompositorEntryPoint, ezReflectedClass);
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsConnected() const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsConnected() const
     {
       return m_iPinIndex != -1;
     }
@@ -57,26 +57,26 @@ namespace RPI
 
     spCameraSlotHandle CreateCameraSlot(ezStringView sName);
     void DeleteCameraSlot(const spCameraSlotHandle& hSlot);
-    EZ_NODISCARD const spCameraSlot* GetCameraSlot(const spCameraSlotHandle& hSlot) const;
+    [[nodiscard]] const spCameraSlot* GetCameraSlot(const spCameraSlotHandle& hSlot) const;
 
-    EZ_NODISCARD spCameraSlotHandle GetCameraSlotByName(ezStringView sName) const;
+    [[nodiscard]] spCameraSlotHandle GetCameraSlotByName(ezStringView sName) const;
 
     void AssignSlotToCamera(const spCameraSlotHandle& hSlot, spCamera* pCamera);
 
-    EZ_NODISCARD spCamera* GetCameraBySlot(const spCameraSlotHandle& hSlot) const;
+    [[nodiscard]] spCamera* GetCameraBySlot(const spCameraSlotHandle& hSlot) const;
 
 #pragma endregion
 
 #pragma region Renderer Settings
 
     EZ_ALWAYS_INLINE void SetEnableHDR(bool bEnable) { m_bEnableHDR = bEnable; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsHDR() const { return m_bEnableHDR; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsHDR() const { return m_bEnableHDR; }
 
     EZ_ALWAYS_INLINE void SetViewportSize(const ezRectU32& rect) { m_ViewportSize = rect; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezRectU32 GetViewportSize() const { return m_ViewportSize; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezRectU32 GetViewportSize() const { return m_ViewportSize; }
 
     EZ_ALWAYS_INLINE void SetRenderSize(const ezRectU32& rect) { m_RenderSize = rect; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezRectU32 GetRenderSize() const { return m_RenderSize; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezRectU32 GetRenderSize() const { return m_RenderSize; }
 
 #pragma endregion
 

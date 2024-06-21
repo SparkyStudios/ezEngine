@@ -113,7 +113,7 @@ private:
 
 #define EZ_ENUM_VALUE_TO_STRING(name) \
   case name:                          \
-    return EZ_CONCAT(EZ_PP_STRINGIFY(name), _ezsv);
+    return EZ_PP_STRINGIFY(name);
 
 /// \brief Helper macro to generate a 'ToString' function for enum values.
 ///
@@ -132,7 +132,7 @@ private:
 ///   EZ_ENUM_TO_STRING(A, B, C);
 /// };
 #define EZ_ENUM_TO_STRING(...)                               \
-  static ezStringView ToString(Enum value)                    \
+  static ezStringView ToString(Enum value)                   \
   {                                                          \
     switch (value)                                           \
     {                                                        \
@@ -143,8 +143,8 @@ private:
   }
 
 
-#define EZ_ENUM_VALUE_FROM_STRING(name)        \
-  if (sValue.Compare(EZ_STRINGIZE(name)) == 0) \
+#define EZ_ENUM_VALUE_FROM_STRING(name)           \
+  if (sValue.Compare(EZ_PP_STRINGIFY(name)) == 0) \
     return name;
 
 /// \brief Helper macro to generate a 'FromString' function for enum values.

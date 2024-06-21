@@ -52,10 +52,10 @@ namespace RPI
     ~spCameraSlot() override = default;
 
     /// \brief Gets the handle of this slot.
-    EZ_NODISCARD EZ_ALWAYS_INLINE spCameraSlotHandle GetHandle() const { return m_Handle; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spCameraSlotHandle GetHandle() const { return m_Handle; }
 
     /// \brief Gets the name of the slot.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezStringView GetName() const { return m_sName; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezStringView GetName() const { return m_sName; }
 
     /// \brief Sets the name of the slot.
     /// \param sName The new name of the slot.

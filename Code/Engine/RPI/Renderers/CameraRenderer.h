@@ -41,7 +41,7 @@ namespace RPI
 #pragma region Properties
 
     void SetCameraSlot(const char* szCameraSlot);
-    EZ_NODISCARD const char* GetCameraSlot() const;
+    [[nodiscard]] const char* GetCameraSlot() const;
 
 #pragma endregion
 

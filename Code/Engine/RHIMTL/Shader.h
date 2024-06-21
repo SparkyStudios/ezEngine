@@ -28,7 +28,7 @@ namespace RHI
     void Detach(const ezEnum<spShaderStage>& eStage) override;
     void DetachAll() override;
     void Use() override;
-    EZ_NODISCARD ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const override;
+    [[nodiscard]] ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const override;
     void GetResourceLayoutDescriptions(ezDynamicArray<spResourceLayoutDescription>& out_resourceLayouts) const override;
 
     // spShaderProgramMTL
@@ -37,12 +37,12 @@ namespace RHI
     explicit spShaderProgramMTL(spDeviceMTL* pDevice);
     ~spShaderProgramMTL() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetVertexShader() const { return m_pVertexShader; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetGeometryShader() const { return m_pGeometryShader; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetHullShader() const { return m_pHullShader; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetDomainShader() const { return m_pDomainShader; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetPixelShader() const { return m_pPixelShader; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetComputeShader() const { return m_pComputeShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetVertexShader() const { return m_pVertexShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetGeometryShader() const { return m_pGeometryShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetHullShader() const { return m_pHullShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetDomainShader() const { return m_pDomainShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetPixelShader() const { return m_pPixelShader; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spShaderMTL> GetComputeShader() const { return m_pComputeShader; }
 
   private:
     void GetResourceLayoutElementsForStage(const ezEnum<spShaderStage>& eStage, ezDynamicArray<spResourceLayoutElementDescription>& out_elements) const;
@@ -79,12 +79,12 @@ namespace RHI
     spShaderMTL(spDeviceMTL* pDevice, const spShaderDescription& description);
     ~spShaderMTL() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Library* GetMTLShaderLibrary() const { return m_pMTLShaderLibrary; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Function* GetMTLShaderFunction() const { return m_pMTLShaderFunction; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::Library* GetMTLShaderLibrary() const { return m_pMTLShaderLibrary; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::Function* GetMTLShaderFunction() const { return m_pMTLShaderFunction; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool HasFunctionConstants() const { return m_bHasFunctionConstants; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool HasFunctionConstants() const { return m_bHasFunctionConstants; }
 
-    EZ_NODISCARD MTL::ArgumentEncoder* GetArgumentEncoder(ezUInt32 uiArgumentIndex);
+    [[nodiscard]] MTL::ArgumentEncoder* GetArgumentEncoder(ezUInt32 uiArgumentIndex);
 
   private:
     MTL::Device* m_pMTLDevice{nullptr};

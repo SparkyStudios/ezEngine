@@ -65,7 +65,7 @@ namespace RHI
     /// at the given stage.
     /// \param [in] eStage The shader stage.
     /// \return The shader resource handle. An invalid handle is returned if the given stage does not exist.
-    EZ_NODISCARD virtual ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const = 0;
+    [[nodiscard]] virtual ezSharedPtr<spShader> Get(const ezEnum<spShaderStage>& eStage) const = 0;
 
     virtual void GetResourceLayoutDescriptions(ezDynamicArray<spResourceLayoutDescription>& out_resourceLayouts) const = 0;
   };
@@ -78,10 +78,10 @@ namespace RHI
 
   public:
     /// \brief Gets the stage of this shader.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezEnum<spShaderStage> GetStage() const { return m_Description.m_eShaderStage; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezEnum<spShaderStage> GetStage() const { return m_Description.m_eShaderStage; }
 
     /// \brief Get the name of the entry point function.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezHashedString& GetEntryPoint() const { return m_Description.m_sEntryPoint; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezHashedString& GetEntryPoint() const { return m_Description.m_sEntryPoint; }
 
   protected:
     explicit spShader(spShaderDescription description);

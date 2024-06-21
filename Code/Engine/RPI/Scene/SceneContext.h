@@ -86,26 +86,26 @@ namespace RPI
     friend class spRenderSystem;
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE static const ezEvent<const spSceneContextCollectEvent&, ezMutex>& GetCollectEvent() { return s_CollectEvent; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE static const ezEvent<const spSceneContextExtractEvent&, ezMutex>& GetExtractEvent() { return s_ExtractEvent; }
+    [[nodiscard]] EZ_ALWAYS_INLINE static const ezEvent<const spSceneContextCollectEvent&, ezMutex>& GetCollectEvent() { return s_CollectEvent; }
+    [[nodiscard]] EZ_ALWAYS_INLINE static const ezEvent<const spSceneContextExtractEvent&, ezMutex>& GetExtractEvent() { return s_ExtractEvent; }
 
     explicit spSceneContext(RHI::spDevice* pDevice);
     ~spSceneContext();
 
     /// \brief Gets the \a spDevice used by this context.
-    EZ_NODISCARD EZ_ALWAYS_INLINE RHI::spDevice* GetDevice() const { return m_pDevice; }
+    [[nodiscard]] EZ_ALWAYS_INLINE RHI::spDevice* GetDevice() const { return m_pDevice; }
 
     /// \brief Gets the \a spRenderContext which stores drawing data for this scene.
-    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderContext* GetRenderContext() const { return m_pRenderContext.Borrow(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE spRenderContext* GetRenderContext() const { return m_pRenderContext.Borrow(); }
 
     /// \brief Gets the \a spVisibilityGroup for this scene.
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spVisibilityGroup* GetVisibilityGroup() const { return m_pVisibilityGroup.Borrow(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spVisibilityGroup* GetVisibilityGroup() const { return m_pVisibilityGroup.Borrow(); }
 
     /// \brief Gets the \a spVisibilityGroup for this scene.
     EZ_ALWAYS_INLINE spVisibilityGroup* GetVisibilityGroup() { return m_pVisibilityGroup.Borrow(); }
 
     /// \brief Get the \a ezWorld which this scene belongs to.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezWorld* GetWorld() const { return m_pWorld; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezWorld* GetWorld() const { return m_pWorld; }
 
     /// \brief Adds a \a spRenderingPipeline to execute when drawing this \a spSceneContext.
     void AddPipeline(ezUniquePtr<spRenderPipeline> pPipeline);
@@ -138,10 +138,10 @@ namespace RPI
     void CleanUp();
 
     EZ_ALWAYS_INLINE spConcurrentCollector<spRenderView*>& GetRenderViewCollector() { return m_RenderViewCollector; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderView*>& GetRenderViewCollector() const { return m_RenderViewCollector; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderView*>& GetRenderViewCollector() const { return m_RenderViewCollector; }
 
     EZ_ALWAYS_INLINE spConcurrentCollector<spRenderFeature*>& GetRenderFeatureCollector() { return m_RenderFeatureCollector; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderFeature*>& GetRenderFeatureCollector() const { return m_RenderFeatureCollector; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spConcurrentCollector<spRenderFeature*>& GetRenderFeatureCollector() const { return m_RenderFeatureCollector; }
 
   private:
     static ezEvent<const spSceneContextCollectEvent&, ezMutex> s_CollectEvent;

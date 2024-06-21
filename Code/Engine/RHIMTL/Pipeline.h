@@ -25,8 +25,8 @@ namespace RHI
     spComputePipelineMTL(spDeviceMTL* pDevice, const spComputePipelineDescription& description);
     ~spComputePipelineMTL() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::ComputePipelineState* GetPipelineState() const { return m_pPipelineState; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Size GetDispatchSize() const { return m_DispatchSize; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::ComputePipelineState* GetPipelineState() const { return m_pPipelineState; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::Size GetDispatchSize() const { return m_DispatchSize; }
 
   private:
     MTL::Device* m_mMTLDevice{nullptr};
@@ -53,26 +53,26 @@ namespace RHI
     spGraphicPipelineMTL(spDeviceMTL* pDevice, const spGraphicPipelineDescription& description);
     ~spGraphicPipelineMTL() override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetNonVertexBufferCount() const { return m_uiNonVertexBufferCount; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferCount() const { return m_uiVertexBufferCount; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetStencilReference() const { return m_uiStencilReference; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetNonVertexBufferCount() const { return m_uiNonVertexBufferCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetVertexBufferCount() const { return m_uiVertexBufferCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetStencilReference() const { return m_uiStencilReference; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsScissorTestEnabled() const { return m_bScissorTestEnabled; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool HasStencil() const { return m_bHasStencil; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsScissorTestEnabled() const { return m_bScissorTestEnabled; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool HasStencil() const { return m_bHasStencil; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::RenderPipelineState* GetPipelineState() const { return m_pPipelineState; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::DepthStencilState* GetDepthStencilState() const { return m_pDepthStencilState; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::RenderPipelineState* GetPipelineState() const { return m_pPipelineState; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::DepthStencilState* GetDepthStencilState() const { return m_pDepthStencilState; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::PrimitiveType GetPrimitiveType() const { return m_PrimitiveType; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::CullMode GetCullMode() const { return m_CullMode; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::Winding GetWinding() const { return m_Winding; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::TriangleFillMode GetFillMode() const { return m_FillMode; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE MTL::DepthClipMode GetDepthClipMode() const { return m_DepthClipMode; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetDepthBias() const { return m_fDepthBias; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetDepthBiasClamp() const { return m_fDepthBiasClamp; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE float GetSlopeScaledDepthBias() const { return m_fSlopeScaledDepthBias; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::PrimitiveType GetPrimitiveType() const { return m_PrimitiveType; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::CullMode GetCullMode() const { return m_CullMode; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::Winding GetWinding() const { return m_Winding; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::TriangleFillMode GetFillMode() const { return m_FillMode; }
+    [[nodiscard]] EZ_ALWAYS_INLINE MTL::DepthClipMode GetDepthClipMode() const { return m_DepthClipMode; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetDepthBias() const { return m_fDepthBias; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetDepthBiasClamp() const { return m_fDepthBiasClamp; }
+    [[nodiscard]] EZ_ALWAYS_INLINE float GetSlopeScaledDepthBias() const { return m_fSlopeScaledDepthBias; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezColor GetBlendColor() const { return m_BlendColor; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezColor GetBlendColor() const { return m_BlendColor; }
 
   private:
     ezDynamicArray<ezSharedPtr<spInputLayout>> m_InputLayouts;

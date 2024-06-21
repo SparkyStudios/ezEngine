@@ -34,12 +34,12 @@ namespace RHI
     spResourceLayoutMTL(spDeviceMTL* pDevice, const spResourceLayoutDescription& description);
     ~spResourceLayoutMTL() override;
 
-    EZ_NODISCARD const BindingInfo& GetBinding(ezUInt32 uiSlot) const;
-    EZ_NODISCARD bool IsDynamicBuffer(ezUInt32 uiSlot) const;
+    [[nodiscard]] const BindingInfo& GetBinding(ezUInt32 uiSlot) const;
+    [[nodiscard]] bool IsDynamicBuffer(ezUInt32 uiSlot) const;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetBufferCount() const { return m_uiBufferCount; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetTextureCount() const { return m_uiTextureCount; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezUInt32 GetSamplerCount() const { return m_uiSamplerCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetBufferCount() const { return m_uiBufferCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetTextureCount() const { return m_uiTextureCount; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetSamplerCount() const { return m_uiSamplerCount; }
 
   private:
     ezDynamicArray<BindingInfo> m_Bindings;

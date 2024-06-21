@@ -156,7 +156,7 @@ void ezGameApplicationBase::Init_FileSystem_ConfigureDataDirs()
   ezFileSystem::AddDataDirectory(GetProjectDataDirectoryPath(), "GameApplicationBase", "project", ezDataDirUsage::ReadOnly).IgnoreResult();
 
   // ":shaders/" for reading shaders files
-  ezFileSystem::AddDataDirectory(">sdk/Shaders", "GameApplicationBase", "shaders", ezFileSystem::DataDirUsage::ReadOnly).IgnoreResult();
+  ezFileSystem::AddDataDirectory(">sdk/Shaders", "GameApplicationBase", "shaders", ezDataDirUsage::ReadOnly).IgnoreResult();
 
   // ":plugins/" for plugin specific data (optional, if it exists)
   {

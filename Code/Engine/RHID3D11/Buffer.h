@@ -22,14 +22,14 @@ namespace RHI
 
     void SetDebugName(ezStringView sDebugName) override;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsReleased() const override { return m_pBuffer == nullptr; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsReleased() const override { return m_pBuffer == nullptr; }
 
     void ReleaseResource() override;
 
     void CreateResource() override;
 
     /// \brief Gets the wrapped native buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ID3D11Buffer* GetD3D11Buffer() const { return m_pBuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ID3D11Buffer* GetD3D11Buffer() const { return m_pBuffer; }
 
     /// \brief Gets a shader resource view of the buffer for the given offset and size.
     /// \param uiOffset The offset of the resource to get.
@@ -95,12 +95,12 @@ namespace RHI
 
   public:
     void ReleaseResource() override;
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsReleased() const override { return m_bReleased; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsReleased() const override { return m_bReleased; }
 
     // spBufferRange
 
   public:
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spFence> GetFence() const override { return m_pFence; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spFence> GetFence() const override { return m_pFence; }
 
     // spBufferRangeD3D11
 
@@ -109,20 +109,20 @@ namespace RHI
     ~spBufferRangeD3D11() override;
 
     /// \brief Checks if the buffer range is valid.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsValid() const { return m_pBuffer != nullptr; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsValid() const { return m_pBuffer != nullptr; }
 
     /// \brief Checks if the buffer range is covering the entire parent buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsFullRange() const { return IsValid() && GetOffset() == 0 && GetSize() == m_pBuffer->GetSize(); }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsFullRange() const { return IsValid() && GetOffset() == 0 && GetSize() == m_pBuffer->GetSize(); }
 
     /// \brief Gets the parent buffer.
-    EZ_NODISCARD EZ_ALWAYS_INLINE ezSharedPtr<spBuffer> GetBuffer() const override { return {m_pBuffer, m_pDevice->GetAllocator()}; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<spBuffer> GetBuffer() const override { return {m_pBuffer, m_pDevice->GetAllocator()}; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator==(const spBufferRangeD3D11& rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator==(const spBufferRangeD3D11& rhs) const
     {
       return m_pBuffer == rhs.m_pBuffer && GetOffset() == rhs.GetOffset() && GetSize() == rhs.GetSize();
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool operator!=(const spBufferRangeD3D11& rhs) const { return !(*this == rhs); }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool operator!=(const spBufferRangeD3D11& rhs) const { return !(*this == rhs); }
 
   private:
     spBufferD3D11* m_pBuffer{nullptr};

@@ -33,17 +33,17 @@ namespace RPI
     virtual void Render() = 0;
     virtual void Prepare() = 0;
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE const ezStringView& GetName() const { return m_sName; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezStringView& GetName() const { return m_sName; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsEnabled() const { return m_bEnabled; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsEnabled() const { return m_bEnabled; }
     EZ_ALWAYS_INLINE void SetEnabled(bool bEnabled) { m_bEnabled = bEnabled; }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool IsInitialized() const { return m_bInitialized; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsInitialized() const { return m_bInitialized; }
 
     virtual void Initialize(const spSceneContext* pSceneContext);
 
   protected:
-    EZ_NODISCARD EZ_ALWAYS_INLINE const spSceneContext* GetSceneContext() const { return m_pSceneContext; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spSceneContext* GetSceneContext() const { return m_pSceneContext; }
 
     virtual void OnInitialize();
 
@@ -75,7 +75,7 @@ namespace RPI
 #pragma region Properties
 
     EZ_ALWAYS_INLINE void SetChildRenderer(spRenderer* pChildRenderer) { m_pChildRenderer = pChildRenderer; }
-    EZ_NODISCARD EZ_ALWAYS_INLINE spRenderer* GetChildRenderer() const { return m_pChildRenderer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE spRenderer* GetChildRenderer() const { return m_pChildRenderer; }
 
 #pragma endregion
 

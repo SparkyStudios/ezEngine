@@ -21,12 +21,12 @@ namespace RHI
     {
     }
 
-    EZ_NODISCARD EZ_ALWAYS_INLINE void* GetWindow() const { return m_pWindow; }
+    [[nodiscard]] EZ_ALWAYS_INLINE void* GetWindow() const { return m_pWindow; }
 
-    EZ_NODISCARD CA::MetalLayer* GetMetalLayer() const;
+    [[nodiscard]] CA::MetalLayer* GetMetalLayer() const;
 
-    EZ_NODISCARD ezUInt32 GetWidth() const;
-    EZ_NODISCARD ezUInt32 GetHeight() const;
+    [[nodiscard]] ezUInt32 GetWidth() const;
+    [[nodiscard]] ezUInt32 GetHeight() const;
 
   private:
     void* m_pWindow = nullptr;
@@ -47,16 +47,16 @@ namespace RHI
 
     // spSwapchain
 
-    EZ_NODISCARD ezSharedPtr<spFramebuffer> GetFramebuffer() const override;
+    [[nodiscard]] ezSharedPtr<spFramebuffer> GetFramebuffer() const override;
     void SetVSync(bool bVSync) override;
-    EZ_NODISCARD EZ_ALWAYS_INLINE bool GetVSync() const override { return m_bVSync; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool GetVSync() const override { return m_bVSync; }
     void Resize(ezUInt32 uiWidth, ezUInt32 uiHeight) override;
     void Present() override;
 
     // spSwapchainMTL
 
     bool GetNextDrawable();
-    EZ_NODISCARD EZ_ALWAYS_INLINE CA::MetalDrawable* GetDrawable() const { return m_pMetalDrawable; }
+    [[nodiscard]] EZ_ALWAYS_INLINE CA::MetalDrawable* GetDrawable() const { return m_pMetalDrawable; }
 
     EZ_ALWAYS_INLINE bool EnsureDrawable() { return m_pMetalDrawable != nullptr || GetNextDrawable(); }
 

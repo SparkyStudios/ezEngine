@@ -101,7 +101,7 @@ public:
     return *this;
   }
 
-  EZ_NODISCARD EZ_FORCE_INLINE ezMat4 GetAsMat4() const
+  [[nodiscard]] EZ_FORCE_INLINE ezMat4 GetAsMat4() const
   {
     ezMat4 res;
     res.SetRow(0, reinterpret_cast<const ezVec4&>(m_Data[0]));
@@ -112,7 +112,7 @@ public:
     return res;
   }
 
-  EZ_NODISCARD EZ_FORCE_INLINE ezVec3 GetTranslationVector() const
+  [[nodiscard]] EZ_FORCE_INLINE ezVec3 GetTranslationVector() const
   {
     return ezVec3(m_Data[3], m_Data[7], m_Data[11]);
   }
