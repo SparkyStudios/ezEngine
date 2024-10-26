@@ -995,7 +995,7 @@ void ezAmplitude::DetectPlatform() const
 }
 
 #if defined(AM_WINDOWS_VERSION)
-#  include <Foundation/Basics/Platform/Win/IncludeWindows.h>
+#  include <Foundation/Platform/Win/Utils/IncludeWindows.h>
 #endif
 
 EZ_STATICLINK_FILE(AmplitudeAudioPlugin, AmplitudeAudioPlugin_AmplitudeAudioSingleton);
