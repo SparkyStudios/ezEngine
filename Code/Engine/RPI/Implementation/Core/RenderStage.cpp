@@ -18,11 +18,11 @@
 
 namespace RPI
 {
-  struct spSortKeyComprarer
+  struct spSortKeyComparer
   {
     typedef const spRenderObject* T;
 
-    spSortKeyComprarer(const spRenderView* pRenderView, spSortMode* pSortMode)
+    spSortKeyComparer(const spRenderView* pRenderView, spSortMode* pSortMode)
     {
       m_pRenderView = pRenderView;
       m_pSortMode = pSortMode;
@@ -81,8 +81,11 @@ namespace RPI
 
     for (const auto& pRenderObject : renderObjects)
     {
-      if (out_passedRenderObjects != nullptr && m_pFilter->IsVisible(pRenderObject, pRenderView, this))
-        out_passedRenderObjects->PushBack(pRenderObject);
+      if (m_pFilter->IsVisible(pRenderObject, pRenderView, this))
+      {
+        if (out_passedRenderObjects != nullptr)
+          out_passedRenderObjects->PushBack(pRenderObject);
+      }
       else if (out_failedRenderObjects != nullptr)
         out_failedRenderObjects->PushBack(pRenderObject);
     }
@@ -93,7 +96,7 @@ namespace RPI
     if (out_sortedRenderObjects.GetData() != renderObjects.GetPtr())
       out_sortedRenderObjects = renderObjects;
 
-    const spSortKeyComprarer comparer(pRenderView, m_pSortMode.Borrow());
+    const spSortKeyComparer comparer(pRenderView, m_pSortMode.Borrow());
     out_sortedRenderObjects.Sort(comparer);
   }
 
@@ -141,7 +144,7 @@ namespace RPI
 
       if (pRootInstance == nullptr || pRootInstance->Instantiate(pRenderObject).Failed())
       {
-        // Either the root instance doesn't exists or it failed to create an instance of this render object (maybe instancing is not supported).
+        // Either the root instance doesn't exist or it failed to create an instance of this render object (maybe instancing is not supported).
         // In any case, add this render object as a root instance.
 
         pRenderObject->MakeRootInstance();

@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <RAI/RAIPCH.h>
+#include <RPI/RPIPCH.h>
 
-#include <RAI/Resources/Loaders/ShaderLoader.h>
-#include <RAI/Resources/ShaderResource.h>
+#include <RPI/Materials/MaterialParser.h>
+#include <RPI/Resources/Loaders/RootMaterialResourceLoader.h>
+#include <RPI/Resources/RootMaterialResource.h>
 
 #include <Foundation/Configuration/CVar.h>
 #include <Foundation/Configuration/Startup.h>
@@ -23,15 +24,12 @@
 #include <Foundation/IO/OSFile.h>
 #include <Foundation/Utilities/AssetFileHeader.h>
 
-using namespace RAI;
-using namespace slang;
+using namespace RPI;
 
-static spShaderResourceLoader s_ShaderResourceLoader;
-
-ezCVarFloat cvar_Streaming_ShaderLoadDelay("Streaming.ShaderLoadDelay", 0.0f, ezCVarFlags::Save, "Artificial shader loading slowdown.");
+static spRootMaterialResourceLoader s_RootMaterialResourceLoader;
 
 // clang-format off
-EZ_BEGIN_SUBSYSTEM_DECLARATION(RAI, ShaderResource)
+EZ_BEGIN_SUBSYSTEM_DECLARATION(RAI, RootMaterialResource)
 
   BEGIN_SUBSYSTEM_DEPENDENCIES
     "Foundation",
@@ -40,12 +38,12 @@ EZ_BEGIN_SUBSYSTEM_DECLARATION(RAI, ShaderResource)
 
   ON_CORESYSTEMS_STARTUP
   {
-    ezResourceManager::SetResourceTypeLoader<spShaderResource>(&s_ShaderResourceLoader);
+    ezResourceManager::SetResourceTypeLoader<spRootMaterialResource>(&s_RootMaterialResourceLoader);
   }
 
   ON_CORESYSTEMS_SHUTDOWN
   {
-    ezResourceManager::SetResourceTypeLoader<spShaderResource>(nullptr);
+    ezResourceManager::SetResourceTypeLoader<spRootMaterialResource>(nullptr);
   }
 
   ON_HIGHLEVELSYSTEMS_STARTUP
@@ -59,13 +57,12 @@ EZ_BEGIN_SUBSYSTEM_DECLARATION(RAI, ShaderResource)
 EZ_END_SUBSYSTEM_DECLARATION;
 // clang-format on
 
-spShaderResourceLoader::spShaderResourceLoader()
+spRootMaterialResourceLoader::spRootMaterialResourceLoader()
   : ezResourceTypeLoader()
 {
-  slang::createGlobalSession(m_pGlobalCompilerSession.writeRef());
 }
 
-ezResourceLoadData spShaderResourceLoader::OpenDataStream(const ezResource* pResource)
+ezResourceLoadData spRootMaterialResourceLoader::OpenDataStream(const ezResource* pResource)
 {
   LoadedData* pData = EZ_DEFAULT_NEW(LoadedData);
 
@@ -90,21 +87,27 @@ ezResourceLoadData spShaderResourceLoader::OpenDataStream(const ezResource* pRes
 
   ezMemoryStreamWriter w(&pData->m_Storage);
 
-  if (sAbsolutePath.HasExtension("slang"))
+  if (sAbsolutePath.HasExtension("material"))
   {
+    w.WriteVersion(spRootMaterialResource::GetResourceVersion());
+    w << static_cast<ezUInt8>(0); // Compression Mode (Uncompressed)
+
+    spMaterialMetadata metadata;
+    if (spMaterialParser::ParseMaterialMetadata(sAbsolutePath, metadata).Failed())
+      ezLog::Error("Unable to parse metadata for material file '{0}'", sAbsolutePath);
+
+    w << metadata;
+
     ezDynamicArray<ezUInt8> content;
     content.SetCountUninitialized(file.GetFileSize());
+
     const ezUInt64 uiBytesRead = file.ReadBytes(content.GetData(), content.GetCount());
 
-    w.WriteVersion(spShaderResource::GetResourceVersion());
-    w << static_cast<ezUInt8>(0); // Compression Mode (Uncompressed)
     w << uiBytesRead;
     w.WriteBytes(content.GetData(), uiBytesRead).IgnoreResult();
   }
-  else if (sAbsolutePath.HasExtension("spShader"))
+  else if (sAbsolutePath.HasExtension("spRootMaterial"))
   {
-    pData->m_bFromShaderAsset = true;
-
     // skip the absolute file path data that the standard file reader writes into the stream
     {
       ezStringBuilder sAbsFilePath;
@@ -120,41 +123,35 @@ ezResourceLoadData spShaderResourceLoader::OpenDataStream(const ezResource* pRes
     ezUInt8 uiCompressionMode = 0;
     file >> uiCompressionMode;
 
-    pData->m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, file.GetFileSize());
-    const ezUInt64 uiReadBytes = file.ReadBytes(pData->m_ShaderBytes.GetPtr(), file.GetFileSize());
+    ezDynamicArray<ezUInt8> bytes;
+    bytes.SetCountUninitialized(file.GetFileSize());
+
+    const ezUInt64 uiReadBytes = file.ReadBytes(bytes.GetData(), file.GetFileSize());
 
     w.WriteVersion(v);
     w << uiCompressionMode;
-    w.WriteBytes(pData->m_ShaderBytes.GetPtr(), uiReadBytes).IgnoreResult();
+    w.WriteBytes(bytes.GetData(), uiReadBytes).IgnoreResult();
   }
 
   res.m_pDataStream = &pData->m_Reader;
   res.m_pCustomLoaderData = pData;
 
-  if (cvar_Streaming_ShaderLoadDelay > 0)
-  {
-    ezThreadUtils::Sleep(ezTime::Seconds(cvar_Streaming_ShaderLoadDelay));
-  }
-
   return res;
 }
 
-void spShaderResourceLoader::CloseDataStream(const ezResource* pResource, const ezResourceLoadData& loaderData)
+void spRootMaterialResourceLoader::CloseDataStream(const ezResource* pResource, const ezResourceLoadData& loaderData)
 {
   auto* pData = static_cast<LoadedData*>(loaderData.m_pCustomLoaderData);
 
   if (pData == nullptr)
     return;
 
-  if (pData->m_bFromShaderAsset)
-    EZ_DEFAULT_DELETE_ARRAY(pData->m_ShaderBytes);
-
   pData->m_Storage.Clear();
 
   EZ_DEFAULT_DELETE(pData);
 }
 
-bool spShaderResourceLoader::IsResourceOutdated(const ezResource* pResource) const
+bool spRootMaterialResourceLoader::IsResourceOutdated(const ezResource* pResource) const
 {
   // Don't try to reload a file that cannot be found
   ezStringBuilder sAbs;
@@ -175,39 +172,4 @@ bool spShaderResourceLoader::IsResourceOutdated(const ezResource* pResource) con
 #endif
 
   return true;
-}
-
-Slang::ComPtr<slang::ISession> spShaderResourceLoader::CreateSession()
-{
-  slang::SessionDesc desc;
-
-  desc.defaultMatrixLayoutMode = SLANG_MATRIX_LAYOUT_COLUMN_MAJOR;
-
-  slang::TargetDesc targetDesc;
-  targetDesc.format = SLANG_TARGET_NONE;
-
-  desc.targets = &targetDesc;
-  desc.targetCount = 1;
-
-  ezStringBuilder sEngineShadersPathBuilder(ezFileSystem::GetSdkRootDirectory());
-  sEngineShadersPathBuilder.AppendPath("Shaders", "Lib");
-
-  ezStringBuilder sProjectShadersPathBuilder;
-  if (ezFileSystem::ResolvePath(":project/Shaders/Lib", &sProjectShadersPathBuilder, nullptr).Failed())
-  {
-    const char* searchPaths[] = {sEngineShadersPathBuilder.GetData()};
-    desc.searchPaths = searchPaths;
-    desc.searchPathCount = 1;
-  }
-  else
-  {
-    const char* searchPaths[] = {sEngineShadersPathBuilder.GetData(), sProjectShadersPathBuilder.GetData()};
-    desc.searchPaths = searchPaths;
-    desc.searchPathCount = 2;
-  }
-
-  Slang::ComPtr<slang::ISession> session;
-  const SlangResult res = m_pGlobalCompilerSession->createSession(desc, session.writeRef());
-
-  return res == SLANG_OK ? session : nullptr;
 }

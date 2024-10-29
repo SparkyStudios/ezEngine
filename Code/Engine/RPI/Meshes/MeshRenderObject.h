@@ -52,6 +52,8 @@ namespace RPI
     spShaderTransform m_PreviousTransform;
 
     spShaderTransform m_NormalTransform;
+
+    ezUInt32 m_MaterialIndex{0};
   };
 
   class SP_RPI_DLL spMeshRenderObject final : public spRenderObject

@@ -225,7 +225,10 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
 
       ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[2]);
       if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
-        pComponent->SetMeshFile(":project/objects/male.spMesh");
+      {
+        pComponent->SetMeshFile(":project/objects/male_lod.spMesh");
+        pComponent->SetLODMaxDistance(100);
+      }
     }
 
     {

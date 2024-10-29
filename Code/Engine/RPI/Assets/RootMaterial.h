@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,26 +14,35 @@
 
 #pragma once
 
-#include <RAI/RAIDLL.h>
+#include <RPI/RPIDLL.h>
 
-#include <Foundation/IO/MemoryStream.h>
+#include <RPI/Materials/MaterialParser.h>
 
-namespace RAI
+namespace RPI
 {
-  /// \brief A shader asset.
-  class SP_RAI_DLL spShader
+  class SP_RPI_DLL spRootMaterial
   {
-    friend class spShaderResource;
-    friend class spShaderResourceDescriptor;
+    friend class spRootMaterialResource;
+    friend class spRootMaterialResourceDescriptor;
+
+#pragma region RPI Resource
 
   public:
-    spShader() = default;
+    spRootMaterial();
+
+    ~spRootMaterial();
 
     void Clear();
+
+    [[nodiscard]] EZ_ALWAYS_INLINE const spMaterialMetadata& GetMetadata() const { return m_Metadata; }
 
     [[nodiscard]] EZ_ALWAYS_INLINE ezByteArrayPtr GetShaderBytes() const { return m_ShaderBytes; }
 
   private:
+    spMaterialMetadata m_Metadata;
+
     ezByteArrayPtr m_ShaderBytes;
+
+#pragma endregion
   };
-} // namespace RAI
+} // namespace RPI

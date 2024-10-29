@@ -122,6 +122,7 @@ namespace RPI
       desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerFrame"), pRenderingContext->GetFrameDataBuffer().GetHandle());
       desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerView"), pRenderView->GetDataBuffer().GetHandle());
       desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerInstance"), pMeshRenderObject->m_pPerInstanceDataBuffer->GetHandle());
+      // desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerMaterial"), pMeshRenderObject->m_pPerInstanceDataBuffer->GetHandle());
 
       m_pResourceSet = cl->GetDevice()->GetResourceFactory()->CreateResourceSet(desc);
 
@@ -208,7 +209,7 @@ namespace RPI
 
     {
       RHI::spResourceLayoutDescription desc{};
-      desc.m_eShaderStage = RHI::spShaderStage::VertexShader;
+      desc.m_eShaderStage = RHI::spShaderStage::VertexShader | RHI::spShaderStage::PixelShader;
 
       RHI::spResourceLayoutElementDescription perFrameBuffer{};
       perFrameBuffer.m_sName = ezMakeHashedString("Buffer_PerFrame");
@@ -225,9 +226,15 @@ namespace RPI
       perInstanceBuffer.m_eType = RHI::spShaderResourceType::ReadOnlyStructuredBuffer;
       perInstanceBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
 
+      // RHI::spResourceLayoutElementDescription perMaterialBuffer{};
+      // perInstanceBuffer.m_sName = ezMakeHashedString("Buffer_PerMaterial");
+      // perInstanceBuffer.m_eType = RHI::spShaderResourceType::ReadOnlyStructuredBuffer;
+      // perInstanceBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
+
       desc.m_Elements.PushBack(perFrameBuffer);
       desc.m_Elements.PushBack(perViewBuffer);
       desc.m_Elements.PushBack(perInstanceBuffer);
+      // desc.m_Elements.PushBack(perMaterialBuffer);
 
       m_pResourceLayout = pDevice->GetResourceFactory()->CreateResourceLayout(desc);
 

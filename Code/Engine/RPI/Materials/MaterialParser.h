@@ -20,7 +20,7 @@ namespace RPI
 {
   struct spMaterialPropertyAttributeDefinition
   {
-    ezString m_sName;
+    ezHashedString m_sName;
     ezHybridArray<ezVariant, 8> m_Arguments;
   };
 
@@ -28,13 +28,14 @@ namespace RPI
   {
     const ezRTTI* m_pType = nullptr;
     ezString m_sType;
-    ezString m_sName;
+
+    ezHashedString m_sName;
     ezVariant m_Initializer;
 
     ezHybridArray<spMaterialPropertyAttributeDefinition, 4> m_Attributes;
   };
 
-  struct SP_RPI_DLL spMaterialMetadata
+  struct spMaterialMetadata
   {
     ezHashedString m_sName;
     ezString m_sDescription;
@@ -51,3 +52,5 @@ namespace RPI
     static ezResult ParseMaterialMetadata(ezStringView sMaterialFilePath, spMaterialMetadata& out_MaterialMetadata);
   };
 } // namespace RPI
+
+#include <RPI/Implementation/Materials/MaterialParser_inl.h>

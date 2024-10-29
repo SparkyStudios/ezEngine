@@ -91,38 +91,36 @@ struct Surface
   /// The normal vector of this surface fragment in geometry space.
   float3 VertexNormal;
 
-  /// The total accumulated speculr energy.
+  /// The total accumulated specular energy.
   float3 kS;
 
   /// The total accumulated diffuse energy.
   float3 kD;
 
-  __init()
+  static Surface from(MaterialData material)
   {
-    kS = float3(1.0f);
-    kD = float3(1.0f);
-  }
+    Surface result;
 
-  __init(MaterialData material)
-  {
-    kS = float3(1.0f);
-    kD = float3(1.0f);
+    result.kS = float3(1.0f);
+    result.kD = float3(1.0f);
 
-    Diffuse         = material.DiffuseColor;
-    LinearRoughness = material.Roughness;
-    Metalness       = material.Metalness;
+    result.Diffuse         = material.DiffuseColor;
+    result.LinearRoughness = material.Roughness;
+    result.Metalness       = material.Metalness;
 
-    Roughness  = pow2(LinearRoughness);
-    Roughness2 = pow2(Roughness);
+    result.Roughness  = pow2(result.LinearRoughness);
+    result.Roughness2 = pow2(result.Roughness);
 
-    Clearcoat          = material.Clearcoat;
-    ClearcoatRoughness = material.ClearcoatRoughness;
+    result.Clearcoat          = material.Clearcoat;
+    result.ClearcoatRoughness = material.ClearcoatRoughness;
 
-    Anisotropic         = material.Anisotropic;
-    AnisotropicRotation = material.AnisotropicRotation;
+    result.Anisotropic         = material.Anisotropic;
+    result.AnisotropicRotation = material.AnisotropicRotation;
 
-    Sheen = material.Sheen;
+    result.Sheen = material.Sheen;
 
-    Opacity = material.AlbedoColor.a;
+    result.Opacity = material.AlbedoColor.a;
+
+    return result;
   }
 }

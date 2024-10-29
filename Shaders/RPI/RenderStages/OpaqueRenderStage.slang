@@ -18,10 +18,10 @@
 struct Params
 {
   /// Buffer containing data updated per frames.
-  ConstantBuffer<PerFrameBuffer> Buffer_PerFrame;
+  ParameterBlock<PerFrameBuffer> Buffer_PerFrame;
 
   /// Buffer containing data updated per views.
-  ConstantBuffer<PerViewBuffer> Buffer_PerView;
+  ParameterBlock<PerViewBuffer> Buffer_PerView;
 
   /// Buffer containing data per mesh instances.
   StructuredBuffer<InstanceData> Buffer_PerInstance;

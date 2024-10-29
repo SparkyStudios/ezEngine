@@ -105,24 +105,24 @@ namespace RPI
   {
     switch (eType)
     {
-      case spShaderSpecializationConstantType::Bool:
+      case RHI::spShaderSpecializationConstantType::Bool:
         return "bool"_ezsv;
-      case spShaderSpecializationConstantType::UInt16:
+      case RHI::spShaderSpecializationConstantType::UInt16:
         return "uint16_t"_ezsv;
-      case spShaderSpecializationConstantType::Int16:
+      case RHI::spShaderSpecializationConstantType::Int16:
         return "int16_t"_ezsv;
-      case spShaderSpecializationConstantType::UInt32:
+      case RHI::spShaderSpecializationConstantType::UInt32:
         return "uint"_ezsv;
       default:
-      case spShaderSpecializationConstantType::Int32:
+      case RHI::spShaderSpecializationConstantType::Int32:
         return "int"_ezsv;
-      case spShaderSpecializationConstantType::UInt64:
+      case RHI::spShaderSpecializationConstantType::UInt64:
         return "uint64_t"_ezsv;
-      case spShaderSpecializationConstantType::Int64:
+      case RHI::spShaderSpecializationConstantType::Int64:
         return "int64_t"_ezsv;
-      case spShaderSpecializationConstantType::Float:
+      case RHI::spShaderSpecializationConstantType::Float:
         return "float"_ezsv;
-      case spShaderSpecializationConstantType::Double:
+      case RHI::spShaderSpecializationConstantType::Double:
         return "double"_ezsv;
     }
   }
@@ -192,8 +192,62 @@ namespace RPI
         return nullptr;
       }
 
+      Slang::ComPtr<slang::IComponentType> pSpecializedProgram;;
+
+      if (ref_compilerSetup.m_eStage == RHI::spShaderStage::DomainShader)
+      {
+        // Once we've loaded the code module that defines out effect type,
+        // we can look it up by name using the reflection information on
+        // the module.
+        //
+        // Note: A future version of the Slang API will support enumerating
+        // the types declared in a module so that we do not have to hard-code
+        // the name here.
+        //
+        auto effectType = pModule->getLayout()->findTypeByName("LitMaterial");
+
+        // Now that we have the `effectType` we want to plug in to our generic
+        // shader, we need to specialize the shader to that type.
+        //
+        // Because a shader program could have zero or more specialization parameters,
+        // we need to build up an array of specialization arguments.
+        //
+        std::vector<slang::SpecializationArg> specializationArgs;
+
+        {
+          // In our case, we only have a single specialization argument we plan
+          // to use, and it is a type argument.
+          //
+          const slang::SpecializationArg effectTypeArg = slang::SpecializationArg::fromType(effectType);
+          specializationArgs.push_back(effectTypeArg);
+        }
+
+        // Specialization of a component type is a single Slang API call, but
+        // we need to deal with the possibility of diagnostic output on failure.
+        // For example, if we tried to specialize the shader program to a
+        // type like `int` that doesn't support the `IShaderToyImageShader` interface,
+        // this is the step where we'd get an error message saying so.
+        //
+        result = pShaderProgram->specialize(
+            specializationArgs.data(),
+            specializationArgs.size(),
+            pSpecializedProgram.writeRef(),
+            pDiagnostics.writeRef());
+
+        if (result != SLANG_OK || pDiagnostics)
+        {
+          ezLog::Error("Unable to specialize the shader program.");
+
+          if (pDiagnostics)
+            ezLog::Error("{}", static_cast<const char*>(pDiagnostics->getBufferPointer()));
+
+          return nullptr;
+        }
+      }
+      else pSpecializedProgram = pShaderProgram;
+
       Slang::ComPtr<slang::IComponentType> pLinkedShaderProgram;
-      result = pShaderProgram->link(pLinkedShaderProgram.writeRef(), pDiagnostics.writeRef());
+      result = pSpecializedProgram->link(pLinkedShaderProgram.writeRef(), pDiagnostics.writeRef());
 
       if (result != SLANG_OK || pDiagnostics)
       {
@@ -229,6 +283,8 @@ namespace RPI
       desc.m_Buffer[uiKernelSize] = '\0';
       desc.m_bOwnBuffer = true;
 
+      ezLog::Info("{}", reinterpret_cast<const char*>(desc.m_Buffer.GetPtr()));
+
       const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<RHI::spDevice>();
 
       auto const pShader = pDevice->GetResourceFactory()->CreateShader(desc);
@@ -254,32 +310,32 @@ namespace RPI
 
       switch (specialization.m_eType)
       {
-        case spShaderSpecializationConstantType::Bool:
-          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<bool>(specialization.m_uiValue));
+        case RHI::spShaderSpecializationConstantType::Bool:
+          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<bool>(specialization.m_uiValue));
           break;
-        case spShaderSpecializationConstantType::Float:
-          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<float>(specialization.m_uiValue));
+        case RHI::spShaderSpecializationConstantType::Float:
+          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<float>(specialization.m_uiValue));
           break;
-        case spShaderSpecializationConstantType::Double:
-          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<double>(specialization.m_uiValue));
+        case RHI::spShaderSpecializationConstantType::Double:
+          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<double>(specialization.m_uiValue));
           break;
-        case spShaderSpecializationConstantType::Int16:
-          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezInt16>(specialization.m_uiValue));
+        case RHI::spShaderSpecializationConstantType::Int16:
+          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezInt16>(specialization.m_uiValue));
           break;
-        case spShaderSpecializationConstantType::Int32:
-          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezInt32>(specialization.m_uiValue));
+        case RHI::spShaderSpecializationConstantType::Int32:
+          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezInt32>(specialization.m_uiValue));
           break;
-        case spShaderSpecializationConstantType::Int64:
-          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezInt64>(specialization.m_uiValue));
+        case RHI::spShaderSpecializationConstantType::Int64:
+          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezInt64>(specialization.m_uiValue));
           break;
-        case spShaderSpecializationConstantType::UInt16:
-          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezUInt16>(specialization.m_uiValue));
+        case RHI::spShaderSpecializationConstantType::UInt16:
+          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezUInt16>(specialization.m_uiValue));
           break;
-        case spShaderSpecializationConstantType::UInt32:
-          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezUInt32>(specialization.m_uiValue));
+        case RHI::spShaderSpecializationConstantType::UInt32:
+          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezUInt32>(specialization.m_uiValue));
           break;
-        case spShaderSpecializationConstantType::UInt64:
-          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezUInt64>(specialization.m_uiValue));
+        case RHI::spShaderSpecializationConstantType::UInt64:
+          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezUInt64>(specialization.m_uiValue));
           break;
         default:
           shaderCode.AppendFormat("0;");

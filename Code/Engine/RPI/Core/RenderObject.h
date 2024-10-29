@@ -27,7 +27,7 @@ namespace RPI
   class spRenderFeature;
   class spVisibilityGroup;
 
-  /// \brief Base class for render objects. Each implementation must contains all information
+  /// \brief Base class for render objects. Each implementation must contain all information
   /// needed to render the data. The \a Draw method is called each time this object is rendered.
   class SP_RPI_DLL spRenderObject : public ezReflectedClass
   {
@@ -80,7 +80,7 @@ namespace RPI
     [[nodiscard]] EZ_ALWAYS_INLINE const ezBoundingBoxSphere& GetBoundingBox() const { return m_BoundingBox; }
 
     [[nodiscard]] EZ_ALWAYS_INLINE const spRenderNodeReference& GetVisibilityGroupReference() const { return m_VisibilityGroupReference; }
-    [[nodiscard]] EZ_ALWAYS_INLINE const spRenderNodeReference& GetRenderFeatureRefenrence() const { return m_RenderFeatureReference; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spRenderNodeReference& GetRenderFeatureReference() const { return m_RenderFeatureReference; }
 
   protected:
     ezEnum<CachingBehavior> m_eCachingBehavior{CachingBehavior::OnlyIfStatic};
