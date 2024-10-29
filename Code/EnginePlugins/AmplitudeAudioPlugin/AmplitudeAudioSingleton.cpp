@@ -23,20 +23,29 @@ using namespace SparkyStudios::Audio;
 
 namespace Log
 {
-  static void Write(const char* format, va_list args)
+  static class Impl final : public Amplitude::Logger
   {
-    if (format && format[0] != '\0')
+  protected:
+    void Log(Amplitude::eLogMessageLevel level, const char* file, int line, const Amplitude::AmString& message) override
     {
-      constexpr size_t bufferLen = 1024;
-      char buffer[bufferLen] = "[Amplitude] ";
-
-      vsnprintf(buffer + 12, bufferLen - 12, format, args);
-
-      buffer[bufferLen - 1] = '\0';
-
-      ezLog::Debug("{0}", buffer);
+      switch (level)
+      {
+        case Amplitude::eLogMessageLevel_Debug:
+          ezLog::Debug("[Amplitude] {0}", message.c_str());
+          break;
+        case Amplitude::eLogMessageLevel_Info:
+          ezLog::Info("[Amplitude] {0}", message.c_str());
+          break;
+        case Amplitude::eLogMessageLevel_Warning:
+          ezLog::Warning("[Amplitude] {0}", message.c_str());
+          break;
+        case Amplitude::eLogMessageLevel_Critical:
+        case Amplitude::eLogMessageLevel_Error:
+          ezLog::Error("[Amplitude] {0}", message.c_str());
+          break;
+      }
     }
-  }
+  } g_Logger;
 
   static void DeviceNotification(Amplitude::DeviceNotification notification, const Amplitude::DeviceDescription& device, Amplitude::Driver* driver)
   {
@@ -63,52 +72,51 @@ namespace Log
 
 namespace Memory
 {
-  static Amplitude::AmVoidPtr Malloc([[maybe_unused]] Amplitude::MemoryPoolKind pool, Amplitude::AmSize size)
+  class Impl final : public Amplitude::MemoryAllocator
   {
-    return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->Allocate(size, EZ_AUDIOSYSTEM_MEMORY_ALIGNMENT);
-  }
+    Amplitude::AmVoidPtr Malloc([[maybe_unused]] Amplitude::eMemoryPoolKind pool, Amplitude::AmSize size) override
+    {
+      return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->Allocate(size, EZ_AUDIOSYSTEM_MEMORY_ALIGNMENT);
+    }
 
-  static Amplitude::AmVoidPtr Malign([[maybe_unused]] Amplitude::MemoryPoolKind pool, Amplitude::AmSize size, Amplitude::AmUInt32 alignment)
-  {
-    return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->Allocate(size, alignment);
-  }
+    Amplitude::AmVoidPtr Malign([[maybe_unused]] Amplitude::eMemoryPoolKind pool, Amplitude::AmSize size, Amplitude::AmUInt32 alignment) override
+    {
+      return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->Allocate(size, alignment);
+    }
 
-  static Amplitude::AmVoidPtr Realloc(Amplitude::MemoryPoolKind pool, Amplitude::AmVoidPtr address, Amplitude::AmSize size)
-  {
-    if (address == nullptr)
-      return Malloc(pool, size);
+    Amplitude::AmVoidPtr Realloc(Amplitude::eMemoryPoolKind pool, Amplitude::AmVoidPtr address, Amplitude::AmSize size) override
+    {
+      if (address == nullptr)
+        return Malloc(pool, size);
 
-    return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->Reallocate(address, ezAudioMiddlewareAllocatorWrapper::GetAllocator()->AllocatedSize(address), size, EZ_AUDIOSYSTEM_MEMORY_ALIGNMENT);
-  }
+      return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->Reallocate(address, ezAudioMiddlewareAllocatorWrapper::GetAllocator()->AllocatedSize(address), size, EZ_AUDIOSYSTEM_MEMORY_ALIGNMENT);
+    }
 
-  static Amplitude::AmVoidPtr Realign(Amplitude::MemoryPoolKind pool, Amplitude::AmVoidPtr address, Amplitude::AmSize size, Amplitude::AmUInt32 alignment)
-  {
-    if (address == nullptr)
-      return Malign(pool, size, alignment);
+    Amplitude::AmVoidPtr Realign(Amplitude::eMemoryPoolKind pool, Amplitude::AmVoidPtr address, Amplitude::AmSize size, Amplitude::AmUInt32 alignment) override
+    {
+      if (address == nullptr)
+        return Malign(pool, size, alignment);
 
-    return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->Reallocate(address, ezAudioMiddlewareAllocatorWrapper::GetAllocator()->AllocatedSize(address), size, alignment);
-  }
+      return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->Reallocate(address, ezAudioMiddlewareAllocatorWrapper::GetAllocator()->AllocatedSize(address), size, alignment);
+    }
 
-  static void Free([[maybe_unused]] Amplitude::MemoryPoolKind pool, Amplitude::AmVoidPtr address)
-  {
-    ezAudioMiddlewareAllocatorWrapper::GetAllocator()->Deallocate(address);
-  }
+    void Free([[maybe_unused]] Amplitude::eMemoryPoolKind pool, Amplitude::AmVoidPtr address) override
+    {
+      ezAudioMiddlewareAllocatorWrapper::GetAllocator()->Deallocate(address);
+    }
 
-  static Amplitude::AmSize TotalMemorySize()
-  {
-    return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->GetStats().m_uiAllocationSize;
-  }
-
-  static Amplitude::AmSize SizeOfMemory([[maybe_unused]] Amplitude::MemoryPoolKind pool, Amplitude::AmConstVoidPtr address)
-  {
-    return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->AllocatedSize(address);
-  }
+    Amplitude::AmSize SizeOf([[maybe_unused]] Amplitude::eMemoryPoolKind pool, Amplitude::AmVoidPtr address) override
+    {
+      return ezAudioMiddlewareAllocatorWrapper::GetAllocator()->AllocatedSize(address);
+    }
+  };
 } // namespace Memory
 
 namespace Utils
 {
   static AmVec3 ezVec3ToAmVec3(const ezVec3& vec)
   {
+    // Amplitude and ezEngine use the same coordinate system, so no conversion is needed
     return AM_V3(vec.x, vec.y, vec.z);
   }
 } // namespace Utils
@@ -211,16 +219,7 @@ ezResult ezAmplitude::Startup()
   if (m_bInitialized)
     return EZ_SUCCESS;
 
-  Amplitude::MemoryManagerConfig memConfig;
-  memConfig.alignedMalloc = Memory::Malign;
-  memConfig.alignedRealloc = Memory::Realign;
-  memConfig.free = Memory::Free;
-  memConfig.malloc = Memory::Malloc;
-  memConfig.realloc = Memory::Realloc;
-  memConfig.sizeOf = Memory::SizeOfMemory;
-  memConfig.totalReservedMemorySize = Memory::TotalMemorySize;
-
-  Amplitude::MemoryManager::Initialize(memConfig);
+  Amplitude::MemoryManager::Initialize(std::make_unique<Memory::Impl>());
   EZ_ASSERT_DEBUG(Amplitude::MemoryManager::IsInitialized(), "Amplitude memory manager not initialized.");
 
   DetectPlatform();
@@ -234,7 +233,7 @@ ezResult ezAmplitude::Startup()
   const auto& config = m_pData->m_Configs.m_AssetProfiles[m_pData->m_sPlatform];
 
   // Initialize the engine
-  Amplitude::RegisterLogFunc(Log::Write);
+  Amplitude::Logger::SetLogger(&Log::g_Logger);
   Amplitude::RegisterDeviceNotificationCallback(Log::DeviceNotification);
 
   ezStringBuilder assetsPath;
@@ -424,7 +423,7 @@ ezResult ezAmplitude::SetEntityTransform(ezAudioSystemEntityData* pEntityData, c
   if (const Amplitude::Entity& entity = m_pEngine->GetEntity(pAmplitudeEntity->m_uiAmId); entity.Valid())
   {
     entity.SetLocation(Utils::ezVec3ToAmVec3(Transform.m_vPosition));
-    entity.SetOrientation(Utils::ezVec3ToAmVec3(-Transform.m_vForward), Utils::ezVec3ToAmVec3(Transform.m_vUp));
+    entity.SetOrientation(Amplitude::Orientation(Utils::ezVec3ToAmVec3(-Transform.m_vForward), Utils::ezVec3ToAmVec3(Transform.m_vUp)));
   }
 
   return EZ_SUCCESS;
@@ -709,7 +708,7 @@ ezResult ezAmplitude::SetListenerTransform(ezAudioSystemListenerData* pListenerD
   if (const Amplitude::Listener& listener = m_pEngine->GetListener(pAmplitudeListener->m_uiAmId); listener.Valid())
   {
     listener.SetLocation(Utils::ezVec3ToAmVec3(Transform.m_vPosition));
-    listener.SetOrientation(Utils::ezVec3ToAmVec3(-Transform.m_vForward), Utils::ezVec3ToAmVec3(Transform.m_vUp));
+    listener.SetOrientation(Amplitude::Orientation(Utils::ezVec3ToAmVec3(-Transform.m_vForward), Utils::ezVec3ToAmVec3(Transform.m_vUp)));
   }
 
   return EZ_SUCCESS;

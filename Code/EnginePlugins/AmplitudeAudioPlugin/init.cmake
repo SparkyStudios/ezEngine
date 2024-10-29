@@ -16,11 +16,11 @@
 ### Amplitude Audio Support for EZ Engine
 ###########################################
 
-set (EZ_3RDPARTY_AMPLITUDE_SUPPORT ON CACHE BOOL "Whether to add support for the Amplitude Audio Engine.")
+set(EZ_3RDPARTY_AMPLITUDE_SUPPORT ON CACHE BOOL "Whether to add support for the Amplitude Audio Engine.")
 mark_as_advanced(FORCE EZ_3RDPARTY_AMPLITUDE_SUPPORT)
 
 list(APPEND CMAKE_MODULE_PATH "$ENV{AM_SDK_PATH}/cmake" "${AM_SDK_PATH}/cmake")
-set(AM_SDK_PLATFORM ${VCPKG_TARGET_TRIPLET})
+
 find_package(AmplitudeAudioSDK REQUIRED)
 
 ######################################
@@ -40,5 +40,4 @@ function(ez_link_target_amplitude TARGET_NAME)
 
     target_link_libraries(${TARGET_NAME} PRIVATE SparkyStudios::Audio::Amplitude::SDK::Shared)
     ez_uwp_mark_import_as_content(SparkyStudios::Audio::Amplitude::SDK::Shared)
-#    target_link_libraries(${TARGET_NAME} PRIVATE ezAmplitude::libsamplerate)
 endfunction()
