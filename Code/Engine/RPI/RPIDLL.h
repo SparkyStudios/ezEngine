@@ -6,6 +6,7 @@
 #include <Foundation/Containers/ArrayMap.h>
 #include <Foundation/Containers/Deque.h>
 #include <Foundation/Containers/DynamicArray.h>
+#include <Foundation/Containers/IdTable.h>
 #include <Foundation/Containers/StaticArray.h>
 #include <Foundation/Logging/Log.h>
 #include <Foundation/Math/Size.h>

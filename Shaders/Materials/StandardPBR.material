@@ -186,7 +186,6 @@ struct StandardPBRMaterial : IMaterial
   {
     float opacity = data.AlbedoColor.a;
 
-    [branch]
     if (data.HasTextureAlbedo)
       opacity *= g_MaterialParams.AlbedoTexture.Sample(vertex.TexCoord0.xy).a;
 
@@ -221,7 +220,6 @@ struct StandardPBRMaterial : IMaterial
     albedo *= vertex.Color0;
 #endif
 
-    [branch]
     if (data.HasTextureAlbedo)
       albedo *= g_MaterialParams.AlbedoTexture.Sample(vertex.TexCoord0.xy).rgb;
 

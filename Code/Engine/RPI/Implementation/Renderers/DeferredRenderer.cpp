@@ -49,20 +49,25 @@ namespace RPI
         }
 
         // Static Opaque/G-Buffer Pass
-        pRenderContext->GetExtractionData().m_pRenderStage = m_pOpaqueRenderStage.Borrow();
+        pRenderContext->GetExtractionData().m_pRenderStage = m_pStaticOpaqueRenderStage.Borrow();
         {
           ezDynamicArray<spRenderObject*> opaqueObjects;
 
           // Filter
-          m_pOpaqueRenderStage->Filter(pRenderView, visibleObjects.GetArrayPtr(), &opaqueObjects, nullptr);
+          m_pStaticOpaqueRenderStage->Filter(pRenderView, visibleObjects.GetArrayPtr(), &opaqueObjects, nullptr);
 
           // Sort
-          m_pOpaqueRenderStage->Sort(pRenderView, opaqueObjects, opaqueObjects);
+          m_pStaticOpaqueRenderStage->Sort(pRenderView, opaqueObjects, opaqueObjects);
+
+          const ezUInt32 uiCurrentStaticPassHash = ezHashingUtils::CombineHashValues32(
+            ezHashingUtils::xxHash32(&pRenderView->GetViewMatrix(), sizeof(ezMat4)),
+            ezHashingUtils::xxHash32(&pRenderView->GetProjectionMatrix(), sizeof(ezMat4)));
 
           // TODO: Add a check to see if the render view has changed since the last frame
           if (!opaqueObjects.IsEmpty())
+//          if (!opaqueObjects.IsEmpty() && m_uiLastStaticPassHash != uiCurrentStaticPassHash)
           {
-            auto pushRestore = cl->PushRestoreFramebuffer(m_pOpaqueRenderStage->GetOutputFramebuffer(pRenderView));
+            auto pushRestore = cl->PushRestoreFramebuffer(m_pStaticOpaqueRenderStage->GetOutputFramebuffer(pRenderView));
 
             const ezRectU32 viewport = pRenderView->GetViewport();
             const RHI::spViewport vp(viewport.x, viewport.y, viewport.width, viewport.height, 0.0f, 1.0f);
@@ -73,7 +78,9 @@ namespace RPI
             cl->ClearDepthStencilTarget(1.0f, 0);
 
             // Draw
-            m_pOpaqueRenderStage->Draw(pRenderContext, opaqueObjects);
+            m_pStaticOpaqueRenderStage->Draw(pRenderContext, opaqueObjects);
+
+            m_uiLastStaticPassHash = uiCurrentStaticPassHash;
           }
         }
 
@@ -104,7 +111,7 @@ namespace RPI
 
       // FIXME: Temporary hack to have something displayed on screen
       cl->CopyTexture(
-        cl->GetDevice()->GetResourceManager()->GetResource<RHI::spTexture>(m_pOpaqueRenderStage->GetOutputFramebuffer(pRenderView)->GetColorTargets()[0]),
+        cl->GetDevice()->GetResourceManager()->GetResource<RHI::spTexture>(m_pStaticOpaqueRenderStage->GetOutputFramebuffer(pRenderView)->GetColorTargets()[0]),
         cl->GetDevice()->GetResourceManager()->GetResource<RHI::spTexture>(fb.GetPreviousFramebuffer()->GetColorTargets()[0]));
     }
     cl->PopDebugGroup();
@@ -114,8 +121,8 @@ namespace RPI
   {
     auto& renderContextData = GetSceneContext()->GetRenderContext()->GetExtractionData();
 
-    renderContextData.m_pRenderStage = m_pOpaqueRenderStage.Borrow();
-    m_pOpaqueRenderStage->CreateOutputFramebuffer(renderContextData.m_pRenderView);
+    renderContextData.m_pRenderStage = m_pStaticOpaqueRenderStage.Borrow();
+    m_pStaticOpaqueRenderStage->CreateOutputFramebuffer(renderContextData.m_pRenderView);
   }
 
   void spDeferredRenderer::Initialize(const spSceneContext* pSceneContext)
@@ -126,11 +133,11 @@ namespace RPI
   spDeferredRenderer::spDeferredRenderer()
     : SUPER("DeferredRenderer")
   {
-    m_pOpaqueRenderStage = EZ_DEFAULT_NEW(spOpaqueRenderStage);
+    m_pStaticOpaqueRenderStage = EZ_DEFAULT_NEW(spOpaqueRenderStage);
   }
 
   spDeferredRenderer::~spDeferredRenderer()
   {
-    m_pOpaqueRenderStage.Clear();
+    m_pStaticOpaqueRenderStage.Clear();
   }
 } // namespace RPI

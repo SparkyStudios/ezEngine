@@ -53,7 +53,7 @@ namespace RPI
     // Compute sort key
     out_sortKey.m_uiValue = uiDistance;
     out_sortKey.m_uiIndex = pRenderObject->GetVisibilityGroupReference().GetRef();
-    out_sortKey.m_uiStableIndex = pRenderObject->GetRenderFeatureRefenrence().GetRef();
+    out_sortKey.m_uiStableIndex = pRenderObject->GetRenderFeatureReference().GetRef();
   }
 
   void spDistanceSortMode::GenerateSortKey(const spRenderView* pRenderView, const spRenderObject* pRenderObject, spSortKey& out_sortKey)

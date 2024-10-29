@@ -94,14 +94,14 @@ void ezRHISampleApp::AfterCoreSystemsStartup()
 
   ezFileSystem::SetSpecialDirectory("project", sProjectDirResolved);
 
-  ezFileSystem::AddDataDirectory("", "", ":", ezFileSystem::AllowWrites).IgnoreResult();
-  ezFileSystem::AddDataDirectory(">appdir/", "AppBin", "bin", ezFileSystem::AllowWrites).IgnoreResult();                              // writing to the binary directory
-  ezFileSystem::AddDataDirectory(">appdir/", "ShaderCache", "shadercache", ezFileSystem::AllowWrites).IgnoreResult();                 // for shader files
-  ezFileSystem::AddDataDirectory(">user/ezEngine Project/RHISample", "AppData", "appdata", ezFileSystem::AllowWrites).IgnoreResult(); // app user data
+  ezFileSystem::AddDataDirectory("", "", ":", ezDataDirUsage::AllowWrites).IgnoreResult();
+  ezFileSystem::AddDataDirectory(">appdir/", "AppBin", "bin", ezDataDirUsage::AllowWrites).IgnoreResult();                              // writing to the binary directory
+  ezFileSystem::AddDataDirectory(">appdir/", "ShaderCache", "shadercache", ezDataDirUsage::AllowWrites).IgnoreResult();                 // for shader files
+  ezFileSystem::AddDataDirectory(">user/ezEngine Project/RHISample", "AppData", "appdata", ezDataDirUsage::AllowWrites).IgnoreResult(); // app user data
 
   ezFileSystem::AddDataDirectory(">sdk/Data/Base", "Base", "base").IgnoreResult();
   ezFileSystem::AddDataDirectory(">sdk/Data/Content", "Content", "content").IgnoreResult();
-  ezFileSystem::AddDataDirectory(">project/", "Project", "project", ezFileSystem::AllowWrites).IgnoreResult();
+  ezFileSystem::AddDataDirectory(">project/", "Project", "project", ezDataDirUsage::AllowWrites).IgnoreResult();
 
   ezGlobalLog::AddLogWriter(ezLogWriter::Console::LogMessageHandler);
   ezGlobalLog::AddLogWriter(ezLogWriter::VisualStudio::LogMessageHandler);

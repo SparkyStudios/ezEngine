@@ -42,7 +42,7 @@ namespace RHI
     EZ_ADD_DYNAMIC_REFLECTION(spShaderProgram, spDeviceResource);
 
   public:
-    /// \brief Attaches the the given shader to the program.
+    /// \brief Attaches the given shader to the program.
     /// \param [in] pShader The handle to the shader to attach to the program.
     virtual void Attach(ezSharedPtr<spShader> pShader) = 0;
 

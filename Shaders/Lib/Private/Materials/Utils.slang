@@ -27,7 +27,7 @@
 /// \return The geometry's surface for the given vertex.
 Surface GenerateSurface(in IMaterial material, in TransientStream vertex, in MaterialData data)
 {
-  Surface surface = Surface(data);
+  Surface surface = Surface.from(data);
 
 #ifdef USE_WORLDPOS
   surface.WorldPosition = vertex.WorldPosition;

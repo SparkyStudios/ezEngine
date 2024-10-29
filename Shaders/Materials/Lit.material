@@ -1,0 +1,143 @@
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include <Core.slang>
+
+#define USE_WORLDPOS
+#define USE_VELOCITY
+#define USE_NORMAL
+#define USE_TANGENT
+#define USE_BITANGENT
+#define USE_TEXCOORD0
+
+#if SP_ENABLED(SP_FEATURE_VERTEX_SKINNING)
+#  define USE_SKINNING
+#endif
+
+#include <Lightning.slang>
+#include <Materials.slang>
+
+// BEGIN_MATERIAL_DESCRIPTOR
+__ignored_block
+{
+  Name        = LitMaterial;
+  Description = "The color Lit material";
+
+  Flags
+  {
+    HasTextureAlbedo    = false;
+    HasTextureNormal    = false;
+    HasTextureMetalness = false;
+    HasTextureRoughness = false;
+    HasTextureOcclusion = false;
+    HasTextureORMC      = false;
+    HasTextureCavity    = false;
+    HasTextureSpecular  = false;
+    HasTextureEmissive  = false;
+    HasTextureAlpha     = false;
+  }
+
+  Data
+  {
+    NormalIntensity = 1.0;
+
+    AlbedoColor   = @Color;
+    SpecularColor = @SpecularColor;
+    EmissiveColor = @EmissiveColor;
+
+    UVTiling = float2(1, 1);
+    UVOffset = float2(0, 0);
+
+    Roughness = @RoughnessValue;
+    Metalness = @MetalnessValue;
+  }
+
+  SpecializationConstants
+  {
+  }
+
+  Properties
+  {
+    // group Shading
+    // {
+    Color Color = Color(1, 1, 1, 1);
+
+    [clamp(0.0, 1.0)]
+    float RoughnessValue = 0.0;
+
+    [clamp(0.0, 1.0)]
+    float MetalnessValue = 0.0;
+
+    Color SpecularColor = Color(0.4, 0.4, 0.4, 1.0);
+
+    Color EmissiveColor = Color(0, 0, 0, 1);
+    // }
+  }
+}
+// END_MATERIAL_DESCRIPTOR
+
+/// The Color Lit material.
+struct LitMaterial : IMaterial
+{
+  static func create()->This
+  {
+    This material = {};
+    return material;
+  }
+
+  float3 GetNormal(in TransientStream vertex, in MaterialData data)
+  {
+    return vertex.Normal;
+  }
+
+  float3 GetDiffuseColor(in TransientStream vertex, in MaterialData data)
+  {
+    return vertex.Normal;
+  }
+
+  float3 GetSpecularColor(in TransientStream vertex, in MaterialData data)
+  {
+    return data.SpecularColor.rgb;
+  }
+
+  float3 GetEmissiveColor(in TransientStream vertex, in MaterialData data)
+  {
+    return data.EmissiveColor.rgb;
+  }
+
+  float GetLinearRoughness(in TransientStream vertex, in MaterialData data)
+  {
+    return data.Roughness;
+  }
+
+  float GetOpacity(in TransientStream vertex, in MaterialData data)
+  {
+    return data.AlbedoColor.a;
+  }
+
+  float GetOcclusion(in TransientStream vertex, in MaterialData data)
+  {
+    return 1.0f;
+  }
+
+  float GetCavity(in TransientStream vertex, in MaterialData data)
+  {
+    return 1.0f;
+  }
+
+  float GetMetalness(in TransientStream vertex, in MaterialData data)
+  {
+    return data.Metalness;
+  }
+}

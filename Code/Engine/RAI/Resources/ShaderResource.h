@@ -20,8 +20,6 @@
 
 #include <Core/ResourceManager/Resource.h>
 
-#include <slang-com-ptr.h>
-
 namespace RAI
 {
   class SP_RAI_DLL spShaderResourceDescriptor

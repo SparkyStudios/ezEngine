@@ -243,7 +243,7 @@ namespace RPI
     if (!Accept(tokens, ref_uiTokenIndex, ezTokenType::Identifier, &uiNameIndex))
       return EZ_FAILURE;
 
-    out_Attribute.m_sName = tokens[uiNameIndex]->m_DataView;
+    out_Attribute.m_sName.Assign(tokens[uiNameIndex]->m_DataView);
 
     if (Accept(tokens, ref_uiTokenIndex, "("))
     {
@@ -301,7 +301,7 @@ namespace RPI
       return EZ_FAILURE;
 
     out_Property.m_sType = tokens[uiTypeIndex]->m_DataView;
-    out_Property.m_sName = tokens[uiNameIndex]->m_DataView;
+    out_Property.m_sName.Assign(tokens[uiNameIndex]->m_DataView);
 
     return EZ_SUCCESS;
   }

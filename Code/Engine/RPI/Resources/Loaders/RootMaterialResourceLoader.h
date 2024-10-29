@@ -16,31 +16,30 @@
 
 #include <RPI/RPIDLL.h>
 
-#include <RPI/Core/Renderer.h>
+#include <RPI/Assets/RootMaterial.h>
+
+#include <Core/ResourceManager/ResourceTypeLoader.h>
 
 namespace RPI
 {
-  class spOpaqueRenderStage;
-
-  class SP_RPI_DLL spDeferredRenderer : public spRenderer
+  class SP_RPI_DLL spRootMaterialResourceLoader : public ezResourceTypeLoader
   {
-    EZ_ADD_DYNAMIC_REFLECTION(spDeferredRenderer, spRenderer);
-
-    // spRenderer
-
   public:
-    void Render() override;
-    void Prepare() override;
-    void Initialize(const spSceneContext* pSceneContext) override;
+    struct LoadedData
+    {
+      LoadedData()
+        : m_Reader(&m_Storage)
+      {
+      }
 
-    // spDeferredRenderer
+      ezContiguousMemoryStreamStorage m_Storage;
+      ezMemoryStreamReader m_Reader;
+    };
 
-  public:
-    spDeferredRenderer();
-    ~spDeferredRenderer() override;
+    spRootMaterialResourceLoader();
 
-  private:
-    ezUInt32 m_uiLastStaticPassHash{0};
-    ezUniquePtr<spOpaqueRenderStage> m_pStaticOpaqueRenderStage{nullptr};
+    ezResourceLoadData OpenDataStream(const ezResource* pResource) override;
+    void CloseDataStream(const ezResource* pResource, const ezResourceLoadData& loaderData) override;
+    bool IsResourceOutdated(const ezResource* pResource) const override;
   };
 } // namespace RPI

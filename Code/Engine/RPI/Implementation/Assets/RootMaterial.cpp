@@ -1,4 +1,4 @@
-// Copyright (c) 2023-present Sparky Studios. All rights reserved.
+// Copyright (c) 2024-present Sparky Studios. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,17 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <RAI/RAIPCH.h>
+#include <RPI/RPIPCH.h>
 
-#include <RAI/Shader.h>
+#include <RPI/Assets/RootMaterial.h>
 
-namespace RAI
+#include <RHI/Device.h>
+
+namespace RPI
 {
-  void spShader::Clear()
+  spRootMaterial::spRootMaterial()
+    : m_Metadata()
+    , m_ShaderBytes()
   {
+  }
+
+  spRootMaterial::~spRootMaterial()
+  {
+    Clear();
+  }
+
+  void spRootMaterial::Clear()
+  {
+    m_Metadata.m_sName.Clear();
+    m_Metadata.m_sDescription.Clear();
+    m_Metadata.m_Flags.Clear();
+    m_Metadata.m_Data.Clear();
+    m_Metadata.m_SpecializationConstants.Clear();
+    m_Metadata.m_Properties.Clear();
+
     if (m_ShaderBytes.GetPtr() != nullptr)
       EZ_DEFAULT_DELETE_ARRAY(m_ShaderBytes);
   }
-} // namespace RAI
-
-EZ_STATICLINK_FILE(RAI, RAI_Implementation_Shader);
+} // namespace RPI

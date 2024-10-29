@@ -38,3 +38,7 @@ static constexpr uint k_HasTextureHeightMask    = 10;
 /// static constexpr uint k_MyCustomMaterialMask2 = k_MaxReservedMateriaMask + 2;
 /// ```
 static constexpr uint k_MaxReservedMateriaMask = 10;
+
+#ifndef SP_RHI_SHADER
+#  undef uint
+#endif
