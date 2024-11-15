@@ -141,8 +141,11 @@ namespace RPI
     m_ShaderKernelCache.Clear();
   }
 
-  ezSharedPtr<RHI::spShader> spShaderManager::CompileShader(RAI::spShaderResourceHandle hShaderResource, spShaderCompilerSetup& ref_compilerSetup, slang::IComponentType** out_pShaderProgram)
+  ezSharedPtr<RHI::spShader> spShaderManager::CompileShader(RAI::spShaderResourceHandle hShaderResource, spShaderCompilerSetup& ref_compilerSetup)
   {
+    if (!hShaderResource.IsValid())
+      return nullptr;
+
     const ezUInt32 uiHash = ezHashingUtils::CombineHashValues32(ezHashingUtils::StringHashTo32(hShaderResource.GetResourceIDHash()), ref_compilerSetup.CalculateHash());
 
     if (!m_ShaderKernelCache.Contains(uiHash))
@@ -159,7 +162,9 @@ namespace RPI
 
       {
         const Slang::ComPtr<spSlangByteBlob> pBlob(EZ_DEFAULT_NEW(spSlangByteBlob, pBytes));
-        pModule = pSession->loadModuleFromSource("shader", resource->GetResourceID().GetData(), pBlob, pDiagnostics.writeRef());
+
+        ezStringBuilder sTemp;
+        pModule = pSession->loadModuleFromSource("shader", resource->GetResourceID().GetData(sTemp), pBlob, pDiagnostics.writeRef());
       }
 
       if (pDiagnostics)
@@ -192,7 +197,7 @@ namespace RPI
         return nullptr;
       }
 
-      Slang::ComPtr<slang::IComponentType> pSpecializedProgram;;
+      Slang::ComPtr<slang::IComponentType> pSpecializedProgram;
 
       if (ref_compilerSetup.m_eStage == RHI::spShaderStage::DomainShader)
       {
@@ -204,7 +209,7 @@ namespace RPI
         // the types declared in a module so that we do not have to hard-code
         // the name here.
         //
-        auto effectType = pModule->getLayout()->findTypeByName("LitMaterial");
+        const auto effectType = pModule->getLayout()->findTypeByName("LitMaterial");
 
         // Now that we have the `effectType` we want to plug in to our generic
         // shader, we need to specialize the shader to that type.
@@ -229,10 +234,10 @@ namespace RPI
         // this is the step where we'd get an error message saying so.
         //
         result = pShaderProgram->specialize(
-            specializationArgs.data(),
-            specializationArgs.size(),
-            pSpecializedProgram.writeRef(),
-            pDiagnostics.writeRef());
+          specializationArgs.data(),
+          static_cast<SlangInt>(specializationArgs.size()),
+          pSpecializedProgram.writeRef(),
+          pDiagnostics.writeRef());
 
         if (result != SLANG_OK || pDiagnostics)
         {
@@ -244,7 +249,8 @@ namespace RPI
           return nullptr;
         }
       }
-      else pSpecializedProgram = pShaderProgram;
+      else
+        pSpecializedProgram = pShaderProgram;
 
       Slang::ComPtr<slang::IComponentType> pLinkedShaderProgram;
       result = pSpecializedProgram->link(pLinkedShaderProgram.writeRef(), pDiagnostics.writeRef());
@@ -273,7 +279,7 @@ namespace RPI
       }
 
       slang::ProgramLayout* pShaderLayout = pShaderProgram->getLayout();
-      const ezUInt32 uiKernelSize = pShaderKernel->getBufferSize();
+      const auto uiKernelSize = static_cast<ezUInt32>(pShaderKernel->getBufferSize());
 
       RHI::spShaderDescription desc;
       desc.m_eShaderStage = ref_compilerSetup.m_eStage;
@@ -282,8 +288,6 @@ namespace RPI
       ezMemoryUtils::RawByteCopy(desc.m_Buffer.GetPtr(), pShaderKernel->getBufferPointer(), uiKernelSize);
       desc.m_Buffer[uiKernelSize] = '\0';
       desc.m_bOwnBuffer = true;
-
-      ezLog::Info("{}", reinterpret_cast<const char*>(desc.m_Buffer.GetPtr()));
 
       const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<RHI::spDevice>();
 

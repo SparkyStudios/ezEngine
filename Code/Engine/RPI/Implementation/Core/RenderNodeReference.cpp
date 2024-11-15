@@ -20,10 +20,10 @@ namespace RPI
 {
   spRenderNodeReference spRenderNodeReference::MakeInvalid()
   {
-    return spRenderNodeReference(-1);
+    return spRenderNodeReference(ezInvalidIndex);
   }
 
-  spRenderNodeReference::spRenderNodeReference(ezInt32 iReference)
+  spRenderNodeReference::spRenderNodeReference(ezUInt32 iReference)
     : m_iRef(iReference)
   {
   }

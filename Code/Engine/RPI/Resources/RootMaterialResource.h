@@ -22,7 +22,7 @@
 
 namespace RPI
 {
-  /// \brief Handle for a material resource.
+  /// \brief Handle for a root material resource.
   typedef ezTypedResourceHandle<class spRootMaterialResource> spRootMaterialResourceHandle;
 
   /// \brief Root Material resource descriptor.

@@ -166,3 +166,17 @@ float2 ndc2uv(float2 x) { return x.xy * float2(0.5f, -0.5f) + 0.5f; }
 
 [ForceInline]
 float2 ndc2uv(float3 x) { return x.xy * float2(0.5f, -0.5f) + 0.5f; }
+
+void FindBestAxisVectors(in float3 n, out float3 u, out float3 v)
+{
+    const float NX = abs(n.x);
+    const float NY = abs(n.y);
+    const float NZ = abs(n.z);
+
+    // Find best basis vectors.
+    if (NZ > NX && NZ > NY)	u = float3(1, 0, 0);
+    else                    u = float3(0, 0, 1);
+
+    u = normalize(u - n * (dot(u, n)));
+    v = cross(u, n);
+}

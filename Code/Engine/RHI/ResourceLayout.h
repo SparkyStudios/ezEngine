@@ -44,7 +44,7 @@ namespace RHI
     /// \brief Gets the number of elements in the layout.
     [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetElementCount() const { return m_Description.m_Elements.GetCount(); }
 
-    [[nodiscard]] ezUInt32 GetElementIndex(const ezHashedString& sName) const;
+    [[nodiscard]] ezUInt32 GetElementIndex(const ezTempHashedString& sName) const;
 
     [[nodiscard]] EZ_ALWAYS_INLINE const spResourceLayoutElementDescription& GetElement(ezUInt32 uiIndex) const
     {

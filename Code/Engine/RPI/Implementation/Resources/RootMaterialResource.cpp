@@ -25,7 +25,7 @@
 
 namespace RPI
 {
-  static constexpr ezTypeVersion kMaterialResourceVersion = 1;
+  static constexpr ezTypeVersion kRootMaterialResourceVersion = 1;
 
   // clang-format off
   EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spRootMaterialResource, 1, ezRTTIDefaultAllocator<spRootMaterialResource>)
@@ -48,7 +48,7 @@ namespace RPI
 
   ezResult spRootMaterialResourceDescriptor::Save(ezStreamWriter& inout_stream)
   {
-    inout_stream.WriteVersion(kMaterialResourceVersion);
+    inout_stream.WriteVersion(kRootMaterialResourceVersion);
 
     ezUInt8 uiCompressionMode = 0;
 
@@ -85,7 +85,7 @@ namespace RPI
     ezFileWriter file;
     if (file.Open(sFileName, 1024 * 1024).Failed())
     {
-      ezLog::Error("Failed to open material file '{0}'", sFileName);
+      ezLog::Error("Failed to open root material file '{0}'", sFileName);
       return EZ_FAILURE;
     }
 
@@ -94,7 +94,7 @@ namespace RPI
 
   ezResult spRootMaterialResourceDescriptor::Load(ezStreamReader& inout_stream)
   {
-    inout_stream.ReadVersion(kMaterialResourceVersion);
+    inout_stream.ReadVersion(kRootMaterialResourceVersion);
 
     ezUInt8 uiCompressionMode = 0;
     inout_stream >> uiCompressionMode;
@@ -135,7 +135,7 @@ namespace RPI
       ezUInt64 uiShaderBytesSize = 0;
       EZ_SUCCEED_OR_RETURN(pReader->ReadQWordValue(&uiShaderBytesSize));
 
-      m_RootMaterial.m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, uiShaderBytesSize);
+      m_RootMaterial.m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, static_cast<ezUInt32>(uiShaderBytesSize));
       pReader->ReadBytes(m_RootMaterial.m_ShaderBytes.GetPtr(), uiShaderBytesSize);
     }
 
@@ -162,7 +162,7 @@ namespace RPI
 
   ezTypeVersion spRootMaterialResource::GetResourceVersion()
   {
-    return kMaterialResourceVersion;
+    return kRootMaterialResourceVersion;
   }
 
   spRootMaterialResource::spRootMaterialResource()

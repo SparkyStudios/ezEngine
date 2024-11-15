@@ -823,7 +823,7 @@ namespace RHI
       /// This flag can only be combined with PersistentMapping.
       StructuredBufferReadWrite = EZ_BIT(4),
 
-      /// \brief Indicates that a buffer is can be used as a the source of indirect drawing data.
+      /// \brief Indicates that a buffer is can be used as a source of indirect drawing data.
       /// This flag enables the use of a buffer in the spCommandList::*Indirect() methods.
       /// This flag cannot be combined with Dynamic.
       IndirectBuffer = EZ_BIT(5),
@@ -1520,6 +1520,15 @@ namespace RHI
     /// \brief An 8-byte block containing the value of the specialization constant. This is treated as an
     /// untyped buffer, and it's interpreted according to the type.
     ezUInt64 m_uiValue{0};
+
+    /// \brief Constructs a default instance of spShaderSpecializationConstant.
+    spShaderSpecializationConstant()
+      : ezHashableStruct<spShaderSpecializationConstant>()
+    {
+      m_sName.Clear();
+      m_eType = spShaderSpecializationConstantType::Default;
+      m_uiValue = 0;
+    }
 
     /// \brief Constructs a new instance of spShaderSpecializationConstant.
     /// \param [in] sName The name of the specialization constant.

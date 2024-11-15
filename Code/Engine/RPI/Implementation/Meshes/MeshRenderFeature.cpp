@@ -58,7 +58,7 @@ namespace RPI
       }
       else
       {
-        const ezUInt32 uiDistanceToCamera = (pRenderView->GetPosition() - pMeshRenderObject->m_Transform.m_vPosition).GetLengthSquared();
+        const float fDistanceToCamera = ezMath::Floor((pRenderView->GetPosition() - pMeshRenderObject->m_Transform.m_vPosition).GetLengthSquared());
         const float fMaxDistance = ezMath::Square(pMeshRenderObject->m_fLODMaxDistance);
 
         // Constant LOD fetch function
@@ -68,7 +68,7 @@ namespace RPI
 
           for (ezInt32 i = uiLODCount - 1; i >= 0; i--)
           {
-            if (uiDistanceToCamera < (i + 1) * fSteps)
+            if (fDistanceToCamera < (i + 1) * fSteps)
               continue;
 
             uiLOD = i;
@@ -82,9 +82,9 @@ namespace RPI
 
           for (ezInt32 i = uiLODCount - 1; i >= 0; i--)
           {
-            fCurrentMaxDistance -= fMaxDistance / ezMath::Pow2(i + 1);
+            fCurrentMaxDistance -= fMaxDistance / static_cast<float>(ezMath::Pow2(i + 1));
 
-            if (uiDistanceToCamera < fCurrentMaxDistance)
+            if (fDistanceToCamera < fCurrentMaxDistance)
               continue;
 
             uiLOD = i;
@@ -100,7 +100,7 @@ namespace RPI
           {
             fCurrentMaxDistance -= fMaxDistance / ezMath::Pow2(static_cast<ezInt32>(uiLODCount - i));
 
-            if (uiDistanceToCamera < fCurrentMaxDistance)
+            if (fDistanceToCamera < fCurrentMaxDistance)
               continue;
 
             uiLOD = i;
@@ -122,7 +122,7 @@ namespace RPI
       desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerFrame"), pRenderingContext->GetFrameDataBuffer().GetHandle());
       desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerView"), pRenderView->GetDataBuffer().GetHandle());
       desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerInstance"), pMeshRenderObject->m_pPerInstanceDataBuffer->GetHandle());
-      // desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerMaterial"), pMeshRenderObject->m_pPerInstanceDataBuffer->GetHandle());
+      desc.m_BoundResources.Insert(ezMakeHashedString("Buffer_PerMaterial"), pMeshRenderObject->m_pPerMaterialDataBuffer->GetHandle());
 
       m_pResourceSet = cl->GetDevice()->GetResourceFactory()->CreateResourceSet(desc);
 
@@ -226,15 +226,15 @@ namespace RPI
       perInstanceBuffer.m_eType = RHI::spShaderResourceType::ReadOnlyStructuredBuffer;
       perInstanceBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
 
-      // RHI::spResourceLayoutElementDescription perMaterialBuffer{};
-      // perInstanceBuffer.m_sName = ezMakeHashedString("Buffer_PerMaterial");
-      // perInstanceBuffer.m_eType = RHI::spShaderResourceType::ReadOnlyStructuredBuffer;
-      // perInstanceBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
+      RHI::spResourceLayoutElementDescription perMaterialBuffer{};
+      perMaterialBuffer.m_sName = ezMakeHashedString("Buffer_PerMaterial");
+      perMaterialBuffer.m_eType = RHI::spShaderResourceType::ReadOnlyStructuredBuffer;
+      perMaterialBuffer.m_eOptions = RHI::spResourceLayoutElementOptions::None;
 
       desc.m_Elements.PushBack(perFrameBuffer);
       desc.m_Elements.PushBack(perViewBuffer);
       desc.m_Elements.PushBack(perInstanceBuffer);
-      // desc.m_Elements.PushBack(perMaterialBuffer);
+      desc.m_Elements.PushBack(perMaterialBuffer);
 
       m_pResourceLayout = pDevice->GetResourceFactory()->CreateResourceLayout(desc);
 

@@ -82,8 +82,7 @@ ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* p
     setup.m_SpecializationConstants.PushBack(spShaderSpecializationConstant(ezMakeHashedString("TestSpec"), true));
     setup.m_PredefinedMacros.PushBack({"USE_NORMAL", "1"});
 
-    Slang::ComPtr<slang::IComponentType> shaderProgram;
-    context->GetShaderManager()->CompileShader(shader, setup, shaderProgram.writeRef());
+    context->GetShaderManager()->CompileShader(shader, setup);
 
     ezSharedPtr<spScopeProfiler> pTestScopeProfiler;
 
@@ -187,6 +186,21 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
 
   m_pSceneContext->AddPipeline(builder->Compile());
 
+  spMaterialResourceDescriptor descMaterial1;
+  descMaterial1.GetMaterial().SetRootMaterialResource(ezResourceManager::LoadResource<spRootMaterialResource>(":shaders/Materials/Lit.slangm"));
+  descMaterial1.GetMaterial().GetData().m_AlbedoColor = ezColor::Red;
+  descMaterial1.GetMaterial().GetData().m_Roughness = 0.f;
+  descMaterial1.GetMaterial().GetData().m_Metalness = 1.f;
+
+  spMaterialResourceDescriptor descMaterial2;
+  descMaterial2.GetMaterial().SetRootMaterialResource(ezResourceManager::LoadResource<spRootMaterialResource>(":shaders/Materials/Lit.slangm"));
+  descMaterial2.GetMaterial().GetData().m_AlbedoColor = ezColor::Green;
+  descMaterial2.GetMaterial().GetData().m_Roughness = 0.f;
+  descMaterial2.GetMaterial().GetData().m_Metalness = 1.f;
+
+  auto material1 = ezResourceManager::CreateResource<spMaterialResource, spMaterialResourceDescriptor>("TestMaterial1", std::move(descMaterial1));
+  auto material2 = ezResourceManager::CreateResource<spMaterialResource, spMaterialResourceDescriptor>("TestMaterial2", std::move(descMaterial2));
+
   {
     EZ_LOCK(m_pWorld->GetWriteMarker());
 
@@ -201,19 +215,25 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
 
       ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[0]);
       if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
+      {
         pComponent->SetMeshFile(":project/objects/teapot.spMesh");
+        pComponent->SetMaterial(material1);
+      }
     }
 
     {
       ezGameObjectDesc cubeDesc;
       cubeDesc.m_sName.Assign("Cube1");
-      cubeDesc.m_LocalPosition = ezVec3(+50.0f, -300.0f, 0.0f);
+      cubeDesc.m_LocalPosition = ezVec3(+50.0f, -100.0f, 0.0f);
       cubeDesc.m_LocalUniformScaling = 1.0f;
       m_pWorld->CreateObject(cubeDesc, m_Objects[1]);
 
       ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[1]);
       if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
+      {
         pComponent->SetMeshFile(":project/objects/teapot.spMesh");
+        pComponent->SetMaterial(material2);
+      }
     }
 
     {
@@ -228,6 +248,7 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
       {
         pComponent->SetMeshFile(":project/objects/male_lod.spMesh");
         pComponent->SetLODMaxDistance(100);
+        pComponent->SetMaterial(material1);
       }
     }
 
@@ -300,7 +321,7 @@ void spRPIGameApplication::Init_SetupGraphicsDevice()
 {
   ezEnum<spGraphicsApi> eApiType;
 
-  ezStringView szRendererName = ezCommandLineUtils::GetGlobalInstance()->GetStringOption("-rhi", 0, "MTL");
+  ezStringView szRendererName = ezCommandLineUtils::GetGlobalInstance()->GetStringOption("-rhi", 0, "D3D11");
   {
     if (szRendererName.Compare("D3D11") == 0)
     {
@@ -444,16 +465,16 @@ void spRPIGameApplication::Deinit_ShutdownGraphicsDevice()
 
   spRenderSystem::GetSingleton()->Shutdown();
 
-  m_pWindow->Destroy().IgnoreResult();
+  m_pWindow->DestroyWindow();
   m_pWindow = nullptr;
 }
 
-ezApplication::Execution spRPIGameApplication::Run()
+void spRPIGameApplication::Run()
 {
   m_pWindow->ProcessWindowMessages();
 
   if (m_pWindow->m_bCloseRequested)
-    return Execution::Quit;
+    return;
 
   return SUPER::Run();
 }

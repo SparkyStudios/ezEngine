@@ -103,7 +103,7 @@ struct LitMaterial : IMaterial
 
   float3 GetDiffuseColor(in TransientStream vertex, in MaterialData data)
   {
-    return vertex.Normal;
+    return data.AlbedoColor.rgb;
   }
 
   float3 GetSpecularColor(in TransientStream vertex, in MaterialData data)

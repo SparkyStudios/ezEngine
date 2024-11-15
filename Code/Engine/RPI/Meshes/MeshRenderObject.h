@@ -17,6 +17,7 @@
 #include <RPI/RPIDLL.h>
 
 #include <RPI/Core/RenderObject.h>
+#include <RPI/Resources/MaterialResource.h>
 #include <RPI/Shaders/ShaderTypes.h>
 
 #include <RAI/Resources/MeshResource.h>
@@ -44,15 +45,16 @@ namespace RPI
   };
 
   // TODO: Find a better place for this.
-  struct alignas(16) spPerInstanceData
+  struct alignas(16) spInstanceData
   {
     EZ_DECLARE_POD_TYPE();
 
-    spShaderTransform m_Transform;
-    spShaderTransform m_PreviousTransform;
+    spShaderTransform m_Transform{ezTransform::MakeIdentity()};
+    spShaderTransform m_PreviousTransform{ezTransform::MakeIdentity()};
 
-    spShaderTransform m_NormalTransform;
+    spShaderTransform m_NormalTransform{ezTransform::MakeIdentity()};
 
+    spShaderVec3 _padding0;
     ezUInt32 m_MaterialIndex{0};
   };
 
@@ -73,21 +75,32 @@ namespace RPI
     bool HasInstances() override;
 
   private:
-    void FillInstanceData(spPerInstanceData& instance) const;
-    [[nodiscard]] ezUInt32 GetBufferSize() const;
-    void CreateBuffer();
+    void FillInstanceData(spInstanceData& instance) const;
+    ezUInt32 FillMaterialData(spMaterialResourceHandle hMaterialResource);
+
+    [[nodiscard]] ezUInt32 GetInstanceBufferSize() const;
+    [[nodiscard]] ezUInt32 GetMaterialBufferSize() const;
+
+    void CreateInstanceBuffer();
+    void CreateMaterialBuffer();
     void UpdateBuffer();
 
     RAI::spMeshResourceHandle m_hMeshResource;
+    spMaterialResourceHandle m_hMaterialResource;
+    spRootMaterialResourceHandle m_hRootMaterialResource;
+
     ezTransform m_Transform{ezTransform::MakeIdentity()};
     ezTransform m_PreviousTransform{ezTransform::MakeIdentity()};
     float m_fLODMaxDistance{1000.0f};
     ezEnum<spMeshLevelOfDetailFetchFunction> m_eLODFetchFunction{spMeshLevelOfDetailFetchFunction::Default};
 
     ezArrayMap<ezUInt64, ezUInt32> m_Instances;
-    ezDynamicArray<spPerInstanceData, ezAlignedAllocatorWrapper> m_PerInstanceData;
+
+    ezDynamicArray<spInstanceData, ezAlignedAllocatorWrapper> m_PerInstanceData;
+    ezDynamicArray<spMaterialData, ezAlignedAllocatorWrapper> m_PerMaterialData;
 
     ezSharedPtr<RHI::spBuffer> m_pPerInstanceDataBuffer;
+    ezSharedPtr<RHI::spBuffer> m_pPerMaterialDataBuffer;
 
     ezDynamicArray<RHI::spDrawIndexedIndirectCommand, ezAlignedAllocatorWrapper> m_DrawCommands;
     ezSharedPtr<RHI::spBuffer> m_pIndirectBuffer;

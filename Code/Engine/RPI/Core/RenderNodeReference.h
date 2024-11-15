@@ -19,7 +19,8 @@
 namespace RPI
 {
   /// \brief A struct used to create and hold references to render nodes.
-  /// Theses references are most of the time indices to a render node from
+  ///
+  /// These references are most of the time indices to a render node from
   /// an array.
   struct SP_RPI_DLL spRenderNodeReference
   {
@@ -31,14 +32,14 @@ namespace RPI
 
     /// \brief Makes a reference to a node.
     /// \param [in] iReference The reference to the node.
-    explicit spRenderNodeReference(ezInt32 iReference);
+    explicit spRenderNodeReference(ezUInt32 iReference);
 
     /// \brief Gets the reference. It's typically the index of the render node
     /// in the collection it is associated with.
-    [[nodiscard]] EZ_ALWAYS_INLINE ezInt32 GetRef() const { return m_iRef; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezUInt32 GetRef() const { return m_iRef; }
 
     /// \brief Checks if the reference is invalid.
-    [[nodiscard]] EZ_ALWAYS_INLINE bool IsInvalid() const { return m_iRef == -1; }
+    [[nodiscard]] EZ_ALWAYS_INLINE bool IsInvalid() const { return m_iRef == ezInvalidIndex; }
 
     [[nodiscard]] EZ_ALWAYS_INLINE bool operator==(const spRenderNodeReference& rhs) const
     {
@@ -55,17 +56,17 @@ namespace RPI
       return m_iRef < rhs.m_iRef;
     }
 
-    [[nodiscard]] EZ_ALWAYS_INLINE spRenderNodeReference operator+(const ezInt32 rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE spRenderNodeReference operator+(const ezUInt32 rhs) const
     {
       return spRenderNodeReference(m_iRef + rhs);
     }
 
-    [[nodiscard]] EZ_ALWAYS_INLINE spRenderNodeReference operator*(const ezInt32 rhs) const
+    [[nodiscard]] EZ_ALWAYS_INLINE spRenderNodeReference operator*(const ezUInt32 rhs) const
     {
       return spRenderNodeReference(m_iRef * rhs);
     }
 
   private:
-    ezInt32 m_iRef{-1};
+    ezUInt32 m_iRef{ezInvalidIndex};
   };
 }

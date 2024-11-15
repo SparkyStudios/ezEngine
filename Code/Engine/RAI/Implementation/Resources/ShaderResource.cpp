@@ -121,7 +121,7 @@ namespace RAI
     ezUInt64 uiShaderBytesSize = 0;
     EZ_SUCCEED_OR_RETURN(pReader->ReadQWordValue(&uiShaderBytesSize));
 
-    m_Shader.m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, uiShaderBytesSize);
+    m_Shader.m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, static_cast<ezUInt32>(uiShaderBytesSize));
     pReader->ReadBytes(m_Shader.m_ShaderBytes.GetPtr(), uiShaderBytesSize);
 
     return EZ_SUCCESS;
