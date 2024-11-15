@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Foundation/Basics.h>
-#include <Foundation/Basics/Platform/Win/HResultUtils.h>
-#include <Foundation/Basics/Platform/Win/IncludeWindows.h>
+#include <Foundation/Platform/Win/Utils/HResultUtils.h>
+#include <Foundation/Platform/Win/Utils/IncludeWindows.h>
 
 #include <RHI/RHIDLL.h>
 

@@ -66,7 +66,7 @@ namespace RPI
       pFrameData->m_fGlobalTime = ezClock::GetGlobalClock()->GetAccumulatedTime().AsFloatInSeconds();
       pFrameData->m_fCurrentTime = m_pSceneContext->GetWorld()->GetClock().GetAccumulatedTime().AsFloatInSeconds();
       pFrameData->m_fDeltaTime = m_pSceneContext->GetWorld()->GetClock().GetTimeDiff().AsFloatInSeconds();
-      pFrameData->m_uiFrame = spRenderSystem::GetFrameCount();
+      pFrameData->m_uiFrame = static_cast<ezUInt32>(spRenderSystem::GetFrameCount());
 
       pFrameData->m_vRenderSize = pCompositor->GetRenderSize().GetExtents().Cast<float>();
       pFrameData->m_vInverseRenderSize = {1.0f / pFrameData->m_vRenderSize.x, 1.0f / pFrameData->m_vRenderSize.y};

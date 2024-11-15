@@ -1,6 +1,6 @@
 {
   "name": "spark-engine",
-  "builtin-baseline": "b2a47d316de1f3625ea43a7ca3e42dd28c52ece7",
+  "builtin-baseline": "9b5cb8e554487f3edb5d50b80188883846f81e14",
   "description": "A cross-platform C++ game engine.",
   "version": "1.0.0",
   "dependencies": [
@@ -59,7 +59,7 @@
     },
     {
       "name": "shader-slang",
-      "version>=": "2024.11"
+      "version>=": "2024.14.3"
     },
     {
       "name": "vulkan-memory-allocator",

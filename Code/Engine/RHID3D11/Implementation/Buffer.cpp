@@ -209,9 +209,10 @@ namespace RHI
     }
     else
     {
+      desc.Format = DXGI_FORMAT_UNKNOWN;
       desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
       desc.Buffer.NumElements = (uiSize / m_Description.m_uiStructureStride);
-      desc.Buffer.ElementOffset = (uiOffset / m_Description.m_uiStructureStride);
+      desc.Buffer.FirstElement = (uiOffset / m_Description.m_uiStructureStride);
     }
 
     const HRESULT res = m_pD3D11Device->CreateShaderResourceView(m_pBuffer, &desc, &pSRV);

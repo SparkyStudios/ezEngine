@@ -20,6 +20,7 @@
 
 #include <RPI/Features/RenderComponent.h>
 #include <RPI/Meshes/MeshRenderFeature.h>
+#include <RPI/Resources/MaterialResource.h>
 
 namespace RPI
 {
@@ -72,6 +73,13 @@ namespace RPI
     /// \brief Returns the handle to the mesh resource to be rendered.
     EZ_ALWAYS_INLINE const RAI::spMeshResourceHandle& GetMesh() const { return m_RenderObject.m_hMeshResource; }
 
+    /// \brief Sets the handle to the material resource to be used for rendering.
+    /// \param hMaterialResource The handle to the material resource to be used for rendering.
+    void SetMaterial(const spMaterialResourceHandle& hMaterialResource);
+
+    /// \brief Returns the handle to the material resource to be used for rendering.
+    EZ_ALWAYS_INLINE const spMaterialResourceHandle& GetMaterial() const { return m_RenderObject.m_hMaterialResource; }
+
 #pragma endregion
 
 #pragma region Messages
@@ -92,6 +100,13 @@ namespace RPI
 
     /// \brief Returns the path to the mesh file to be rendered.
     [[nodiscard]] const char* GetMeshFile() const;
+
+    /// \brief Sets the material file for the mesh.
+    /// \param szMaterialFile The path to the material file.
+    void SetMaterialFile(const char* szMaterialFile);
+
+    /// \brief Returns the path to the material file of the mesh.
+    [[nodiscard]] const char* GetMaterialFile() const;
 
     /// \brief Sets the max distance at which the mesh will be rendered with
     /// the lowest level of detail.

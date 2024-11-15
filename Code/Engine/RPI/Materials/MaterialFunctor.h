@@ -73,7 +73,7 @@ struct ezHashHelper<RPI::spMaterialFunctorEvaluator>
 {
   EZ_ALWAYS_INLINE static ezUInt32 Hash(const RPI::spMaterialFunctorEvaluator& value)
   {
-    ezUInt64 uiHash = 0;
+    ezUInt32 uiHash = 0;
     for (const auto& argument : value.m_Arguments)
       uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashHelper<ezVariant>::Hash(argument));
 

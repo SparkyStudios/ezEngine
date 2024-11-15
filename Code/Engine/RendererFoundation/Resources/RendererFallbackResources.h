@@ -24,7 +24,7 @@ public:
   static const ezGALBufferUnorderedAccessView* GetFallbackBufferUnorderedAccessView(ezGALShaderResourceType::Enum descriptorType);
 
 private:
-  EZ_MAKE_SUBSYSTEM_STARTUP_FRIEND(RendererFoundation, FallbackResources)
+  EZ_MAKE_SUBSYSTEM_STARTUP_FRIEND(RendererFoundation, FallbackResources);
   static void GALDeviceEventHandler(const ezGALDeviceEvent& e);
   static void Initialize();
   static void DeInitialize();

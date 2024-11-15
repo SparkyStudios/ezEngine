@@ -312,7 +312,7 @@ namespace RPI
     if (file.Open(sMaterialFilePath).Failed())
       return EZ_FAILURE;
 
-    ezByteArrayPtr pBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, file.GetFileSize());
+    ezByteArrayPtr pBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, static_cast<ezUInt32>(file.GetFileSize()));
     EZ_SCOPE_EXIT(EZ_DEFAULT_DELETE_ARRAY(pBytes));
 
     file.ReadBytes(pBytes.GetPtr(), file.GetFileSize());

@@ -87,7 +87,7 @@ ezResourceLoadData spRootMaterialResourceLoader::OpenDataStream(const ezResource
 
   ezMemoryStreamWriter w(&pData->m_Storage);
 
-  if (sAbsolutePath.HasExtension("material"))
+  if (sAbsolutePath.HasExtension("slangm"))
   {
     w.WriteVersion(spRootMaterialResource::GetResourceVersion());
     w << static_cast<ezUInt8>(0); // Compression Mode (Uncompressed)
@@ -99,7 +99,7 @@ ezResourceLoadData spRootMaterialResourceLoader::OpenDataStream(const ezResource
     w << metadata;
 
     ezDynamicArray<ezUInt8> content;
-    content.SetCountUninitialized(file.GetFileSize());
+    content.SetCountUninitialized(static_cast<ezUInt32>(file.GetFileSize()));
 
     const ezUInt64 uiBytesRead = file.ReadBytes(content.GetData(), content.GetCount());
 
@@ -124,7 +124,7 @@ ezResourceLoadData spRootMaterialResourceLoader::OpenDataStream(const ezResource
     file >> uiCompressionMode;
 
     ezDynamicArray<ezUInt8> bytes;
-    bytes.SetCountUninitialized(file.GetFileSize());
+    bytes.SetCountUninitialized(static_cast<ezUInt32>(file.GetFileSize()));
 
     const ezUInt64 uiReadBytes = file.ReadBytes(bytes.GetData(), file.GetFileSize());
 

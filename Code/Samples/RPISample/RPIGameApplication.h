@@ -49,7 +49,7 @@ protected:
   void Deinit_ShutdownGraphicsDevice() override;
 
 
-  ezApplication::Execution Run() override;
+  void Run() override;
   bool IsGameUpdateEnabled() const override;
 
   bool Run_ProcessApplicationInput() override;

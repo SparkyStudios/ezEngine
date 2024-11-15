@@ -16,8 +16,8 @@
 
 #include <RPI/RPIDLL.h>
 
-#include <RPI/Resources/RootMaterialResource.h>
 #include <RPI/Materials/MaterialData.h>
+#include <RPI/Resources/RootMaterialResource.h>
 
 #include <RHI/Core.h>
 
@@ -28,7 +28,7 @@ namespace RPI
     friend class spMaterialResource;
     friend class spMaterialResourceDescriptor;
 
-    public:
+  public:
     struct PropertyType
     {
       typedef ezUInt8 StorageType;
@@ -51,7 +51,7 @@ namespace RPI
       ezHashedString m_sName;
       ezVariant m_Value;
 
-      EZ_FORCE_INLINE bool operator==(const Property& rhs) const { return m_eType == rhs.m_eType && m_sName == rhs.m_sName && m_Value == rhs.m_Value; }
+      EZ_ALWAYS_INLINE bool operator==(const Property& rhs) const { return m_eType == rhs.m_eType && m_sName == rhs.m_sName && m_Value == rhs.m_Value; }
     };
 
     spMaterial();
@@ -60,16 +60,24 @@ namespace RPI
 
     void Clear();
 
-    const RHI::spShaderSpecializationConstant* GetSpecializationConstant(const ezTempHashedString& name);
+    [[nodiscard]] const RHI::spShaderSpecializationConstant* GetSpecializationConstant(const ezTempHashedString& name) const;
 
     void SetProperty(const ezTempHashedString& name, const ezVariant& value);
-    ezVariant GetProperty(const ezTempHashedString& name);
+    [[nodiscard]] ezVariant GetProperty(const ezTempHashedString& name) const;
 
-    private:
-      spRootMaterialResourceHandle m_hRootMaterialResource;
+    [[nodiscard]] EZ_ALWAYS_INLINE spMaterialData& GetData() { return m_Data; }
+    [[nodiscard]] EZ_ALWAYS_INLINE const spMaterialData& GetData() const { return m_Data; }
+
+    void SetRootMaterialResource(const spRootMaterialResourceHandle& hRootMaterialResource);
+    [[nodiscard]] EZ_ALWAYS_INLINE spRootMaterialResourceHandle GetRootMaterialResource() const { return m_hRootMaterialResource; }
+
+  private:
+    [[nodiscard]] ezUInt64 GetHeapMemoryUsage() const;
+
+    spRootMaterialResourceHandle m_hRootMaterialResource;
     spMaterialData m_Data;
 
     ezDynamicArray<RHI::spShaderSpecializationConstant> m_SpecializationConstants;
     ezDynamicArray<Property> m_Properties;
   };
-};
+}; // namespace RPI

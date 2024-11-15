@@ -449,23 +449,21 @@ ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* p
   if (data.m_pResourceLayout == nullptr)
   {
     spResourceLayoutDescription resourceLayoutDescription{};
+    resourceLayoutDescription.m_eShaderStage = spShaderStage::PixelShader;
 
     spResourceLayoutElementDescription rl3{};
-    rl3.m_eShaderStage = spShaderStage::PixelShader;
     rl3.m_eType = spShaderResourceType::Sampler;
     rl3.m_eOptions = spResourceLayoutElementOptions::None;
     rl3.m_sName = ezMakeHashedString("linearSampler");
     resourceLayoutDescription.m_Elements.PushBack(rl3);
 
     spResourceLayoutElementDescription rl2{};
-    rl2.m_eShaderStage = spShaderStage::PixelShader;
     rl2.m_eType = spShaderResourceType::ReadOnlyTexture;
     rl2.m_eOptions = spResourceLayoutElementOptions::None;
     rl2.m_sName = ezMakeHashedString("tex");
     resourceLayoutDescription.m_Elements.PushBack(rl2);
 
     spResourceLayoutElementDescription rl1{};
-    rl1.m_eShaderStage = spShaderStage::PixelShader;
     rl1.m_eType = spShaderResourceType::ConstantBuffer;
     rl1.m_eOptions = spResourceLayoutElementOptions::None;
     rl1.m_sName = ezMakeHashedString("settings");

@@ -267,7 +267,8 @@ namespace RHI
     ezDynamicArray<D3D11_DRAW_INDEXED_INSTANCED_INDIRECT_ARGS> args;
     args.SetCount(source.GetCount());
 
-    for (ezUInt32 i = 0, l = args.GetCount(); i < l; i++) {
+    for (ezUInt32 i = 0, l = args.GetCount(); i < l; i++)
+    {
       auto& arg = args[i];
       const auto& command = source[i];
       arg.IndexCountPerInstance = command.m_uiCount;
@@ -285,7 +286,8 @@ namespace RHI
     ezDynamicArray<D3D11_DRAW_INSTANCED_INDIRECT_ARGS> args;
     args.SetCount(source.GetCount());
 
-    for (ezUInt32 i = 0, l = args.GetCount(); i < l; i++) {
+    for (ezUInt32 i = 0, l = args.GetCount(); i < l; i++)
+    {
       auto& arg = args[i];
       const auto& command = source[i];
       arg.VertexCountPerInstance = command.m_uiCount;
@@ -680,8 +682,9 @@ namespace RHI
       {
         if ((*it)->GetSize() >= uiSize)
         {
+          auto buffer = *it;
           m_AvailableStagingBuffers.Remove(it);
-          return (*it);
+          return buffer;
         }
       }
     }

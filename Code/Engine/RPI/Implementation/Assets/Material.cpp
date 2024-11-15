@@ -23,14 +23,23 @@ namespace RPI
     , m_Data()
     , m_SpecializationConstants()
     , m_Properties()
-  {}
+  {
+  }
 
   spMaterial::~spMaterial()
   {
     Clear();
   }
 
-  const RHI::spShaderSpecializationConstant* spMaterial::GetSpecializationConstant(const ezTempHashedString& name)
+  void spMaterial::Clear()
+  {
+    m_Data = {};
+
+    m_SpecializationConstants.Clear();
+    m_Properties.Clear();
+  }
+
+  const RHI::spShaderSpecializationConstant* spMaterial::GetSpecializationConstant(const ezTempHashedString& name) const
   {
     for (const auto& constant : m_SpecializationConstants)
       if (constant.m_sName == name)
@@ -51,7 +60,7 @@ namespace RPI
     }
   }
 
-  ezVariant spMaterial::GetProperty(const ezTempHashedString& name)
+  ezVariant spMaterial::GetProperty(const ezTempHashedString& name) const
   {
     for (const auto& property : m_Properties)
     {
@@ -59,7 +68,17 @@ namespace RPI
         return property.m_Value;
     }
 
-    return ezVariant();
+    return {};
   }
 
-}
+  void spMaterial::SetRootMaterialResource(const spRootMaterialResourceHandle& hRootMaterialResource)
+  {
+    m_hRootMaterialResource = hRootMaterialResource;
+  }
+
+  ezUInt64 spMaterial::GetHeapMemoryUsage() const
+  {
+    return m_Properties.GetHeapMemoryUsage() + m_SpecializationConstants.GetHeapMemoryUsage();
+  }
+
+} // namespace RPI

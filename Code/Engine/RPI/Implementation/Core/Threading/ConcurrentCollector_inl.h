@@ -65,7 +65,7 @@ namespace RPI
   template <typename T, typename TAllocatorWrapper>
   ezInt32 spConcurrentCollector<T, TAllocatorWrapper>::Add(const T& item)
   {
-    const ezInt32 uiIndex = m_uiCount.PostIncrement();
+    const ezUInt32 uiIndex = m_uiCount.PostIncrement();
 
     Segment* pSegment = m_pTail;
     if (uiIndex >= pSegment->m_uiOffset + pSegment->m_Items.GetCount())
@@ -97,7 +97,7 @@ namespace RPI
   template <typename T, typename TAllocatorWrapper>
   void spConcurrentCollector<T, TAllocatorWrapper>::AddRange(const ezArrayPtr<T>& items)
   {
-    const ezInt32 uiNewCount = m_uiCount.Add(items.GetCount());
+    const ezUInt32 uiNewCount = m_uiCount.Add(items.GetCount());
 
     Segment* pSegment = m_pTail;
     if (uiNewCount >= pSegment->m_uiOffset + pSegment->m_Items.GetCount())

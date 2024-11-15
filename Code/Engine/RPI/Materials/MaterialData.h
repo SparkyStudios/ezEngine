@@ -22,27 +22,33 @@ namespace RPI
 {
   struct alignas(16) spMaterialData
   {
-    ezColor m_Color;
+    EZ_DECLARE_POD_TYPE();
 
-    spShaderVec2 m_UVTiling;
-    spShaderVec2 m_UVOffset;
+    ezColor m_AlbedoColor{ezColor::White};
+    ezColor m_SpecularColor{ezColor::Black};
+    ezColor m_EmissiveColor{ezColor::Black};
 
-    float m_Roughness;
-    float m_Metalness;
-    float m_NormalIntensity;
-    float m_Height;
+    spShaderVec2 m_UVTiling{1.0f, 1.0f};
+    spShaderVec2 m_UVOffset{0.0f, 0.0f};
 
-    float m_WorldSpaceHeight;
-    float m_IOR;
-    float m_SubsurfaceScattering;
-    ezUInt32 m_Flags;
+    float m_Roughness{0.0f};
+    float m_Metalness{0.0f};
+    float m_NormalIntensity{1.0f};
+    float m_Height{1.0f};
 
-    spShaderVec3 m_SheenTint;
-    float m_Sheen;
+    float m_WorldSpaceHeight{1.0f};
+    float m_IOR{1.0f};
+    float m_SubsurfaceScattering{0.0f};
+    ezUInt32 m_Flags{0};
 
-    float m_Anisotropic;
-    float m_AnisotropicRotation;
-    float m_Clearcoat;
-    float m_ClearcoatRoughness;
+    spShaderVec3 m_SheenTint{1.0f, 1.0f, 1.0f};
+    float m_Sheen{0.0f};
+
+    float m_Anisotropic{0.0f};
+    float m_AnisotropicRotation{0.0f};
+    float m_Clearcoat{0.0f};
+    float m_ClearcoatRoughness{0.0f};
   };
 }
+
+#include <RPI/Implementation/Materials/MaterialData.inl>

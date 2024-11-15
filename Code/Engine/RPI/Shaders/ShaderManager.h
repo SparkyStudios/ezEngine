@@ -32,7 +32,7 @@ namespace RPI
     ezDynamicArray<slang::PreprocessorMacroDesc> m_PredefinedMacros;
     ezDynamicArray<RHI::spShaderSpecializationConstant> m_SpecializationConstants;
 
-    ezUInt32 CalculateHash() const
+    [[nodiscard]] ezUInt32 CalculateHash() const
     {
       ezUInt32 uiHash = 0;
       uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32(&m_eStage, sizeof(m_eStage), uiHash));
@@ -63,7 +63,7 @@ namespace RPI
     spShaderManager();
     ~spShaderManager();
 
-    ezSharedPtr<RHI::spShader> CompileShader(RAI::spShaderResourceHandle hShaderResource, spShaderCompilerSetup& ref_compilerSetup, slang::IComponentType** out_pShaderProgram = nullptr);
+    ezSharedPtr<RHI::spShader> CompileShader(RAI::spShaderResourceHandle hShaderResource, spShaderCompilerSetup& ref_compilerSetup);
 
   private:
     void CacheShaderKernel(ezUInt32 uiHash, ezSharedPtr<RHI::spShader> pShader);

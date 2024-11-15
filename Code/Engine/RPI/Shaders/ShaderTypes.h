@@ -33,11 +33,15 @@ public:
 
   EZ_ALWAYS_INLINE spShaderMat3() = default;
 
-  EZ_ALWAYS_INLINE spShaderMat3(const ezMat3& m) { *this = m; }
-
-  EZ_FORCE_INLINE spShaderMat3& operator=(const ezMat3& m)
+  EZ_ALWAYS_INLINE spShaderMat3(const ezMat3& m) // NOLINT(*-explicit-constructor)
+    : m_Data{}
   {
-    for (ezUInt32 c = 0; c < 3; ++c)
+    *this = m;
+  }
+
+  spShaderMat3& operator=(const ezMat3& m)
+  {
+    for (ezInt32 c = 0; c < 3; ++c)
     {
       m_Data[c * 4 + 0] = m.Element(c, 0);
       m_Data[c * 4 + 1] = m.Element(c, 1);
@@ -63,22 +67,28 @@ public:
 
   EZ_ALWAYS_INLINE spShaderTransform() = default;
 
-  EZ_ALWAYS_INLINE spShaderTransform(const ezTransform& t) { *this = t; }
+  EZ_ALWAYS_INLINE spShaderTransform(const ezTransform& t) // NOLINT(*-explicit-constructor)
+    : m_Data{}
+  {
+    *this = t;
+  }
 
-  EZ_FORCE_INLINE void operator=(const ezTransform& t) { *this = t.GetAsMat4(); }
+  spShaderTransform& operator=(const ezTransform& t)
+  {
+    *this = t.GetAsMat4();
+    return *this;
+  }
 
-  EZ_FORCE_INLINE spShaderTransform& operator=(const ezMat4& t)
+  spShaderTransform& operator=(const ezMat4& t)
   {
     float data[16];
     t.GetAsArray(data, ezMatrixLayout::RowMajor);
 
-    for (ezUInt32 i = 0; i < 12; ++i)
-      m_Data[i] = data[i];
-
+    ezMemoryUtils::Copy(&m_Data[0], &data[0], 12);
     return *this;
   }
 
-  EZ_FORCE_INLINE spShaderTransform& operator=(const ezMat3& t)
+  spShaderTransform& operator=(const ezMat3& t)
   {
     float data[9];
     t.GetAsArray(data, ezMatrixLayout::RowMajor);
@@ -101,7 +111,7 @@ public:
     return *this;
   }
 
-  [[nodiscard]] EZ_FORCE_INLINE ezMat4 GetAsMat4() const
+  [[nodiscard]] ezMat4 GetAsMat4() const
   {
     ezMat4 res;
     res.SetRow(0, reinterpret_cast<const ezVec4&>(m_Data[0]));
@@ -112,9 +122,9 @@ public:
     return res;
   }
 
-  [[nodiscard]] EZ_FORCE_INLINE ezVec3 GetTranslationVector() const
+  [[nodiscard]] ezVec3 GetTranslationVector() const
   {
-    return ezVec3(m_Data[3], m_Data[7], m_Data[11]);
+    return {m_Data[3], m_Data[7], m_Data[11]};
   }
 
 private:
@@ -129,9 +139,13 @@ public:
 
   EZ_ALWAYS_INLINE spShaderBool() = default;
 
-  EZ_ALWAYS_INLINE spShaderBool(bool b) { *this = b; }
+  EZ_ALWAYS_INLINE spShaderBool(bool b) // NOLINT(*-explicit-constructor)
+    : m_uiData(0)
+  {
+    *this = b;
+  }
 
-  EZ_ALWAYS_INLINE spShaderBool operator=(bool b)
+  EZ_ALWAYS_INLINE spShaderBool& operator=(bool b)
   {
     m_uiData = b ? 0xFFFFFFFF : 0;
     return *this;

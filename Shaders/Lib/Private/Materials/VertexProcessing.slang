@@ -28,6 +28,7 @@ struct InstanceData
 
   Transform NormalTransform;
 
+  float3 _padding0;
   uint MaterialIndex;
 }
 

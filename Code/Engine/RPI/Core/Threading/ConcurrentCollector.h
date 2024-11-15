@@ -111,7 +111,7 @@ namespace RPI
 
     Segment* m_pHead{nullptr};
     Segment* m_pTail{nullptr};
-    ezAtomicInteger32 m_uiCount{0};
+    ezAtomicInteger<ezUInt32> m_uiCount{0};
   };
 
   template <typename T>

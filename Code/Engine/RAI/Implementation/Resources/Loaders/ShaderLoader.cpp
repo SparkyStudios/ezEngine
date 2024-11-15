@@ -93,7 +93,7 @@ ezResourceLoadData spShaderResourceLoader::OpenDataStream(const ezResource* pRes
   if (sAbsolutePath.HasExtension("slang"))
   {
     ezDynamicArray<ezUInt8> content;
-    content.SetCountUninitialized(file.GetFileSize());
+    content.SetCountUninitialized(static_cast<ezUInt32>(file.GetFileSize()));
     const ezUInt64 uiBytesRead = file.ReadBytes(content.GetData(), content.GetCount());
 
     w.WriteVersion(spShaderResource::GetResourceVersion());
@@ -120,7 +120,7 @@ ezResourceLoadData spShaderResourceLoader::OpenDataStream(const ezResource* pRes
     ezUInt8 uiCompressionMode = 0;
     file >> uiCompressionMode;
 
-    pData->m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, file.GetFileSize());
+    pData->m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, static_cast<ezUInt32>(file.GetFileSize()));
     const ezUInt64 uiReadBytes = file.ReadBytes(pData->m_ShaderBytes.GetPtr(), file.GetFileSize());
 
     w.WriteVersion(v);

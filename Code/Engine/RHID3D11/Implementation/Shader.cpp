@@ -134,20 +134,54 @@ namespace RHI
   void spShaderProgramD3D11::GetResourceLayoutDescriptions(ezDynamicArray<spResourceLayoutDescription>& out_resourceLayouts) const
   {
     out_resourceLayouts.Clear();
-    auto& resourceLayoutDescription = out_resourceLayouts.ExpandAndGetRef();
 
     if (m_pVertexShader != nullptr)
+    {
+      auto& resourceLayoutDescription = out_resourceLayouts.ExpandAndGetRef();
+      resourceLayoutDescription.m_eShaderStage = spShaderStage::VertexShader;
+
       GetResourceLayoutElementsForStage(spShaderStage::VertexShader, resourceLayoutDescription.m_Elements);
+    }
+
     if (m_pHullShader != nullptr)
+    {
+      auto& resourceLayoutDescription = out_resourceLayouts.ExpandAndGetRef();
+      resourceLayoutDescription.m_eShaderStage = spShaderStage::HullShader;
+
       GetResourceLayoutElementsForStage(spShaderStage::HullShader, resourceLayoutDescription.m_Elements);
+    }
+
     if (m_pDomainShader != nullptr)
+    {
+      auto& resourceLayoutDescription = out_resourceLayouts.ExpandAndGetRef();
+      resourceLayoutDescription.m_eShaderStage = spShaderStage::DomainShader;
+
       GetResourceLayoutElementsForStage(spShaderStage::DomainShader, resourceLayoutDescription.m_Elements);
+    }
+
     if (m_pGeometryShader != nullptr)
+    {
+      auto& resourceLayoutDescription = out_resourceLayouts.ExpandAndGetRef();
+      resourceLayoutDescription.m_eShaderStage = spShaderStage::GeometryShader;
+
       GetResourceLayoutElementsForStage(spShaderStage::GeometryShader, resourceLayoutDescription.m_Elements);
+    }
+
     if (m_pPixelShader != nullptr)
+    {
+      auto& resourceLayoutDescription = out_resourceLayouts.ExpandAndGetRef();
+      resourceLayoutDescription.m_eShaderStage = spShaderStage::PixelShader;
+
       GetResourceLayoutElementsForStage(spShaderStage::PixelShader, resourceLayoutDescription.m_Elements);
+    }
+
     if (m_pComputeShader != nullptr)
+    {
+      auto& resourceLayoutDescription = out_resourceLayouts.ExpandAndGetRef();
+      resourceLayoutDescription.m_eShaderStage = spShaderStage::ComputeShader;
+
       GetResourceLayoutElementsForStage(spShaderStage::ComputeShader, resourceLayoutDescription.m_Elements);
+    }
   }
 
   spShaderProgramD3D11::spShaderProgramD3D11(spDeviceD3D11* pDevice)
@@ -209,7 +243,6 @@ namespace RHI
 
       auto& element = out_elements.ExpandAndGetRef();
       element.m_eType = spFromD3D11(shaderInputBindDesc.Type, shaderInputBindDesc.Dimension);
-      element.m_eShaderStage = eStage;
       element.m_sName.Assign(shaderInputBindDesc.Name);
     }
   }

@@ -91,6 +91,19 @@ namespace RPI
     TriggerLocalBoundsUpdate();
   }
 
+  void spMeshComponent::SetMaterial(const spMaterialResourceHandle& hMaterialResource)
+  {
+    if (m_RenderObject.m_hMaterialResource == hMaterialResource)
+      return;
+
+    ezResourceLock pMaterialResource(hMaterialResource, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
+    if (pMaterialResource.GetAcquireResult() == ezResourceAcquireResult::Final)
+    {
+      m_RenderObject.m_hMaterialResource = hMaterialResource;
+      m_RenderObject.m_hRootMaterialResource = pMaterialResource->GetDescriptor().GetRootMaterialResource();
+    }
+  }
+
   void spMeshComponent::SerializeComponent(ezWorldWriter& inout_stream) const
   {
     spRenderComponent::SerializeComponent(inout_stream);
@@ -157,7 +170,28 @@ namespace RPI
 
   const char* spMeshComponent::GetMeshFile() const
   {
-    return m_RenderObject.m_hMeshResource.IsValid() ? m_RenderObject.m_hMeshResource.GetResourceID().GetData() : "";
+    ezStringBuilder sTemp;
+    return m_RenderObject.m_hMeshResource.IsValid()
+             ? m_RenderObject.m_hMeshResource.GetResourceID().GetData(sTemp)
+             : "";
+  }
+
+  void spMeshComponent::SetMaterialFile(const char* szMaterialFile)
+  {
+    spMaterialResourceHandle hMaterialResource;
+
+    if (!ezStringUtils::IsNullOrEmpty(szMaterialFile))
+      hMaterialResource = ezResourceManager::LoadResource<spMaterialResource>(szMaterialFile);
+
+    SetMaterial(hMaterialResource);
+  }
+
+  const char* spMeshComponent::GetMaterialFile() const
+  {
+    ezStringBuilder sTemp;
+    return m_RenderObject.m_hMaterialResource.IsValid()
+             ? m_RenderObject.m_hMaterialResource.GetResourceID().GetData(sTemp)
+             : "";
   }
 
   void spMeshComponent::SetLODMaxDistance(float fMaxDistance)

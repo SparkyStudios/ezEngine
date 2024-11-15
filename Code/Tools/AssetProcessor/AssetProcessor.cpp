@@ -520,7 +520,7 @@ public:
   void AfterCoreSystemsStartup() override
   {
     // Add the empty data directory to access files via absolute paths
-    ezFileSystem::AddDataDirectory("", "App", ":", ezFileSystem::AllowWrites).IgnoreResult();
+    ezFileSystem::AddDataDirectory("", "App", ":", ezDataDirUsage::AllowWrites).IgnoreResult();
 
     ezGlobalLog::AddLogWriter(ezLogWriter::Console::LogMessageHandler);
     ezGlobalLog::AddLogWriter(ezLogWriter::VisualStudio::LogMessageHandler);
@@ -535,12 +535,12 @@ public:
     SUPER::BeforeCoreSystemsShutdown();
   }
 
-  Execution Run() override
+  void Run() override
   {
     if (ParseArguments().Failed())
     {
       SetReturnCode(1);
-      return ezApplication::Execution::Quit;
+      return;
     }
 
     {
@@ -548,7 +548,7 @@ public:
       if (ezCommandLineOption::LogAvailableOptionsToBuffer(cmdHelp, ezCommandLineOption::LogAvailableModes::IfHelpRequested, GetSortingGroupFromAssetType(m_eAssetType)))
       {
         ezLog::Print(cmdHelp);
-        return ezApplication::Execution::Quit;
+        return;
       }
     }
 
@@ -597,8 +597,6 @@ public:
       for (const auto& input : failedImports)
         ezLog::Error("  - {0}", input);
     }
-
-    return ezApplication::Execution::Quit;
   }
 };
 
