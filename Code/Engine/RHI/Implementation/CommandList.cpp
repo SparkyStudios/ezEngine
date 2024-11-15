@@ -216,7 +216,7 @@ namespace RHI
 
   spCommandListPushRestoreFramebuffer spCommandList::PushRestoreFramebuffer(ezSharedPtr<spFramebuffer> pFramebuffer)
   {
-    return spCommandListPushRestoreFramebuffer(this, pFramebuffer);
+    return {this, pFramebuffer};
   }
 
   void spCommandList::SetIndexBuffer(ezSharedPtr<spBuffer> pIndexBuffer, const ezEnum<spIndexFormat>& eFormat)
@@ -351,7 +351,11 @@ namespace RHI
   void spCommandList::PushConstants(ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize)
   {
     EZ_ASSERT_DEV(uiSize <= 128, "Push constants must not exceed 128 bytes.");
-    EZ_ASSERT_DEV(pData != nullptr, "Push contants data cannot be null.");
+    EZ_ASSERT_DEV(pData != nullptr, "Push constants data cannot be null.");
+
+    EZ_ASSERT_DEV(m_pGraphicPipeline != nullptr || m_pComputePipeline != nullptr, "Push constants can only be set after a pipeline.");
+    EZ_ASSERT_DEV(m_pGraphicPipeline == nullptr || m_pGraphicPipeline->SupportsPushConstants(), "Push constants are not supported by this pipeline. Please enable push constants when creating the pipeline.");
+    EZ_ASSERT_DEV(m_pComputePipeline == nullptr || m_pComputePipeline->SupportsPushConstants(), "Push constants are not supported by this pipeline. Please enable push constants when creating the pipeline.");
 
     PushConstantsInternal(eStage, pData, uiOffset, uiSize);
   }

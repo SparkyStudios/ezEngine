@@ -448,10 +448,6 @@ namespace RHI
 
   void spCommandListMTL::PushConstantsInternal(ezBitflags<spShaderStage> eStage, const void* pData, ezUInt32 uiOffset, ezUInt32 uiSize)
   {
-    EZ_ASSERT_DEV(m_pGraphicPipeline != nullptr || m_pComputePipeline != nullptr, "Push constants can only be set after a pipeline.");
-    EZ_ASSERT_DEV(m_pGraphicPipeline == nullptr || m_pGraphicPipeline->SupportsPushConstants(), "Push constants are not supported by this pipeline. Please enable push constants when creating the pipeline.");
-    EZ_ASSERT_DEV(m_pComputePipeline == nullptr || m_pComputePipeline->SupportsPushConstants(), "Push constants are not supported by this pipeline. Please enable push constants when creating the pipeline.");
-
     m_PushConstant.m_eStage = eStage;
     m_PushConstant.m_pData = pData;
     m_PushConstant.m_uiOffset = uiOffset;
@@ -1249,6 +1245,9 @@ namespace RHI
 
     const auto pProgram = m_pDevice->GetResourceManager()->GetResource<spShaderProgramMTL>(m_pGraphicPipeline->GetShaderProgram());
     EZ_ASSERT_DEV(pProgram != nullptr, "Invalid shader program handle {0} in graphic pipeline", m_pGraphicPipeline->GetShaderProgram().GetInternalID().m_Data);
+
+    if (m_pComputePipeline->SupportsPushConstants())
+      uiSlot++;
 
     if (!pResourceLayoutMTL->GetShaderStages().IsSet(spShaderStage::ComputeShader))
       return;
