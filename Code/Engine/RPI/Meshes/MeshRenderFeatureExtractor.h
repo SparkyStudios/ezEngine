@@ -37,7 +37,7 @@ namespace RPI
     spRenderObjectCollection* m_Objects{nullptr};
   };
 
-  /// \breif An extractor implementation to collect mesh objects from game objects
+  /// \brief An extractor implementation to collect mesh objects from game objects
   class SP_RPI_DLL spMeshRenderFeatureExtractor final : public spRenderFeatureExtractor
   {
     friend class spMeshRenderFeature;

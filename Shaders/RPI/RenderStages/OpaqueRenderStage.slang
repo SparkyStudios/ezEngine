@@ -62,8 +62,7 @@ TransientStream VSMain(InputStream input, uint instanceID: SV_InstanceID, uint v
 }
 
 [shader("pixel")]
-float4 PSMain<T : IMaterial>(TransientStream input)
-  : SV_Target0
+OutputStream PSMain<T : IMaterial>(TransientStream input)
 {
   /// Create the material shader instance
   T shader = T.create();
@@ -116,5 +115,5 @@ float4 PSMain<T : IMaterial>(TransientStream input)
     surface.Cavity
   );
 
-  return output.Diffuse;
+  return output;
 }

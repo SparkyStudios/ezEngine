@@ -211,15 +211,17 @@ namespace RPI
       mesh.GetDrawCommands(m_DrawCommands, m_PerInstanceData.GetCount());
 
       if (const ezUInt32 uiBufferSize = pDevice->GetIndexedIndirectCommandSize() * m_DrawCommands.GetCount(); m_pIndirectBuffer == nullptr || m_pIndirectBuffer->GetSize() < uiBufferSize)
+      {
         m_pIndirectBuffer = pDevice->GetResourceFactory()->CreateBuffer(RHI::spBufferDescription(uiBufferSize, RHI::spBufferUsage::IndirectBuffer));
 
-      pDevice->UpdateIndexedIndirectBuffer(m_pIndirectBuffer, m_DrawCommands.GetArrayPtr());
-
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-      ezStringBuilder sb;
-      sb.SetFormat("{0}__IndirectBuffer", mesh.GetRootNode().m_sName);
-      m_pIndirectBuffer->SetDebugName(sb);
+        ezStringBuilder sb;
+        sb.SetFormat("{0}__IndirectBuffer", mesh.GetRootNode().m_sName);
+        m_pIndirectBuffer->SetDebugName(sb);
 #endif
+      }
+
+      pDevice->UpdateIndexedIndirectBuffer(m_pIndirectBuffer, m_DrawCommands.GetArrayPtr());
 
       m_bIndirectBufferDirty = false;
     }
