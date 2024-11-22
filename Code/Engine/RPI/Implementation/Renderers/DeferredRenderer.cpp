@@ -64,22 +64,32 @@ namespace RPI
             ezHashingUtils::xxHash32(&pRenderView->GetProjectionMatrix(), sizeof(ezMat4)));
 
           // TODO: Add a check to see if the render view has changed since the last frame
-          if (!opaqueObjects.IsEmpty())
-//          if (!opaqueObjects.IsEmpty() && m_uiLastStaticPassHash != uiCurrentStaticPassHash)
+          if (!opaqueObjects.IsEmpty() && m_uiLastStaticPassHash != uiCurrentStaticPassHash)
           {
             auto pushRestore = cl->PushRestoreFramebuffer(m_pStaticOpaqueRenderStage->GetOutputFramebuffer(pRenderView));
 
             const ezRectU32 viewport = pRenderView->GetViewport();
             const RHI::spViewport vp(viewport.x, viewport.y, viewport.width, viewport.height, 0.0f, 1.0f);
-            cl->SetViewport(0, vp);
 
-            // Clear
-            cl->ClearColorTarget(0, ezColor::Black);
+            // Viewport
+            cl->SetViewport(0, vp);
+            cl->SetViewport(1, vp);
+            cl->SetViewport(2, vp);
+            cl->SetViewport(3, vp);
+
+            // Color
+            cl->ClearColorTarget(0, ezColor::MakeZero());
+            cl->ClearColorTarget(1, ezColor::MakeZero());
+            cl->ClearColorTarget(2, ezColor::MakeZero());
+            cl->ClearColorTarget(3, ezColor::MakeZero());
+
+            // Stencil
             cl->ClearDepthStencilTarget(1.0f, 0);
 
             // Draw
             m_pStaticOpaqueRenderStage->Draw(pRenderContext, opaqueObjects);
 
+            // Cache
             m_uiLastStaticPassHash = uiCurrentStaticPassHash;
           }
         }

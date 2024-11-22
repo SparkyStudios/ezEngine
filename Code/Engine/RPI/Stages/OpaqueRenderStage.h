@@ -41,7 +41,24 @@ namespace RPI
     ~spOpaqueRenderStage() override = default;
 
   private:
+    struct GBuffer
+    {
+      static constexpr ezUInt32 kNumTargets = 4;
+
+      GBuffer()
+      {
+        m_Targets.EnsureCount(kNumTargets);
+      }
+
+      ezStaticArray<ezSharedPtr<RHI::spTexture>, kNumTargets> m_Targets;
+
+      ezSharedPtr<RHI::spTexture>& GetDiffuseEmissive() { return m_Targets[0]; }
+      ezSharedPtr<RHI::spTexture>& GetNormalMaterialIndex() { return m_Targets[1]; }
+      ezSharedPtr<RHI::spTexture>& GetMetalnessRoughnessOcclusionCavity() { return m_Targets[2]; }
+      ezSharedPtr<RHI::spTexture>& GetVelocity() { return m_Targets[3]; }
+    };
+
     ezArrayMap<const spRenderView*, ezSharedPtr<RHI::spTexture>> m_DepthStencilTextures;
-    ezArrayMap<const spRenderView*, ezSharedPtr<RHI::spTexture>> m_ColorTextures;
+    ezArrayMap<const spRenderView*, GBuffer> m_ColorTextures;
   };
 } // namespace RPI

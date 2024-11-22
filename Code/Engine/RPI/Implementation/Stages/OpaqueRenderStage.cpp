@@ -40,7 +40,12 @@ namespace RPI
   {
     RHI::spRenderingState renderingState{};
 
-    renderingState.m_BlendState = RHI::spBlendState::SingleDisabled;
+    renderingState.m_BlendState.m_BlendColor = ezColorGammaUB(0x00, 0x00, 0x00);
+    renderingState.m_BlendState.m_AttachmentStates.EnsureCount(GBuffer::kNumTargets);
+    renderingState.m_BlendState.m_AttachmentStates[0] = RHI::spBlendAttachment::Disabled;
+    renderingState.m_BlendState.m_AttachmentStates[1] = RHI::spBlendAttachment::Disabled;
+    renderingState.m_BlendState.m_AttachmentStates[2] = RHI::spBlendAttachment::Disabled;
+    renderingState.m_BlendState.m_AttachmentStates[3] = RHI::spBlendAttachment::Disabled;
 
     renderingState.m_DepthState = RHI::spDepthState::Less;
 
@@ -68,27 +73,49 @@ namespace RPI
       return;
 
     auto& pDepthTarget = m_DepthStencilTextures[pRenderView];
-    auto& pColorTarget = m_ColorTextures[pRenderView];
+    auto& gBuffer = m_ColorTextures[pRenderView];
 
     const auto* pDevice = spRenderSystem::GetSingleton()->GetDevice();
 
+    const auto& viewport = pRenderView->GetViewport();
+
     if (pDepthTarget == nullptr)
     {
-      const auto& viewport = pRenderView->GetViewport();
-
-      const auto& depthDesc = RHI::spTextureDescription::Texture2D(viewport.width, viewport.height, 1, 1, RHI::spPixelFormat::D32FloatS8UInt, RHI::spTextureUsage::DepthStencil);
-      pDepthTarget = pDevice->GetResourceFactory()->CreateTexture(depthDesc);
+      const auto& desc = RHI::spTextureDescription::Texture2D(viewport.width, viewport.height, 1, 1, RHI::spPixelFormat::D32FloatS8UInt, RHI::spTextureUsage::DepthStencil);
+      pDepthTarget = pDevice->GetResourceFactory()->CreateTexture(desc);
     }
 
-    if (pColorTarget == nullptr)
+    if (gBuffer.GetDiffuseEmissive() == nullptr)
     {
-      const auto& viewport = pRenderView->GetViewport();
-
-      const auto& colorDesc = RHI::spTextureDescription::Texture2D(viewport.width, viewport.height, 1, 1, RHI::spPixelFormat::R8G8B8A8UNorm, RHI::spTextureUsage::RenderTarget | RHI::spTextureUsage::Sampled | RHI::spTextureUsage::Storage);
-      pColorTarget = pDevice->GetResourceFactory()->CreateTexture(colorDesc);
+      const auto& desc = RHI::spTextureDescription::Texture2D(viewport.width, viewport.height, 1, 1, RHI::spPixelFormat::R8G8B8A8UNorm, RHI::spTextureUsage::RenderTarget | RHI::spTextureUsage::Sampled | RHI::spTextureUsage::Storage);
+      gBuffer.GetDiffuseEmissive() = pDevice->GetResourceFactory()->CreateTexture(desc);
     }
 
-    const RHI::spFramebufferDescription desc(pDepthTarget->GetHandle(), pColorTarget->GetHandle());
+    if (gBuffer.GetNormalMaterialIndex() == nullptr)
+    {
+      const auto& desc = RHI::spTextureDescription::Texture2D(viewport.width, viewport.height, 1, 1, RHI::spPixelFormat::R16G16B16A16Float, RHI::spTextureUsage::RenderTarget | RHI::spTextureUsage::Sampled | RHI::spTextureUsage::Storage);
+      gBuffer.GetNormalMaterialIndex() = pDevice->GetResourceFactory()->CreateTexture(desc);
+    }
+
+    if (gBuffer.GetMetalnessRoughnessOcclusionCavity() == nullptr)
+    {
+      const auto& desc = RHI::spTextureDescription::Texture2D(viewport.width, viewport.height, 1, 1, RHI::spPixelFormat::R8G8B8A8UNorm, RHI::spTextureUsage::RenderTarget | RHI::spTextureUsage::Sampled | RHI::spTextureUsage::Storage);
+      gBuffer.GetMetalnessRoughnessOcclusionCavity() = pDevice->GetResourceFactory()->CreateTexture(desc);
+    }
+
+    if (gBuffer.GetVelocity() == nullptr)
+    {
+      const auto& desc = RHI::spTextureDescription::Texture2D(viewport.width, viewport.height, 1, 1, RHI::spPixelFormat::R32G32Float, RHI::spTextureUsage::RenderTarget | RHI::spTextureUsage::Sampled | RHI::spTextureUsage::Storage);
+      gBuffer.GetVelocity() = pDevice->GetResourceFactory()->CreateTexture(desc);
+    }
+
+    RHI::spResourceHandle targets[] = {
+      gBuffer.GetDiffuseEmissive()->GetHandle(),
+      gBuffer.GetNormalMaterialIndex()->GetHandle(),
+      gBuffer.GetMetalnessRoughnessOcclusionCavity()->GetHandle(),
+      gBuffer.GetVelocity()->GetHandle()};
+
+    const RHI::spFramebufferDescription desc(pDepthTarget->GetHandle(), ezMakeArrayPtr(targets));
     m_RenderViewFramebuffers[pRenderView] = pDevice->GetResourceFactory()->CreateFramebuffer(desc);
   }
 
