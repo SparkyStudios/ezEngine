@@ -26,6 +26,16 @@ namespace RPI
   {
   }
 
+  spRootMaterial::spRootMaterial(const spRootMaterial& other)
+  {
+    *this = other;
+  }
+
+  spRootMaterial::spRootMaterial(spRootMaterial&& other) noexcept
+  {
+    *this = std::move(other);
+  }
+
   spRootMaterial::~spRootMaterial()
   {
     Clear();
@@ -42,5 +52,28 @@ namespace RPI
 
     if (m_ShaderBytes.GetPtr() != nullptr)
       EZ_DEFAULT_DELETE_ARRAY(m_ShaderBytes);
+  }
+
+  spRootMaterial& spRootMaterial::operator=(const spRootMaterial& other)
+  {
+    m_Metadata = other.m_Metadata;
+
+    m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, other.m_ShaderBytes.GetCount());
+    m_ShaderBytes.CopyFrom(other.m_ShaderBytes);
+
+    return *this;
+  }
+
+  spRootMaterial& spRootMaterial::operator=(spRootMaterial&& other) noexcept
+  {
+    Clear();
+
+    ezMath::Swap(m_Metadata, other.m_Metadata);
+    ezMath::Swap(m_ShaderBytes, other.m_ShaderBytes);
+
+    other.m_ShaderBytes.Clear();
+    other.Clear();
+
+    return *this;
   }
 } // namespace RPI

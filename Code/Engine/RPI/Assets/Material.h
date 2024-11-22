@@ -60,7 +60,11 @@ namespace RPI
 
     void Clear();
 
+    [[nodiscard]] bool HasSpecializationConstant(const ezTempHashedString& name) const;
+    void AddSpecializationConstant(const RHI::spShaderSpecializationConstant& constant);
+    void RemoveSpecializationConstant(const ezTempHashedString& name);
     [[nodiscard]] const RHI::spShaderSpecializationConstant* GetSpecializationConstant(const ezTempHashedString& name) const;
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezDynamicArray<RHI::spShaderSpecializationConstant>& GetSpecializationConstants() const { return m_SpecializationConstants; }
 
     void SetProperty(const ezTempHashedString& name, const ezVariant& value);
     [[nodiscard]] ezVariant GetProperty(const ezTempHashedString& name) const;

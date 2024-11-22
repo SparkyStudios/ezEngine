@@ -39,6 +39,35 @@ namespace RPI
     m_Properties.Clear();
   }
 
+  bool spMaterial::HasSpecializationConstant(const ezTempHashedString& name) const
+  {
+    for (const auto& constant : m_SpecializationConstants)
+      if (constant.m_sName == name)
+        return true;
+
+    return false;
+  }
+
+  void spMaterial::AddSpecializationConstant(const RHI::spShaderSpecializationConstant& constant)
+  {
+    if (HasSpecializationConstant(constant.m_sName))
+      return;
+
+    m_SpecializationConstants.PushBack(constant);
+  }
+
+  void spMaterial::RemoveSpecializationConstant(const ezTempHashedString& name)
+  {
+    for (ezUInt32 i = 0, l = m_SpecializationConstants.GetCount(); i < l; ++i)
+    {
+      if (m_SpecializationConstants[i].m_sName == name)
+      {
+        m_SpecializationConstants.RemoveAtAndCopy(i);
+        return;
+      }
+    }
+  }
+
   const RHI::spShaderSpecializationConstant* spMaterial::GetSpecializationConstant(const ezTempHashedString& name) const
   {
     for (const auto& constant : m_SpecializationConstants)

@@ -20,6 +20,7 @@
 
 #include <RHI/Device.h>
 
+#include <Foundation/IO/FileSystem/FileReader.h>
 #include <Foundation/IO/FileSystem/FileSystem.h>
 
 #include <slang-com-helper.h>
@@ -101,7 +102,7 @@ EZ_IMPLEMENT_SINGLETON(RPI::spShaderManager);
 
 namespace RPI
 {
-  static ezStringView GetSlangType(ezEnum<spShaderSpecializationConstantType> eType)
+  static ezStringView GetSlangType(ezEnum<RHI::spShaderSpecializationConstantType> eType)
   {
     switch (eType)
     {
@@ -127,6 +128,33 @@ namespace RPI
     }
   }
 
+  ezUInt32 spShaderCompilerSetup::CalculateHash() const
+  {
+    ezUInt32 uiHash = ezHashingUtils::StringHashTo32(m_hShaderResource.GetResourceIDHash());
+    uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32(&m_eStage, sizeof(m_eStage)));
+
+    for (const auto& macro : m_PredefinedMacros)
+    {
+      uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32String(macro.name));
+      uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32String(macro.value));
+    }
+
+    for (const auto& constant : m_SpecializationConstants)
+    {
+      uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32String(constant.m_sName));
+      RHI::spShaderSpecializationConstantType::Enum eType = constant.m_eType;
+      uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32(&eType, sizeof(eType)));
+      uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32(&constant.m_uiValue, sizeof(constant.m_uiValue)));
+    }
+
+    if (m_hMaterialResource.IsValid())
+    {
+      uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::StringHashTo32(m_hMaterialResource.GetResourceIDHash()));
+    }
+
+    return uiHash;
+  }
+
   spShaderManager::spShaderManager()
     : m_SingletonRegistrar(this)
   {
@@ -141,51 +169,64 @@ namespace RPI
     m_ShaderKernelCache.Clear();
   }
 
-  ezSharedPtr<RHI::spShader> spShaderManager::CompileShader(RAI::spShaderResourceHandle hShaderResource, spShaderCompilerSetup& ref_compilerSetup)
+  ezSharedPtr<RHI::spShader> spShaderManager::CompileShader(const spShaderCompilerSetup& compilerSetup)
   {
-    if (!hShaderResource.IsValid())
+    if (!compilerSetup.m_hShaderResource.IsValid())
       return nullptr;
 
-    const ezUInt32 uiHash = ezHashingUtils::CombineHashValues32(ezHashingUtils::StringHashTo32(hShaderResource.GetResourceIDHash()), ref_compilerSetup.CalculateHash());
+    const ezUInt32 uiHash = compilerSetup.CalculateHash();
 
     if (!m_ShaderKernelCache.Contains(uiHash))
     {
-      auto const pSession = CreateSlangSession(ref_compilerSetup);
+      auto const pSession = CreateSlangSession(compilerSetup.m_PredefinedMacros.GetArrayPtr());
 
-      const ezResourceLock resource(hShaderResource, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
+      const ezResourceLock resource(compilerSetup.m_hShaderResource, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
       EZ_ASSERT_DEV(resource.IsValid(), "Unable to get the shader resource.");
 
       auto const pBytes = resource.GetPointer()->GetDescriptor().GetShader().GetShaderBytes();
 
       Slang::ComPtr<slang::IBlob> pDiagnostics;
       Slang::ComPtr<slang::IModule> pModule;
+      std::vector<slang::IComponentType*> shaderProgramComponents;
 
       {
         const Slang::ComPtr<spSlangByteBlob> pBlob(EZ_DEFAULT_NEW(spSlangByteBlob, pBytes));
 
         ezStringBuilder sTemp;
         pModule = pSession->loadModuleFromSource("shader", resource->GetResourceID().GetData(sTemp), pBlob, pDiagnostics.writeRef());
+
+        if (pDiagnostics)
+        {
+          ezLog::Error("{}", static_cast<const char*>(pDiagnostics->getBufferPointer()));
+          return nullptr;
+        }
+
+        shaderProgramComponents.push_back(pModule);
       }
 
-      if (pDiagnostics)
       {
-        ezLog::Error("{}", static_cast<const char*>(pDiagnostics->getBufferPointer()));
-        return nullptr;
+        const Slang::ComPtr<slang::IEntryPoint> pEntryPoint = GetEntryPointForStage(pModule, compilerSetup.m_eStage);
+
+        if (pEntryPoint == nullptr)
+        {
+          ezLog::Error("Unable to find an entry point for stage {}", RHI::spShaderStage::ToString(compilerSetup.m_eStage));
+          return nullptr;
+        }
+
+        shaderProgramComponents.push_back(pEntryPoint);
       }
 
-      const Slang::ComPtr<slang::IEntryPoint> pEntryPoint = GetEntryPointForStage(pModule, ref_compilerSetup.m_eStage);
-
-      if (pEntryPoint == nullptr)
+      if (compilerSetup.m_hMaterialResource.IsValid())
       {
-        ezLog::Error("Unable to find an entry point for stage {}", RHI::spShaderStage::ToString(ref_compilerSetup.m_eStage));
-        return nullptr;
+        const Slang::ComPtr<slang::IModule> pMaterialModule = CreateMaterialModule(pSession, compilerSetup);
+        shaderProgramComponents.push_back(pMaterialModule);
       }
 
-      const Slang::ComPtr<slang::IModule> pSpecializationModule = CreateSpecializationConstantsCode(pSession, ref_compilerSetup);
-      slang::IComponentType* shaderProgramComponents[] = {pModule, pEntryPoint, pSpecializationModule};
+      const Slang::ComPtr<slang::IModule> pSpecializationModule = CreateSpecializationConstantsModule(pSession, compilerSetup);
+      shaderProgramComponents.push_back(pSpecializationModule);
 
       Slang::ComPtr<slang::IComponentType> pShaderProgram;
-      SlangResult result = pSession->createCompositeComponentType(shaderProgramComponents, 3, pShaderProgram.writeRef(), pDiagnostics.writeRef());
+      SlangResult result = pSession->createCompositeComponentType(shaderProgramComponents.data(), shaderProgramComponents.size(), pShaderProgram.writeRef(), pDiagnostics.writeRef());
 
       if (result != SLANG_OK || pDiagnostics)
       {
@@ -199,40 +240,22 @@ namespace RPI
 
       Slang::ComPtr<slang::IComponentType> pSpecializedProgram;
 
-      if (ref_compilerSetup.m_eStage == RHI::spShaderStage::DomainShader)
+      // TODO: Either this or link-time specialization should be applied.
+      // if (compilerSetup.m_hMaterialResource.IsValid())
+      if (false)
       {
-        // Once we've loaded the code module that defines out effect type,
-        // we can look it up by name using the reflection information on
-        // the module.
-        //
-        // Note: A future version of the Slang API will support enumerating
-        // the types declared in a module so that we do not have to hard-code
-        // the name here.
-        //
-        const auto effectType = pModule->getLayout()->findTypeByName("LitMaterial");
+        const ezResourceLock materialResource(compilerSetup.m_hMaterialResource, ezResourceAcquireMode::BlockTillLoaded);
+        const ezResourceLock rootMaterialResource(materialResource->GetDescriptor().GetRootMaterialResource(), ezResourceAcquireMode::BlockTillLoaded);
 
-        // Now that we have the `effectType` we want to plug in to our generic
-        // shader, we need to specialize the shader to that type.
-        //
-        // Because a shader program could have zero or more specialization parameters,
-        // we need to build up an array of specialization arguments.
-        //
+        const auto materialType = pShaderProgram->getLayout()->findTypeByName(rootMaterialResource->GetDescriptor().GetRootMaterial().GetMetadata().m_sName);
+
         std::vector<slang::SpecializationArg> specializationArgs;
 
         {
-          // In our case, we only have a single specialization argument we plan
-          // to use, and it is a type argument.
-          //
-          const slang::SpecializationArg effectTypeArg = slang::SpecializationArg::fromType(effectType);
+          const slang::SpecializationArg effectTypeArg = slang::SpecializationArg::fromType(materialType);
           specializationArgs.push_back(effectTypeArg);
         }
 
-        // Specialization of a component type is a single Slang API call, but
-        // we need to deal with the possibility of diagnostic output on failure.
-        // For example, if we tried to specialize the shader program to a
-        // type like `int` that doesn't support the `IShaderToyImageShader` interface,
-        // this is the step where we'd get an error message saying so.
-        //
         result = pShaderProgram->specialize(
           specializationArgs.data(),
           static_cast<SlangInt>(specializationArgs.size()),
@@ -250,7 +273,9 @@ namespace RPI
         }
       }
       else
+      {
         pSpecializedProgram = pShaderProgram;
+      }
 
       Slang::ComPtr<slang::IComponentType> pLinkedShaderProgram;
       result = pSpecializedProgram->link(pLinkedShaderProgram.writeRef(), pDiagnostics.writeRef());
@@ -282,11 +307,11 @@ namespace RPI
       const auto uiKernelSize = static_cast<ezUInt32>(pShaderKernel->getBufferSize());
 
       RHI::spShaderDescription desc;
-      desc.m_eShaderStage = ref_compilerSetup.m_eStage;
+      desc.m_eShaderStage = compilerSetup.m_eStage;
       desc.m_sEntryPoint.Assign(pShaderLayout->getEntryPointByIndex(0)->getName());
-      desc.m_Buffer = EZ_DEFAULT_NEW_ARRAY(ezUInt8, uiKernelSize + 1);
+      desc.m_Buffer = EZ_DEFAULT_NEW_ARRAY(ezUInt8, uiKernelSize);
       ezMemoryUtils::RawByteCopy(desc.m_Buffer.GetPtr(), pShaderKernel->getBufferPointer(), uiKernelSize);
-      desc.m_Buffer[uiKernelSize] = '\0';
+      // desc.m_Buffer[uiKernelSize] = '\0';
       desc.m_bOwnBuffer = true;
 
       const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<RHI::spDevice>();
@@ -299,14 +324,57 @@ namespace RPI
     return m_ShaderKernelCache[uiHash];
   }
 
+  void spShaderManager::CompileRootMaterial(const spRootMaterialCompilerSetup& compilerSetup, Slang::ComPtr<slang::IBlob>& out_ir)
+  {
+    if (!ezFileSystem::ExistsFile(compilerSetup.m_sRootMaterialPath))
+    {
+      ezLog::Error("Root material file '{}' does not exist.", compilerSetup.m_sRootMaterialPath);
+      return;
+    }
+
+    auto const pSession = CreateSlangSession(compilerSetup.m_PredefinedMacros.GetArrayPtr());
+
+    ezFileReader fileReader;
+    if (fileReader.Open(compilerSetup.m_sRootMaterialPath).Failed())
+    {
+      ezLog::Error("Failed to open root material file '{}'.", compilerSetup.m_sRootMaterialPath);
+      return;
+    }
+
+    ezByteArrayPtr shaderCode = EZ_DEFAULT_NEW_ARRAY(ezUInt8, static_cast<ezUInt32>(fileReader.GetFileSize()));
+    fileReader.ReadBytes(shaderCode.GetPtr(), shaderCode.GetCount());
+
+    const Slang::ComPtr<spSlangByteBlob> pCode(EZ_DEFAULT_NEW(spSlangByteBlob, shaderCode));
+
+    ezStringBuilder sTemp;
+    Slang::ComPtr<slang::IModule> pModule(pSession->loadModuleFromSource("material", compilerSetup.m_sRootMaterialPath.GetData(sTemp), pCode));
+
+    SlangResult result = pModule->serialize(out_ir.writeRef());
+    if (result != SLANG_OK)
+    {
+      ezLog::Error("Failed to serialize root material module.");
+      return;
+    }
+  }
+
   void spShaderManager::CacheShaderKernel(ezUInt32 uiHash, ezSharedPtr<RHI::spShader> pShaderKernel)
   {
     m_ShaderKernelCache.Insert(uiHash, pShaderKernel);
   }
 
-  Slang::ComPtr<slang::IModule> spShaderManager::CreateSpecializationConstantsCode(Slang::ComPtr<slang::ISession> pSession, const spShaderCompilerSetup& compilerSetup)
+  Slang::ComPtr<slang::IModule> spShaderManager::CreateSpecializationConstantsModule(Slang::ComPtr<slang::ISession> pSession, const spShaderCompilerSetup& compilerSetup)
   {
     ezStringBuilder shaderCode;
+
+    ezDynamicArray<RHI::spShaderSpecializationConstant> specializationConstants = compilerSetup.m_SpecializationConstants;
+
+    if (compilerSetup.m_hMaterialResource.IsValid())
+    {
+      const ezResourceLock materialResource(compilerSetup.m_hMaterialResource, ezResourceAcquireMode::BlockTillLoaded);
+
+      const auto& constants = materialResource->GetDescriptor().GetMaterial().GetSpecializationConstants();
+      specializationConstants.PushBackRange(constants.GetArrayPtr());
+    }
 
     for (const auto& specialization : compilerSetup.m_SpecializationConstants)
     {
@@ -349,15 +417,71 @@ namespace RPI
       shaderCode.Append("\n");
     }
 
-    const Slang::ComPtr<slang::IBlob> pCode(EZ_DEFAULT_NEW(spSlangByteBlob, shaderCode));
-    ezLog::Info("{}", static_cast<const char*>(pCode->getBufferPointer()));
+    const Slang::ComPtr<spSlangByteBlob> pCode(EZ_DEFAULT_NEW(spSlangByteBlob, shaderCode));
+    ezLog::Info("{}", shaderCode);
 
-    Slang::ComPtr<slang::IModule> pModule(pSession->loadModuleFromSource("specialization-constants", "specialization-constants.slang", pCode));
+    Slang::ComPtr<slang::IBlob> pDiagnostics;
+    Slang::ComPtr<slang::IModule> pModule(pSession->loadModuleFromSource("specialization_constants", "specialization-constants.slang", pCode, pDiagnostics.writeRef()));
+
+    if (pDiagnostics != nullptr)
+    {
+      ezLog::Error("{}", static_cast<const char*>(pDiagnostics->getBufferPointer()));
+      return nullptr;
+    }
 
     return pModule;
   }
 
-  Slang::ComPtr<slang::ISession> spShaderManager::CreateSlangSession(spShaderCompilerSetup& ref_compilerSetup) const
+  Slang::ComPtr<slang::IModule> spShaderManager::CreateMaterialModule(Slang::ComPtr<slang::ISession> pSession, const spShaderCompilerSetup& compilerSetup)
+  {
+    const ezResourceLock materialResource(compilerSetup.m_hMaterialResource, ezResourceAcquireMode::BlockTillLoaded);
+    const ezResourceLock rootMaterialResource(materialResource->GetDescriptor().GetRootMaterialResource(), ezResourceAcquireMode::BlockTillLoaded);
+
+    const Slang::ComPtr<spSlangByteBlob> pIR(EZ_DEFAULT_NEW(spSlangByteBlob, rootMaterialResource->GetDescriptor().GetRootMaterial().GetShaderBytes()));
+
+    Slang::ComPtr<slang::IBlob> pDiagnostics;
+    Slang::ComPtr<slang::IModule> pModule(pSession->loadModuleFromIRBlob("material-module", "material-module.slang", pIR));
+
+    if (pDiagnostics != nullptr)
+    {
+      ezLog::Error("{}", static_cast<const char*>(pDiagnostics->getBufferPointer()));
+      return nullptr;
+    }
+
+    return pModule;
+  }
+
+  Slang::ComPtr<slang::IEntryPoint> spShaderManager::GetEntryPointForStage(Slang::ComPtr<slang::IModule> pModule, ezEnum<RHI::spShaderStage> eStage)
+  {
+    const ezInt32 uiEntryPointCount = pModule->getDefinedEntryPointCount();
+
+    Slang::ComPtr<slang::IEntryPoint> pEntryPoint;
+
+    for (ezInt32 i = 0; i < uiEntryPointCount; ++i)
+    {
+      pModule->getDefinedEntryPoint(i, pEntryPoint.writeRef());
+      slang::ProgramLayout* pReflection = pEntryPoint->getLayout();
+
+      auto* pEntryPointReflection = pReflection->getEntryPointByIndex(0);
+      const SlangStage eSlangStage = pEntryPointReflection->getStage();
+
+      if (
+        (eStage == RHI::spShaderStage::VertexShader && eSlangStage == SLANG_STAGE_VERTEX) ||
+        (eStage == RHI::spShaderStage::PixelShader && eSlangStage == SLANG_STAGE_PIXEL) ||
+        (eStage == RHI::spShaderStage::DomainShader && eSlangStage == SLANG_STAGE_DOMAIN) ||
+        (eStage == RHI::spShaderStage::HullShader && eSlangStage == SLANG_STAGE_HULL) ||
+        (eStage == RHI::spShaderStage::GeometryShader && eSlangStage == SLANG_STAGE_GEOMETRY) ||
+        (eStage == RHI::spShaderStage::ComputeShader && eSlangStage == SLANG_STAGE_COMPUTE) ||
+        (eStage == RHI::spShaderStage::None && eSlangStage == SLANG_STAGE_NONE))
+      {
+        break;
+      }
+    }
+
+    return pEntryPoint;
+  }
+
+  Slang::ComPtr<slang::ISession> spShaderManager::CreateSlangSession(const ezArrayPtr<const slang::PreprocessorMacroDesc>& predefinedMacros) const
   {
     slang::SessionDesc desc;
     const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<RHI::spDevice>();
@@ -422,12 +546,15 @@ namespace RPI
     desc.searchPaths = searchPaths.GetData();
     desc.searchPathCount = searchPaths.GetCount();
 
-    ezStringBuilder sbTempStorage;
-    ref_compilerSetup.m_PredefinedMacros.PushBack({"SP_RHI_API", ezFmt("{}", eGraphicsApi.GetValue()).GetTextCStr(sbTempStorage)});
-    ref_compilerSetup.m_PredefinedMacros.PushBack({"SP_RHI_SHADER", "1"});
+    ezDynamicArray<slang::PreprocessorMacroDesc> sessionMacros;
+    sessionMacros.PushBackRange(predefinedMacros);
 
-    desc.preprocessorMacros = ref_compilerSetup.m_PredefinedMacros.GetData();
-    desc.preprocessorMacroCount = ref_compilerSetup.m_PredefinedMacros.GetCount();
+    ezStringBuilder sbTempStorage;
+    sessionMacros.PushBack({"SP_RHI_API", ezFmt("{}", eGraphicsApi.GetValue()).GetTextCStr(sbTempStorage)});
+    sessionMacros.PushBack({"SP_RHI_SHADER", "1"});
+
+    desc.preprocessorMacros = sessionMacros.GetData();
+    desc.preprocessorMacroCount = sessionMacros.GetCount();
 
     Slang::ComPtr<slang::ISession> session;
 
@@ -435,36 +562,6 @@ namespace RPI
       return session;
 
     return nullptr;
-  }
-
-  Slang::ComPtr<slang::IEntryPoint> spShaderManager::GetEntryPointForStage(Slang::ComPtr<slang::IModule> pModule, ezEnum<RHI::spShaderStage> eStage)
-  {
-    const ezInt32 uiEntryPointCount = pModule->getDefinedEntryPointCount();
-
-    Slang::ComPtr<slang::IEntryPoint> pEntryPoint;
-
-    for (ezInt32 i = 0; i < uiEntryPointCount; ++i)
-    {
-      pModule->getDefinedEntryPoint(i, pEntryPoint.writeRef());
-      slang::ProgramLayout* pReflection = pEntryPoint->getLayout();
-
-      auto* pEntryPointReflection = pReflection->getEntryPointByIndex(0);
-      const SlangStage eSlangStage = pEntryPointReflection->getStage();
-
-      if (
-        (eStage == RHI::spShaderStage::VertexShader && eSlangStage == SLANG_STAGE_VERTEX) ||
-        (eStage == RHI::spShaderStage::PixelShader && eSlangStage == SLANG_STAGE_PIXEL) ||
-        (eStage == RHI::spShaderStage::DomainShader && eSlangStage == SLANG_STAGE_DOMAIN) ||
-        (eStage == RHI::spShaderStage::HullShader && eSlangStage == SLANG_STAGE_HULL) ||
-        (eStage == RHI::spShaderStage::GeometryShader && eSlangStage == SLANG_STAGE_GEOMETRY) ||
-        (eStage == RHI::spShaderStage::ComputeShader && eSlangStage == SLANG_STAGE_COMPUTE) ||
-        (eStage == RHI::spShaderStage::None && eSlangStage == SLANG_STAGE_NONE))
-      {
-        break;
-      }
-    }
-
-    return pEntryPoint;
   }
 } // namespace RPI
 
