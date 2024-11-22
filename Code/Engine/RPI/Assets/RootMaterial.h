@@ -29,6 +29,8 @@ namespace RPI
 
   public:
     spRootMaterial();
+    spRootMaterial(const spRootMaterial& other);
+    spRootMaterial(spRootMaterial&& other) noexcept;
 
     ~spRootMaterial();
 
@@ -37,6 +39,9 @@ namespace RPI
     [[nodiscard]] EZ_ALWAYS_INLINE const spMaterialMetadata& GetMetadata() const { return m_Metadata; }
 
     [[nodiscard]] EZ_ALWAYS_INLINE ezByteArrayPtr GetShaderBytes() const { return m_ShaderBytes; }
+
+    spRootMaterial& operator=(const spRootMaterial& other);
+    spRootMaterial& operator=(spRootMaterial&& other) noexcept;
 
   private:
     spMaterialMetadata m_Metadata;

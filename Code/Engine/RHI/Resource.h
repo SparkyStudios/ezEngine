@@ -331,16 +331,19 @@ namespace RHI
     friend class spDevice;
 
   public:
+    /// \brief Default destructor.
+    virtual ~spDeviceResourceFactory() = default;
+
     /// \brief Gets the graphics device for which resources are created.
     [[nodiscard]] EZ_ALWAYS_INLINE spDevice* GetDevice() const { return m_pDevice; }
 
     /// \brief Creates a new spShader resource.
     /// \param [in] description The description of the shader resource to create.
-    /// @return An handle to the created shader resource.
+    /// @return A handle to the created shader resource.
     virtual ezSharedPtr<spShader> CreateShader(const spShaderDescription& description) = 0;
 
     /// \brief Creates a new spShaderProgram resource.
-    /// @return An handle to the created shader program resource.
+    /// @return A handle to the created shader program resource.
     virtual ezSharedPtr<spShaderProgram> CreateShaderProgram() = 0;
 
     /// \brief Creates a new \a spRenderTarget resource.
@@ -357,77 +360,77 @@ namespace RHI
 
     /// \brief Creates a new spTexture resource.
     /// \param [in] description The description of the texture resource to create.
-    /// @return An handle to the created texture resource.
+    /// @return A handle to the created texture resource.
     virtual ezSharedPtr<spTexture> CreateTexture(const spTextureDescription& description) = 0;
 
     /// \brief Creates a new spSampler resource.
     /// \param [in] description The description of the sampler resource to create.
-    /// @return An handle to the created sampler resource.
+    /// @return A handle to the created sampler resource.
     virtual ezSharedPtr<spSampler> CreateSampler(const spSamplerDescription& description) = 0;
 
     /// \brief Creates a new spInputLayout resource.
     /// \param [in] description The description of the input layout resource to create.
-    /// @return An handle to the created input layout resource.
+    /// @return A handle to the created input layout resource.
     virtual ezSharedPtr<spInputLayout> CreateInputLayout(const spInputLayoutDescription& description) = 0;
 
     /// \brief Creates a new spBuffer resource.
     /// \param [in] description The description of the buffer resource to create.
-    /// @return An handle to the created buffer resource.
+    /// @return A handle to the created buffer resource.
     virtual ezSharedPtr<spBuffer> CreateBuffer(const spBufferDescription& description) = 0;
 
     /// \brief Creates a new spBufferRange resource.
     /// \param [in] description The description of the buffer range resource to create.
-    /// @return An handle to the created buffer range resource.
+    /// @return A handle to the created buffer range resource.
     virtual ezSharedPtr<spBufferRange> CreateBufferRange(const spBufferRangeDescription& description) = 0;
 
     /// \brief Creates a new spResourceLayout resource.
     /// \param [in] description The description of the resource layout resource to create.
-    /// @return An handle to the created resource layout resource.
+    /// @return A handle to the created resource layout resource.
     virtual ezSharedPtr<spResourceLayout> CreateResourceLayout(const spResourceLayoutDescription& description) = 0;
 
     /// \brief Creates a new spTextureView resource.
     /// \param [in] description The description of the texture view resource to create.
-    /// @return An handle to the created texture view resource.
+    /// @return A handle to the created texture view resource.
     virtual ezSharedPtr<spTextureView> CreateTextureView(const spTextureViewDescription& description) = 0;
 
     /// \brief Creates a new spTextureView resource.
     /// \param [in] hTexture The handle to the texture from which create the view.
-    /// @return An handle to the created texture view resource.
+    /// @return A handle to the created texture view resource.
     virtual ezSharedPtr<spTextureView> CreateTextureView(const spResourceHandle& hTexture) = 0;
 
     /// \brief Creates a new spSwapchain resource.
     /// \param [in] description The description of the swapchain resource to create.
-    /// @return An handle to the created swapchain resource.
+    /// @return A handle to the created swapchain resource.
     virtual ezSharedPtr<spSwapchain> CreateSwapchain(const spSwapchainDescription& description) = 0;
 
     /// \brief Creates a new spFence resource.
     /// \param [in] description The description of the fence resource to create.
-    /// @return An handle to the created fence resource.
+    /// @return A handle to the created fence resource.
     virtual ezSharedPtr<spFence> CreateFence(const spFenceDescription& description) = 0;
 
     /// \brief Creates a new spFramebuffer resource.
     /// \param [in] description The description of the framebuffer resource to create.
-    /// @return An handle to the created framebuffer resource.
+    /// @return A handle to the created framebuffer resource.
     virtual ezSharedPtr<spFramebuffer> CreateFramebuffer(const spFramebufferDescription& description) = 0;
 
     /// \brief Creates a new spCommandList resource.
     /// \param [in] description The description of the command list resource to create.
-    /// @return An handle to the created command list resource.
+    /// @return A handle to the created command list resource.
     virtual ezSharedPtr<spCommandList> CreateCommandList(const spCommandListDescription& description) = 0;
 
     /// \brief Creates a new spComputePipeline resource.
     /// \param [in] description The description of the compute pipeline resource to create.
-    /// @return An handle to the created compute pipeline resource.
+    /// @return A handle to the created compute pipeline resource.
     virtual ezSharedPtr<spComputePipeline> CreateComputePipeline(const spComputePipelineDescription& description) = 0;
 
     /// \brief Creates a new spGraphicPipeline resource
     /// \param [in] description The description of the graphic pipeline resource to create.
-    /// @return An handle to the created graphic pipeline resource.
+    /// @return A handle to the created graphic pipeline resource.
     virtual ezSharedPtr<spGraphicPipeline> CreateGraphicPipeline(const spGraphicPipelineDescription& description) = 0;
 
     /// \brief Creates a new spResourceSet resource.
     /// \param [in] description The description of the resource set resource to create.
-    /// @return An handle to the created resource set resource.
+    /// @return A handle to the created resource set resource.
     virtual ezSharedPtr<spResourceSet> CreateResourceSet(const spResourceSetDescription& description) = 0;
 
   protected:

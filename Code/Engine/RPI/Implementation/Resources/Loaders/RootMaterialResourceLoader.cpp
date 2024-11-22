@@ -17,6 +17,7 @@
 #include <RPI/Materials/MaterialParser.h>
 #include <RPI/Resources/Loaders/RootMaterialResourceLoader.h>
 #include <RPI/Resources/RootMaterialResource.h>
+#include <RPI/Shaders/ShaderManager.h>
 
 #include <Foundation/Configuration/CVar.h>
 #include <Foundation/Configuration/Startup.h>
@@ -29,7 +30,7 @@ using namespace RPI;
 static spRootMaterialResourceLoader s_RootMaterialResourceLoader;
 
 // clang-format off
-EZ_BEGIN_SUBSYSTEM_DECLARATION(RAI, RootMaterialResource)
+EZ_BEGIN_SUBSYSTEM_DECLARATION(RPI, RootMaterialResource)
 
   BEGIN_SUBSYSTEM_DEPENDENCIES
     "Foundation",
@@ -98,13 +99,15 @@ ezResourceLoadData spRootMaterialResourceLoader::OpenDataStream(const ezResource
 
     w << metadata;
 
-    ezDynamicArray<ezUInt8> content;
-    content.SetCountUninitialized(static_cast<ezUInt32>(file.GetFileSize()));
+    auto* pShaderManager = ezSingletonRegistry::GetRequiredSingletonInstance<spShaderManager>();
+    Slang::ComPtr<slang::IBlob> pBlob;
 
-    const ezUInt64 uiBytesRead = file.ReadBytes(content.GetData(), content.GetCount());
+    spRootMaterialCompilerSetup setup;
+    setup.m_sRootMaterialPath = sAbsolutePath;
+    pShaderManager->CompileRootMaterial(setup, pBlob);
 
-    w << uiBytesRead;
-    w.WriteBytes(content.GetData(), uiBytesRead).IgnoreResult();
+    w << pBlob->getBufferSize();
+    w.WriteBytes(pBlob->getBufferPointer(), pBlob->getBufferSize()).IgnoreResult();
   }
   else if (sAbsolutePath.HasExtension("spRootMaterial"))
   {

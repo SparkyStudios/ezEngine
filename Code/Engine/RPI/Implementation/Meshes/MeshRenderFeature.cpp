@@ -116,6 +116,32 @@ namespace RPI
     mesh.CreateRHIIndexBuffer();
     mesh.CreateRHIInputLayout();
 
+    auto* pShaderManager = ezSingletonRegistry::GetRequiredSingletonInstance<spShaderManager>();
+
+    {
+      spShaderCompilerSetup setup;
+      setup.m_hMaterialResource = pMeshRenderObject->m_hMaterialResource;
+      setup.m_hShaderResource = m_hShader;
+      setup.m_eStage = RHI::spShaderStage::PixelShader;
+      setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
+
+      m_pPixelShader = pShaderManager->CompileShader(setup);
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+      m_pPixelShader->SetDebugName("MeshRenderFeature_PixelShader");
+#endif
+    }
+
+    {
+      m_pShaderProgram = cl->GetDevice()->GetResourceFactory()->CreateShaderProgram();
+      m_pShaderProgram->Attach(m_pVertexShader);
+      m_pShaderProgram->Attach(m_pPixelShader);
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+      m_pShaderProgram->SetDebugName("MeshRenderFeature_ShaderProgram");
+#endif
+    }
+
     {
       RHI::spResourceSetDescription desc{};
       desc.m_hResourceLayout = m_pResourceLayout->GetHandle();
@@ -175,35 +201,14 @@ namespace RPI
 
     {
       spShaderCompilerSetup setup;
+      setup.m_hShaderResource = m_hShader;
       setup.m_eStage = RHI::spShaderStage::VertexShader;
       setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
 
-      m_pVertexShader = pShaderManager->CompileShader(m_hShader, setup);
+      m_pVertexShader = pShaderManager->CompileShader(setup);
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
       m_pVertexShader->SetDebugName("MeshRenderFeature_VertexShader");
-#endif
-    }
-
-    {
-      spShaderCompilerSetup setup;
-      setup.m_eStage = RHI::spShaderStage::PixelShader;
-      setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
-
-      m_pPixelShader = pShaderManager->CompileShader(m_hShader, setup);
-
-#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-      m_pPixelShader->SetDebugName("MeshRenderFeature_PixelShader");
-#endif
-    }
-
-    {
-      m_pShaderProgram = pDevice->GetResourceFactory()->CreateShaderProgram();
-      m_pShaderProgram->Attach(m_pVertexShader);
-      m_pShaderProgram->Attach(m_pPixelShader);
-
-#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-      m_pShaderProgram->SetDebugName("MeshRenderFeature_ShaderProgram");
 #endif
     }
 

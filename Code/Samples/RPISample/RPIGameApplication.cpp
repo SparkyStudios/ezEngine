@@ -78,11 +78,12 @@ ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* p
     const auto col = ezColor(ezMath::Sin(c), ezMath::Cos(c), ezMath::Sin(-c), 1.0f);
 
     spShaderCompilerSetup setup;
+    setup.m_hShaderResource = shader;
     setup.m_eStage = spShaderStage::VertexShader;
     setup.m_SpecializationConstants.PushBack(spShaderSpecializationConstant(ezMakeHashedString("TestSpec"), true));
     setup.m_PredefinedMacros.PushBack({"USE_NORMAL", "1"});
 
-    context->GetShaderManager()->CompileShader(shader, setup);
+    context->GetShaderManager()->CompileShader(setup);
 
     ezSharedPtr<spScopeProfiler> pTestScopeProfiler;
 
@@ -198,8 +199,15 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
   descMaterial2.GetMaterial().GetData().m_Roughness = 0.f;
   descMaterial2.GetMaterial().GetData().m_Metalness = 1.f;
 
+  spMaterialResourceDescriptor descMaterial3;
+  descMaterial3.GetMaterial().SetRootMaterialResource(ezResourceManager::LoadResource<spRootMaterialResource>(":shaders/Materials/Lit.slangm"));
+  descMaterial3.GetMaterial().GetData().m_AlbedoColor = ezColor::Blue;
+  descMaterial3.GetMaterial().GetData().m_Roughness = 0.f;
+  descMaterial3.GetMaterial().GetData().m_Metalness = 1.f;
+
   auto material1 = ezResourceManager::CreateResource<spMaterialResource, spMaterialResourceDescriptor>("TestMaterial1", std::move(descMaterial1));
   auto material2 = ezResourceManager::CreateResource<spMaterialResource, spMaterialResourceDescriptor>("TestMaterial2", std::move(descMaterial2));
+  auto material3 = ezResourceManager::CreateResource<spMaterialResource, spMaterialResourceDescriptor>("TestMaterial3", std::move(descMaterial3));
 
   {
     EZ_LOCK(m_pWorld->GetWriteMarker());
@@ -248,7 +256,7 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
       {
         pComponent->SetMeshFile(":project/objects/male_lod.spMesh");
         pComponent->SetLODMaxDistance(100);
-        pComponent->SetMaterial(material1);
+        pComponent->SetMaterial(material3);
       }
     }
 
