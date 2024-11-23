@@ -20,14 +20,19 @@ private Q_SLOTS:
   void on_ListPlatforms_itemSelectionChanged();
   void on_ButtonAdd_clicked();
   void on_ButtonRemove_clicked();
+  void on_ButtonBrowseProject_clicked();
 
 private:
   ezResult Save();
   void Load();
   void SetCurrentPlatform(const char* szPlatform);
   void StoreCurrentPlatform();
+  void PopulatePlatformsList();
 
+  ezString m_sProjectPath;
   ezString m_sCurrentPlatform;
   ezAmplitudeAssetProfiles m_ConfigsOld;
   ezAmplitudeAssetProfiles m_Configs;
+
+  bool m_bDirty = false;
 };

@@ -1,4 +1,3 @@
-#include "Foundation/IO/FileSystem/FileWriter.h"
 #include <EditorPluginAmplitudeAudio/EditorPluginAmplitudeAudioPCH.h>
 
 #include <EditorPluginAmplitudeAudio/Dialogs/AmplitudeAudioSettingsDialog.moc.h>
@@ -18,6 +17,8 @@ ezQtAmplitudeAudioSettingsDialog::ezQtAmplitudeAudioSettingsDialog(QWidget* pare
 {
   setupUi(this);
 
+  Load();
+
   ezStringBuilder projectPath;
   if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/" AMPLITUDE_ASSETS_DIR_NAME, &projectPath, nullptr).Failed())
   {
@@ -25,34 +26,12 @@ ezQtAmplitudeAudioSettingsDialog::ezQtAmplitudeAudioSettingsDialog(QWidget* pare
     return;
   }
 
-  Load();
-
   for (auto it = m_Configs.m_AssetProfiles.GetIterator(); it.IsValid(); ++it)
   {
     ListPlatforms->addItem(it.Key().GetData());
   }
 
-  ezStringBuilder banksPath(projectPath);
-  banksPath.AppendPath(kSoundBanksFolder);
-
-  ezFileSystemIterator fsIt;
-  for (fsIt.StartSearch(projectPath, ezFileSystemIteratorFlags::ReportFiles); fsIt.IsValid(); fsIt.Next())
-  {
-    ezStringBuilder fileName = fsIt.GetStats().m_sName;
-    if (fileName.HasExtension(".amconfig"))
-    {
-      ComboConfig->addItem(fileName.GetData());
-    }
-  }
-
-  for (fsIt.StartSearch(banksPath, ezFileSystemIteratorFlags::ReportFiles); fsIt.IsValid(); fsIt.Next())
-  {
-    ezStringBuilder fileName = fsIt.GetStats().m_sName;
-    if (fileName.HasExtension(".ambank"))
-    {
-      ComboBank->addItem(fileName.GetData());
-    }
-  }
+  PopulatePlatformsList();
 
   if (!m_Configs.m_AssetProfiles.IsEmpty())
   {
@@ -77,6 +56,8 @@ ezResult ezQtAmplitudeAudioSettingsDialog::Save()
 
   ddl.BeginObject("Middleware", s_szAmplitudeMiddlewareName);
   {
+    ezOpenDdlUtils::StoreString(ddl, m_sProjectPath, "ProjectPath");
+
     if (m_Configs.Save(ddl).Failed())
     {
       ezQtUiServices::GetSingleton()->MessageBoxWarning("Failed to save the Audio System configuration file\n'>project/Sounds/AudioSystemConfig.ddl'");
@@ -105,6 +86,9 @@ void ezQtAmplitudeAudioSettingsDialog::Load()
   {
     if (pChild->IsCustomType("Middleware") && pChild->HasName() && pChild->GetName().Compare(s_szAmplitudeMiddlewareName) == 0)
     {
+      if (const ezOpenDdlReaderElement* pElement = pChild->FindChildOfType(ezOpenDdlPrimitiveType::String, "ProjectPath"))
+        m_sProjectPath = pElement->GetPrimitivesString()[0];
+
       if (m_Configs.Load(*pChild).Failed())
         ezLog::Error("Failed to load configuration for audio middleware: {0}.", pChild->GetName());
 
@@ -114,6 +98,7 @@ void ezQtAmplitudeAudioSettingsDialog::Load()
     pChild = pChild->GetSibling();
   }
 
+  InputProjectPath->setText(QString::fromStdString(m_sProjectPath.GetData()));
   m_ConfigsOld = m_Configs;
 }
 
@@ -162,13 +147,44 @@ void ezQtAmplitudeAudioSettingsDialog::StoreCurrentPlatform()
   cfg.m_sEngineConfigFileName = ComboConfig->currentText().toUtf8().data();
 }
 
+void ezQtAmplitudeAudioSettingsDialog::PopulatePlatformsList()
+{
+  if (m_sProjectPath.IsEmpty())
+    return;
+
+  ezStringBuilder basePath(m_sProjectPath);
+  basePath.AppendPath("build");
+
+  ezStringBuilder banksPath(basePath);
+  banksPath.AppendPath(kSoundBanksFolder);
+
+  ezFileSystemIterator fsIt;
+  for (fsIt.StartSearch(basePath, ezFileSystemIteratorFlags::ReportFiles); fsIt.IsValid(); fsIt.Next())
+  {
+    ezStringBuilder fileName = fsIt.GetStats().m_sName;
+    if (fileName.HasExtension(".amconfig"))
+    {
+      ComboConfig->addItem(fileName.GetData());
+    }
+  }
+
+  for (fsIt.StartSearch(banksPath, ezFileSystemIteratorFlags::ReportFiles); fsIt.IsValid(); fsIt.Next())
+  {
+    ezStringBuilder fileName = fsIt.GetStats().m_sName;
+    if (fileName.HasExtension(".ambank"))
+    {
+      ComboBank->addItem(fileName.GetData());
+    }
+  }
+}
+
 void ezQtAmplitudeAudioSettingsDialog::on_ButtonBox_clicked(QAbstractButton* pButton)
 {
   if (pButton == ButtonBox->button(QDialogButtonBox::Ok))
   {
     StoreCurrentPlatform();
 
-    if (m_ConfigsOld.m_AssetProfiles != m_Configs.m_AssetProfiles)
+    if (m_ConfigsOld.m_AssetProfiles != m_Configs.m_AssetProfiles || m_bDirty)
     {
       if (ezQtUiServices::GetSingleton()->MessageBoxQuestion("Save the changes to the Amplitude Audio configuration?\nYou need to reload the project for the changes to take effect.", QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
       {
@@ -233,4 +249,25 @@ void ezQtAmplitudeAudioSettingsDialog::on_ButtonRemove_clicked()
 
   m_Configs.m_AssetProfiles.Remove(sPlatform);
   delete ListPlatforms->item(row);
+}
+
+void ezQtAmplitudeAudioSettingsDialog::on_ButtonBrowseProject_clicked()
+{
+  ezStringBuilder projectPath;
+  if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/", &projectPath, nullptr).Failed())
+  {
+    projectPath.Append(QDir::homePath().toStdString().c_str());
+  }
+
+  QString selectedPath = QDir::toNativeSeparators(
+    QFileDialog::getOpenFileName(this, "Select Amplitude Project", QString::fromStdString(projectPath.GetData()), ".amproject"));
+
+  if (!selectedPath.isEmpty())
+  {
+    m_sProjectPath = selectedPath.toUtf8().data();
+    InputProjectPath->setText(selectedPath);
+
+    PopulatePlatformsList();
+    m_bDirty = true;
+  }
 }

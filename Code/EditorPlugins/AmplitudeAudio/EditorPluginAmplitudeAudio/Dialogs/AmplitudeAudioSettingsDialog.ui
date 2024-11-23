@@ -19,6 +19,27 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Project:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="InputProjectPath"/>
+     </item>
+     <item>
+      <widget class="QPushButton" name="ButtonBrowseProject">
+       <property name="text">
+        <string>Browse...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
     <layout class="QGridLayout" name="gridLayout">
      <item row="0" column="0">
       <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -49,7 +70,7 @@
          </property>
          <property name="icon">
           <iconset resource="../../../../Tools/Libs/GuiFoundation/QtResources/resources.qrc">
-           <normaloff>:/GuiFoundation/Icons/DocumentAdd16.png</normaloff>:/GuiFoundation/Icons/DocumentAdd16.png</iconset>
+           <normaloff>:/GuiFoundation/Icons/Add.svg</normaloff>:/GuiFoundation/Icons/Add.svg</iconset>
          </property>
         </widget>
        </item>
@@ -60,7 +81,7 @@
          </property>
          <property name="icon">
           <iconset resource="../../../../Tools/Libs/GuiFoundation/QtResources/resources.qrc">
-           <normaloff>:/GuiFoundation/Icons/Delete16.png</normaloff>:/GuiFoundation/Icons/Delete16.png</iconset>
+           <normaloff>:/GuiFoundation/Icons/Delete.svg</normaloff>:/GuiFoundation/Icons/Delete.svg</iconset>
          </property>
         </widget>
        </item>
