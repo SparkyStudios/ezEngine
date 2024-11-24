@@ -371,7 +371,7 @@ ezResult spDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHa
 
 ezUniquePtr<spRenderPass> spDemoRenderGraphNode::Compile(spRenderGraphBuilder* pBuilder)
 {
-  m_hShader = ezResourceManager::LoadResource<RAI::spShaderResource>(":project/Shaders/sample.slang");
+  m_hShader = ezResourceManager::LoadResource<RPI::spShaderResource>(":project/Shaders/sample.slang");
 
   auto& data = m_PassData;
   const auto& resources = pBuilder->GetResources();

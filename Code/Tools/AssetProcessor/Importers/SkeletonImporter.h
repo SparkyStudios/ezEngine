@@ -16,10 +16,10 @@
 
 #include <AssetProcessor/Importers/AssimpImporter.h>
 
-#include <RAI/Resources/SkeletonResource.h>
+#include <RPI/Resources/SkeletonResource.h>
 
 /// \brief spAssimpImporter implementation for skeletons.
-class spSkeletonImporter : public spAssimpImporter
+class spSkeletonImporter final : public spAssimpImporter
 {
   // spAssimpImporter
 
@@ -32,7 +32,7 @@ public:
   explicit spSkeletonImporter(const spAssimpImporterConfiguration& configuration);
 
 private:
-  ezResult ImportSkeleton(const aiScene* pScene, RAI::spSkeletonResourceDescriptor* out_pSkeleton);
+  ezResult ImportSkeleton(const aiScene* pScene, RPI::spSkeletonResourceDescriptor* out_pSkeleton);
   const aiNode* FindRootBone(const aiNode* pNode, const aiNode* pRootNode) const;
-  void ImportSkeletonNode(const aiNode* pNode, ezDynamicArray<RAI::spSkeleton::Joint>& out_joints, ezUInt16 uiJointIndex, ezUInt16 uiParentJointIndex);
+  void ImportSkeletonNode(const aiNode* pNode, ezDynamicArray<RPI::spSkeleton::Joint>& out_joints, ezUInt16 uiJointIndex, ezUInt16 uiParentJointIndex);
 };

@@ -19,7 +19,7 @@
 
 #include <assimp/scene.h>
 
-using namespace RAI;
+using namespace RPI;
 
 static void ExtractTransform(const aiNode* pNode, spMesh::Node& ref_node)
 {

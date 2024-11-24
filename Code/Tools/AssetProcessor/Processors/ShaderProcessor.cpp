@@ -18,50 +18,18 @@
 #include <Foundation/IO/OSFile.h>
 #include <Foundation/Utilities/AssetFileHeader.h>
 
-#include <RAI/Resources/ShaderResource.h>
+#include <RPI/Resources/ShaderResource.h>
 
-using namespace RAI;
+using namespace RPI;
 
 ezResult spShaderProcessor::Process(ezStringView sFileName, ezStringView sOutputPath)
 {
   EZ_LOG_BLOCK("spShaderProcessor::Process", sFileName);
 
-  if (!ezOSFile::ExistsDirectory(sFileName))
-  {
-    ezLog::Warning("You must provide a directory with SPSL binary code.");
-    return EZ_FAILURE;
-  }
-
-  ezSet<ezStringView> filesToProcess;
-
-  for (auto it = m_Configuration.m_ShaderVariants.GetIterator(); it.IsValid(); it.Next())
-    filesToProcess.Insert(*it);
-
-  ezMap<ezUInt32, spShaderVariant> variants;
-
-  ezFileSystemIterator it;
-  for (it.StartSearch(sFileName, ezFileSystemIteratorFlags::ReportFiles); it.IsValid(); it.Next())
-  {
-    ezStringBuilder filePath = it.GetCurrentPath();
-    filePath.AppendPath(it.GetStats().m_sName);
-
-    if (!filePath.HasExtension("spsv"))
-      continue;
-
-    ezUInt32 uiHash = m_ShaderImporter.GetVariantHash(filePath);
-    spShaderVariant& variant = variants[uiHash];
-
-    ezResult result = EZ_SUCCESS;
-    if (filesToProcess.IsEmpty() || filesToProcess.Contains(filePath))
-      result = m_ShaderImporter.ImportVariant(filePath, variant);
-
-    if (result == EZ_FAILURE)
-      return result;
-  }
+  // TODO: Import shader file and generate Slang IR
 
   spShaderResourceDescriptor desc;
-  desc.GetShader().m_sName.Assign(sFileName.GetFileName());
-  desc.GetShader().m_Variants = std::move(variants);
+  // TODO: Populate shader resource descriptor
 
   ezStringBuilder sOutputFile(sOutputPath);
   sOutputFile.AppendFormat("/{}.spShader", sFileName.GetFileName());

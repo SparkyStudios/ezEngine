@@ -176,3 +176,5 @@ bool spRootMaterialResourceLoader::IsResourceOutdated(const ezResource* pResourc
 
   return true;
 }
+
+EZ_STATICLINK_FILE(RPI, RPI_Implementation_Resources_Loaders_RootMaterialResourceLoader);

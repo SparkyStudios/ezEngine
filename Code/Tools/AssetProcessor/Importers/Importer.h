@@ -19,7 +19,7 @@
 
 #include <mpack/mpack.h>
 
-/// \brief Base class for all RAI assets importers.
+/// \brief Base class for all RPI assets importers.
 /// \tparam TConfig The configuration type of the importer.
 template <typename TConfig>
 class spImporter

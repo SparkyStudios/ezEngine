@@ -38,7 +38,7 @@ static ezUInt32 g_uiWindowHeight = 480;
 
 ezResult spDemoRenderGraphNode::Setup(spRenderGraphBuilder* pBuilder, const ezHashTable<ezHashedString, spResourceHandle>& resources)
 {
-  m_hShaderAsset = ezResourceManager::LoadResource<RAI::spShaderResource>(":project/Shaders/sample.slang");
+  m_hShaderAsset = ezResourceManager::LoadResource<RPI::spShaderResource>(":project/Shaders/sample.slang");
 
   const ezResourceLock resource(m_hShaderAsset, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
   if (!resource.IsValid())

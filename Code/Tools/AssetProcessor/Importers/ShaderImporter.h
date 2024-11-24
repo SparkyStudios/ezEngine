@@ -16,13 +16,13 @@
 
 #include <AssetProcessor/Importers/Importer.h>
 
-#include <RAI/Resources/ShaderVariantResource.h>
+#include <RPI/Resources/ShaderResource.h>
 
-struct spShaderVariantImporterConfiguration
+struct spShaderImporterConfiguration
 {
 };
 
-class spShaderImporter : public spImporter<spShaderVariantImporterConfiguration>
+class spShaderImporter final : public spImporter<spShaderImporterConfiguration>
 {
   // spImporter
 
@@ -32,8 +32,6 @@ public:
   // spShaderVariantImporter
 
 public:
-  explicit spShaderImporter(const spShaderVariantImporterConfiguration& config);
+  explicit spShaderImporter(const spShaderImporterConfiguration& config);
   ~spShaderImporter() override = default;
-  ezUInt32 GetVariantHash(ezStringView sPath);
-  ezResult ImportVariant(ezStringView sVariantPath, RAI::spShaderVariant& variant);
 };

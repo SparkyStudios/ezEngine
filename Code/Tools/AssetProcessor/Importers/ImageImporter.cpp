@@ -14,14 +14,14 @@
 
 #include <AssetProcessor/Importers/ImageImporter.h>
 
-#include <RAI/Resources/ImageResource.h>
+#include <RPI/Resources/ImageResource.h>
 
 #include <Texture/Image/Image.h>
 #include <Texture/Image/ImageUtils.h>
 
 #include <ktx.h>
 
-using namespace RAI;
+using namespace RPI;
 using namespace RHI;
 
 // Provided by VK_VERSION_1_0

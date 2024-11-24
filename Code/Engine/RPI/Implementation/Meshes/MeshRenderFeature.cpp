@@ -116,9 +116,9 @@ namespace RPI
     mesh.CreateRHIIndexBuffer();
     mesh.CreateRHIInputLayout();
 
-    auto* pShaderManager = ezSingletonRegistry::GetRequiredSingletonInstance<spShaderManager>();
-
     {
+      auto* pShaderManager = ezSingletonRegistry::GetRequiredSingletonInstance<spShaderManager>();
+
       spShaderCompilerSetup setup;
       setup.m_hMaterialResource = pMeshRenderObject->m_hMaterialResource;
       setup.m_hShaderResource = m_hShader;
@@ -194,12 +194,14 @@ namespace RPI
   spMeshRenderFeature::spMeshRenderFeature()
     : spRenderFeature(EZ_NEW(RHI::spDeviceAllocatorWrapper::GetAllocator(), spMeshRenderFeatureExtractor))
   {
-    m_hShader = ezResourceManager::LoadResource<RAI::spShaderResource>(":shaders/RPI/RenderStages/OpaqueRenderStage.slang");
+    // TODO: Get the shader from the current render stage instead.
+    m_hShader = ezResourceManager::LoadResource<spShaderResource>(":shaders/RPI/RenderStages/OpaqueRenderStage.slang");
 
     const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<spRenderSystem>()->GetDevice();
-    auto* pShaderManager = ezSingletonRegistry::GetRequiredSingletonInstance<spShaderManager>();
 
     {
+      auto* pShaderManager = ezSingletonRegistry::GetRequiredSingletonInstance<spShaderManager>();
+
       spShaderCompilerSetup setup;
       setup.m_hShaderResource = m_hShader;
       setup.m_eStage = RHI::spShaderStage::VertexShader;

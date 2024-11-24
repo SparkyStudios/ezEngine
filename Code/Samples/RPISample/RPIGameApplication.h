@@ -16,7 +16,7 @@
 
 #include <GameEngine/GameApplication/GameApplication.h>
 
-#include <RAI/Resources/ShaderResource.h>
+#include <RPI/Resources/ShaderResource.h>
 
 #include <RPI/Composition/Compositor.h>
 #include <RPI/Core/RenderSystem.h>
@@ -89,5 +89,5 @@ private:
   spResourceHandle m_hRenderTarget;
   spResourceHandle m_hShader;
 
-  RAI::spShaderResourceHandle m_hShaderAsset;
+  RPI::spShaderResourceHandle m_hShaderAsset;
 };

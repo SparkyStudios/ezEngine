@@ -16,20 +16,17 @@
 
 #include <AssetProcessor/Importers/Importer.h>
 
-#include <RAI/Resources/RootMaterialResource.h>
+#include <RPI/Resources/RootMaterialResource.h>
 
 struct spRootMaterialImporterConfiguration
 {};
 
-/// \brief spAssimpImporter implementation for skeletons.
-class spRootMaterialImporter : public spImporter<spRootMaterialImporterConfiguration>
+class spRootMaterialImporter final : public spImporter<spRootMaterialImporterConfiguration>
 {
   // spImporter
 
 public:
   ezResult Import(ezStringView sAssetPath, ezStringView sOutputPath) override;
-
-  // spShaderVariantImporter
 
 public:
   explicit spRootMaterialImporter(const spRootMaterialImporterConfiguration& config);

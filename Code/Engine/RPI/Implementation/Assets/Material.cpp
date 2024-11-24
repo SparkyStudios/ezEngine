@@ -109,5 +109,6 @@ namespace RPI
   {
     return m_Properties.GetHeapMemoryUsage() + m_SpecializationConstants.GetHeapMemoryUsage();
   }
-
 } // namespace RPI
+
+EZ_STATICLINK_FILE(RPI, RPI_Implementation_Assets_Material);
