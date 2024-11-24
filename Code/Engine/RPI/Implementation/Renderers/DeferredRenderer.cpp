@@ -43,14 +43,18 @@ namespace RPI
       }
 
       // Geometry Pass
+      cl->PushDebugGroup("Geometry Pass");
       {
         // Depth Pre-pass
+        cl->PushDebugGroup("Depth Pre-Pass");
         {
         }
+        cl->PopDebugGroup();
 
         // Static Opaque/G-Buffer Pass
-        pRenderContext->GetExtractionData().m_pRenderStage = m_pStaticOpaqueRenderStage.Borrow();
+        cl->PushDebugGroup("Static Opaque/G-Buffer Pass");
         {
+          pRenderContext->GetExtractionData().m_pRenderStage = m_pStaticOpaqueRenderStage.Borrow();
           ezDynamicArray<spRenderObject*> opaqueObjects;
 
           // Filter
@@ -93,10 +97,13 @@ namespace RPI
             m_uiLastStaticPassHash = uiCurrentStaticPassHash;
           }
         }
+        cl->PopDebugGroup();
 
         // Dynamic Opaque/G-Buffer Pass
+        cl->PushDebugGroup("Dynamic Opaque/G-Buffer Pass");
         {
         }
+        cl->PopDebugGroup();
       }
 
       // Light Culling Pass

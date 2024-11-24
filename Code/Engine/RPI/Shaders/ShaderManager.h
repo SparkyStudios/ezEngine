@@ -16,7 +16,7 @@
 
 #include <RPI/RPIDLL.h>
 
-#include <RAI/Resources/ShaderResource.h>
+#include <RPI/Resources/ShaderResource.h>
 #include <RPI/Resources/MaterialResource.h>
 
 #include <RHI/Shader.h>
@@ -31,7 +31,7 @@ namespace RPI
   struct spShaderCompilerSetup
   {
     /// \brief The shader resource this setup applies to.
-    RAI::spShaderResourceHandle m_hShaderResource;
+    spShaderResourceHandle m_hShaderResource;
 
     /// \brief The shader stage to generate.
     ezEnum<RHI::spShaderStage> m_eStage;

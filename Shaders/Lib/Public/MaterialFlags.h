@@ -34,10 +34,10 @@ static constexpr uint k_HasTextureHeightMask    = 10;
 /// for your custom flags, by adding at least one.
 /// Example:
 ///```slang
-/// static constexpr uint k_MyCustomMaterialMask1 = k_MaxReservedMateriaMask + 1;
-/// static constexpr uint k_MyCustomMaterialMask2 = k_MaxReservedMateriaMask + 2;
+/// static constexpr uint k_MyCustomMaterialMask1 = k_MaxReservedMaterialMask + 1;
+/// static constexpr uint k_MyCustomMaterialMask2 = k_MaxReservedMaterialMask + 2;
 /// ```
-static constexpr uint k_MaxReservedMateriaMask = 10;
+static constexpr uint k_MaxReservedMaterialMask = 10;
 
 #ifndef SP_RHI_SHADER
 #  undef uint

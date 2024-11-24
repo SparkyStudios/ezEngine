@@ -19,7 +19,7 @@
 #include <RPI/Features/RenderFeatureExtractor.h>
 #include <RPI/Meshes/MeshRenderObject.h>
 
-#include <RAI/Resources/MeshResource.h>
+#include <RPI/Resources/MeshResource.h>
 
 #include <Foundation/Communication/Message.h>
 

@@ -81,7 +81,7 @@ namespace RPI
   {
   }
 
-  void spMeshComponent::SetMesh(const RAI::spMeshResourceHandle& hMeshResource)
+  void spMeshComponent::SetMesh(const spMeshResourceHandle& hMeshResource)
   {
     if (m_RenderObject.m_hMeshResource == hMeshResource)
       return;
@@ -160,10 +160,10 @@ namespace RPI
 
   void spMeshComponent::SetMeshFile(const char* szMeshFile)
   {
-    RAI::spMeshResourceHandle hMeshResource;
+    spMeshResourceHandle hMeshResource;
 
     if (!ezStringUtils::IsNullOrEmpty(szMeshFile))
-      hMeshResource = ezResourceManager::LoadResource<RAI::spMeshResource>(szMeshFile);
+      hMeshResource = ezResourceManager::LoadResource<spMeshResource>(szMeshFile);
 
     SetMesh(hMeshResource);
   }

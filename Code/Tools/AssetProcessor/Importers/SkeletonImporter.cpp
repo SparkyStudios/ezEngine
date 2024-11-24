@@ -19,7 +19,7 @@
 
 #include <assimp/scene.h>
 
-using namespace RAI;
+using namespace RPI;
 
 ezResult spSkeletonImporter::Import(ezStringView sFilePath, ezStringView sOutputPath)
 {

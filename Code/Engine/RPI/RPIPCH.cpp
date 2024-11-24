@@ -19,7 +19,26 @@ EZ_STATICLINK_LIBRARY(RPI)
   if (bReturn)
     return;
 
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Assets_BlendShape);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Assets_Image);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Assets_Material);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Assets_Mesh);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Assets_RootMaterial);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Assets_Sampler);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Assets_Shader);
   EZ_STATICLINK_REFERENCE(RPI_Implementation_Core_RenderContext);
   EZ_STATICLINK_REFERENCE(RPI_Implementation_Core_RenderThread);
   EZ_STATICLINK_REFERENCE(RPI_Implementation_Pipeline_RenderPipeline);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_Loaders_RootMaterialResourceLoader);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_Loaders_ShaderResourceLoader);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_Loaders_TextureResourceLoader);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_BlendShapeResource);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_ImageResource);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_MaterialResource);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_MeshResource);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_RootMaterialResource);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_SamplerResource);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_ShaderResource);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_SkeletonResource);
+  EZ_STATICLINK_REFERENCE(RPI_Implementation_Resources_Texture2DResource);
 }

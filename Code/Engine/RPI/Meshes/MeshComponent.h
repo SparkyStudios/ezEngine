@@ -16,7 +16,7 @@
 
 #include <RPI/RPIDLL.h>
 
-#include <RAI/Resources/MeshResource.h>
+#include <RPI/Resources/MeshResource.h>
 
 #include <RPI/Features/RenderComponent.h>
 #include <RPI/Meshes/MeshRenderFeature.h>
@@ -68,10 +68,10 @@ namespace RPI
   public:
     /// \brief Sets the handle to the mesh resource to be rendered.
     /// \param hMeshResource The handle to the mesh resource to be rendered.
-    void SetMesh(const RAI::spMeshResourceHandle& hMeshResource);
+    void SetMesh(const spMeshResourceHandle& hMeshResource);
 
     /// \brief Returns the handle to the mesh resource to be rendered.
-    EZ_ALWAYS_INLINE const RAI::spMeshResourceHandle& GetMesh() const { return m_RenderObject.m_hMeshResource; }
+    EZ_ALWAYS_INLINE const spMeshResourceHandle& GetMesh() const { return m_RenderObject.m_hMeshResource; }
 
     /// \brief Sets the handle to the material resource to be used for rendering.
     /// \param hMaterialResource The handle to the material resource to be used for rendering.

@@ -20,7 +20,7 @@
 #include <RPI/Meshes/MeshRenderFeatureExtractor.h>
 #include <RPI/Shaders/ConstantBuffer.h>
 
-#include <RAI/Resources/ShaderResource.h>
+#include <RPI/Resources/ShaderResource.h>
 
 namespace RPI
 {
@@ -47,7 +47,7 @@ namespace RPI
       ezMat4 values;
     };
 
-    ezTypedResourceHandle<RAI::spShaderResource> m_hShader;
+    ezTypedResourceHandle<spShaderResource> m_hShader;
     ezSharedPtr<RHI::spShader> m_pVertexShader;
     ezSharedPtr<RHI::spShader> m_pPixelShader;
     ezSharedPtr<RHI::spShaderProgram> m_pShaderProgram;

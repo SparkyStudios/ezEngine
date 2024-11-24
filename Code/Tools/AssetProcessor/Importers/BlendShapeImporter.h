@@ -16,7 +16,7 @@
 
 #include <AssetProcessor/Importers/AssimpImporter.h>
 
-#include <RAI/Resources/BlendShapeResource.h>
+#include <RPI/Resources/BlendShapeResource.h>
 
 class spBlendShapeImporter final : public spAssimpImporter
 {

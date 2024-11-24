@@ -17,7 +17,7 @@
 #include <Foundation/IO/FileSystem/FileWriter.h>
 #include <Foundation/Utilities/AssetFileHeader.h>
 
-using namespace RAI;
+using namespace RPI;
 
 ezResult spBlendShapeImporter::Import(ezStringView sFilePath, ezStringView sOutputPath)
 {

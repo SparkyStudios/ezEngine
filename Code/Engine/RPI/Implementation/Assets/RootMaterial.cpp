@@ -77,3 +77,5 @@ namespace RPI
     return *this;
   }
 } // namespace RPI
+
+EZ_STATICLINK_FILE(RPI, RPI_Implementation_Assets_RootMaterial);

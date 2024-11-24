@@ -23,7 +23,7 @@
 
 #include <mikktspace.h>
 
-using namespace RAI;
+using namespace RPI;
 
 
 static constexpr float kMeshOptimizationThreshold = 1.01f; // allow up to 1% worse ACMR to get more reordering opportunities for overdraw
@@ -395,7 +395,7 @@ void spMeshProcessor::ProcessNodes(const aiNode* pNode, ezUInt32 uiParentIndex, 
 
   node.m_pNode = pNode;
   node.m_uiParentNodeIndex = uiParentIndex;
-  node.m_uiLOD = uiLOD;
+  node.m_uiLOD = static_cast<ezUInt32>(uiLOD);
 
   if (node.m_uiLOD != ezInvalidIndex && node.m_uiLOD > inout_uiMaxLOD)
     inout_uiMaxLOD = node.m_uiLOD;

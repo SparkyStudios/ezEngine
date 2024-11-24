@@ -20,7 +20,7 @@
 #include <RPI/Resources/MaterialResource.h>
 #include <RPI/Shaders/ShaderTypes.h>
 
-#include <RAI/Resources/MeshResource.h>
+#include <RPI/Resources/MeshResource.h>
 
 namespace RPI
 {
@@ -85,7 +85,7 @@ namespace RPI
     void CreateMaterialBuffer();
     void UpdateBuffer();
 
-    RAI::spMeshResourceHandle m_hMeshResource;
+    spMeshResourceHandle m_hMeshResource;
     spMaterialResourceHandle m_hMaterialResource;
     spRootMaterialResourceHandle m_hRootMaterialResource;
 

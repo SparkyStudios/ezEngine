@@ -16,7 +16,7 @@
 
 #include <AssetProcessor/Importers/Importer.h>
 
-#include <RAI/Mesh.h>
+#include <RPI/Assets/Mesh.h>
 
 #include <Foundation/Strings/HashedString.h>
 
@@ -132,8 +132,8 @@ struct spAssimpImporterContext
 
   ezHashTable<ezHashedString, ezUInt32> m_MeshesNames;
 
-  RAI::spMeshDataBuilder m_MeshDataBuilder;
-  RAI::spMesh::Data m_MeshData;
+  RPI::spMeshDataBuilder m_MeshDataBuilder;
+  RPI::spMesh::Data m_MeshData;
 
   ezDynamicArray<spAssimpNode> m_Nodes;
 

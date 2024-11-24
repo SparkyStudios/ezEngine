@@ -16,10 +16,10 @@
 
 #include <AssetProcessor/Importers/AssimpImporter.h>
 
-#include <RAI/Resources/MeshResource.h>
+#include <RPI/Resources/MeshResource.h>
 
 /// \brief spAssimpImporter implementation for meshes.
-class spMeshImporter : public spAssimpImporter
+class spMeshImporter final : public spAssimpImporter
 {
   // spAssimpImporter
 
@@ -32,7 +32,7 @@ public:
   explicit spMeshImporter(const spAssimpImporterConfiguration& configuration);
 
 private:
-  void CollectLODMeshes(ezUInt32 uiNodeIndex, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex, ezDynamicArray<RAI::spMesh::Entry>& ref_entries, ezUInt32& ref_uiVerticesUpperBound, ezUInt32& ref_uiIndicesUpperBound);
-  ezResult ImportLODMeshes(ezUInt8 uiLOD, RAI::spMesh* out_pMesh, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex);
-  void ComputeMeshHierarchy(const ezDynamicArray<RAI::spMesh::Entry>& nodeEntries, ezUInt32 uiParentIndex, ezUInt32 uiLOD, RAI::spMesh::Node& ref_root);
+  void CollectLODMeshes(ezUInt32 uiNodeIndex, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex, ezDynamicArray<RPI::spMesh::Entry>& ref_entries, ezUInt32& ref_uiVerticesUpperBound, ezUInt32& ref_uiIndicesUpperBound);
+  ezResult ImportLODMeshes(ezUInt8 uiLOD, RPI::spMesh* out_pMesh, ezUInt32& out_uiBaseVertex, ezUInt32& out_uiBaseIndex);
+  void ComputeMeshHierarchy(const ezDynamicArray<RPI::spMesh::Entry>& nodeEntries, ezUInt32 uiParentIndex, ezUInt32 uiLOD, RPI::spMesh::Node& ref_root);
 };

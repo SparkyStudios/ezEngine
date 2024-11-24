@@ -170,3 +170,5 @@ namespace RPI
 
 #pragma endregion
 } // namespace RPI
+
+EZ_STATICLINK_FILE(RPI, RPI_Implementation_Resources_MaterialResource);
