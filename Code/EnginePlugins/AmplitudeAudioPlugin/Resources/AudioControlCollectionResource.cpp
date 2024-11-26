@@ -1,3 +1,17 @@
+// Copyright (c) 2022-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginPCH.h>
 
 #include <AmplitudeAudioPlugin/AmplitudeAudioSingleton.h>
@@ -6,8 +20,8 @@
 #include <AudioSystemPlugin/Core/AudioSystem.h>
 #include <AudioSystemPlugin/Core/AudioSystemAllocator.h>
 
-#include <Foundation/Utilities/AssetFileHeader.h>
 #include <Foundation/IO/FileSystem/FileReader.h>
+#include <Foundation/Utilities/AssetFileHeader.h>
 
 EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(ezAmplitudeAudioControlCollectionResource, 1, ezRTTIDefaultAllocator<ezAmplitudeAudioControlCollectionResource>)
 EZ_END_DYNAMIC_REFLECTED_TYPE;
@@ -38,6 +52,7 @@ void ezAmplitudeAudioControlCollectionResourceDescriptor::Save(ezStreamWriter& s
 
       ezMemoryStreamWriter writer(&storage);
       ezUInt8 Temp[4 * 1024];
+
       while (true)
       {
         const ezUInt64 uiRead = file.ReadBytes(Temp, EZ_ARRAY_SIZE(Temp));
@@ -118,6 +133,7 @@ void ezAmplitudeAudioControlCollectionResource::Register()
 
     switch (entry.m_Type)
     {
+      default:
       case ezAmplitudeAudioControlType::Switch:
       case ezAmplitudeAudioControlType::Invalid:
         ezLog::Error("Unable to register an audio control. Encountered an invalid control type");
@@ -158,6 +174,7 @@ void ezAmplitudeAudioControlCollectionResource::Unregister()
 
     switch (entry.m_Type)
     {
+      default:
       case ezAmplitudeAudioControlType::Invalid:
       case ezAmplitudeAudioControlType::Switch:
         ezLog::Error("Unable to unregister an audio control. Encountered an invalid control type.");
@@ -212,7 +229,7 @@ void ezAmplitudeAudioControlCollectionResource::RegisterTrigger(const char* szTr
   if (!pAudioSystem->IsInitialized())
     return;
 
-  auto* pAudioMiddleware = ezAmplitude::GetSingleton();
+  const auto* pAudioMiddleware = ezAmplitude::GetSingleton();
   if (pAudioMiddleware == nullptr)
   {
     ezLog::Error("Unable to register a trigger in the audio system: No audio middleware currently running.");
@@ -270,7 +287,7 @@ void ezAmplitudeAudioControlCollectionResource::RegisterRtpc(const char* szRtpcN
   if (!pAudioSystem->IsInitialized())
     return;
 
-  auto* pAudioMiddleware = ezAmplitude::GetSingleton();
+  const auto* pAudioMiddleware = ezAmplitude::GetSingleton();
   if (pAudioMiddleware == nullptr)
   {
     ezLog::Error("Unable to register a rtpc in the audio system: No audio middleware currently running.");
@@ -328,7 +345,7 @@ void ezAmplitudeAudioControlCollectionResource::RegisterSwitchState(const char* 
   if (!pAudioSystem->IsInitialized())
     return;
 
-  auto* pAudioMiddleware = ezAmplitude::GetSingleton();
+  const auto* pAudioMiddleware = ezAmplitude::GetSingleton();
   if (pAudioMiddleware == nullptr)
   {
     ezLog::Error("Unable to register a switch state in the audio system: No audio middleware currently running.");
@@ -386,7 +403,7 @@ void ezAmplitudeAudioControlCollectionResource::RegisterEnvironment(const char* 
   if (!pAudioSystem->IsInitialized())
     return;
 
-  auto* pAudioMiddleware = ezAmplitude::GetSingleton();
+  const auto* pAudioMiddleware = ezAmplitude::GetSingleton();
   if (pAudioMiddleware == nullptr)
   {
     ezLog::Error("Unable to register an environment in the audio system: No audio middleware currently running.");

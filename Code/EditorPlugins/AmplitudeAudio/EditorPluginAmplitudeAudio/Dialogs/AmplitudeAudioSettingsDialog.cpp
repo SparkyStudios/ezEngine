@@ -1,3 +1,17 @@
+// Copyright (c) 2022-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <EditorPluginAmplitudeAudio/EditorPluginAmplitudeAudioPCH.h>
 
 #include <EditorPluginAmplitudeAudio/Dialogs/AmplitudeAudioSettingsDialog.moc.h>
@@ -19,34 +33,18 @@ ezQtAmplitudeAudioSettingsDialog::ezQtAmplitudeAudioSettingsDialog(QWidget* pare
 
   Load();
 
-  ezStringBuilder projectPath;
-  if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/" AMPLITUDE_ASSETS_DIR_NAME, &projectPath, nullptr).Failed())
-  {
-    ezLog::Error("No Amplitude assets directory available. Cannot customize project settings.");
-    return;
-  }
-
   for (auto it = m_Configs.m_AssetProfiles.GetIterator(); it.IsValid(); ++it)
-  {
     ListPlatforms->addItem(it.Key().GetData());
-  }
 
   PopulatePlatformsList();
 
   if (!m_Configs.m_AssetProfiles.IsEmpty())
-  {
-    if (m_Configs.m_AssetProfiles.Contains("Desktop"))
-      SetCurrentPlatform("Desktop");
-    else
-      SetCurrentPlatform(m_Configs.m_AssetProfiles.GetIterator().Key());
-  }
+    SetCurrentPlatform(m_Configs.m_AssetProfiles.GetIterator().Key());
   else
-  {
     SetCurrentPlatform("");
-  }
 }
 
-ezResult ezQtAmplitudeAudioSettingsDialog::Save()
+ezResult ezQtAmplitudeAudioSettingsDialog::Save() const
 {
   ezFileWriter file;
   EZ_SUCCEED_OR_RETURN(file.Open(":project/Sounds/AudioSystemConfig.ddl"));
@@ -56,8 +54,6 @@ ezResult ezQtAmplitudeAudioSettingsDialog::Save()
 
   ddl.BeginObject("Middleware", s_szAmplitudeMiddlewareName);
   {
-    ezOpenDdlUtils::StoreString(ddl, m_sProjectPath, "ProjectPath");
-
     if (m_Configs.Save(ddl).Failed())
     {
       ezQtUiServices::GetSingleton()->MessageBoxWarning("Failed to save the Audio System configuration file\n'>project/Sounds/AudioSystemConfig.ddl'");
@@ -86,9 +82,6 @@ void ezQtAmplitudeAudioSettingsDialog::Load()
   {
     if (pChild->IsCustomType("Middleware") && pChild->HasName() && pChild->GetName().Compare(s_szAmplitudeMiddlewareName) == 0)
     {
-      if (const ezOpenDdlReaderElement* pElement = pChild->FindChildOfType(ezOpenDdlPrimitiveType::String, "ProjectPath"))
-        m_sProjectPath = pElement->GetPrimitivesString()[0];
-
       if (m_Configs.Load(*pChild).Failed())
         ezLog::Error("Failed to load configuration for audio middleware: {0}.", pChild->GetName());
 
@@ -98,7 +91,7 @@ void ezQtAmplitudeAudioSettingsDialog::Load()
     pChild = pChild->GetSibling();
   }
 
-  InputProjectPath->setText(QString::fromStdString(m_sProjectPath.GetData()));
+  InputProjectPath->setText(QString::fromStdString(m_Configs.m_sProjectPath.GetData()));
   m_ConfigsOld = m_Configs;
 }
 
@@ -149,10 +142,10 @@ void ezQtAmplitudeAudioSettingsDialog::StoreCurrentPlatform()
 
 void ezQtAmplitudeAudioSettingsDialog::PopulatePlatformsList()
 {
-  if (m_sProjectPath.IsEmpty())
+  if (m_Configs.m_sProjectPath.IsEmpty())
     return;
 
-  ezStringBuilder basePath(m_sProjectPath);
+  ezStringBuilder basePath(ezPathUtils::GetFileDirectory(m_Configs.m_sProjectPath));
   basePath.AppendPath("build");
 
   ezStringBuilder banksPath(basePath);
@@ -264,7 +257,7 @@ void ezQtAmplitudeAudioSettingsDialog::on_ButtonBrowseProject_clicked()
 
   if (!selectedPath.isEmpty())
   {
-    m_sProjectPath = selectedPath.toUtf8().data();
+    m_Configs.m_sProjectPath = selectedPath.toUtf8().data();
     InputProjectPath->setText(selectedPath);
 
     PopulatePlatformsList();

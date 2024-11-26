@@ -1,3 +1,17 @@
+// Copyright (c) 2022-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #pragma once
 
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginDLL.h>
@@ -7,7 +21,7 @@
 #include <SparkyStudios/Audio/Amplitude/Amplitude.h>
 #include <SparkyStudios/Audio/Amplitude/Core/Common/Types.h>
 
-/// \brief The type of a control. This is used by control assets to determine the type of the control
+/// \brief The type of control. This is used by control assets to determine the type of the control
 /// when the audio system is parsing them.
 struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioControlType
 {
@@ -42,15 +56,15 @@ struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioControlType
 
 EZ_DECLARE_REFLECTABLE_TYPE(EZ_AMPLITUDEAUDIOPLUGIN_DLL, ezAmplitudeAudioControlType);
 
-class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioEntityData : public ezAudioSystemEntityData
+class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioEntityData final : public ezAudioSystemEntityData
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioEntityData, ezAudioSystemEntityData);
 
 public:
   explicit ezAmplitudeAudioEntityData(const SparkyStudios::Audio::Amplitude::AmEntityID uiEntityID, bool bHasPosition = true)
     : ezAudioSystemEntityData()
-    , m_uiAmId(uiEntityID)
     , m_bHasPosition(bHasPosition)
+    , m_uiAmId(uiEntityID)
   {
   }
 
@@ -58,7 +72,7 @@ public:
   const SparkyStudios::Audio::Amplitude::AmEntityID m_uiAmId;
 };
 
-class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioListenerData : public ezAudioSystemListenerData
+class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioListenerData final : public ezAudioSystemListenerData
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioListenerData, ezAudioSystemListenerData);
 
@@ -72,7 +86,7 @@ public:
   const SparkyStudios::Audio::Amplitude::AmListenerID m_uiAmId;
 };
 
-class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioTriggerData : public ezAudioSystemTriggerData
+class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioTriggerData final : public ezAudioSystemTriggerData
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioTriggerData, ezAudioSystemTriggerData);
 
@@ -86,7 +100,7 @@ public:
   const SparkyStudios::Audio::Amplitude::AmEventID m_uiAmId;
 };
 
-class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioRtpcData : public ezAudioSystemRtpcData
+class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioRtpcData final : public ezAudioSystemRtpcData
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioRtpcData, ezAudioSystemRtpcData);
 
@@ -100,7 +114,7 @@ public:
   const SparkyStudios::Audio::Amplitude::AmRtpcID m_uiAmId;
 };
 
-class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioSwitchStateData : public ezAudioSystemSwitchStateData
+class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioSwitchStateData final : public ezAudioSystemSwitchStateData
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioSwitchStateData, ezAudioSystemSwitchStateData);
 
@@ -116,7 +130,7 @@ public:
   const SparkyStudios::Audio::Amplitude::AmObjectID m_uiSwitchStateId;
 };
 
-class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioEnvironmentData : public ezAudioSystemEnvironmentData
+class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioEnvironmentData final : public ezAudioSystemEnvironmentData
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioEnvironmentData, ezAudioSystemEnvironmentData);
 
@@ -132,7 +146,7 @@ public:
   const SparkyStudios::Audio::Amplitude::AmEffectID m_uiEffectId;
 };
 
-class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioEventData : public ezAudioSystemEventData
+class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioEventData final : public ezAudioSystemEventData
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioEventData, ezAudioSystemEventData);
 
@@ -148,7 +162,7 @@ public:
   const SparkyStudios::Audio::Amplitude::AmEventID m_uiAmId;
 };
 
-class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioSoundBankData : public ezAudioSystemBankData
+class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioSoundBankData final : public ezAudioSystemBankData
 {
   EZ_ADD_DYNAMIC_REFLECTION(ezAmplitudeAudioSoundBankData, ezAudioSystemBankData);
 
@@ -160,6 +174,6 @@ public:
   {
   }
 
-  const SparkyStudios::Audio::Amplitude::AmEventID m_uiAmId;
+  const SparkyStudios::Audio::Amplitude::AmBankID m_uiAmId;
   const ezString m_sFileName;
 };

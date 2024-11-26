@@ -1,3 +1,17 @@
+// Copyright (c) 2022-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginPCH.h>
 
 #include <AmplitudeAudioPlugin/AmplitudeAudioSingleton.h>
@@ -43,6 +57,9 @@ namespace Log
         case Amplitude::eLogMessageLevel_Error:
           ezLog::Error("[Amplitude] {0}", message.c_str());
           break;
+        case Amplitude::eLogMessageLevel_Success:
+          ezLog::Success("[Amplitude] {0}", message.c_str());
+          break;
       }
     }
   } g_Logger;
@@ -52,19 +69,19 @@ namespace Log
     switch (notification)
     {
       case Amplitude::DeviceNotification::Opened:
-        ezLog::Info("Device opened: {0}", device.mDeviceName.c_str());
+        ezLog::Info("[Amplitude] Device opened: {0}", device.mDeviceName.c_str());
         break;
       case Amplitude::DeviceNotification::Started:
-        ezLog::Info("Device started: {0}", device.mDeviceName.c_str());
+        ezLog::Info("[Amplitude] Device started: {0}", device.mDeviceName.c_str());
         break;
       case Amplitude::DeviceNotification::Stopped:
-        ezLog::Info("Device stopped: {0}", device.mDeviceName.c_str());
+        ezLog::Info("[Amplitude] Device stopped: {0}", device.mDeviceName.c_str());
         break;
       case Amplitude::DeviceNotification::Rerouted:
-        ezLog::Info("Device rerouted: {0}", device.mDeviceName.c_str());
+        ezLog::Info("[Amplitude] Device rerouted: {0}", device.mDeviceName.c_str());
         break;
       case Amplitude::DeviceNotification::Closed:
-        ezLog::Info("Device closed: {0}", device.mDeviceName.c_str());
+        ezLog::Info("[Amplitude] Device closed: {0}", device.mDeviceName.c_str());
         break;
     }
   }
@@ -116,8 +133,8 @@ namespace Utils
 {
   static AmVec3 ezVec3ToAmVec3(const ezVec3& vec)
   {
-    // Amplitude and ezEngine use the same coordinate system, so no conversion is needed
-    return AM_V3(vec.x, vec.y, vec.z);
+    const Amplitude::CartesianCoordinateSystem ez(Amplitude::CartesianCoordinateSystem::Axis::PositiveY, Amplitude::CartesianCoordinateSystem::Axis::PositiveX, Amplitude::CartesianCoordinateSystem::Axis::PositiveZ);
+    return Amplitude::CartesianCoordinateSystem::ConvertToDefault(AM_V3(vec.x, vec.y, vec.z), ez);
   }
 } // namespace Utils
 
@@ -132,14 +149,10 @@ void ezAmplitudeConfiguration::Save(ezOpenDdlWriter& ddl) const
 void ezAmplitudeConfiguration::Load(const ezOpenDdlReaderElement& ddl)
 {
   if (const ezOpenDdlReaderElement* pElement = ddl.FindChildOfType(ezOpenDdlPrimitiveType::String, s_szAmplitudeConfigKeyInitBank))
-  {
     m_sInitSoundBank = pElement->GetPrimitivesString()[0];
-  }
 
   if (const ezOpenDdlReaderElement* pElement = ddl.FindChildOfType(ezOpenDdlPrimitiveType::String, s_szAmplitudeConfigKeyEngineConfigFileName))
-  {
     m_sEngineConfigFileName = pElement->GetPrimitivesString()[0];
-  }
 }
 
 bool ezAmplitudeConfiguration::operator==(const ezAmplitudeConfiguration& rhs) const
@@ -158,6 +171,8 @@ ezResult ezAmplitudeAssetProfiles::Save(ezOpenDdlWriter& writer) const
   if (m_AssetProfiles.IsEmpty())
     return EZ_FAILURE;
 
+  ezOpenDdlUtils::StoreString(writer, m_sProjectPath, "ProjectPath");
+
   for (auto it = m_AssetProfiles.GetIterator(); it.IsValid(); ++it)
   {
     if (!it.Key().IsEmpty())
@@ -175,6 +190,9 @@ ezResult ezAmplitudeAssetProfiles::Save(ezOpenDdlWriter& writer) const
 
 ezResult ezAmplitudeAssetProfiles::Load(const ezOpenDdlReaderElement& reader)
 {
+  if (const ezOpenDdlReaderElement* pElement = reader.FindChildOfType(ezOpenDdlPrimitiveType::String, "ProjectPath"))
+    m_sProjectPath = pElement->GetPrimitivesString()[0];
+
   m_AssetProfiles.Clear();
 
   const ezOpenDdlReaderElement* pChild = reader.GetFirstChild();
@@ -197,7 +215,6 @@ ezResult ezAmplitudeAssetProfiles::Load(const ezOpenDdlReaderElement& reader)
 
 ezAmplitude::ezAmplitude()
   : m_SingletonRegistrar(this)
-  , m_pEngine(nullptr)
   , m_dCurrentTime(0.0)
   , m_bInitialized(false)
 {
@@ -219,6 +236,10 @@ ezResult ezAmplitude::Startup()
   if (m_bInitialized)
     return EZ_SUCCESS;
 
+  // Initialize the engine
+  Amplitude::Logger::SetLogger(&Log::g_Logger);
+  Amplitude::RegisterDeviceNotificationCallback(Log::DeviceNotification);
+
   Amplitude::MemoryManager::Initialize(std::make_unique<Memory::Impl>());
   EZ_ASSERT_DEBUG(Amplitude::MemoryManager::IsInitialized(), "Amplitude memory manager not initialized.");
 
@@ -232,10 +253,6 @@ ezResult ezAmplitude::Startup()
 
   const auto& config = m_pData->m_Configs.m_AssetProfiles[m_pData->m_sPlatform];
 
-  // Initialize the engine
-  Amplitude::Logger::SetLogger(&Log::g_Logger);
-  Amplitude::RegisterDeviceNotificationCallback(Log::DeviceNotification);
-
   ezStringBuilder assetsPath;
 
   if (ezFileSystem::ResolvePath(":project/Sounds/Amplitude/" AMPLITUDE_ASSETS_DIR_NAME, &assetsPath, nullptr).Failed())
@@ -244,17 +261,17 @@ ezResult ezAmplitude::Startup()
     return EZ_FAILURE;
   }
 
+  // Register default plugins
   Amplitude::Engine::RegisterDefaultPlugins();
 
-  m_pEngine = Amplitude::Engine::GetInstance();
-  EZ_ASSERT_DEBUG(m_pEngine != nullptr, "Amplitude engine not available.");
+  EZ_ASSERT_DEBUG(amEngine != nullptr, "Amplitude engine not available.");
 
   m_Loader.SetBasePath(AM_STRING_TO_OS_STRING(assetsPath.GetData()));
-  m_pEngine->SetFileSystem(&m_Loader);
+  amEngine->SetFileSystem(&m_Loader);
 
   // Wait for the file system to complete loading
-  m_pEngine->StartOpenFileSystem();
-  while (!m_pEngine->TryFinalizeOpenFileSystem())
+  amEngine->StartOpenFileSystem();
+  while (!amEngine->TryFinalizeOpenFileSystem())
     Amplitude::Thread::Sleep(1);
 
   const auto sPluginsPath = m_Loader.ResolvePath(AM_OS_STRING("plugins"));
@@ -278,7 +295,7 @@ ezResult ezAmplitude::Startup()
     }
   }
 
-  if (!m_pEngine->Initialize(AM_STRING_TO_OS_STRING(config.m_sEngineConfigFileName.GetData())))
+  if (!amEngine->Initialize(AM_STRING_TO_OS_STRING(config.m_sEngineConfigFileName.GetData())))
   {
     ezLog::Error("Amplitude engine initialization failed with the config file '{0}'.", config.m_sEngineConfigFileName);
     return EZ_FAILURE;
@@ -286,15 +303,15 @@ ezResult ezAmplitude::Startup()
 
   Amplitude::AmBankID uiInitBankId = Amplitude::kAmInvalidObjectId;
 
-  if (!m_pEngine->LoadSoundBank(AM_STRING_TO_OS_STRING(config.m_sInitSoundBank.GetData()), uiInitBankId))
+  if (!amEngine->LoadSoundBank(AM_STRING_TO_OS_STRING(config.m_sInitSoundBank.GetData()), uiInitBankId))
   {
     ezLog::Error("Amplitude engine initialization failed. Could not load initial sound bank '{0}'.", config.m_sInitSoundBank);
     return EZ_FAILURE;
   }
 
   // Wait for the sound files to complete loading
-  m_pEngine->StartLoadSoundFiles();
-  while (!m_pEngine->TryFinalizeLoadSoundFiles())
+  amEngine->StartLoadSoundFiles();
+  while (!amEngine->TryFinalizeLoadSoundFiles())
     Amplitude::Thread::Sleep(1);
 
   m_bInitialized = true;
@@ -309,17 +326,16 @@ ezResult ezAmplitude::Shutdown()
   {
     m_bInitialized = false;
 
-    if (m_pEngine != nullptr)
+    if (amEngine != nullptr)
     {
-      m_pEngine->Deinitialize();
+      amEngine->Deinitialize();
 
       // Wait for the file system to complete closing
-      m_pEngine->StartCloseFileSystem();
-      while (!m_pEngine->TryFinalizeCloseFileSystem())
+      amEngine->StartCloseFileSystem();
+      while (!amEngine->TryFinalizeCloseFileSystem())
         Amplitude::Thread::Sleep(1);
 
       Amplitude::Engine::DestroyInstance();
-      m_pEngine = nullptr;
     }
 
     Amplitude::Engine::UnregisterDefaultPlugins();
@@ -347,9 +363,7 @@ ezResult ezAmplitude::Release()
 ezResult ezAmplitude::StopAllSounds()
 {
   if (m_bInitialized)
-  {
-    m_pEngine->StopAll();
-  }
+    amEngine->StopAll();
 
   return EZ_SUCCESS;
 }
@@ -363,7 +377,7 @@ ezResult ezAmplitude::AddEntity(ezAudioSystemEntityData* pEntityData, const char
   if (pAmplitudeEntity == nullptr)
     return EZ_FAILURE;
 
-  const Amplitude::Entity& entity = m_pEngine->AddEntity(pAmplitudeEntity->m_uiAmId);
+  const Amplitude::Entity& entity = amEngine->AddEntity(pAmplitudeEntity->m_uiAmId);
 
   return entity.Valid() ? EZ_SUCCESS : EZ_FAILURE;
 }
@@ -405,8 +419,8 @@ ezResult ezAmplitude::RemoveEntity(ezAudioSystemEntityData* pEntityData)
   if (pAmplitudeEntity == nullptr)
     return EZ_FAILURE;
 
-  m_pEngine->RemoveEntity(pAmplitudeEntity->m_uiAmId);
-  const Amplitude::Entity& entity = m_pEngine->GetEntity(pAmplitudeEntity->m_uiAmId);
+  amEngine->RemoveEntity(pAmplitudeEntity->m_uiAmId);
+  const Amplitude::Entity& entity = amEngine->GetEntity(pAmplitudeEntity->m_uiAmId);
 
   return entity.Valid() ? EZ_FAILURE : EZ_SUCCESS;
 }
@@ -420,7 +434,7 @@ ezResult ezAmplitude::SetEntityTransform(ezAudioSystemEntityData* pEntityData, c
   if (pAmplitudeEntity == nullptr)
     return EZ_FAILURE;
 
-  if (const Amplitude::Entity& entity = m_pEngine->GetEntity(pAmplitudeEntity->m_uiAmId); entity.Valid())
+  if (const Amplitude::Entity& entity = amEngine->GetEntity(pAmplitudeEntity->m_uiAmId); entity.Valid())
   {
     entity.SetLocation(Utils::ezVec3ToAmVec3(Transform.m_vPosition));
     entity.SetOrientation(Amplitude::Orientation(Utils::ezVec3ToAmVec3(-Transform.m_vForward), Utils::ezVec3ToAmVec3(Transform.m_vUp)));
@@ -463,7 +477,7 @@ ezResult ezAmplitude::ActivateTrigger(ezAudioSystemEntityData* pEntityData, cons
   entityId = pAmplitudeEntity->m_uiAmId;
   // }
 
-  const Amplitude::Entity& entity = m_pEngine->GetEntity(entityId);
+  const Amplitude::Entity& entity = amEngine->GetEntity(entityId);
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
   if (entityId != Amplitude::kAmInvalidObjectId && !entity.Valid())
@@ -472,9 +486,9 @@ ezResult ezAmplitude::ActivateTrigger(ezAudioSystemEntityData* pEntityData, cons
   }
 #endif
 
-  if (Amplitude::EventHandle const event = m_pEngine->GetEventHandle(pAmplitudeTrigger->m_uiAmId))
+  if (Amplitude::EventHandle const event = amEngine->GetEventHandle(pAmplitudeTrigger->m_uiAmId))
   {
-    if (const Amplitude::EventCanceler& canceler = m_pEngine->Trigger(event, entity); canceler.Valid())
+    if (const Amplitude::EventCanceler& canceler = amEngine->Trigger(event, entity); canceler.Valid())
     {
       pAmplitudeEvent->m_eState = ezAudioSystemEventState::Playing;
       pAmplitudeEvent->m_EventCanceler = canceler;
@@ -527,6 +541,7 @@ ezResult ezAmplitude::StopEvent(ezAudioSystemEntityData* pEntityData, const ezAu
       }
       break;
     }
+
     default:
     {
       ezLog::Warning("[Amplitude] Stopping an event of this type is not supported yet");
@@ -556,7 +571,7 @@ ezResult ezAmplitude::SetRtpc(ezAudioSystemEntityData* pEntityData, const ezAudi
   if (pAmplitudeRtpc == nullptr)
     return EZ_FAILURE;
 
-  Amplitude::RtpcHandle const rtpc = m_pEngine->GetRtpcHandle(pAmplitudeRtpc->m_uiAmId);
+  Amplitude::RtpcHandle const rtpc = amEngine->GetRtpcHandle(pAmplitudeRtpc->m_uiAmId);
 
   if (rtpc == nullptr)
     return EZ_FAILURE;
@@ -579,7 +594,7 @@ ezResult ezAmplitude::ResetRtpc(ezAudioSystemEntityData* pEntityData, const ezAu
   if (pAmplitudeRtpc == nullptr)
     return EZ_FAILURE;
 
-  Amplitude::RtpcHandle const rtpc = m_pEngine->GetRtpcHandle(pAmplitudeRtpc->m_uiAmId);
+  Amplitude::RtpcHandle const rtpc = amEngine->GetRtpcHandle(pAmplitudeRtpc->m_uiAmId);
 
   if (rtpc == nullptr)
     return EZ_FAILURE;
@@ -602,7 +617,7 @@ ezResult ezAmplitude::SetSwitchState(ezAudioSystemEntityData* pEntityData, const
   if (pAmplitudeSwitch == nullptr)
     return EZ_FAILURE;
 
-  Amplitude::SwitchHandle const _switch = m_pEngine->GetSwitchHandle(pAmplitudeSwitch->m_uiSwitchId);
+  Amplitude::SwitchHandle const _switch = amEngine->GetSwitchHandle(pAmplitudeSwitch->m_uiSwitchId);
 
   if (_switch == nullptr)
     return EZ_FAILURE;
@@ -621,7 +636,7 @@ ezResult ezAmplitude::SetObstructionAndOcclusion(ezAudioSystemEntityData* pEntit
   if (pAmplitudeEntity == nullptr)
     return EZ_FAILURE;
 
-  const Amplitude::Entity& entity = m_pEngine->GetEntity(pAmplitudeEntity->m_uiAmId);
+  const Amplitude::Entity& entity = amEngine->GetEntity(pAmplitudeEntity->m_uiAmId);
 
   if (!entity.Valid())
     return EZ_FAILURE;
@@ -645,13 +660,13 @@ ezResult ezAmplitude::SetEnvironmentAmount(ezAudioSystemEntityData* pEntityData,
   if (pAmplitudeEnvironment == nullptr)
     return EZ_FAILURE;
 
-  const Amplitude::Environment& environment = m_pEngine->AddEnvironment(pAmplitudeEnvironment->m_uiAmId);
+  const Amplitude::Environment& environment = amEngine->AddEnvironment(pAmplitudeEnvironment->m_uiAmId);
   environment.SetEffect(pAmplitudeEnvironment->m_uiEffectId);
 
   if (!environment.Valid())
     return EZ_FAILURE;
 
-  const Amplitude::Entity& entity = m_pEngine->GetEntity(pAmplitudeEntity->m_uiAmId);
+  const Amplitude::Entity& entity = amEngine->GetEntity(pAmplitudeEntity->m_uiAmId);
 
   if (!entity.Valid())
     return EZ_FAILURE;
@@ -670,7 +685,7 @@ ezResult ezAmplitude::AddListener(ezAudioSystemListenerData* pListenerData, cons
   if (pAmplitudeListener == nullptr)
     return EZ_FAILURE;
 
-  const Amplitude::Listener& listener = m_pEngine->AddListener(pAmplitudeListener->m_uiAmId);
+  const Amplitude::Listener& listener = amEngine->AddListener(pAmplitudeListener->m_uiAmId);
 
   return listener.Valid() ? EZ_SUCCESS : EZ_FAILURE;
 }
@@ -690,8 +705,8 @@ ezResult ezAmplitude::RemoveListener(ezAudioSystemListenerData* pListenerData)
   if (pAmplitudeListener == nullptr)
     return EZ_FAILURE;
 
-  m_pEngine->RemoveListener(pAmplitudeListener->m_uiAmId);
-  const Amplitude::Listener& listener = m_pEngine->GetListener(pAmplitudeListener->m_uiAmId);
+  amEngine->RemoveListener(pAmplitudeListener->m_uiAmId);
+  const Amplitude::Listener& listener = amEngine->GetListener(pAmplitudeListener->m_uiAmId);
 
   return listener.Valid() ? EZ_FAILURE : EZ_SUCCESS;
 }
@@ -705,7 +720,7 @@ ezResult ezAmplitude::SetListenerTransform(ezAudioSystemListenerData* pListenerD
   if (pAmplitudeListener == nullptr)
     return EZ_FAILURE;
 
-  if (const Amplitude::Listener& listener = m_pEngine->GetListener(pAmplitudeListener->m_uiAmId); listener.Valid())
+  if (const Amplitude::Listener& listener = amEngine->GetListener(pAmplitudeListener->m_uiAmId); listener.Valid())
   {
     listener.SetLocation(Utils::ezVec3ToAmVec3(Transform.m_vPosition));
     listener.SetOrientation(Amplitude::Orientation(Utils::ezVec3ToAmVec3(-Transform.m_vForward), Utils::ezVec3ToAmVec3(Transform.m_vUp)));
@@ -723,7 +738,7 @@ ezResult ezAmplitude::LoadBank(ezAudioSystemBankData* pBankData)
   if (pAmplitudeBank == nullptr)
     return EZ_FAILURE;
 
-  if (!m_pEngine->LoadSoundBank(AM_STRING_TO_OS_STRING(pAmplitudeBank->m_sFileName.GetData())))
+  if (!amEngine->LoadSoundBank(AM_STRING_TO_OS_STRING(pAmplitudeBank->m_sFileName.GetData())))
   {
     ezLog::Error("[Amplitude] Could not load sound bank '{0}'.", pAmplitudeBank->m_sFileName);
     return EZ_FAILURE;
@@ -744,7 +759,7 @@ ezResult ezAmplitude::UnloadBank(ezAudioSystemBankData* pBankData)
   if (pAmplitudeBank->m_uiAmId == Amplitude::kAmInvalidObjectId)
     return EZ_FAILURE;
 
-  m_pEngine->UnloadSoundBank(pAmplitudeBank->m_uiAmId);
+  amEngine->UnloadSoundBank(pAmplitudeBank->m_uiAmId);
 
   return EZ_SUCCESS;
 }
@@ -926,42 +941,49 @@ const char* ezAmplitude::GetMiddlewareName() const
 
 float ezAmplitude::GetMasterGain() const
 {
-  return m_pEngine->GetMasterGain();
+  return amEngine->GetMasterGain();
 }
 
 bool ezAmplitude::GetMute() const
 {
-  return m_pEngine->IsMuted();
+  return amEngine->IsMuted();
 }
 
 void ezAmplitude::OnMasterGainChange(float fGain)
 {
   // Master Volume
-  m_pEngine->SetMasterGain(fGain);
+  amEngine->SetMasterGain(fGain);
 }
 
 void ezAmplitude::OnMuteChange(bool bMute)
 {
   // Mute
-  m_pEngine->SetMute(bMute);
+  amEngine->SetMute(bMute);
 }
 
 void ezAmplitude::OnLoseFocus()
 {
+  amEngine->Pause(true);
 }
 
 void ezAmplitude::OnGainFocus()
 {
+  amEngine->Pause(false);
+}
+
+void ezAmplitude::GameApplicationEventHandler(const ezGameApplicationExecutionEvent& e)
+{
+  // TODO
 }
 
 void ezAmplitude::Update(ezTime delta)
 {
-  if (m_pEngine == nullptr)
+  if (amEngine == nullptr)
     return;
 
   EZ_ASSERT_DEV(m_pData != nullptr, "UpdateSound() should not be called at this time.");
 
-  m_pEngine->AdvanceFrame(delta.AsFloatInSeconds());
+  amEngine->AdvanceFrame(delta.AsFloatInSeconds());
 }
 
 void ezAmplitude::DetectPlatform() const

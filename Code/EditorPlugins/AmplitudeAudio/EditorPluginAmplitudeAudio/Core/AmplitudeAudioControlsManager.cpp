@@ -1,3 +1,17 @@
+// Copyright (c) 2022-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <EditorPluginAmplitudeAudio/EditorPluginAmplitudeAudioPCH.h>
 
 #include <EditorPluginAmplitudeAudio/Core/AmplitudeAudioControlsManager.h>
@@ -12,7 +26,7 @@
 #include <Foundation/IO/FileSystem/FileWriter.h>
 #include <Foundation/IO/JSONReader.h>
 #include <Foundation/IO/OSFile.h>
-#include <Foundation/Utilities/AssetFileHeader.h>
+#include <Foundation/Math/Random.h>
 
 EZ_IMPLEMENT_SINGLETON(ezAmplitudeAudioControlsManager);
 
@@ -66,7 +80,7 @@ ezResult ezAmplitudeAudioControlsManager::ReloadControls()
 
   {
     ezStringBuilder basePath(projectPath);
-    basePath.AppendPath(kEnvironmentsFolder);
+    basePath.AppendPath(kEffectsFolder);
 
     if (LoadControlsInFolder(basePath, ezAmplitudeAudioControlType::Environment).Failed())
       return EZ_FAILURE;
@@ -362,6 +376,7 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
 
     switch (eType)
     {
+      default:
       case ezAmplitudeAudioControlType::Invalid:
       case ezAmplitudeAudioControlType::SoundBank:
         break;
@@ -417,7 +432,10 @@ ezResult ezAmplitudeAudioControlsManager::LoadControl(const ezVariantDictionary&
 
       case ezAmplitudeAudioControlType::Environment:
       {
-        ezAmplitudeAudioEnvironmentData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioEnvironmentData, id->ConvertTo<ezUInt64>(), json.GetValue("effect")->ConvertTo<ezUInt64>());
+        ezRandom random;
+        random.InitializeFromCurrentTime();
+
+        ezAmplitudeAudioEnvironmentData* control = EZ_AUDIOSYSTEM_NEW(ezAmplitudeAudioEnvironmentData, random.UInt(), id->ConvertTo<ezUInt64>());
         const ezResult result = CreateEnvironmentControl(controlName, control);
         EZ_AUDIOSYSTEM_DELETE(control);
         return result;

@@ -1,3 +1,17 @@
+// Copyright (c) 2022-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #pragma once
 
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginDLL.h>
@@ -11,13 +25,13 @@ using ezAudioControlCollectionResourceHandle = ezTypedResourceHandle<class ezAmp
 /// \brief Represents one audio control, used by a single audio middleware.
 struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioControlCollectionEntry
 {
-  ezString m_sName;                                               ///< Optional, can be used to lookup the resource at runtime with a nice name. E.g. "SkyTexture" instead of some GUID.
+  ezString m_sName;                                               ///< Optional, can be used to look up the resource at runtime with a nice name.
   ezString m_sControlFile;                                        ///< The path to the audio system control.
   ezDefaultMemoryStreamStorage* m_pControlBufferStorage{nullptr}; ///< Buffer storage that contains the control data. Only have a value for loaded resources.
   ezEnum<ezAmplitudeAudioControlType> m_Type;                     ///< The type of the control.
 };
 
-/// \brief Describes a full ezAmplitudeAudioControlCollectionResource, ie. lists all the controls that the collection contains.
+/// \brief Describes a full ezAmplitudeAudioControlCollectionResource, i.e. lists all the controls that the collection contains.
 struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioControlCollectionResourceDescriptor
 {
   ezDynamicArray<ezAmplitudeAudioControlCollectionEntry> m_Entries;
@@ -26,9 +40,9 @@ struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioControlCollectionResourceDesc
   void Load(ezStreamReader& stream);
 };
 
-/// \brief An ezAmplitudeAudioControlCollectionResource is used by the audio system to map a collection of audio controls to a single audio middleware.
+/// \brief An ezAmplitudeAudioControlCollectionResource is used by the audio system to map a collection of audio controls to Amplitude objects.
 ///
-/// For each audio control should specify the control name, the control type, and the path to the generated middleware control file.
+/// For each audio control, the control name, the control type, and the path to the generated control file should be specified.
 /// Those controls will now be able to be used by the audio system through components.
 class EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAudioControlCollectionResource : public ezResource
 {
@@ -42,7 +56,7 @@ public:
   /// \brief Registers this collection to the audio system.
   ///
   /// \note This is called automatically at initialization by the audio system on the control collection
-  /// asset having the same name than the current audio middleware.
+  /// asset having the same name as the current audio middleware.
   ///
   /// Calling this twice has no effect.
   void Register();
@@ -56,25 +70,25 @@ public:
   [[nodiscard]] const ezAmplitudeAudioControlCollectionResourceDescriptor& GetDescriptor() const;
 
 private:
-  void RegisterTrigger(const char* szTriggerName, const char* szControlFile);
-  void RegisterTrigger(const char* szTriggerName, ezStreamReader* pStreamReader);
-  void UnregisterTrigger(const char* szTriggerName);
+  static void RegisterTrigger(const char* szTriggerName, const char* szControlFile);
+  static void RegisterTrigger(const char* szTriggerName, ezStreamReader* pStreamReader);
+  static void UnregisterTrigger(const char* szTriggerName);
 
-  void RegisterRtpc(const char* szRtpcName, const char* szControlFile);
-  void RegisterRtpc(const char* szRtpcName, ezStreamReader* pStreamReader);
-  void UnregisterRtpc(const char* szRtpcName);
+  static void RegisterRtpc(const char* szRtpcName, const char* szControlFile);
+  static void RegisterRtpc(const char* szRtpcName, ezStreamReader* pStreamReader);
+  static void UnregisterRtpc(const char* szRtpcName);
 
-  void RegisterSwitchState(const char* szSwitchStateName, const char* szControlFile);
-  void RegisterSwitchState(const char* szSwitchStateName, ezStreamReader* pStreamReader);
-  void UnregisterSwitchState(const char* szSwitchStateName);
+  static void RegisterSwitchState(const char* szSwitchStateName, const char* szControlFile);
+  static void RegisterSwitchState(const char* szSwitchStateName, ezStreamReader* pStreamReader);
+  static void UnregisterSwitchState(const char* szSwitchStateName);
 
-  void RegisterEnvironment(const char* szEnvironmentName, const char* szControlFile);
-  void RegisterEnvironment(const char* szEnvironmentName, ezStreamReader* pStreamReader);
-  void UnregisterEnvironment(const char* szEnvironmentName);
+  static void RegisterEnvironment(const char* szEnvironmentName, const char* szControlFile);
+  static void RegisterEnvironment(const char* szEnvironmentName, ezStreamReader* pStreamReader);
+  static void UnregisterEnvironment(const char* szEnvironmentName);
 
-  void RegisterSoundBank(const char* szBankName, const char* szControlFile);
-  void RegisterSoundBank(const char* szBankName, ezStreamReader* pStreamReader);
-  void UnregisterSoundBank(const char* szBankName);
+  static void RegisterSoundBank(const char* szBankName, const char* szControlFile);
+  static void RegisterSoundBank(const char* szBankName, ezStreamReader* pStreamReader);
+  static void UnregisterSoundBank(const char* szBankName);
 
   ezResourceLoadDesc UnloadData(Unload WhatToUnload) override;
   ezResourceLoadDesc UpdateContent(ezStreamReader* pStream) override;

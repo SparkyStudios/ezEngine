@@ -1,3 +1,17 @@
+// Copyright (c) 2022-present Sparky Studios. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #pragma once
 
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginDLL.h>
@@ -37,6 +51,7 @@ struct EZ_AMPLITUDEAUDIOPLUGIN_DLL ezAmplitudeAssetProfiles
   ezResult Save(ezOpenDdlWriter& writer) const;
   ezResult Load(const ezOpenDdlReaderElement& reader);
 
+  ezString m_sProjectPath;
   ezMap<ezString, ezAmplitudeConfiguration> m_AssetProfiles;
 };
 
@@ -109,8 +124,6 @@ public:
   ezAmplitude();
   ~ezAmplitude() override;
 
-  [[nodiscard]] SparkyStudios::Audio::Amplitude::Engine* GetEngine() const { return m_pEngine; }
-
   /// \brief Parses the entry in the controls collection that represent a bank.
   /// \param pBankEntry The stream storing the bank entry.
   /// \return The created bank data, or nullptr if no bank was created.
@@ -131,15 +144,13 @@ public:
   /// \return The created switch state data, or nullptr if no switch state was created.
   ezAudioSystemSwitchStateData* DeserializeSwitchStateEntry(ezStreamReader* pSwitchStateEntry) const;
 
-  /// \brief Parses the entry in the controls collection that represent a environment effect.
+  /// \brief Parses the entry in the controls collection that represent an environment effect.
   /// \param pEnvironmentEntry The stream storing the environment effect entry.
   /// \return The created environment effect data, or nullptr if no environment effect was created.
   ezAudioSystemEnvironmentData* DeserializeEnvironmentEntry(ezStreamReader* pEnvironmentEntry) const;
 
 private:
   void DetectPlatform() const;
-
-  SparkyStudios::Audio::Amplitude::Engine* m_pEngine;
 
   SparkyStudios::Audio::Amplitude::AmTime m_dCurrentTime;
   SparkyStudios::Audio::Amplitude::DiskFileSystem m_Loader;

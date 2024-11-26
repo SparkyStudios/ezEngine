@@ -1,4 +1,4 @@
-# Copyright (c) 2021-present Sparky Studios. All rights reserved.
+# Copyright (c) 2022-present Sparky Studios. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,16 @@
 set(EZ_3RDPARTY_AMPLITUDE_SUPPORT ON CACHE BOOL "Whether to add support for the Amplitude Audio Engine.")
 mark_as_advanced(FORCE EZ_3RDPARTY_AMPLITUDE_SUPPORT)
 
-list(APPEND CMAKE_MODULE_PATH "$ENV{AM_SDK_PATH}/cmake" "${AM_SDK_PATH}/cmake")
+if (DEFINED AM_SDK_PATH)
+    list(APPEND CMAKE_MODULE_PATH "${AM_SDK_PATH}/cmake")
+    list(APPEND CMAKE_PREFIX_PATH "${AM_SDK_PATH}/cmake")
+endif ()
+
+if (DEFINED ENV{AM_SDK_PATH})
+    string(REPLACE "\\" "/" ENV_AM_SDK_PATH $ENV{AM_SDK_PATH})
+    list(APPEND CMAKE_MODULE_PATH "${ENV_AM_SDK_PATH}/cmake")
+    list(APPEND CMAKE_PREFIX_PATH "${ENV_AM_SDK_PATH}/cmake")
+endif ()
 
 find_package(AmplitudeAudioSDK REQUIRED)
 

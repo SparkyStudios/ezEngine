@@ -29,7 +29,7 @@ void ezAudioProxyComponent::Initialize()
 void ezAudioProxyComponent::Deinitialize()
 {
   if (IsReferenced())
-    return; // Some components are still depending on this proxy.
+    return; // Some components depend on this proxy.
 
   Unregister(true);
 
@@ -51,7 +51,7 @@ ezAudioSystemDataID ezAudioProxyComponent::GetEntityId() const
 void ezAudioProxyComponent::Unregister(bool bForce) const
 {
   if (!bForce && IsReferenced())
-    return; // Some components are still depending on this proxy.
+    return; // Some components depend on this proxy.
 
   ezAudioSystemRequestUnregisterEntity request;
 
@@ -119,6 +119,7 @@ void ezAudioProxyComponent::Update()
       request.m_uiEntityId = m_uiEntityId;
       request.m_uiObjectId = id;
       request.m_fAmount = m_mEnvironmentAmounts[id].m_fNextAmount;
+
       request.m_Callback = [this](const ezAudioSystemRequestSetEnvironmentAmount& req)
       {
         if (req.m_eStatus.Failed())
