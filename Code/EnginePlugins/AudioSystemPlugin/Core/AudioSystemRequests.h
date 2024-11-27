@@ -194,6 +194,9 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestRegisterListener : public ez
   /// \brief A friendly name for the listener. Not very used by most of the audio engines for
   /// other purposes than debugging.
   ezString m_sName;
+
+  /// \brief Whether this lister is set as the default one.
+  bool m_bIsDefault{false};
 };
 
 /// \brief Audio request to set the transform and velocity of a listener.

@@ -8,7 +8,7 @@
 #include <Core/World/Component.h>
 #include <Core/World/World.h>
 
-/// \brief Base class for audio system component manager which need to update their states (eg. AudioListenerComponent).
+/// \brief Base class for audio system component manager which need to update their states (e.g. AudioListenerComponent).
 template <typename T>
 class ezAudioSystemComponentManager final : public ezComponentManager<T, ezBlockStorageType::FreeList>
 {

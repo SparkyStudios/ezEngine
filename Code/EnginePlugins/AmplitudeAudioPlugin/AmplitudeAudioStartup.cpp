@@ -15,6 +15,7 @@
 #include <AmplitudeAudioPlugin/AmplitudeAudioPluginPCH.h>
 
 #include <AmplitudeAudioPlugin/AmplitudeAudioSingleton.h>
+#include <AmplitudeAudioPlugin/Components/AmplitudeRoomComponent.h>
 #include <AmplitudeAudioPlugin/Resources/AudioControlCollectionResource.h>
 
 #include <AudioSystemPlugin/Core/AudioSystem.h>
@@ -49,10 +50,13 @@ EZ_BEGIN_SUBSYSTEM_DECLARATION(SparkyStudios, AmplitudeAudioPlugin)
     // Audio Control Collection Resources
     {
       ezResourceManager::RegisterResourceForAssetType("Audio Control Collection", ezGetStaticRTTI<ezAmplitudeAudioControlCollectionResource>());
+      ezResourceManager::RegisterResourceForAssetType("Amplitude Room Material", ezGetStaticRTTI<ezAmplitudeRoomMaterialResource>());
 
-      ezAmplitudeAudioControlCollectionResourceDescriptor desc;
-      const auto hResource = ezResourceManager::CreateResource<ezAmplitudeAudioControlCollectionResource>("AudioControlCollectionMissing", std::move(desc), "Fallback for missing audio control collections.");
-      ezResourceManager::SetResourceTypeMissingFallback<ezAmplitudeAudioControlCollectionResource>(hResource);
+      {
+        ezAmplitudeAudioControlCollectionResourceDescriptor desc;
+        const auto hResource = ezResourceManager::CreateResource<ezAmplitudeAudioControlCollectionResource>("AudioControlCollectionMissing", std::move(desc), "Fallback for missing audio control collections.");
+        ezResourceManager::SetResourceTypeMissingFallback<ezAmplitudeAudioControlCollectionResource>(hResource);
+      }
     }
 
     ezAudioSystem::GetSingleton()->Startup();

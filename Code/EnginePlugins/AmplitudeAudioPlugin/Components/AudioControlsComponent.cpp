@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <AudioSystemPlugin/AudioSystemPluginPCH.h>
+#include <AmplitudeAudioPlugin/AmplitudeAudioPluginPCH.h>
 
 #include <AmplitudeAudioPlugin/Components/AudioControlsComponent.h>
 #include <AudioSystemPlugin/Core/AudioSystemRequests.h>

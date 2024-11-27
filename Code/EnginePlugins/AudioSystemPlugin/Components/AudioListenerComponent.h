@@ -22,7 +22,7 @@ class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioListenerComponent : public ezAudioSystemCo
   // ezComponent
 
 public:
-  void OnActivated() override;
+  void OnSimulationStarted() override;
   void OnDeactivated() override;
   void SerializeComponent(ezWorldWriter& stream) const override;
   void DeserializeComponent(ezWorldReader& stream) override;

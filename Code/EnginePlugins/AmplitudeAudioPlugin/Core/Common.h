@@ -41,3 +41,8 @@ static constexpr char s_szAmplitudeMiddlewareName[] = "Amplitude";
 
 static constexpr char s_szAmplitudeConfigKeyInitBank[] = "InitBank";
 static constexpr char s_szAmplitudeConfigKeyEngineConfigFileName[] = "EngineConfigFileName";
+
+namespace Utils
+{
+  AmVec3 ezVec3ToAmVec3(const ezVec3& vec);
+} // namespace Utils

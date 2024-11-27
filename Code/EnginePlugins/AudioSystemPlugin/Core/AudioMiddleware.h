@@ -145,8 +145,9 @@ public:
   /// transformation values (position and orientation).
   /// \param pListenerData The listener that should be added in the audio middleware.
   /// \param szListenerName The name of the game object representing that listener. (Can be used for debug purposes)
+  /// \param bIsDefault
   /// \return EZ_SUCCESS when the operation is successful, EZ_FAILURE otherwise.
-  virtual ezResult AddListener(ezAudioSystemListenerData* pListenerData, const char* szListenerName) = 0;
+  virtual ezResult AddListener(ezAudioSystemListenerData* pListenerData, const char* szListenerName, bool bIsDefault) = 0;
 
   /// \brief Resets a listener state.
   /// \param pListenerData The listener that should be reset.
@@ -159,7 +160,7 @@ public:
   /// \return EZ_SUCCESS when the operation is successful, EZ_FAILURE otherwise.
   virtual ezResult RemoveListener(ezAudioSystemListenerData* pListenerData) = 0;
 
-  /// \brief Sets the global transform (wold position and orientation) of a listener.
+  /// \brief Sets the global transform (world position and orientation) of a listener.
   /// \param pListenerData The listener data.
   /// \param Transform The global transformation of the listener.
   /// \return EZ_SUCCESS when the operation is successful, EZ_FAILURE otherwise.
@@ -208,7 +209,7 @@ public:
   /// \return The created event data, or nullptr if it was not created.
   virtual ezAudioSystemEventData* CreateEventData(ezAudioSystemDataID uiEventId) = 0;
 
-  /// \brief Resets the audio event state, so it can safely recycled in the pool.
+  /// \brief Resets the audio event state, so it can safely be recycled in the pool.
   /// \param pEventData The event data to reset.
   /// \return EZ_SUCCESS when the operation is successful, EZ_FAILURE otherwise.
   virtual ezResult ResetEventData(ezAudioSystemEventData* pEventData) = 0;

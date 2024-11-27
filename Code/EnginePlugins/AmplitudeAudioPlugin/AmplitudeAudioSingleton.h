@@ -88,7 +88,7 @@ public:
   ezResult SetSwitchState(ezAudioSystemEntityData* pEntityData, const ezAudioSystemSwitchStateData* pSwitchStateData) override;
   ezResult SetObstructionAndOcclusion(ezAudioSystemEntityData* pEntityData, float fObstruction, float fOcclusion) override;
   ezResult SetEnvironmentAmount(ezAudioSystemEntityData* pEntityData, const ezAudioSystemEnvironmentData* pEnvironmentData, float fAmount) override;
-  ezResult AddListener(ezAudioSystemListenerData* pListenerData, const char* szListenerName) override;
+  ezResult AddListener(ezAudioSystemListenerData* pListenerData, const char* szListenerName, bool bIsDefault) override;
   ezResult ResetListener(ezAudioSystemListenerData* pListenerData) override;
   ezResult RemoveListener(ezAudioSystemListenerData* pListenerData) override;
   ezResult SetListenerTransform(ezAudioSystemListenerData* pListenerData, const ezAudioSystemTransform& Transform) override;

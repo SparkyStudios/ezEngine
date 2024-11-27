@@ -213,7 +213,7 @@ bool ezAudioTranslationLayer::ProcessRequest(ezVariant&& request, bool bSync)
     }
 
     m_mListeners[audioRequest.m_uiListenerId] = EZ_AUDIOSYSTEM_NEW(ezATLListener, audioRequest.m_uiListenerId, pListenerData);
-    audioRequest.m_eStatus = m_pAudioMiddleware->AddListener(pListenerData, audioRequest.m_sName);
+    audioRequest.m_eStatus = m_pAudioMiddleware->AddListener(pListenerData, audioRequest.m_sName, audioRequest.m_bIsDefault);
   }
 
   else if (request.IsA<ezAudioSystemRequestSetListenerTransform>())

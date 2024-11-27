@@ -27,9 +27,9 @@ EZ_BEGIN_COMPONENT_TYPE(ezAudioListenerComponent, kVersion_AudioListenerComponen
 EZ_END_COMPONENT_TYPE;
 // clang-format on
 
-void ezAudioListenerComponent::OnActivated()
+void ezAudioListenerComponent::OnSimulationStarted()
 {
-  SUPER::OnActivated();
+  SUPER::OnSimulationStarted();
 
   if (auto* const audioWorldModule = GetWorld()->GetOrCreateModule<ezAudioWorldModule>(); audioWorldModule->GetDefaultListener() != this && m_bIsDefault)
   {
@@ -40,6 +40,7 @@ void ezAudioListenerComponent::OnActivated()
 
   request.m_uiListenerId = m_uiListenerId;
   request.m_sName = GetOwner()->GetName();
+  request.m_bIsDefault = m_bIsDefault;
 
   // Prefer to send this request synchronously...
   ezAudioSystem::GetSingleton()->SendRequestSync(request);
@@ -121,7 +122,7 @@ void ezAudioListenerComponent::SetDefault(bool bDefault)
 {
   m_bIsDefault = bDefault;
 
-  auto* const audioWorldModule = GetWorld()->GetOrCreateModule<ezAudioWorldModule>(); 
+  auto* const audioWorldModule = GetWorld()->GetOrCreateModule<ezAudioWorldModule>();
 
   if (audioWorldModule->GetDefaultListener() != this && m_bIsDefault)
   {

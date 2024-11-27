@@ -301,6 +301,7 @@ void ezAudioTriggerComponentManager::CastRay(ObstructionOcclusionState& state, e
     {
       const float fMaxDistance = cvar_AudioSystemOcclusionMaxDistance.GetValue();
 
+      float uiContributedSurfaces = 0;
       for (const auto& hitResult : results.m_Results)
       {
         if (!hitResult.m_hSurface.IsValid())
@@ -321,9 +322,10 @@ void ezAudioTriggerComponentManager::CastRay(ObstructionOcclusionState& state, e
         }
 
         averageObstruction += obstructionContribution;
+        uiContributedSurfaces++;
       }
 
-      averageObstruction /= static_cast<float>(results.m_Results.GetCount());
+      averageObstruction /= uiContributedSurfaces;
     }
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)

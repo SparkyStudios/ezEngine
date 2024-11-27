@@ -131,7 +131,7 @@ namespace Memory
 
 namespace Utils
 {
-  static AmVec3 ezVec3ToAmVec3(const ezVec3& vec)
+  AmVec3 ezVec3ToAmVec3(const ezVec3& vec)
   {
     const Amplitude::CartesianCoordinateSystem ez(Amplitude::CartesianCoordinateSystem::Axis::PositiveY, Amplitude::CartesianCoordinateSystem::Axis::PositiveX, Amplitude::CartesianCoordinateSystem::Axis::PositiveZ);
     return Amplitude::CartesianCoordinateSystem::ConvertToDefault(AM_V3(vec.x, vec.y, vec.z), ez);
@@ -437,7 +437,7 @@ ezResult ezAmplitude::SetEntityTransform(ezAudioSystemEntityData* pEntityData, c
   if (const Amplitude::Entity& entity = amEngine->GetEntity(pAmplitudeEntity->m_uiAmId); entity.Valid())
   {
     entity.SetLocation(Utils::ezVec3ToAmVec3(Transform.m_vPosition));
-    entity.SetOrientation(Amplitude::Orientation(Utils::ezVec3ToAmVec3(-Transform.m_vForward), Utils::ezVec3ToAmVec3(Transform.m_vUp)));
+    entity.SetOrientation(Amplitude::Orientation(Utils::ezVec3ToAmVec3(Transform.m_vForward), Utils::ezVec3ToAmVec3(Transform.m_vUp)));
   }
 
   return EZ_SUCCESS;
@@ -676,7 +676,7 @@ ezResult ezAmplitude::SetEnvironmentAmount(ezAudioSystemEntityData* pEntityData,
   return EZ_SUCCESS;
 }
 
-ezResult ezAmplitude::AddListener(ezAudioSystemListenerData* pListenerData, const char* szListenerName)
+ezResult ezAmplitude::AddListener(ezAudioSystemListenerData* pListenerData, const char* szListenerName, bool bIsDefault)
 {
   if (!m_bInitialized)
     return EZ_FAILURE;
@@ -686,6 +686,9 @@ ezResult ezAmplitude::AddListener(ezAudioSystemListenerData* pListenerData, cons
     return EZ_FAILURE;
 
   const Amplitude::Listener& listener = amEngine->AddListener(pAmplitudeListener->m_uiAmId);
+
+  if (listener.Valid() && bIsDefault)
+    amEngine->SetDefaultListener(listener.GetId());
 
   return listener.Valid() ? EZ_SUCCESS : EZ_FAILURE;
 }
@@ -723,7 +726,7 @@ ezResult ezAmplitude::SetListenerTransform(ezAudioSystemListenerData* pListenerD
   if (const Amplitude::Listener& listener = amEngine->GetListener(pAmplitudeListener->m_uiAmId); listener.Valid())
   {
     listener.SetLocation(Utils::ezVec3ToAmVec3(Transform.m_vPosition));
-    listener.SetOrientation(Amplitude::Orientation(Utils::ezVec3ToAmVec3(-Transform.m_vForward), Utils::ezVec3ToAmVec3(Transform.m_vUp)));
+    listener.SetOrientation(Amplitude::Orientation(Utils::ezVec3ToAmVec3(Transform.m_vForward), Utils::ezVec3ToAmVec3(Transform.m_vUp)));
   }
 
   return EZ_SUCCESS;
@@ -983,7 +986,7 @@ void ezAmplitude::Update(ezTime delta)
 
   EZ_ASSERT_DEV(m_pData != nullptr, "UpdateSound() should not be called at this time.");
 
-  amEngine->AdvanceFrame(delta.AsFloatInSeconds());
+  amEngine->AdvanceFrame(delta.AsFloatInSeconds() * Amplitude::kAmSecond);
 }
 
 void ezAmplitude::DetectPlatform() const

@@ -13,8 +13,8 @@ EZ_BEGIN_COMPONENT_TYPE(ezAudioBoxEnvironmentComponent, kVersion_AudioBoxEnviron
 {
   EZ_BEGIN_ATTRIBUTES
   {
-    new ezBoxManipulatorAttribute("HalfExtends", 1.0f, true),
-    new ezBoxVisualizerAttribute("HalfExtends", 1.0f, ezColor::White, "Color"),
+    new ezBoxManipulatorAttribute("HalfExtends", 2.0f, true),
+    new ezBoxVisualizerAttribute("HalfExtends", 2.0f, ezColor::White, "Color"),
     new ezSphereVisualizerAttribute("MaxDistance", ezColor::White, "Color"),
   }
   EZ_END_ATTRIBUTES;
