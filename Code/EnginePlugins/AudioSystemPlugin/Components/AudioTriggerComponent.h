@@ -76,7 +76,7 @@ private:
 
 /// \brief Audio System Component that triggers an audio event.
 ///
-/// This component takes as properties a mandatory play trigger an an optional stop trigger.
+/// This component takes as properties a mandatory play trigger an optional stop trigger.
 /// The user should specify the name of the triggers as defined by the available audio controls loaded in the audio system.
 /// If the stop trigger is left empty, the component will send a StopEvent request to the audio system, that means
 /// the event triggered by the play trigger should be stoppable that way.
@@ -115,7 +115,7 @@ public:
   /// \brief Gets the current occlusion collision layer.
   [[nodiscard]] ezUInt8 GetOcclusionCollisionLayer() const { return m_uiOcclusionCollisionLayer; }
 
-  /// \brief Sets the name of the play trigger. If the provided name is the same than the
+  /// \brief Sets the name of the play trigger. If the provided name is the same as the
   /// current name, nothing will happen.
   ///
   /// When setting a new name, the current event will be stopped if playing, but the new event will
@@ -127,7 +127,7 @@ public:
   /// \brief Gets the name of the current play trigger.
   [[nodiscard]] const ezString& GetPlayTrigger() const;
 
-  /// \brief Sets the name of the stop trigger. If the provided name is the same than the
+  /// \brief Sets the name of the stop trigger. If the provided name is the same as the
   /// current name, nothing will happen.
   ///
   /// \param sName The name of the stop trigger.

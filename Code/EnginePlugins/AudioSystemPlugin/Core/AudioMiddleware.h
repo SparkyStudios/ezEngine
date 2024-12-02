@@ -145,7 +145,7 @@ public:
   /// transformation values (position and orientation).
   /// \param pListenerData The listener that should be added in the audio middleware.
   /// \param szListenerName The name of the game object representing that listener. (Can be used for debug purposes)
-  /// \param bIsDefault
+  /// \param bIsDefault Whether the passed listener should be considered as the default listener.
   /// \return EZ_SUCCESS when the operation is successful, EZ_FAILURE otherwise.
   virtual ezResult AddListener(ezAudioSystemListenerData* pListenerData, const char* szListenerName, bool bIsDefault) = 0;
 

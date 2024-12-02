@@ -12,4 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+ez_requires(EZ_3RDPARTY_AMPLITUDE_SUPPORT)
 ez_add_all_subdirs()

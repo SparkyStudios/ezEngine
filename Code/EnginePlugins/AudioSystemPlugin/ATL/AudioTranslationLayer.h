@@ -11,7 +11,7 @@ struct ezCVarEvent;
 /// \brief The Audio Translation Layer
 ///
 /// This class is the bridge between the audio system and the audio middleware
-/// and it is responsible of the execution of audio requests. It also stores the
+/// and, it is responsible for the execution of audio requests. It also stores the
 /// registered audio controls so they can be retrieved during runtime by their names.
 class EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioTranslationLayer
 {

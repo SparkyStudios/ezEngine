@@ -26,5 +26,5 @@ public:
   explicit ezQtAmplitudeAudioControlCollectionAssetDocumentWindow(ezDocument* pDocument);
   ~ezQtAmplitudeAudioControlCollectionAssetDocumentWindow() override;
 
-  const char* GetWindowLayoutGroupName() const override { return "AudioControlCollectionAsset"; }
+  [[nodiscard]] const char* GetWindowLayoutGroupName() const override { return "AudioControlCollectionAsset"; }
 };

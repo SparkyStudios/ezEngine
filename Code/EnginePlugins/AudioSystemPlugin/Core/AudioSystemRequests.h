@@ -8,7 +8,7 @@
 #include <Foundation/Types/VariantType.h>
 
 
-/// \brief Helper macro the declare the callback value of an audio request.
+/// \brief Helper macro to declare the callback value of an audio request.
 #define EZ_DECLARE_AUDIOSYSTEM_REQUEST_CALLBACK(name) \
   using CallbackType = ezDelegate<void(const name&)>; \
   CallbackType m_Callback
@@ -294,7 +294,7 @@ struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestUnloadBank : public ezAudioS
   EZ_DECLARE_AUDIOSYSTEM_REQUEST_TYPE_SIMPLE(ezAudioSystemRequestUnloadBank);
 };
 
-/// \brief Audio request to shutdown the audio system. Used internally only. Sending this request
+/// \brief Audio request to shut down the audio system. Used internally only. Sending this request
 /// at runtime will lead to unspecified behaviors.
 struct EZ_AUDIOSYSTEMPLUGIN_DLL ezAudioSystemRequestShutdown : public ezAudioSystemRequest
 {
