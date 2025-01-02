@@ -43,7 +43,7 @@ namespace RHI
     /// \brief Controls whether blending is enabled for the color attachment.
     bool m_bEnabled{false};
 
-    /// \brief Controls which components of the color are used for blending.
+    /// \brief Controls which components of the color will be written to the framebuffer.
     ezBitflags<spColorWriteMask> m_eColorWriteMask{spColorWriteMask::All};
 
     /// \brief Controls the source color's influence on the blended result.

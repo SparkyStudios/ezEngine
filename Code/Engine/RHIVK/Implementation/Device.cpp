@@ -17,13 +17,9 @@
 #include <RHIVK/Core.h>
 #include <RHIVK/Device.h>
 
-namespace RHI
+namespace
 {
-  // clang-format off
-  EZ_IMPLEMENT_SINGLETON(spDeviceVK);
-  // clang-format on
-
-  static ezUInt32 vkDebugCallback(
+  ezUInt32 vkDebugCallback(
     VkDebugReportFlagsEXT flags,
     VkDebugReportObjectTypeEXT objectType,
     ezUInt64 object,
@@ -39,6 +35,13 @@ namespace RHI
     ezLog::Debug("[RHIVK] {}", pMessage);
     return 0;
   }
+} // namespace
+
+namespace RHI
+{
+  // clang-format off
+  EZ_IMPLEMENT_SINGLETON(spDeviceVK);
+  // clang-format on
 
   spDeviceVK::spDeviceVK(ezAllocator* pAllocator, const spDeviceDescriptionVK& description)
     : spDevice(pAllocator, description)
@@ -55,6 +58,7 @@ namespace RHI
 
   void spDeviceVK::EnableDebugCallback(vk::DebugReportFlagsEXT flags) const
   {
+    ezLog::Debug("Enabling Vulkan Debug callbacks.");
     vk::DebugReportCallbackCreateInfoEXT debugCallbackCI{};
     debugCallbackCI.flags = flags;
     debugCallbackCI.pfnCallback = vkDebugCallback;
@@ -70,7 +74,7 @@ namespace RHI
     const ezSet<ezStringView>& availableLayers = EnumerateInstanceLayers();
     const ezSet<ezStringView>& availableExtensions = GetInstanceExtensions();
 
-    vk::ApplicationInfo appInfo{};
+    vk::ApplicationInfo appInfo;
     appInfo.sType = vk::StructureType::eApplicationInfo;
     appInfo.pNext = nullptr;
     appInfo.pApplicationName = "Spark Engine";
@@ -79,7 +83,7 @@ namespace RHI
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
 
-    vk::InstanceCreateInfo createInfo{};
+    vk::InstanceCreateInfo createInfo;
     createInfo.sType = vk::StructureType::eInstanceCreateInfo;
     createInfo.pNext = nullptr;
     createInfo.flags = vk::InstanceCreateFlags(0);
@@ -94,7 +98,7 @@ namespace RHI
 
     if (availableExtensions.Contains(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME))
     {
-      m_SurfaceExtensions.Insert(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+      instanceExtensions.PushBack(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
       createInfo.flags |= vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR;
     }
 
@@ -179,7 +183,6 @@ namespace RHI
     const vk::Result result = vk::createInstance(&createInfo, nullptr, &m_Instance);
     SP_RHI_VK_CHECK_RESULT(result);
 
-
     if (m_bIsDebugEnabled && bDebugReportExtensionAvailable)
     {
       EnableDebugCallback();
@@ -187,10 +190,10 @@ namespace RHI
 
     if (bHasPhysicalDeviceProperties2)
     {
-      m_vkGetPhysicalDeviceProperties2 = reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2>(m_Instance.getProcAddr(EZ_STRINGIZE(vkGetPhysicalDeviceProperties2)));
+      m_vkGetPhysicalDeviceProperties2 = reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2>(m_Instance.getProcAddr(EZ_PP_STRINGIFY(vkGetPhysicalDeviceProperties2)));
 
       if (m_vkGetPhysicalDeviceProperties2 == nullptr)
-        m_vkGetPhysicalDeviceProperties2 = reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2>(m_Instance.getProcAddr(EZ_STRINGIZE(vkGetPhysicalDeviceProperties2KHR)));
+        m_vkGetPhysicalDeviceProperties2 = reinterpret_cast<PFN_vkGetPhysicalDeviceProperties2>(m_Instance.getProcAddr(EZ_PP_STRINGIFY(vkGetPhysicalDeviceProperties2KHR)));
     }
   }
 
@@ -200,11 +203,11 @@ namespace RHI
     const vk::Result result = m_Instance.enumeratePhysicalDevices(&uiDeviceCount, nullptr);
     EZ_ASSERT_DEV(result == vk::Result::eSuccess && uiDeviceCount > 0, "Failed to enumerate physical devices.");
 
-    ezDynamicArray<vk::PhysicalDevice> physcalDevices;
-    physcalDevices.SetCount(uiDeviceCount);
+    ezDynamicArray<vk::PhysicalDevice> physicalDevices;
+    physicalDevices.SetCount(uiDeviceCount);
 
-    EZ_IGNORE_UNUSED(m_Instance.enumeratePhysicalDevices(&uiDeviceCount, physcalDevices.GetData()));
-    m_PhysicalDevice = physcalDevices[0];
+    EZ_IGNORE_UNUSED(m_Instance.enumeratePhysicalDevices(&uiDeviceCount, physicalDevices.GetData()));
+    m_PhysicalDevice = physicalDevices[0];
 
     m_PhysicalDevice.getProperties(&m_PhysicalDeviceProperties);
 
