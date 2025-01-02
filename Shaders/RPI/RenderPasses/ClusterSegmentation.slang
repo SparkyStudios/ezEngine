@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <Common.slang>
+import Common;
+import MaterialSystem;
+import Math;
 
 #define CLUSTERS_X_THREADS 16
 #define CLUSTERS_Y_THREADS 8

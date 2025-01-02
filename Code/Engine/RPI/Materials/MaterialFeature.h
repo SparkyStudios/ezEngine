@@ -44,14 +44,4 @@ namespace RPI
   {
     EZ_ADD_DYNAMIC_REFLECTION(spDiffuseMaterialFeature, spMaterialFeature);
   };
-
-  typedef ezComponentManagerSimple<class spMaterialComponent, ezComponentUpdateType::WhenSimulating, ezBlockStorageType::Compact> spMaterialComponentManager;
-
-  class SP_RPI_DLL spMaterialComponent : public ezComponent
-  {
-    EZ_DECLARE_COMPONENT_TYPE(spMaterialComponent, ezComponent, spMaterialComponentManager);
-
-  private:
-    spMaterialData m_MaterialData;
-  };
 } // namespace RPI

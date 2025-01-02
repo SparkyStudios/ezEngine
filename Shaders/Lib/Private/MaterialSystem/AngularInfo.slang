@@ -12,34 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <Common/Light.slang>
-#include <Common/RenderingContext.slang>
-
-#include <Materials/Surface.slang>
+implementing MaterialSystem;
 
 /// Stores precomputed values about common vectors between
 /// the light source and the geometry surface.
-struct AngularInfo
+public struct AngularInfo
 {
   /// Outward direction of the geometry surface.
-  float3 N;
+  public float3 N;
 
   /// Direction of the vector from the light source to the geometry surface.
-  float3 L;
+  public float3 L;
 
   /// Direction of the vector from the camera to the geometry surface.
-  float3 V;
+  public float3 V;
 
   /// Direction of the vector between L and V
-  float3 H;
+  public float3 H;
 
-  float LoH;
-  float VoH;
-  float NoV;
-  float NoH;
-  float NoL;
+  public float LoH;
+  public float VoH;
+  public float NoV;
+  public float NoH;
+  public float NoL;
 
   __init(Light light, Surface surface, float3 cameraPosition)
   {

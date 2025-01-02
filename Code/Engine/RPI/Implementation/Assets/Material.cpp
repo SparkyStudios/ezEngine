@@ -41,11 +41,8 @@ namespace RPI
 
   bool spMaterial::HasSpecializationConstant(const ezTempHashedString& name) const
   {
-    for (const auto& constant : m_SpecializationConstants)
-      if (constant.m_sName == name)
-        return true;
-
-    return false;
+    return std::any_of(begin(m_SpecializationConstants), end(m_SpecializationConstants), [&name](const RHI::spShaderSpecializationConstant& constant)
+      { return constant.m_sName == name; });
   }
 
   void spMaterial::AddSpecializationConstant(const RHI::spShaderSpecializationConstant& constant)

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing Common;
 
-extern static const bool  o_IsClipSpaceYInverted  = false;
-extern static const bool  o_ReverseDepthRange     = false;
-extern static const bool  o_FlipWinding           = false;
-extern static const bool  o_TwoSided              = false;
-extern static const float o_DefaultAlphaThreshold = 0.6f;
+public extern static const bool  o_IsClipSpaceYInverted  = false;
+public extern static const bool  o_ReverseDepthRange     = false;
+public extern static const bool  o_FlipWinding           = false;
+public extern static const bool  o_TwoSided              = false;
+public extern static const float o_DefaultAlphaThreshold = 0.6f;

@@ -12,16 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <Materials/MaterialData.slang>
-#include <Materials/Streams.slang>
+implementing MaterialSystem;
 
 /// A material interface describing all the necessary methods used to generate
 /// surface data for a geometry.
 ///
 /// Its the responsibility of the material implementation to ensure valid data are returned.
-interface IMaterial
+public interface IMaterial
 {
   /// Creates a new default instance of the material.
   static This create();

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+module Math;
 
-#include <Lightning/BRDF.slang>
+__include "Math/Colors.slang";
+__include "Math/Transform.slang";
+__include "Math/Utils.slang";

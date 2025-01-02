@@ -12,19 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing MaterialSystem;
 
-#include <Common/Math/Colors.slang>
-#include <Common/Math/Utils.slang>
-
-#include <Lightning/BRDF/Distribution.slang>
-#include <Lightning/BRDF/Fresnel.slang>
-#include <Lightning/BRDF/IBRDF.slang>
-#include <Lightning/BRDF/Visibility.slang>
-
-#include <Materials/Utils.slang>
-
-struct SpecularIsotropic : IBRDF
+public struct SpecularIsotropic : IBRDF
 {
   private float  roughness;
   private float3 specular;
@@ -37,7 +27,7 @@ struct SpecularIsotropic : IBRDF
     this.metalness = surface.Metalness;
   }
 
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo)
+  public float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     float a  = roughness;
     float a2 = a * a;
@@ -53,7 +43,7 @@ struct SpecularIsotropic : IBRDF
   }
 }
 
-struct SpecularAnisotropic : IBRDF
+public struct SpecularAnisotropic : IBRDF
 {
   float  roughness;
   float3 specular;
@@ -70,7 +60,7 @@ struct SpecularAnisotropic : IBRDF
     this.anisotropicRotation = anisotropicRotation;
   }
 
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo)
+  public float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     // Construct TBN from the normal
     float3 t, b;
@@ -103,7 +93,7 @@ struct SpecularAnisotropic : IBRDF
   }
 }
 
-struct SpecularClearCoat : IBRDF
+public struct SpecularClearCoat : IBRDF
 {
   float clearcoat;
   float roughness;
@@ -116,7 +106,7 @@ struct SpecularClearCoat : IBRDF
     this.metalness = metalness;
   }
 
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo)
+  public float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     float a2 = max(roughness * roughness, 0.0005);
     float a4 = a2 * a2;
@@ -132,7 +122,7 @@ struct SpecularClearCoat : IBRDF
   }
 }
 
-struct SpecularSheen : IBRDF
+public struct SpecularSheen : IBRDF
 {
   float  factor;
   float  roughness;
@@ -149,7 +139,7 @@ struct SpecularSheen : IBRDF
     this.specular  = specular;
   }
 
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo)
+  public float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     // Mix between white and using base color for sheen reflection
     float  tint = factor * factor;

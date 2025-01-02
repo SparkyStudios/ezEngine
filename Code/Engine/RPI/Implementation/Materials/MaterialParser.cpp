@@ -34,7 +34,7 @@ namespace RPI
       ezStringBuilder sValue = tokens[uiTokenIndex]->m_DataView;
       sValue.Trim("\"'");
 
-      return ezVariant(sValue.GetData());
+      return {sValue.GetData()};
     }
 
     if (Accept(tokens, ref_uiTokenIndex, ezTokenType::Integer, &uiTokenIndex))
@@ -54,7 +54,7 @@ namespace RPI
         ezConversionUtils::StringToInt64(sValue, iValue64).IgnoreResult();
       }
 
-      return ezVariant(iValue64);
+      return iValue64;
     }
 
     if (Accept(tokens, ref_uiTokenIndex, ezTokenType::Float, &uiTokenIndex))
@@ -64,28 +64,28 @@ namespace RPI
       double dValue = 0.0;
       ezConversionUtils::StringToFloat(sValue, dValue).IgnoreResult();
 
-      return ezVariant(dValue);
+      return dValue;
     }
 
     if (Accept(tokens, ref_uiTokenIndex, "true", &uiTokenIndex) || Accept(tokens, ref_uiTokenIndex, "false", &uiTokenIndex))
     {
       const bool bValue = tokens[uiTokenIndex]->m_DataView == "true";
-      return ezVariant(bValue);
+      return bValue;
     }
 
     if (Accept(tokens, ref_uiTokenIndex, "@"))
     {
-      const spMaterialFunctor* pRefFunctor = spMaterialFuntorRegistry::Get("ref");
+      const spMaterialFunctor* pRefFunctor = spMaterialFunctorRegistry::Get("ref");
       if (pRefFunctor == nullptr)
       {
         ezLog::Error("Cannot parse the material. Unable to find the builtin 'ref' functor.");
-        return ezVariant();
+        return {};
       }
 
       if (!Accept(tokens, ref_uiTokenIndex, ezTokenType::Identifier, &uiTokenIndex))
       {
         ezLog::Error("Cannot parse the material. Expected a property name after '@'.");
-        return ezVariant();
+        return {};
       }
 
       const ezString sPropertyName = tokens[uiTokenIndex]->m_DataView;
@@ -99,18 +99,18 @@ namespace RPI
     if (auto& sDataView = tokens[ref_uiTokenIndex]->m_DataView; tokens[ref_uiTokenIndex]->m_iType == ezTokenType::Identifier && ezStringUtils::IsValidIdentifierName(sDataView.GetStartPointer(), sDataView.GetEndPointer()))
     {
       const ezTempHashedString sDataHash(sDataView);
-      const spMaterialFunctor* pFunctor = spMaterialFuntorRegistry::Get(sDataHash);
+      const spMaterialFunctor* pFunctor = spMaterialFunctorRegistry::Get(sDataHash);
 
       ezDynamicArray<ezVariant> arguments;
 
       if (pFunctor == nullptr)
       {
-        pFunctor = spMaterialFuntorRegistry::Get("init");
+        pFunctor = spMaterialFunctorRegistry::Get("init");
 
         if (pFunctor == nullptr)
         {
           ezLog::Error("Cannot parse the material. The identifier '{0}' in not a functor.", sDataView);
-          return ezVariant();
+          return {};
         }
 
         arguments.PushBack(ezVariant(sDataView));
@@ -120,7 +120,7 @@ namespace RPI
       if (!Accept(tokens, ref_uiTokenIndex, "("))
       {
         ezLog::Error("Cannot parse the material. Invalid functor syntax for '{0}'.", sDataView);
-        return ezVariant();
+        return {};
       }
 
       while (!Accept(tokens, ref_uiTokenIndex, ")"))
@@ -132,7 +132,7 @@ namespace RPI
         else
         {
           ezLog::Error("Invalid arguments for functor '{0}'.", pFunctor->GetName());
-          return ezVariant();
+          return {};
         }
 
         Accept(tokens, ref_uiTokenIndex, ",");
@@ -141,7 +141,7 @@ namespace RPI
       return ezVariant(spMaterialFunctorEvaluator{pFunctor, arguments});
     }
 
-    return ezVariant();
+    return {};
   }
 
   static ezResult ParseFlagMember(const TokenStream& tokens, ezUInt32& ref_uiTokenIndex, ezMap<ezUInt32, ezVariant>& ref_Flags)
@@ -186,7 +186,7 @@ namespace RPI
       if (!Accept(tokens, ref_uiTokenIndex, ezTokenType::Integer, &uiTokenIndex) || ezConversionUtils::StringToUInt(tokens[uiTokenIndex]->m_DataView, uiCustomFlag).Failed())
         return EZ_FAILURE;
 
-      uiFlag = k_MaxReservedMateriaMask + uiCustomFlag;
+      uiFlag = k_MaxReservedMaterialMask + uiCustomFlag;
 
       if (!Accept(tokens, ref_uiTokenIndex, "]"))
         return EZ_FAILURE;
@@ -306,6 +306,39 @@ namespace RPI
     return EZ_SUCCESS;
   }
 
+  static ezResult ParseMacro(const TokenStream& tokens, ezUInt32& ref_uiTokenIndex, ezMap<ezHashedString, ezString>& ref_Macros)
+  {
+    ezUInt32 uiTokenIndex = ref_uiTokenIndex;
+    if (!Accept(tokens, ref_uiTokenIndex, ezTokenType::Identifier, &uiTokenIndex))
+      return EZ_FAILURE;
+
+    ezHashedString sDataPropertyName;
+    sDataPropertyName.Assign(tokens[uiTokenIndex]->m_DataView);
+
+    if (!Accept(tokens, ref_uiTokenIndex, "="))
+    {
+      if (!Accept(tokens, ref_uiTokenIndex, ";"))
+        return EZ_FAILURE;
+
+      ref_Macros[sDataPropertyName] = "";
+      return EZ_SUCCESS;
+    }
+
+    if (Accept(tokens, ref_uiTokenIndex, ezTokenType::String1, &uiTokenIndex) || Accept(tokens, ref_uiTokenIndex, ezTokenType::String2, &uiTokenIndex))
+    {
+      if (!Accept(tokens, ref_uiTokenIndex, ";"))
+        return EZ_FAILURE;
+
+      ezStringBuilder sValue = tokens[uiTokenIndex]->m_DataView;
+      sValue.Trim("\"'");
+
+      ref_Macros[sDataPropertyName] = sValue;
+      return EZ_SUCCESS;
+    }
+
+    return EZ_FAILURE;
+  }
+
   ezResult spMaterialParser::ParseMaterialMetadata(ezStringView sMaterialFilePath, spMaterialMetadata& out_MaterialMetadata)
   {
     ezFileReader file;
@@ -393,9 +426,7 @@ namespace RPI
           if (ParseProperty(tokens, uiCurToken, property).Failed())
             return EZ_FAILURE;
 
-          ezHashedString sPropertyName;
-          sPropertyName.Assign(property.m_sName);
-          out_MaterialMetadata.m_Properties[sPropertyName] = std::move(property);
+          out_MaterialMetadata.m_Properties[property.m_sName] = std::move(property);
         }
       }
       else if (sToken.IsEqual_NoCase("SpecializationConstants"))
@@ -405,6 +436,15 @@ namespace RPI
 
         while (!Accept(tokens, uiCurToken, "}"))
           if (ParseSpecializationConstant(tokens, uiCurToken, out_MaterialMetadata.m_SpecializationConstants).Failed())
+            return EZ_FAILURE;
+      }
+      else if (sToken.IsEqual_NoCase("Macros"))
+      {
+        if (!Accept(tokens, uiCurToken, "{"))
+          return EZ_FAILURE;
+
+        while (!Accept(tokens, uiCurToken, "}"))
+          if (ParseMacro(tokens, uiCurToken, out_MaterialMetadata.m_Macros).Failed())
             return EZ_FAILURE;
       }
       else

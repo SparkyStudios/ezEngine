@@ -24,7 +24,7 @@ namespace RPI
 
   class SP_RPI_DLL spDeferredRenderer : public spRenderer
   {
-    EZ_ADD_DYNAMIC_REFLECTION(spDeferredRenderer, spRenderer);
+    EZ_ADD_DYNAMIC_REFLECTION(spDeferredRenderer, spRenderer)
 
     // spRenderer
 

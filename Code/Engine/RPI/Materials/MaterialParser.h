@@ -40,6 +40,7 @@ namespace RPI
     ezHashedString m_sName;
     ezString m_sDescription;
 
+    ezMap<ezHashedString, ezString> m_Macros;
     ezMap<ezUInt32, ezVariant> m_Flags;
     ezMap<ezHashedString, ezVariant> m_Data;
     ezMap<ezHashedString, ezVariant> m_SpecializationConstants;

@@ -119,27 +119,38 @@ namespace RPI
     {
       auto* pShaderManager = ezSingletonRegistry::GetRequiredSingletonInstance<spShaderManager>();
 
-      spShaderCompilerSetup setup;
-      setup.m_hMaterialResource = pMeshRenderObject->m_hMaterialResource;
-      setup.m_hShaderResource = m_hShader;
-      setup.m_eStage = RHI::spShaderStage::PixelShader;
-      setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
+      {
+        spShaderCompilerSetup setup;
+        setup.m_hRootMaterialResource = pMeshRenderObject->m_hRootMaterialResource;
+        setup.m_hShaderResource = m_hShader;
+        setup.m_eStage = RHI::spShaderStage::VertexShader;
+        setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
 
-      m_pPixelShader = pShaderManager->CompileShader(setup);
+        m_pVertexShader = pShaderManager->CompileShader(setup);
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-      m_pPixelShader->SetDebugName("MeshRenderFeature_PixelShader");
+        m_pVertexShader->SetDebugName("MeshRenderFeature_VertexShader");
 #endif
+      }
+
+      {
+        spShaderCompilerSetup setup;
+        setup.m_hRootMaterialResource = pMeshRenderObject->m_hRootMaterialResource;
+        setup.m_hShaderResource = m_hShader;
+        setup.m_eStage = RHI::spShaderStage::PixelShader;
+        setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
+
+        m_pPixelShader = pShaderManager->CompileShader(setup);
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+        m_pPixelShader->SetDebugName("MeshRenderFeature_PixelShader");
+#endif
+      }
     }
 
     {
-      m_pShaderProgram = cl->GetDevice()->GetResourceFactory()->CreateShaderProgram();
       m_pShaderProgram->Attach(m_pVertexShader);
       m_pShaderProgram->Attach(m_pPixelShader);
-
-#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-      m_pShaderProgram->SetDebugName("MeshRenderFeature_ShaderProgram");
-#endif
     }
 
     {
@@ -200,21 +211,6 @@ namespace RPI
     const auto* pDevice = ezSingletonRegistry::GetRequiredSingletonInstance<spRenderSystem>()->GetDevice();
 
     {
-      auto* pShaderManager = ezSingletonRegistry::GetRequiredSingletonInstance<spShaderManager>();
-
-      spShaderCompilerSetup setup;
-      setup.m_hShaderResource = m_hShader;
-      setup.m_eStage = RHI::spShaderStage::VertexShader;
-      setup.m_PredefinedMacros.PushBack({"SP_FEATURE_VERTEX_SKINNING", "SP_OFF"});
-
-      m_pVertexShader = pShaderManager->CompileShader(setup);
-
-#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
-      m_pVertexShader->SetDebugName("MeshRenderFeature_VertexShader");
-#endif
-    }
-
-    {
       RHI::spResourceLayoutDescription desc{};
       desc.m_eShaderStage = RHI::spShaderStage::VertexShader | RHI::spShaderStage::PixelShader;
 
@@ -247,6 +243,14 @@ namespace RPI
 
 #if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
       m_pResourceLayout->SetDebugName("MeshRenderFeature_ResourceLayout");
+#endif
+    }
+
+    {
+      m_pShaderProgram = pDevice->GetResourceFactory()->CreateShaderProgram();
+
+#if EZ_ENABLED(EZ_COMPILE_FOR_DEVELOPMENT)
+      m_pShaderProgram->SetDebugName("MeshRenderFeature_ShaderProgram");
 #endif
     }
   }

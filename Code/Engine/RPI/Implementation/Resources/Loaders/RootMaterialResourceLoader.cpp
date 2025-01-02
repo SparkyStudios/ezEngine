@@ -102,12 +102,20 @@ ezResourceLoadData spRootMaterialResourceLoader::OpenDataStream(const ezResource
     auto* pShaderManager = ezSingletonRegistry::GetRequiredSingletonInstance<spShaderManager>();
     Slang::ComPtr<slang::IBlob> pBlob;
 
-    spRootMaterialCompilerSetup setup;
-    setup.m_sRootMaterialPath = sAbsolutePath;
-    pShaderManager->CompileRootMaterial(setup, pBlob);
+    // spRootMaterialCompilerSetup setup;
+    // setup.m_sRootMaterialPath = sAbsolutePath;
+    // for (auto macro : metadata.m_Macros)
+    //   setup.m_PredefinedMacros.PushBack({macro.Key().GetData(), macro.Value().GetData()});
+    //
+    // pShaderManager->CompileRootMaterial(setup, pBlob);
 
-    w << pBlob->getBufferSize();
-    w.WriteBytes(pBlob->getBufferPointer(), pBlob->getBufferSize()).IgnoreResult();
+    ezByteArrayPtr shaderCode = EZ_DEFAULT_NEW_ARRAY(ezUInt8, static_cast<ezUInt32>(file.GetFileSize()));
+    EZ_SCOPE_EXIT(EZ_DEFAULT_DELETE_ARRAY(shaderCode));
+
+    file.ReadBytes(shaderCode.GetPtr(), shaderCode.GetCount());
+
+    w << shaderCode.GetCount();
+    w.WriteBytes(shaderCode.GetPtr(), shaderCode.GetCount()).IgnoreResult();
   }
   else if (sAbsolutePath.HasExtension("spRootMaterial"))
   {

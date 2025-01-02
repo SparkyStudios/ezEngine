@@ -28,18 +28,18 @@ namespace RPI
   {
   public:
     /// \brief Gets the RHI buffer resource.
-    EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetBuffer() const { return m_pBuffer; }
+    [[nodiscard]] EZ_ALWAYS_INLINE ezSharedPtr<RHI::spBuffer> GetBuffer() const { return m_pBuffer; }
 
     /// \brief Maps the GPU buffer to CPU memory.
     /// \param[in] bReadOnly Specifies whether the buffer should be mapped as read-only.
     /// \return The mapped resource.
-    const RHI::spMappedResource& Map(bool bReadOnly = false) const;
+    [[nodiscard]] const RHI::spMappedResource& Map(bool bReadOnly = false) const;
 
     /// \brief Unmaps the GPU buffer from CPU memory.
     void Unmap() const;
 
     /// \brief Swaps the inner GPU buffer ranges and activates the next one.
-    /// This method works only if the buffer is multi-buffered.
+    /// \note This method works only if the buffer is multi-buffered.
     void Swap() const;
 
     /// \brief Updates the GPU buffer with the given data.

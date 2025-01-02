@@ -147,9 +147,9 @@ namespace RPI
       uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32(&constant.m_uiValue, sizeof(constant.m_uiValue)));
     }
 
-    if (m_hMaterialResource.IsValid())
+    if (m_hRootMaterialResource.IsValid())
     {
-      uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::StringHashTo32(m_hMaterialResource.GetResourceIDHash()));
+      uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::StringHashTo32(m_hRootMaterialResource.GetResourceIDHash()));
     }
 
     return uiHash;
@@ -178,7 +178,18 @@ namespace RPI
 
     if (!m_ShaderKernelCache.Contains(uiHash))
     {
-      auto const pSession = CreateSlangSession(compilerSetup.m_PredefinedMacros.GetArrayPtr());
+      ezDynamicArray<slang::PreprocessorMacroDesc> macros = compilerSetup.m_PredefinedMacros;
+
+      if (compilerSetup.m_hRootMaterialResource.IsValid())
+      {
+        const ezResourceLock rootMaterialResource(compilerSetup.m_hRootMaterialResource, ezResourceAcquireMode::BlockTillLoaded);
+
+        for (auto macro : rootMaterialResource->GetDescriptor().GetRootMaterial().GetMetadata().m_Macros)
+          macros.PushBack({macro.Key().GetData(), macro.Value().GetData()});
+      }
+
+      auto const pSession = CreateSlangSession(macros.GetArrayPtr());
+      LoadCoreModules(pSession);
 
       const ezResourceLock resource(compilerSetup.m_hShaderResource, ezResourceAcquireMode::BlockTillLoaded_NeverFail);
       EZ_ASSERT_DEV(resource.IsValid(), "Unable to get the shader resource.");
@@ -216,10 +227,11 @@ namespace RPI
         shaderProgramComponents.push_back(pEntryPoint);
       }
 
-      if (compilerSetup.m_hMaterialResource.IsValid())
+      Slang::ComPtr<slang::IModule> pMaterialModule = nullptr;
+
+      if (compilerSetup.m_hRootMaterialResource.IsValid())
       {
-        const Slang::ComPtr<slang::IModule> pMaterialModule = CreateMaterialModule(pSession, compilerSetup);
-        shaderProgramComponents.push_back(pMaterialModule);
+        pMaterialModule = CreateMaterialModule(pSession, compilerSetup);
       }
 
       const Slang::ComPtr<slang::IModule> pSpecializationModule = CreateSpecializationConstantsModule(pSession, compilerSetup);
@@ -241,13 +253,17 @@ namespace RPI
       Slang::ComPtr<slang::IComponentType> pSpecializedProgram;
 
       // TODO: Either this or link-time specialization should be applied.
-      // if (compilerSetup.m_hMaterialResource.IsValid())
-      if (false)
+      // if (false)
+      if (compilerSetup.m_hRootMaterialResource.IsValid() && pMaterialModule != nullptr && pShaderProgram->getSpecializationParamCount() > 0)
       {
-        const ezResourceLock materialResource(compilerSetup.m_hMaterialResource, ezResourceAcquireMode::BlockTillLoaded);
-        const ezResourceLock rootMaterialResource(materialResource->GetDescriptor().GetRootMaterialResource(), ezResourceAcquireMode::BlockTillLoaded);
+        const ezResourceLock rootMaterialResource(compilerSetup.m_hRootMaterialResource, ezResourceAcquireMode::BlockTillLoaded);
 
-        const auto materialType = pShaderProgram->getLayout()->findTypeByName(rootMaterialResource->GetDescriptor().GetRootMaterial().GetMetadata().m_sName);
+        const auto materialType = pMaterialModule->getLayout()->findTypeByName(rootMaterialResource->GetDescriptor().GetRootMaterial().GetMetadata().m_sName);
+        if (materialType == nullptr)
+        {
+          ezLog::Error("Unable to find the material type '{}'. Ensure the material type specified in the material descriptor is defined and implements the IMaterial interface.", rootMaterialResource->GetDescriptor().GetRootMaterial().GetMetadata().m_sName);
+          return nullptr;
+        }
 
         std::vector<slang::SpecializationArg> specializationArgs;
 
@@ -342,6 +358,8 @@ namespace RPI
     }
 
     ezByteArrayPtr shaderCode = EZ_DEFAULT_NEW_ARRAY(ezUInt8, static_cast<ezUInt32>(fileReader.GetFileSize()));
+    EZ_SCOPE_EXIT(EZ_DEFAULT_DELETE_ARRAY(shaderCode));
+
     fileReader.ReadBytes(shaderCode.GetPtr(), shaderCode.GetCount());
 
     const Slang::ComPtr<spSlangByteBlob> pCode(EZ_DEFAULT_NEW(spSlangByteBlob, shaderCode));
@@ -349,12 +367,8 @@ namespace RPI
     ezStringBuilder sTemp;
     Slang::ComPtr<slang::IModule> pModule(pSession->loadModuleFromSource("material", compilerSetup.m_sRootMaterialPath.GetData(sTemp), pCode));
 
-    SlangResult result = pModule->serialize(out_ir.writeRef());
-    if (result != SLANG_OK)
-    {
+    if (const SlangResult result = pModule->serialize(out_ir.writeRef()); result != SLANG_OK)
       ezLog::Error("Failed to serialize root material module.");
-      return;
-    }
   }
 
   void spShaderManager::CacheShaderKernel(ezUInt32 uiHash, ezSharedPtr<RHI::spShader> pShaderKernel)
@@ -368,13 +382,14 @@ namespace RPI
 
     ezDynamicArray<RHI::spShaderSpecializationConstant> specializationConstants = compilerSetup.m_SpecializationConstants;
 
-    if (compilerSetup.m_hMaterialResource.IsValid())
-    {
-      const ezResourceLock materialResource(compilerSetup.m_hMaterialResource, ezResourceAcquireMode::BlockTillLoaded);
-
-      const auto& constants = materialResource->GetDescriptor().GetMaterial().GetSpecializationConstants();
-      specializationConstants.PushBackRange(constants.GetArrayPtr());
-    }
+    // TODO: Apply specialization constants from the material instance.
+    // if (compilerSetup.m_hRootMaterialResource.IsValid())
+    // {
+    //   const ezResourceLock materialResource(compilerSetup.m_hRootMaterialResource, ezResourceAcquireMode::BlockTillLoaded);
+    //
+    //   const auto& constants = materialResource->GetDescriptor().GetRootMaterial().GetMetadata().m_SpecializationConstants;
+    //   specializationConstants.PushBackRange(constants.GetArrayPtr());
+    // }
 
     for (const auto& specialization : compilerSetup.m_SpecializationConstants)
     {
@@ -434,13 +449,12 @@ namespace RPI
 
   Slang::ComPtr<slang::IModule> spShaderManager::CreateMaterialModule(Slang::ComPtr<slang::ISession> pSession, const spShaderCompilerSetup& compilerSetup)
   {
-    const ezResourceLock materialResource(compilerSetup.m_hMaterialResource, ezResourceAcquireMode::BlockTillLoaded);
-    const ezResourceLock rootMaterialResource(materialResource->GetDescriptor().GetRootMaterialResource(), ezResourceAcquireMode::BlockTillLoaded);
+    const ezResourceLock rootMaterialResource(compilerSetup.m_hRootMaterialResource, ezResourceAcquireMode::BlockTillLoaded);
 
     const Slang::ComPtr<spSlangByteBlob> pIR(EZ_DEFAULT_NEW(spSlangByteBlob, rootMaterialResource->GetDescriptor().GetRootMaterial().GetShaderBytes()));
 
     Slang::ComPtr<slang::IBlob> pDiagnostics;
-    Slang::ComPtr<slang::IModule> pModule(pSession->loadModuleFromIRBlob("material-module", "material-module.slang", pIR));
+    Slang::ComPtr<slang::IModule> pModule(pSession->loadModuleFromSource("material", "material.slang", pIR));
 
     if (pDiagnostics != nullptr)
     {
@@ -479,6 +493,29 @@ namespace RPI
     }
 
     return pEntryPoint;
+  }
+
+  void spShaderManager::LoadCoreModules(Slang::ComPtr<slang::ISession> pSession)
+  {
+    ezStringBuilder sTemp;
+
+    for (auto module : {"Common", "Math", "MaterialSystem"})
+    {
+      ezFileReader file;
+      if (file.Open(ezFmt(":shaders/Lib/Private/{}.slang", module).GetText(sTemp)).Failed())
+        return;
+
+      const ezStringBuilder sAbsolutePath = file.GetFilePathAbsolute();
+
+      ezByteArrayPtr shaderCode = EZ_DEFAULT_NEW_ARRAY(ezUInt8, static_cast<ezUInt32>(file.GetFileSize()));
+      EZ_SCOPE_EXIT(EZ_DEFAULT_DELETE_ARRAY(shaderCode));
+
+      file.ReadBytes(shaderCode.GetPtr(), shaderCode.GetCount());
+
+      const Slang::ComPtr<spSlangByteBlob> pCode(EZ_DEFAULT_NEW(spSlangByteBlob, shaderCode));
+
+      pSession->loadModuleFromSource(module, sAbsolutePath.GetData(), pCode);
+    }
   }
 
   Slang::ComPtr<slang::ISession> spShaderManager::CreateSlangSession(const ezArrayPtr<const slang::PreprocessorMacroDesc>& predefinedMacros) const

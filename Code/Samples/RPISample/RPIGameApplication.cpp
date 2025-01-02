@@ -217,6 +217,21 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
     {
       ezGameObjectDesc cubeDesc;
       cubeDesc.m_sName.Assign("Cube1");
+      cubeDesc.m_LocalPosition = ezVec3(+50.0f, +100.0f, 0.0f);
+      cubeDesc.m_LocalUniformScaling = 1.0f;
+      m_pWorld->CreateObject(cubeDesc, m_Objects[0]);
+
+      ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[0]);
+      if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
+      {
+        pComponent->SetMeshFile(":project/objects/teapot.spMesh");
+        pComponent->SetMaterial(material1);
+      }
+    }
+
+    {
+      ezGameObjectDesc cubeDesc;
+      cubeDesc.m_sName.Assign("Cube4");
       cubeDesc.m_LocalPosition = ezVec3(+50.0f, 0.0f, 0.0f);
       cubeDesc.m_LocalUniformScaling = 1.0f;
       m_pWorld->CreateObject(cubeDesc, m_Objects[0]);
@@ -231,7 +246,7 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
 
     {
       ezGameObjectDesc cubeDesc;
-      cubeDesc.m_sName.Assign("Cube1");
+      cubeDesc.m_sName.Assign("Cube3");
       cubeDesc.m_LocalPosition = ezVec3(+50.0f, -100.0f, 0.0f);
       cubeDesc.m_LocalUniformScaling = 1.0f;
       m_pWorld->CreateObject(cubeDesc, m_Objects[1]);

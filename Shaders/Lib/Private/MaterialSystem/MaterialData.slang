@@ -12,102 +12,100 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <MaterialFlags.h>
+implementing MaterialSystem;
 
 /// Describes a material for every object in the world.
-struct MaterialData
+public struct MaterialData
 {
-  float4 AlbedoColor;
-  float4 SpecularColor;
-  float4 EmissiveColor;
+  public float4 AlbedoColor;
+  public float4 SpecularColor;
+  public float4 EmissiveColor;
 
-  float2 UVTiling;
-  float2 UVOffset;
+  public float2 UVTiling;
+  public float2 UVOffset;
 
-  float Roughness;
-  float Metalness;
-  float NormalIntensity;
-  float Height;
+  public float Roughness;
+  public float Metalness;
+  public float NormalIntensity;
+  public float Height;
 
-  float        WorldSpaceHeight;
-  float        IOR;
-  float        SubsurfaceScattering;
+  public float WorldSpaceHeight;
+  public float IOR;
+  public float SubsurfaceScattering;
   private uint Flags;
 
-  float4 SheenTint_Sheen;
+  public float4 SheenTint_Sheen;
 
-  float Anisotropic;
-  float AnisotropicRotation;
-  float Clearcoat;
-  float ClearcoatRoughness;
+  public float Anisotropic;
+  public float AnisotropicRotation;
+  public float Clearcoat;
+  public float ClearcoatRoughness;
 
-  property DiffuseColor : float3
+  public property DiffuseColor : float3
   {
     get {
       return lerp(AlbedoColor.rgb, float3(0.0f), Metalness);
     }
   }
 
-  property Sheen : float
+  public property Sheen : float
   {
     get { return SheenTint_Sheen.w; }
   }
 
-  property SheenTint : float3
+  public property SheenTint : float3
   {
     get {
       return SheenTint_Sheen.xyz;
     }
   }
 
-  property HasTextureAlbedo : bool
+  public property HasTextureAlbedo : bool
   {
     get { return CheckFlag(k_HasTextureAlbedoMask); }
   }
 
-  property HasTextureNormal : bool
+  public property HasTextureNormal : bool
   {
     get { return CheckFlag(k_HasTextureNormalMask); }
   }
 
-  property HasTextureMetalness : bool
+  public property HasTextureMetalness : bool
   {
     get { return CheckFlag(k_HasTextureMetalnessMask); }
   }
 
-  property HasTextureRoughness : bool
+  public property HasTextureRoughness : bool
   {
     get { return CheckFlag(k_HasTextureRoughnessMask); }
   }
 
-  property HasTextureCavity : bool
+  public property HasTextureCavity : bool
   {
     get { return CheckFlag(k_HasTextureCavityMask); }
   }
 
-  property HasTextureOcclusion : bool
+  public property HasTextureOcclusion : bool
   {
     get { return CheckFlag(k_HasTextureOcclusionMask); }
   }
 
-  property HasTextureORMC : bool
+  public property HasTextureORMC : bool
   {
     get { return CheckFlag(k_HasTextureORMCMask); }
   }
 
-  property HasTextureSpecular : bool
+  public property HasTextureSpecular : bool
   {
     get { return CheckFlag(k_HasTextureSpecularMask); }
   }
 
-  property HasTextureEmissive : bool
+  public property HasTextureEmissive : bool
   {
     get { return CheckFlag(k_HasTextureEmissiveMask); }
   }
 
-  property HasTextureAlpha : bool
+  public property HasTextureAlpha : bool
   {
     get { return CheckFlag(k_HasTextureAlphaMask); }
   }
@@ -116,5 +114,5 @@ struct MaterialData
   /// \param flags The material flag.
   /// \param shift The feature shift in the flag.
   /// \return \c true if the feature is enabled, \c false otherwise.
-  bool CheckFlag(uint shift) { return (Flags & uint(1U << shift)) == 1U; }
+  public bool CheckFlag(uint shift) { return (Flags & uint(1U << shift)) == 1U; }
 }

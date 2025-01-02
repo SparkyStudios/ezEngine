@@ -12,27 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <Core.slang>
-
-#define USE_WORLDPOS
-#define USE_VELOCITY
-#define USE_NORMAL
-#define USE_TANGENT
-#define USE_BITANGENT
-#define USE_TEXCOORD0
-
-#if SP_ENABLED(SP_FEATURE_VERTEX_SKINNING)
-#  define USE_SKINNING
-#endif
-
-#include <Lightning.slang>
-#include <Materials.slang>
+import Common;
+import MaterialSystem;
+import Math;
 
 // BEGIN_MATERIAL_DESCRIPTOR
 __ignored_block
 {
   Name        = StandardPBRMaterial;
   Description = "The standard PBR material";
+
+  Macros
+  {
+    USE_WORLDPOS;
+    USE_VELOCITY;
+    USE_NORMAL;
+    USE_TANGENT;
+    USE_BITANGENT;
+    USE_TEXCOORD0;
+  }
 
   Flags
   {

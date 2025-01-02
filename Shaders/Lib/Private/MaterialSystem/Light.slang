@@ -12,5 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing MaterialSystem;
 
+/// Describes a light.
+public struct Light
+{
+  /// Light position in the 3D environment.
+  public float3 Position;
+}

@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing MaterialSystem;
 
-#include <Lightning/BRDF/Diffuse.slang>
-#include <Lightning/BRDF/Distribution.slang>
-#include <Lightning/BRDF/Fresnel.slang>
-#include <Lightning/BRDF/IBRDF.slang>
-#include <Lightning/BRDF/Specular.slang>
-#include <Lightning/BRDF/Visibility.slang>
+/// The interface for BRDF implementations.
+///
+/// This interface is used for both diffuse BRDF implementations as well
+/// as specular BRDF implementations.
+public interface IBRDF
+{
+  float3 evaluate(inout Surface surface, AngularInfo angularInfo);
+}
