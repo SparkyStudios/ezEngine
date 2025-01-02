@@ -16,10 +16,10 @@
 
 #include <Texture/Image/Image.h>
 
-#include <RAI/Resources/ImageResource.h>
-#include <RAI/Resources/MeshResource.h>
-#include <RAI/Resources/SamplerResource.h>
-#include <RAI/Resources/Texture2DResource.h>
+#include <RPI/Resources/ImageResource.h>
+#include <RPI/Resources/MeshResource.h>
+#include <RPI/Resources/SamplerResource.h>
+#include <RPI/Resources/Texture2DResource.h>
 
 #include <RHI/CommandList.h>
 #include <RHI/Core.h>

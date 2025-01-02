@@ -18,7 +18,7 @@
 
 #include <RPI/Materials/MaterialData.h>
 
-#include <RAI/Resources/ShaderResource.h>
+#include <RPI/Resources/ShaderResource.h>
 
 #include <Core/World/World.h>
 
@@ -37,7 +37,7 @@ namespace RPI
     spMaterialFeature();
 
   private:
-    RAI::spShaderResourceHandle m_hMaterialFeatureShader;
+    spShaderResourceHandle m_hMaterialFeatureShader;
   };
 
   class SP_RPI_DLL spDiffuseMaterialFeature : public spMaterialFeature
