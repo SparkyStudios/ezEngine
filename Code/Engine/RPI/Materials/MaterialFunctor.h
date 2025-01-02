@@ -28,7 +28,7 @@ namespace RPI
     explicit spMaterialFunctor(ezStringView sName);
     ~spMaterialFunctor() override = default;
 
-    virtual ezVariant Evaluate(const ezArrayPtr<ezVariant>& arguments) const = 0;
+    [[nodiscard]] virtual ezVariant Evaluate(const ezArrayPtr<ezVariant>& arguments) const = 0;
 
     [[nodiscard]] EZ_ALWAYS_INLINE const ezHashedString& GetName() const { return m_sName; }
 
@@ -47,14 +47,14 @@ namespace RPI
     }
   };
 
-  class SP_RPI_DLL spMaterialFuntorRegistry
+  class SP_RPI_DLL spMaterialFunctorRegistry
   {
     EZ_MAKE_SUBSYSTEM_STARTUP_FRIEND(RPI, MaterialFunctor);
-    EZ_DECLARE_SINGLETON(spMaterialFuntorRegistry);
+    EZ_DECLARE_SINGLETON(spMaterialFunctorRegistry);
 
   public:
-    spMaterialFuntorRegistry();
-    ~spMaterialFuntorRegistry();
+    spMaterialFunctorRegistry();
+    ~spMaterialFunctorRegistry();
 
     void Register(spMaterialFunctor* pMaterialFunctor);
     void Unregister(spMaterialFunctor* pMaterialFunctor);

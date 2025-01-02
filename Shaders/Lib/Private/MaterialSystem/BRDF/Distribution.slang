@@ -12,19 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <Common/Math/Utils.slang>
+implementing MaterialSystem;
 
 // GGX / Trowbridge-Reitz
 // [Walter et al. 2007, "Microfacet models for refraction through rough surfaces"]
-float D_GGX(float a2, float NoH)
+public float D_GGX(float a2, float NoH)
 {
   float d = (NoH * a2 - NoH) * NoH + 1; // 2 mad
   return a2 / (PI * d * d + FLT_MIN);   // 4 mul, 1 rcp
 }
 
-float D_GGX_Anisotropic(float cos_theta_m, float alpha_x, float alpha_y, float cos_phi, float sin_phi)
+public float D_GGX_Anisotropic(float cos_theta_m, float alpha_x, float alpha_y, float cos_phi, float sin_phi)
 {
   float cos2 = cos_theta_m * cos_theta_m;
   float sin2 = (1.0 - cos2);
@@ -34,9 +32,9 @@ float D_GGX_Anisotropic(float cos_theta_m, float alpha_x, float alpha_y, float c
   return saturate16(1.0 / (PI * alpha_x * alpha_y * d * d));
 }
 
-float D_Charlie(float roughness, float NoH)
+// Estevez and Kulla 2017, "Production Friendly Microfacet Sheen BRDF"
+public float D_Charlie(float roughness, float NoH)
 {
-  // Estevez and Kulla 2017, "Production Friendly Microfacet Sheen BRDF"
   float invAlpha = 1.0 / roughness;
   float cos2h    = NoH * NoH;
   float sin2h    = max(1.0 - cos2h, 0.0078125); // 2^(-14/2), so sin2h^2 > 0 in fp16

@@ -63,6 +63,7 @@ inline ezStreamWriter& operator<<(ezStreamWriter& inout_stream, const RPI::spMat
   inout_stream.WriteString(metadata.m_sName).AssertSuccess();
   inout_stream.WriteString(metadata.m_sDescription).AssertSuccess();
 
+  inout_stream.WriteMap(metadata.m_Macros).AssertSuccess();
   inout_stream.WriteMap(metadata.m_Flags).AssertSuccess();
   inout_stream.WriteMap(metadata.m_Data).AssertSuccess();
   inout_stream.WriteMap(metadata.m_SpecializationConstants).AssertSuccess();
@@ -79,6 +80,7 @@ inline ezStreamReader& operator>>(ezStreamReader& inout_stream, RPI::spMaterialM
 
   inout_stream.ReadString(ref_metadata.m_sDescription).AssertSuccess();
 
+  inout_stream.ReadMap(ref_metadata.m_Macros).AssertSuccess();
   inout_stream.ReadMap(ref_metadata.m_Flags).AssertSuccess();
   inout_stream.ReadMap(ref_metadata.m_Data).AssertSuccess();
   inout_stream.ReadMap(ref_metadata.m_SpecializationConstants).AssertSuccess();

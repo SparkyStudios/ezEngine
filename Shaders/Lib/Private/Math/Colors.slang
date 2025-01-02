@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <Common/RenderingContext.slang>
+implementing Math;
 
 extern static const float o_GammaSDR = 2.2f; // SDR monitors are likely old, and aim for a simplistic gamma 2.2 curve
 extern static const float o_GammaHDR = 2.4f; // HDR monitors are more likely to aim for the actual sRGB standard, which has a curve that for mid tones to high lights resembles a gamma of 2.4
@@ -22,7 +20,7 @@ extern static const float o_GammaHDR = 2.4f; // HDR monitors are more likely to 
 /// Unpacks an unsigned integer to an RGBA color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float4.
-float4 UnpackColor4(uint x)
+public float4 UnpackColor4(uint x)
 {
   float4 result;
   result.r = x & 0xFF;
@@ -36,7 +34,7 @@ float4 UnpackColor4(uint x)
 /// Unpacks an unsigned integer to a 8-bits RGB color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float3.
-float3 UnpackColor3_8Bits(uint x)
+public float3 UnpackColor3_8Bits(uint x)
 {
   float3 result;
   result.r = x & 0xFF;
@@ -49,7 +47,7 @@ float3 UnpackColor3_8Bits(uint x)
 /// Unpacks an unsigned integer to a 10-bits RGB color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float3
-float3 UnpackColor3_10Bits(uint x)
+public float3 UnpackColor3_10Bits(uint x)
 {
   float3 result;
   result.r = x & 0x3FF;
@@ -62,7 +60,7 @@ float3 UnpackColor3_10Bits(uint x)
 /// Unpacks an unsigned integer to a 16-bits RG color value.
 /// \param x The unsigned integer to unpack.
 /// \return The unpacked color as a \c float2.
-float2 UnpackColor2_16Bits(uint x)
+public float2 UnpackColor2_16Bits(uint x)
 {
   float2 result;
   result.r = f16tof32(x);
@@ -76,19 +74,19 @@ float2 UnpackColor2_16Bits(uint x)
 /// \param rg The packed RG values.
 /// \param ba The packed BA values.
 /// \return The unpacked color as a \c float4.
-float4 UnpackColor4(uint rg, uint ba) { return float4(UnpackColor2_16Bits(rg), UnpackColor2_16Bits(ba)); }
+public float4 UnpackColor4(uint rg, uint ba) { return float4(UnpackColor2_16Bits(rg), UnpackColor2_16Bits(ba)); }
 
 /// Gets the luminance of the given \a color
 /// \param color The color to get the luminance from.
 /// \return The color's luminance.
-float GetLuminance(float3 color) { return dot(color, float3(0.2126, 0.7152, 0.0722)); }
+public float GetLuminance(float3 color) { return dot(color, float3(0.2126, 0.7152, 0.0722)); }
 
 /// Converts the given \a color from sRGB color space
 /// to Linear color space.
 /// \param color The color to convert.
 /// \param hdrEnabled Whether HDR support is enabled.
 /// \return A new color in the Linear color space.
-float3 SrgbToLinear(float3 color, bool hdrEnabled)
+public float3 SrgbToLinear(float3 color, bool hdrEnabled)
 {
   float  gamma       = hdrEnabled ? o_GammaHDR : o_GammaSDR;
   float3 linear_low  = color / 12.92;
@@ -102,7 +100,7 @@ float3 SrgbToLinear(float3 color, bool hdrEnabled)
 /// \param color The color to convert.
 /// \param hdrEnabled Whether HDR support is enabled.
 /// \return A new color in the sRGB color space.
-float3 LinearToSrgb(float3 color, bool hdrEnabled)
+public float3 LinearToSrgb(float3 color, bool hdrEnabled)
 {
   float  gamma     = hdrEnabled ? o_GammaHDR : o_GammaSDR;
   float3 srgb_low  = color * 12.92;
@@ -116,7 +114,7 @@ float3 LinearToSrgb(float3 color, bool hdrEnabled)
 /// \param color The color to convert.
 /// \param whitePoint The HDR white point.
 /// \return A new color in the HDR10 color space.
-float3 LinearToHDR10(float3 color, float whitePoint)
+public float3 LinearToHDR10(float3 color, float whitePoint)
 {
   // convert Rec.709 (similar to srgb) to Rec.2020 color space
   {

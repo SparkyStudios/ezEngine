@@ -12,12 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing Common;
 
-#include <Common/Constants.slang>
-#include <Common/RenderingContext.slang>
-
-float4 ClipToView(in matrix inverseProjectionMatrix, in float4 clip)
+public float4 ClipToView(in matrix inverseProjectionMatrix, in float4 clip)
 {
   // View space transform
   float4 view = mul(inverseProjectionMatrix, clip);
@@ -28,7 +25,7 @@ float4 ClipToView(in matrix inverseProjectionMatrix, in float4 clip)
   return view;
 }
 
-float4 ScreenToView(in matrix inverseProjectionMatrix, in float4 screen, in float2 renderSize)
+public float4 ScreenToView(in matrix inverseProjectionMatrix, in float4 screen, in float2 renderSize)
 {
   // Convert to NDC
   float2 texCoord = screen.xy / renderSize.xy;

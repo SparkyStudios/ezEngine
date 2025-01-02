@@ -12,13 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing MaterialSystem;
 
-#include <Materials/AngularInfo.slang>
-#include <Materials/IMaterial.slang>
-#include <Materials/IShadingTechnique.slang>
-#include <Materials/MaterialData.slang>
-#include <Materials/Streams.slang>
-#include <Materials/Surface.slang>
-#include <Materials/Utils.slang>
-#include <Materials/VertexProcessing.slang>

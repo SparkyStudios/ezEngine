@@ -12,16 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing MaterialSystem;
 
-#include <Materials/AngularInfo.slang>
-#include <Materials/Surface.slang>
-
-/// The interface for BRDF implementations.
-///
-/// This interface is used for both diffuse BRDF implementations as well
-/// as specular BRDF implementations.
-interface IBRDF
+// Schlick 1994, "An Inexpensive BRDF Model for Physically-Based Rendering"
+public float3 F_Schlick(const float3 f0, float f90, float VoH)
 {
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo);
+  return f0 + (f90 - f0) * pow(1.0 - VoH, 5.0);
+}
+
+public float3 F_Schlick(const float3 f0, float VoH)
+{
+  float f = pow(1.0 - VoH, 5.0);
+  return f + f0 * (1.0 - f);
+}
+
+public float3 F_Schlick_Roughness(const float3 f0, float VoH, float roughness)
+{
+  float3 a = 1.0 - roughness;
+  return f0 + (max(a, f0) - f0) * pow(max(1.0 - VoH, 0.0), 5.0);
 }

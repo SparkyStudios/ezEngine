@@ -12,13 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing MaterialSystem;
 
-#include <Common/Math/Utils.slang>
-#include <Lightning/BRDF/Fresnel.slang>
-#include <Lightning/BRDF/IBRDF.slang>
-
-struct DiffuseLambert : IBRDF
+public struct DiffuseLambert : IBRDF
 {
   float3 albedo;
 
@@ -27,11 +23,11 @@ struct DiffuseLambert : IBRDF
     this.albedo = albedo;
   }
 
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo) { return albedo * INV_PI * angularInfo.NoL; }
+  public float3 evaluate(inout Surface surface, AngularInfo angularInfo) { return albedo * INV_PI * angularInfo.NoL; }
 }
 
 // [Burley 2012, "Physically-Based Shading at Disney"]
-struct DiffuseBurley : IBRDF
+public struct DiffuseBurley : IBRDF
 {
   float3 albedo;
   float  roughness;
@@ -42,7 +38,7 @@ struct DiffuseBurley : IBRDF
     this.roughness = linearRoughness;
   }
 
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo)
+  public float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     float FD90 = 0.5 + 2 * angularInfo.VoH * angularInfo.VoH * roughness;
     float FdV  = 1 + (FD90 - 1) * pow(1 - angularInfo.NoV, 5);
@@ -53,7 +49,7 @@ struct DiffuseBurley : IBRDF
 }
 
 // Diffuse - [Gotanda 2012, "Beyond a Simple Physically Based Blinn-Phong Model in Real-Time"]
-struct DiffuseOrenNayar : IBRDF
+public struct DiffuseOrenNayar : IBRDF
 {
   private float3 albedo;
   private float  roughness;
@@ -66,7 +62,7 @@ struct DiffuseOrenNayar : IBRDF
     this.roughnessA = surface.Roughness;
   }
 
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo)
+  public float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     float a     = roughnessA;
     float s     = a;                                         // ( 1.29 + 0.5 * a );
@@ -82,7 +78,7 @@ struct DiffuseOrenNayar : IBRDF
 
 // Normalized Disney diffuse function taken from Frostbite's PBR course notes (page 10):
 // https://media.contentapi.ea.com/content/dam/eacom/frostbite/files/course-notes-moving-frostbite-to-pbr-v32.pdf
-struct DiffuseFrostbite : IBRDF
+public struct DiffuseFrostbite : IBRDF
 {
   float3 albedo;
   float  roughness;
@@ -93,7 +89,7 @@ struct DiffuseFrostbite : IBRDF
     this.roughness = linearRoughness;
   }
 
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo)
+  public float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     const float3 f0 = float3(1.0, 1.0, 1.0);
 
@@ -109,7 +105,7 @@ struct DiffuseFrostbite : IBRDF
 
 // Extended Lambertian + Fresnel diffuse model from Respawn's GDC2017 slides(page 113):
 // https://twvideo01.ubm-us.net/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf
-struct DiffuseTitanFall : IBRDF
+public struct DiffuseTitanFall : IBRDF
 {
   float3 albedo;
   float  roughness;
@@ -120,7 +116,7 @@ struct DiffuseTitanFall : IBRDF
     this.roughness = roughnessA;
   }
 
-  float3 evaluate(inout Surface surface, AngularInfo angularInfo)
+  public float3 evaluate(inout Surface surface, AngularInfo angularInfo)
   {
     const float3 f0 = float3(1.0, 1.0, 1.0);
 

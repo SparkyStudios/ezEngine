@@ -12,92 +12,88 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <Common/Math/Utils.slang>
-
-#include <Materials/MaterialData.slang>
+implementing MaterialSystem;
 
 /// Describes a geometry surface.
 ///
 /// This structure stores all the required data used to describe a
 /// surface for each fragment.
-struct Surface
+public struct Surface
 {
   /// The diffuse color.
-  float3 Diffuse;
+  public float3 Diffuse;
 
   /// The specular color.
-  float3 Specular;
+  public float3 Specular;
 
   /// The emissive color.
-  float3 Emissive;
+  public float3 Emissive;
 
   /// The roughness value as specified by the
   /// roughness texture.
-  float LinearRoughness;
+  public float LinearRoughness;
 
   /// The metalness value.
-  float Metalness;
+  public float Metalness;
 
   /// The ambient occlusion value.
-  float Occlusion;
+  public float Occlusion;
 
   /// Value in the range [0..1] applied on the accumulated
   /// light values to simulate cavities on surfaces.
-  float Cavity;
+  public float Cavity;
 
   /// The clearcoat value.
   /// \note A value of \c 0 disables clearcoat.
-  float Clearcoat;
+  public float Clearcoat;
 
   /// The roughness value for clearcoat shading.
   /// \note Only applicable if \a Clearcoat > \c 0.
-  float ClearcoatRoughness;
+  public float ClearcoatRoughness;
 
   /// Normal vector used for the clearcoat shading.
   /// \note Only applicable in \a Clearcoat > \c 0.
-  float3 ClearcoatNormal;
+  public float3 ClearcoatNormal;
 
   /// The anisotropic value.
   /// \note A value of \c 0 disables anisotropy.
-  float Anisotropic;
+  public float Anisotropic;
 
   /// Noise value used in the anisotropic shading.
   /// \note Only applicable if \a Anisotropic > \c 0.
-  float AnisotropicRotation;
+  public float AnisotropicRotation;
 
   /// The specular sheen factor.
   /// \note A value of \c 0 disables specular sheen.
-  float Sheen;
+  public float Sheen;
 
   /// The specular sheen tint factor.
   /// \note Only applcicable if \a Sheen > \c 0.
-  float SheenTintFactor;
+  public float SheenTintFactor;
 
-  float Roughness;
-  float Roughness2;
-  float DiffuseOcclusion;
-  float SpecularOcclusion;
-  float SpecularF0;
-  float Opacity;
+  public float Roughness;
+  public float Roughness2;
+  public float DiffuseOcclusion;
+  public float SpecularOcclusion;
+  public float SpecularF0;
+  public float Opacity;
 
   /// The position of this surface fragment in world space..
-  float3 WorldPosition;
+  public float3 WorldPosition;
 
   /// The normal vector of this surface fragment in world space.
-  float3 WorldNormal;
+  public float3 WorldNormal;
 
   /// The normal vector of this surface fragment in geometry space.
-  float3 VertexNormal;
+  public float3 VertexNormal;
 
   /// The total accumulated specular energy.
-  float3 kS;
+  public float3 kS;
 
   /// The total accumulated diffuse energy.
-  float3 kD;
+  public float3 kD;
 
-  static Surface from(MaterialData material)
+  public static Surface from(MaterialData material)
   {
     Surface result;
 

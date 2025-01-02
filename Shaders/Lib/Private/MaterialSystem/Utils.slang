@@ -12,20 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <Common/Constants.slang>
-
-#include <Materials/AngularInfo.slang>
-#include <Materials/IMaterial.slang>
-#include <Materials/Surface.slang>
+implementing MaterialSystem;
 
 /// Generates a surface for the given vertex from the given material data.
 /// \param material The material used to generate the surface.
 /// \param vertex The output of the vertex shader.
 /// \param data The geometry's material data.
 /// \return The geometry's surface for the given vertex.
-Surface GenerateSurface(in IMaterial material, in TransientStream vertex, in MaterialData data)
+public Surface GenerateSurface(in IMaterial material, in TransientStream vertex, in MaterialData data)
 {
   Surface surface = Surface.from(data);
 
@@ -70,7 +64,7 @@ Surface GenerateSurface(in IMaterial material, in TransientStream vertex, in Mat
 
 // Specular Anti-Aliasing technique from this paper:
 // http://www.jp.square-enix.com/tech/library/pdf/ImprovedGeometricSpecularAA.pdf
-float CalculateSpecularAA(in float roughness, in float3 normal, const float strength = 2.0f)
+public float CalculateSpecularAA(in float roughness, in float3 normal, const float strength = 2.0f)
 {
   // Constants for formula below
   static const float screenVariance = 0.25f;
@@ -86,7 +80,7 @@ float CalculateSpecularAA(in float roughness, in float3 normal, const float stre
   return saturate(roughness2 + kernelRoughness2);
 }
 
-float3 ComputeDiffuseEnergy(in float3 F, in float metalness)
+public float3 ComputeDiffuseEnergy(in float3 F, in float metalness)
 {
   // Diffuse scattering happens due to light being refracted multiple times by a dielectric medium.
   // Metals on the other hand either reflect or absorb energy, so diffuse contribution is always zero.
@@ -103,7 +97,7 @@ float3 ComputeDiffuseEnergy(in float3 F, in float metalness)
 /// \param normal The sampled normal texture value.
 /// \param intensity The normal intensity. Defaults to 1.0.
 /// \return The decoded normal.
-float3 DecodeNormalTexture(in float4 normal, in float intensity = 1.0f)
+public float3 DecodeNormalTexture(in float4 normal, in float intensity = 1.0f)
 {
   float2 xy = unpack(normal.xy);
   float  z  = sqrt(max(1.0f - dot(xy, xy), 0.0f));
@@ -116,7 +110,7 @@ float3 DecodeNormalTexture(in float4 normal, in float intensity = 1.0f)
 /// \param normal The normal vector in tangent space.
 /// \param vertex The transient vertex data.
 /// \return The normal vector converted in world space.
-float3 TangentToWorldSpace(in float3 normal, in TransientStream vertex)
+public float3 TangentToWorldSpace(in float3 normal, in TransientStream vertex)
 {
 #  ifdef USE_TANGENT
   return normal.x * vertex.Tangent + normal.y * vertex.BiTangent + normal.z * vertex.Normal;
@@ -130,7 +124,7 @@ float3 TangentToWorldSpace(in float3 normal, in TransientStream vertex)
 /// \param worldPosition The world position of the vertex.
 /// \param cameraPosition The world position of the camera.
 /// \return A suitable alpha threshold.
-float GetAlphaThreshold(in float3 worldPosition, in float3 cameraPosition)
+public float GetAlphaThreshold(in float3 worldPosition, in float3 cameraPosition)
 {
   // Closer objects have a lower threshold, while distant objects have a higher threshold
   // This prevents things like foliage from resolving to little or no pixels over a certain distance

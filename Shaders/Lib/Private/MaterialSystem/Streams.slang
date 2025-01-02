@@ -12,98 +12,98 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing MaterialSystem;
 
 /// Vertex buffer input.
-struct InputStream
+public struct InputStream
 {
   float3 Position : POSITION;
 
 #ifdef USE_NORMAL
-  float3 Normal : NORMAL;
+  public float3 Normal : NORMAL;
 #endif
 
 #ifdef USE_TANGENT
-  float4 Tangent : TANGENT;
+  public float4 Tangent : TANGENT;
 
 #  ifdef USE_BITANGENT
-  float4 BiTangent : BITANGENT;
+  public float4 BiTangent : BITANGENT;
 #  endif
 #endif
 
 #ifdef USE_TEXCOORD0
-  float2 TexCoord0 : TEXCOORD0;
+  public float2 TexCoord0 : TEXCOORD0;
 
 #  ifdef USE_TEXCOORD1
-  float2 TexCoord1 : TEXCOORD1;
+  public float2 TexCoord1 : TEXCOORD1;
 #  endif
 #endif
 
 #ifdef USE_COLOR0
-  float4 Color0 : COLOR0;
+  public float4 Color0 : COLOR0;
 
 #  ifdef USE_COLOR1
-  float4 Color1 : COLOR1;
+  public float4 Color1 : COLOR1;
 #  endif
 #endif
 
 #ifdef USE_SKINNING
-  float4 BoneWeigths : BONEWEIGHTS0;
-  uint4  BoneIndices : BONEINDICES0;
+  public float4 BoneWeigths : BONEWEIGHTS0;
+  public uint4  BoneIndices : BONEINDICES0;
 #endif
 }
 
 /// Transient data between shader stages.
-struct TransientStream
+public struct TransientStream
 {
-  float4 Position : SV_Position;
+  public float4 Position : SV_Position;
 
 #ifdef USE_VELOCITY
-  float4 PreviousPosition : PREVPOS;
+  public float4 PreviousPosition : PREVPOS;
 #endif
 
 #ifdef USE_WORLDPOS
-  float3 WorldPosition : WORLDPOS;
+  public float3 WorldPosition : WORLDPOS;
 
 #  ifdef USE_VELOCITY
-  float3 PreviousWorldPosition : PREVWORLDPOS;
+  public float3 PreviousWorldPosition : PREVWORLDPOS;
 #  endif
 #endif
 
 #ifdef USE_NORMAL
-  float3 Normal : NORMAL;
+  public float3 Normal : NORMAL;
 #endif
 
 #ifdef USE_TANGENT
-  float3 Tangent : TANGENT;
-  float3 BiTangent : BITANGENT;
+  public float3 Tangent : TANGENT;
+  public float3 BiTangent : BITANGENT;
 #endif
 
 #ifdef USE_TEXCOORD0
-  float2 TexCoord0 : TEXCOORD0;
+  public float2 TexCoord0 : TEXCOORD0;
 
 #  ifdef USE_TEXCOORD1
-  float2 TexCoord1 : TEXCOORD1;
+  public float2 TexCoord1 : TEXCOORD1;
 #  endif
 #endif
 
 #ifdef USE_COLOR0
-  float4 Color0 : COLOR0;
+  public float4 Color0 : COLOR0;
 
 #  ifdef USE_COLOR1
-  float4 Color1 : COLOR1;
+  public float4 Color1 : COLOR1;
 #  endif
 #endif
 
-  uint InstanceID : InstanceID;
-  bool IsFrontFace : IsFrontFace;
+  public uint InstanceID : InstanceID;
+  public bool IsFrontFace : IsFrontFace;
 }
 
 /// G-Buffer output.
-struct OutputStream
+public struct OutputStream
 {
-  float4 Diffuse : SV_Target0;
-  float4 Normal : SV_Target1;
-  float4 Material : SV_Target2;
-  float2 Velocity : SV_Target3;
+  public float4 Diffuse : SV_Target0;
+  public float4 Normal : SV_Target1;
+  public float4 Material : SV_Target2;
+  public float2 Velocity : SV_Target3;
 }

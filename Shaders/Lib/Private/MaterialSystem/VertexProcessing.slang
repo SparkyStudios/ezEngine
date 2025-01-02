@@ -12,24 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing MaterialSystem;
 
-#include <Common/Constants.slang>
-#include <Common/Math/Transform.slang>
-#include <Common/RenderingContext.slang>
-
-#include <Materials/MaterialData.slang>
-#include <Materials/Streams.slang>
-
-struct InstanceData
+public struct InstanceData
 {
-  Transform WorldTransform;
-  Transform PreviousWorldTransform;
+  public Transform WorldTransform;
+  public Transform PreviousWorldTransform;
 
-  Transform NormalTransform;
+  public Transform NormalTransform;
 
-  float3 _padding0;
-  uint MaterialIndex;
+  public float3 _padding0;
+  public uint   MaterialIndex;
 }
 
 /// Process the vertex input stream into the world space.
@@ -40,7 +33,7 @@ struct InstanceData
 /// \param instanceId The rendered instance ID.
 /// \param isFrontFace Whether the geometry faces have front-facing normal vectors.
 /// \return A transient data suitable as an input to a pixel shader.
-TransientStream ProcessWorldSpace(
+public TransientStream ProcessWorldSpace(
   in InputStream   input,
   in PerViewBuffer view,
   in InstanceData  instance,

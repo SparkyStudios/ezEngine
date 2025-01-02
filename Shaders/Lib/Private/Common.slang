@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+module Common;
 
-#include <Common/Math/Colors.slang>
-#include <Common/Math/Transform.slang>
-#include <Common/Math/Utils.slang>
-#include <Common/RenderingContext.slang>
-#include <Common/Utils.slang>
+__include "Common/Constants.slang";
+__include "Common/RenderingContext.slang";
+__include "Common/Utils.slang";

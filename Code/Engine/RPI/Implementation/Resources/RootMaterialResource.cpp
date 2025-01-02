@@ -132,10 +132,10 @@ namespace RPI
 
     // Read shader data
     {
-      ezUInt64 uiShaderBytesSize = 0;
-      EZ_SUCCEED_OR_RETURN(pReader->ReadQWordValue(&uiShaderBytesSize));
+      ezUInt32 uiShaderBytesSize = 0;
+      EZ_SUCCEED_OR_RETURN(pReader->ReadDWordValue(&uiShaderBytesSize));
 
-      m_RootMaterial.m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, static_cast<ezUInt32>(uiShaderBytesSize));
+      m_RootMaterial.m_ShaderBytes = EZ_DEFAULT_NEW_ARRAY(ezUInt8, uiShaderBytesSize);
       pReader->ReadBytes(m_RootMaterial.m_ShaderBytes.GetPtr(), uiShaderBytesSize);
     }
 

@@ -12,100 +12,100 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+implementing Common;
 
-struct PerFrameBuffer
+public struct PerFrameBuffer
 {
-  float GlobalTime;
-  float CurrentTime;
-  float DeltaTime;
-  uint  Frame;
+  public float GlobalTime;
+  public float CurrentTime;
+  public float DeltaTime;
+  public uint  Frame;
 
-  float2 RenderSize;
-  float2 InverseRenderSize;
+  public float2 RenderSize;
+  public float2 InverseRenderSize;
 
-  float2 ViewportSize;
-  float2 InverseViewportSize;
+  public float2 ViewportSize;
+  public float2 InverseViewportSize;
 
-  uint  Options;
-  bool  HDREnabled;
-  float HDRMaxNits;
-  float HDRWhitePoint;
+  public uint  Options;
+  public bool  HDREnabled;
+  public float HDRMaxNits;
+  public float HDRWhitePoint;
 }
 
-struct PerViewBuffer
+public struct PerViewBuffer
 {
-  float4 Position_NearClipPlane;
+  public float4 Position_NearClipPlane;
 
-  float4 PreviousPosition_FarClipPlane;
+  public float4 PreviousPosition_FarClipPlane;
 
-  float4 Direction_ShutterSpeed;
+  public float4 Direction_ShutterSpeed;
 
-  float Exposure;
-  float Aperture;
-  float ISO;
-  float AspectRatio;
+  public float Exposure;
+  public float Aperture;
+  public float ISO;
+  public float AspectRatio;
 
-  matrix ProjectionMatrix;
-  matrix InverseProjectionMatrix;
+  public matrix ProjectionMatrix;
+  public matrix InverseProjectionMatrix;
 
-  matrix ViewMatrix;
-  matrix InverseViewMatrix;
+  public matrix ViewMatrix;
+  public matrix InverseViewMatrix;
 
-  matrix ViewProjectionMatrix;
-  matrix InverseViewProjectionMatrix;
+  public matrix ViewProjectionMatrix;
+  public matrix InverseViewProjectionMatrix;
 
-  matrix PreviousViewProjectionMatrix;
-  matrix PreviousInverseViewProjectionMatrix;
+  public matrix PreviousViewProjectionMatrix;
+  public matrix PreviousInverseViewProjectionMatrix;
 
-  property Position : float3
+  public property Position : float3
   {
     get {
       return Position_NearClipPlane.xyz;
     }
   }
 
-  property NearClipPlane : float
+  public property NearClipPlane : float
   {
     get { return Position_NearClipPlane.w; }
   }
 
-  property PreviousPosition : float3
+  public property PreviousPosition : float3
   {
     get {
       return PreviousPosition_FarClipPlane.xyz;
     }
   }
 
-  property FarClipPlane : float
+  public property FarClipPlane : float
   {
     get { return PreviousPosition_FarClipPlane.w; }
   }
 
-  property Direction : float3
+  public property Direction : float3
   {
     get {
       return Direction_ShutterSpeed.xyz;
     }
   }
 
-  property ShutterSpeed : float
+  public property ShutterSpeed : float
   {
     get { return Direction_ShutterSpeed.w; }
   }
 }
 
 /// 128-bit push constant buffer
-struct PerPassBuffer
+public struct PerPassBuffer
 {
-  float4 Values0;
-  float4 Values1;
-  float4 Values2;
-  float4 Values3;
-  float4 Values4;
-  float4 Values5;
-  float4 Values6;
-  float4 Values7;
+  public float4 Values0;
+  public float4 Values1;
+  public float4 Values2;
+  public float4 Values3;
+  public float4 Values4;
+  public float4 Values5;
+  public float4 Values6;
+  public float4 Values7;
 };
 
 // [[push_constant]]

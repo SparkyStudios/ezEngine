@@ -16,8 +16,8 @@
 
 #include <RPI/RPIDLL.h>
 
-#include <RPI/Resources/ShaderResource.h>
 #include <RPI/Resources/MaterialResource.h>
+#include <RPI/Resources/ShaderResource.h>
 
 #include <RHI/Shader.h>
 
@@ -45,7 +45,7 @@ namespace RPI
     /// \brief The material resource this shader is compiled for.
     /// This is used to link the shader with the material resource. If no material resource is needed,
     /// this should be set to an invalid resource handle.
-    spMaterialResourceHandle m_hMaterialResource;
+    spRootMaterialResourceHandle m_hRootMaterialResource;
 
     /// \brief Calculates a hash value for this shader compilation setup.
     [[nodiscard]] ezUInt32 CalculateHash() const;
@@ -98,6 +98,8 @@ namespace RPI
     /// \param eStage The shader stage for which to get the entry point.
     /// \return A pointer to the Slang entry point for the given shader stage, or nullptr if not found.
     static Slang::ComPtr<slang::IEntryPoint> GetEntryPointForStage(Slang::ComPtr<slang::IModule> pModule, ezEnum<RHI::spShaderStage> eStage);
+
+    static void LoadCoreModules(Slang::ComPtr<slang::ISession> pSession);
 
     /// \brief Creates a new Slang shader compilation session.
     /// \param predefinedMacros The list of predefined macros to use in the session.

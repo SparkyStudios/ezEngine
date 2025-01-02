@@ -72,7 +72,7 @@ namespace RPI
   ezVariant spMaterialFunctor_init::Evaluate(const ezArrayPtr<ezVariant>& arguments) const
   {
     if (arguments.GetCount() == 0)
-      return ezVariant();
+      return {};
 
     ezResult conversionResult = EZ_FAILURE;
     const auto sTypeName = arguments[0].ConvertTo<ezString>(&conversionResult);
@@ -80,7 +80,7 @@ namespace RPI
     const ezRTTI* pType = GetMaterialPropertyValueType(ezTempHashedString(sTypeName));
 
     if (conversionResult.Failed())
-      return ezVariant();
+      return {};
 
     auto constructorArgs = arguments.GetSubArray(1, arguments.GetCount() - 1);
 
@@ -115,6 +115,6 @@ namespace RPI
         return result;
     }
 
-    return ezVariant();
+    return {};
   }
 } // namespace RPI

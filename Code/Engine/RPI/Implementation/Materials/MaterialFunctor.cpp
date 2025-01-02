@@ -34,7 +34,7 @@ namespace RPI
   EZ_BEGIN_DYNAMIC_REFLECTED_TYPE(spMaterialFunctor, 1, ezRTTINoAllocator)
   EZ_END_DYNAMIC_REFLECTED_TYPE;
 
-  EZ_IMPLEMENT_SINGLETON(spMaterialFuntorRegistry);
+  EZ_IMPLEMENT_SINGLETON(spMaterialFunctorRegistry);
 
   EZ_DEFINE_CUSTOM_VARIANT_TYPE(spMaterialFunctorEvaluator);
   // clang-format on
@@ -44,13 +44,13 @@ namespace RPI
     m_sName.Assign(sName);
   }
 
-  spMaterialFuntorRegistry::spMaterialFuntorRegistry()
+  spMaterialFunctorRegistry::spMaterialFunctorRegistry()
     : m_SingletonRegistrar(this)
   {
     m_Functors.Clear();
   }
 
-  spMaterialFuntorRegistry::~spMaterialFuntorRegistry()
+  spMaterialFunctorRegistry::~spMaterialFunctorRegistry()
   {
     for (auto& pFunctor : m_Functors)
     {
@@ -61,17 +61,17 @@ namespace RPI
     m_Functors.Clear();
   }
 
-  void spMaterialFuntorRegistry::Register(spMaterialFunctor* pMaterialFunctor)
+  void spMaterialFunctorRegistry::Register(spMaterialFunctor* pMaterialFunctor)
   {
     m_Functors.PushBack(pMaterialFunctor);
   }
 
-  void spMaterialFuntorRegistry::Unregister(spMaterialFunctor* pMaterialFunctor)
+  void spMaterialFunctorRegistry::Unregister(spMaterialFunctor* pMaterialFunctor)
   {
     m_Functors.RemoveAndSwap(pMaterialFunctor);
   }
 
-  const spMaterialFunctor* spMaterialFuntorRegistry::Get(ezTempHashedString sName)
+  const spMaterialFunctor* spMaterialFunctorRegistry::Get(ezTempHashedString sName)
   {
     if (s_pSingleton == nullptr)
       return nullptr;
@@ -83,7 +83,7 @@ namespace RPI
     return nullptr;
   }
 
-  bool spMaterialFuntorRegistry::Contains(ezTempHashedString sName)
+  bool spMaterialFunctorRegistry::Contains(ezTempHashedString sName)
   {
     if (s_pSingleton == nullptr)
       return false;
@@ -108,33 +108,32 @@ void operator>>(ezStreamReader& inout_stream, RPI::spMaterialFunctorEvaluator& o
   inout_stream.ReadArray(out_value.m_Arguments).IgnoreResult();
 }
 
-static RPI::spMaterialFuntorRegistry* s_pFunctorRegistry = nullptr;
-
 EZ_BEGIN_SUBSYSTEM_DECLARATION(RPI, MaterialFunctor)
 
   // clang-format off
   BEGIN_SUBSYSTEM_DEPENDENCIES
     "Foundation",
-    "Core",
-    "RAI"
+    "Core"
   END_SUBSYSTEM_DEPENDENCIES
   // clang-format on
 
   ON_BASESYSTEMS_STARTUP
   {
-    s_pFunctorRegistry = EZ_DEFAULT_NEW(RPI::spMaterialFuntorRegistry);
+    EZ_DEFAULT_NEW(RPI::spMaterialFunctorRegistry);
   }
 
   ON_CORESYSTEMS_STARTUP
   {
-    s_pFunctorRegistry->Register(EZ_DEFAULT_NEW(RPI::spMaterialFunctor_init));
-    s_pFunctorRegistry->Register(EZ_DEFAULT_NEW(RPI::spMaterialFunctor_isset));
-    s_pFunctorRegistry->Register(EZ_DEFAULT_NEW(RPI::spMaterialFunctor_ref));
+    auto* pFunctorRegistry = RPI::spMaterialFunctorRegistry::GetSingleton();
+    pFunctorRegistry->Register(EZ_DEFAULT_NEW(RPI::spMaterialFunctor_init));
+    pFunctorRegistry->Register(EZ_DEFAULT_NEW(RPI::spMaterialFunctor_isset));
+    pFunctorRegistry->Register(EZ_DEFAULT_NEW(RPI::spMaterialFunctor_ref));
   }
 
   ON_CORESYSTEMS_SHUTDOWN
   {
-    EZ_DEFAULT_DELETE(s_pFunctorRegistry);
+    auto* pFunctorRegistry = RPI::spMaterialFunctorRegistry::GetSingleton();
+    EZ_DEFAULT_DELETE(pFunctorRegistry);
   }
 
   ON_HIGHLEVELSYSTEMS_STARTUP
