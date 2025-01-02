@@ -5,10 +5,10 @@
 #include <Foundation/Types/SharedPtr.h>
 #include <Foundation/Types/UniquePtr.h>
 
-#include <RAI/Mesh.h>
-#include <RAI/Resources/Texture2DResource.h>
-#include <RAI/Resources/ImageResource.h>
-#include <RAI/Resources/MeshResource.h>
+#include <RPI/Assets/Mesh.h>
+#include <RPI/Resources/Texture2DResource.h>
+#include <RPI/Resources/ImageResource.h>
+#include <RPI/Resources/MeshResource.h>
 
 #include <RHI/Buffer.h>
 #include <RHI/CommandList.h>
@@ -29,7 +29,6 @@
 
 #include <ShaderCompilerHLSL/ShaderCompilerHLSL.h>
 
-using namespace RAI;
 using namespace RHI;
 using namespace RPI;
 
@@ -60,16 +59,16 @@ private:
 
   ezUniquePtr<spRenderGraphBuilder> graphBuilder;
 
-  const RAI::spMesh* m_pMesh{nullptr};
-  RAI::spMeshResourceHandle m_hMesh;
+  const RPI::spMesh* m_pMesh{nullptr};
+  RPI::spMeshResourceHandle m_hMesh;
 
-  RAI::spTexture2DResourceHandle m_hTexture;
+  RPI::spTexture2DResourceHandle m_hTexture;
 };
 
 class spDemoRenderGraphNode final : public spRenderGraphNode
 {
 public:
-  explicit spDemoRenderGraphNode(const RAI::spMesh* pMesh)
+  explicit spDemoRenderGraphNode(const RPI::spMesh* pMesh)
     : spRenderGraphNode("TrianglePass")
     , m_pMesh(pMesh)
   {
@@ -105,10 +104,10 @@ public:
   bool IsEnabled() const override;
 
 private:
-  const RAI::spMesh* m_pMesh{nullptr};
+  const RPI::spMesh* m_pMesh{nullptr};
   PassData m_PassData;
 
-  RAI::spShaderResourceHandle m_hShader;
+  RPI::spShaderResourceHandle m_hShader;
 };
 
 EZ_DECLARE_REFLECTABLE_TYPE(EZ_NO_LINKAGE, spDemoRenderGraphNode::PassData);
