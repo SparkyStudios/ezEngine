@@ -16,11 +16,11 @@
 
 #include <RHIVK/Core.h>
 
-namespace RHI
+namespace
 {
-  static ezSet<ezStringView> EnumerateInstanceExtensions()
+  ezSet<ezStringView> EnumerateInstanceExtensions()
   {
-    if (!IsVulkanLoaded())
+    if (!RHI::IsVulkanLoaded())
       return {};
 
     ezUInt32 uiPropCount = 0;
@@ -42,15 +42,18 @@ namespace RHI
     return names;
   }
 
-  static bool TryLoadVulkan()
+  bool TryLoadVulkan()
   {
     const vk::DynamicLoader loader{};
     return loader.success();
   }
 
-  static spLazy<bool> s_bVulkanLoaded{TryLoadVulkan};
-  static spLazy<ezSet<ezStringView>> s_InstanceExtensions{EnumerateInstanceExtensions};
+  spLazy<bool> s_bVulkanLoaded{TryLoadVulkan};
+  spLazy<ezSet<ezStringView>> s_InstanceExtensions{EnumerateInstanceExtensions};
+} // namespace
 
+namespace RHI
+{
   ezSet<ezStringView> EnumerateInstanceLayers()
   {
     ezUInt32 uiPropCount = 0;

@@ -34,6 +34,6 @@
 
 #define SP_RHI_VK_CHECK_RESULT_RETURN(_result_, _value_) \
   if ((_result_) != vk::Result::eSuccess)                \
-    return _value_;
+    return _value_
 
 #define SP_RHI_VK_CHECK_RESULT(_result_) EZ_ASSERT_DEV((_result_) == vk::Result::eSuccess, "Operation failed")
