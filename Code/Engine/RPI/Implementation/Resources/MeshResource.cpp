@@ -102,12 +102,14 @@ namespace RPI
   {
     inout_stream << kMeshResourceVersion;
 
-    ezUInt8 uiCompressionMode;
+    ezUInt8 uiCompressionMode = 0;
 
 #ifdef BUILDSYSTEM_ENABLE_ZSTD_SUPPORT
     uiCompressionMode = 1;
     ezCompressedStreamWriterZstd compressor(&inout_stream, 0, ezCompressedStreamWriterZstd::Compression::Average);
     ezChunkStreamWriter chunk(compressor);
+#else
+    ezChunkStreamWriter chunk(inout_stream);
 #endif
 
     inout_stream << uiCompressionMode;

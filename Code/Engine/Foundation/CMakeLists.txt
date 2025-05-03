@@ -55,7 +55,7 @@ if(EZ_3RDPARTY_ENET_SUPPORT)
 endif()
 
 if(EZ_3RDPARTY_ZSTD_SUPPORT)
-  target_link_libraries(${PROJECT_NAME} PUBLIC zstd)
+  sp_link_target_zstd(${PROJECT_NAME})
 endif()
 
 if (EZ_3RDPARTY_ZLIB_SUPPORT)

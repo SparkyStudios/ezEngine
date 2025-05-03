@@ -123,7 +123,7 @@ void ezMeshResourceDescriptor::Save(ezStreamWriter& inout_stream)
   ezCompressedStreamWriterZstd compressor(&inout_stream, 0, ezCompressedStreamWriterZstd::Compression::Average);
   ezChunkStreamWriter chunk(compressor);
 #else
-  ezChunkStreamWriter chunk(stream);
+  ezChunkStreamWriter chunk(inout_stream);
 #endif
 
   inout_stream << uiCompressionMode;

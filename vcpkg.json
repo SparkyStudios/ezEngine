@@ -1,6 +1,6 @@
 {
   "name": "spark-engine",
-  "builtin-baseline": "9b5cb8e554487f3edb5d50b80188883846f81e14",
+  "builtin-baseline": "f06267da58f3c06b3a1aff9cbf5c2906e595ebc9",
   "description": "A cross-platform C++ game engine.",
   "version": "1.0.0",
   "dependencies": [
@@ -14,11 +14,11 @@
     },
     {
       "name": "joltphysics",
-      "version>=": "5.1.0#1"
+      "version>=": "5.2.0"
     },
     {
       "name": "meshoptimizer",
-      "version>=": "0.21"
+      "version>=": "0.23"
     },
     {
       "name": "assimp",
@@ -26,11 +26,11 @@
     },
     {
       "name": "zstd",
-      "version>=": "1.5.6"
+      "version>=": "1.5.7"
     },
     {
       "name": "tinyexr",
-      "version>=": "1.0.8"
+      "version>=": "1.0.9"
     },
     {
       "name": "stb",
@@ -59,7 +59,7 @@
     },
     {
       "name": "shader-slang",
-      "version>=": "2024.14.3"
+      "version>=": "2025.5"
     },
     {
       "name": "vulkan-memory-allocator",
@@ -67,7 +67,7 @@
     },
     {
       "name": "vulkan-headers",
-      "version>=": "1.3.290.0#1"
+      "version>=": "1.3.296.0"
     }
   ]
 }

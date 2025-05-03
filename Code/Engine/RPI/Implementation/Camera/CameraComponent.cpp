@@ -42,7 +42,7 @@ namespace RPI
     SUPER::Initialize();
 
     auto desc = EZ_CREATE_MODULE_UPDATE_FUNCTION_DESC(spCameraComponentManager::Update, this);
-    desc.m_Phase = UpdateFunctionDesc::Phase::PostTransform;
+    desc.m_Phase = ezWorldUpdatePhase::PostTransform;
 
     this->RegisterUpdateFunction(desc);
 
