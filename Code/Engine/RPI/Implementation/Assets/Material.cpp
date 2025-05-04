@@ -39,10 +39,10 @@ namespace RPI
     m_Properties.Clear();
   }
 
-  bool spMaterial::HasSpecializationConstant(const ezTempHashedString& name) const
+  bool spMaterial::HasSpecializationConstant(const ezTempHashedString& sName) const
   {
-    return std::any_of(begin(m_SpecializationConstants), end(m_SpecializationConstants), [&name](const RHI::spShaderSpecializationConstant& constant)
-      { return constant.m_sName == name; });
+    return std::any_of(begin(m_SpecializationConstants), end(m_SpecializationConstants), [&sName](const RHI::spShaderSpecializationConstant& constant)
+      { return constant.m_sName == sName; });
   }
 
   void spMaterial::AddSpecializationConstant(const RHI::spShaderSpecializationConstant& constant)
@@ -53,11 +53,11 @@ namespace RPI
     m_SpecializationConstants.PushBack(constant);
   }
 
-  void spMaterial::RemoveSpecializationConstant(const ezTempHashedString& name)
+  void spMaterial::RemoveSpecializationConstant(const ezTempHashedString& sName)
   {
     for (ezUInt32 i = 0, l = m_SpecializationConstants.GetCount(); i < l; ++i)
     {
-      if (m_SpecializationConstants[i].m_sName == name)
+      if (m_SpecializationConstants[i].m_sName == sName)
       {
         m_SpecializationConstants.RemoveAtAndCopy(i);
         return;
@@ -65,36 +65,59 @@ namespace RPI
     }
   }
 
-  const RHI::spShaderSpecializationConstant* spMaterial::GetSpecializationConstant(const ezTempHashedString& name) const
+  const RHI::spShaderSpecializationConstant* spMaterial::GetSpecializationConstant(const ezTempHashedString& sName) const
   {
     for (const auto& constant : m_SpecializationConstants)
-      if (constant.m_sName == name)
+      if (constant.m_sName == sName)
         return &constant;
 
     return nullptr;
   }
 
-  void spMaterial::SetProperty(const ezTempHashedString& name, const ezVariant& value)
+  void spMaterial::SetProperty(const ezStringView& sName, const ezVariant& value)
   {
     for (auto& property : m_Properties)
     {
-      if (property.m_sName == name)
+      if (property.m_sName == sName)
       {
         property.m_Value = value;
         return;
       }
     }
+
+    auto& prop = m_Properties.ExpandAndGetRef();
+    prop.m_sName.Assign(sName);
+    prop.m_Value = value;
   }
 
-  ezVariant spMaterial::GetProperty(const ezTempHashedString& name) const
+  ezVariant spMaterial::GetProperty(const ezTempHashedString& sName) const
   {
     for (const auto& property : m_Properties)
     {
-      if (property.m_sName == name)
+      if (property.m_sName == sName)
         return property.m_Value;
     }
 
     return {};
+  }
+
+  const spMaterial::Property* spMaterial::GetProperty(ezUInt32 uiIndex) const
+  {
+    if (uiIndex < m_Properties.GetCount())
+      return &m_Properties[uiIndex];
+
+    return nullptr;
+  }
+
+  bool spMaterial::HasProperty(const ezTempHashedString& sName) const
+  {
+    return std::any_of(
+      begin(m_Properties),
+      end(m_Properties),
+      [&sName](const Property& property)
+      {
+        return property.m_sName == sName;
+      });
   }
 
   void spMaterial::SetRootMaterialResource(const spRootMaterialResourceHandle& hRootMaterialResource)

@@ -27,6 +27,6 @@ namespace RPI
   public:
     spMaterialFunctor_init();
 
-    [[nodiscard]] ezVariant Evaluate(const ezArrayPtr<ezVariant>& arguments) const override;
+    [[nodiscard]] ezVariant Evaluate(const spMaterial* pMaterial, const ezArrayPtr<ezVariant>& arguments) const override;
   };
 } // namespace RPI

@@ -110,7 +110,7 @@ public struct MaterialData
     get { return CheckFlag(k_HasTextureAlphaMask); }
   }
 
-  /// Checks wether the given feature (shift) is enabled in the given flag.
+  /// Checks whether the given feature (shift) is enabled in the given flag.
   /// \param flags The material flag.
   /// \param shift The feature shift in the flag.
   /// \return \c true if the feature is enabled, \c false otherwise.

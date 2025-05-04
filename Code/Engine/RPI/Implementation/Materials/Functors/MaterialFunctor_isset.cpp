@@ -30,7 +30,7 @@ namespace RPI
   {
   }
 
-  ezVariant spMaterialFunctor_isset::Evaluate(const ezArrayPtr<ezVariant>& arguments) const
+  ezVariant spMaterialFunctor_isset::Evaluate(const spMaterial* pMaterial, const ezArrayPtr<ezVariant>& arguments) const
   {
     return arguments.GetCount() == 1 && arguments[0].IsValid();
   }

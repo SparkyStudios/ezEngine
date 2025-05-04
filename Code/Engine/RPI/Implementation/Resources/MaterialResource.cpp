@@ -14,6 +14,7 @@
 
 #include <RPI/RPIPCH.h>
 
+#include <RPI/Materials/MaterialFunctor.h>
 #include <RPI/Resources/MaterialResource.h>
 
 #include <Foundation/IO/FileSystem/FileReader.h>
@@ -165,6 +166,143 @@ namespace RPI
     res.m_uiQualityLevelsLoadable = 0;
     res.m_State = ezResourceState::Loaded;
 
+    const ezResourceLock rootMaterialResource(descriptor.GetRootMaterialResource(), ezResourceAcquireMode::BlockTillLoaded_NeverFail);
+    if (!rootMaterialResource.IsValid())
+    {
+      ezLog::Error("Unable to get the root material resource for material {0}!", GetResourceID());
+      res.m_State = ezResourceState::LoadedResourceMissing;
+      return res;
+    }
+
+    auto& material = descriptor.GetMaterial();
+    const auto& rootMaterial = rootMaterialResource.GetPointerNonConst()->GetDescriptor().GetRootMaterial();
+
+    const auto& metadata = rootMaterial.GetMetadata();
+    auto& data = material.GetData();
+
+    // Update Material Data
+    {
+      for (auto it = metadata.m_Data.GetIterator(); it.IsValid(); it.Next())
+      {
+        ezVariant value = it.Value();
+
+        if (value.IsA<spMaterialFunctorEvaluator>())
+        {
+          const auto& evaluator = value.Get<spMaterialFunctorEvaluator>();
+          value = evaluator(&material);
+        }
+
+        if (!value.IsValid())
+        {
+          ezLog::Warning("Invalid material data value: {0}", it.Key());
+          continue;
+        }
+
+        if (const auto& key = it.Key(); key == "AlbedoColor")
+        {
+          data.m_AlbedoColor = value.ConvertTo<ezColor>();
+        }
+        else if (key == "SpecularColor")
+        {
+          data.m_SpecularColor = value.ConvertTo<ezColor>();
+        }
+        else if (key == "EmissiveColor")
+        {
+          data.m_EmissiveColor = value.ConvertTo<ezColor>();
+        }
+        else if (key == "UVTiling")
+        {
+          data.m_UVTiling = value.ConvertTo<ezVec2>();
+        }
+        else if (key == "UVOffset")
+        {
+          data.m_UVOffset = value.ConvertTo<ezVec2>();
+        }
+        else if (key == "Roughness")
+        {
+          data.m_Roughness = value.ConvertTo<float>();
+        }
+        else if (key == "Metalness")
+        {
+          data.m_Metalness = value.ConvertTo<float>();
+        }
+        else if (key == "NormalIntensity")
+        {
+          data.m_NormalIntensity = value.ConvertTo<float>();
+        }
+        else if (key == "Height")
+        {
+          data.m_Height = value.ConvertTo<float>();
+        }
+        else if (key == "WorldSpaceHeight")
+        {
+          data.m_WorldSpaceHeight = value.ConvertTo<bool>();
+        }
+        else if (key == "IOR")
+        {
+          data.m_IOR = value.ConvertTo<float>();
+        }
+        else if (key == "SubsurfaceScattering")
+        {
+          data.m_SubsurfaceScattering = value.ConvertTo<float>();
+        }
+        else if (key == "SheenTint")
+        {
+          data.m_SheenTint = value.ConvertTo<ezColor>().GetAsVec4().GetAsVec3();
+        }
+        else if (key == "Sheen")
+        {
+          data.m_Sheen = value.ConvertTo<float>();
+        }
+        else if (key == "Anisotropic")
+        {
+          data.m_Anisotropic = value.ConvertTo<float>();
+        }
+        else if (key == "AnisotropicRotation")
+        {
+          data.m_AnisotropicRotation = value.ConvertTo<float>();
+        }
+        else if (key == "Clearcoat")
+        {
+          data.m_Clearcoat = value.ConvertTo<float>();
+        }
+        else if (key == "ClearcoatRoughness")
+        {
+          data.m_ClearcoatRoughness = value.ConvertTo<float>();
+        }
+        else
+        {
+          ezLog::Error("Unsupported material data: {0}", it.Key());
+        }
+      }
+    }
+
+    // Update material Flags
+    {
+      ezUInt32 flags = 0;
+
+      for (auto it = metadata.m_Flags.GetIterator(); it.IsValid(); it.Next())
+      {
+        ezVariant value = it.Value();
+
+        if (it.Value().IsA<spMaterialFunctorEvaluator>())
+        {
+          ezLog::Info("Updating material parameter: {0}", it.Key());
+          const auto& evaluator = it.Value().Get<spMaterialFunctorEvaluator>();
+          value = evaluator(&material);
+        }
+
+        if (!value.IsA<bool>())
+        {
+          ezLog::Error("Unsupported material flag: {0}", it.Key());
+          continue;
+        }
+
+        flags |= value.Get<bool>() ? EZ_BIT(it.Key()) : 0;
+      }
+
+      data.m_Flags = flags;
+    }
     return res;
   }
 

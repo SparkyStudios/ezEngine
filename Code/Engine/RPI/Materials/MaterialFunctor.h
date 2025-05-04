@@ -16,6 +16,8 @@
 
 #include <RPI/RPIDLL.h>
 
+#include <RPI/Assets/Material.h>
+
 SP_DECLARE_SUBSYSTEM(RPI, MaterialFunctor);
 
 namespace RPI
@@ -28,7 +30,7 @@ namespace RPI
     explicit spMaterialFunctor(ezStringView sName);
     ~spMaterialFunctor() override = default;
 
-    [[nodiscard]] virtual ezVariant Evaluate(const ezArrayPtr<ezVariant>& arguments) const = 0;
+    [[nodiscard]] virtual ezVariant Evaluate(const spMaterial* pMaterial, const ezArrayPtr<ezVariant>& arguments) const = 0;
 
     [[nodiscard]] EZ_ALWAYS_INLINE const ezHashedString& GetName() const { return m_sName; }
 
@@ -41,10 +43,7 @@ namespace RPI
     const spMaterialFunctor* m_pFunctor{nullptr};
     ezDynamicArray<ezVariant> m_Arguments;
 
-    [[nodiscard]] EZ_FORCE_INLINE ezVariant operator()(const ezArrayPtr<ezVariant>& arguments)
-    {
-      return m_pFunctor->Evaluate(m_Arguments.GetArrayPtr());
-    }
+    [[nodiscard]] ezVariant operator()(const spMaterial* pMaterial) const;
   };
 
   class SP_RPI_DLL spMaterialFunctorRegistry

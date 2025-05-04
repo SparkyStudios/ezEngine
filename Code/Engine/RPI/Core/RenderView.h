@@ -70,7 +70,7 @@ namespace RPI
       /// \brief No culling is applied to render objects.
       None = 0,
 
-      /// \brief Culls render objects outside of the render view's frustum.
+      /// \brief Culls render objects outside the render view's frustum.
       Frustum = 1,
 
       Default = Frustum

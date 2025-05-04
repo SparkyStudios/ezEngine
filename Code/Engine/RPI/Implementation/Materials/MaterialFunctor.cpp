@@ -44,6 +44,30 @@ namespace RPI
     m_sName.Assign(sName);
   }
 
+  ezVariant spMaterialFunctorEvaluator::operator()(const spMaterial* pMaterial) const
+  {
+    if (m_pFunctor == nullptr || pMaterial == nullptr)
+      return {};
+
+    ezDynamicArray<ezVariant> parsedArguments;
+    parsedArguments.Reserve(m_Arguments.GetCount());
+
+    for (const auto& argument : m_Arguments)
+    {
+      if (argument.IsA<spMaterialFunctorEvaluator>())
+      {
+        const auto& evaluator = argument.Get<spMaterialFunctorEvaluator>();
+        parsedArguments.PushBack(evaluator(pMaterial));
+      }
+      else
+      {
+        parsedArguments.PushBack(argument);
+      }
+    }
+
+    return m_pFunctor->Evaluate(pMaterial, parsedArguments.GetArrayPtr());
+  }
+
   spMaterialFunctorRegistry::spMaterialFunctorRegistry()
     : m_SingletonRegistrar(this)
   {

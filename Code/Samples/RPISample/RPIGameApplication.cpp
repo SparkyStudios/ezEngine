@@ -150,7 +150,8 @@ spRPIGameApplication::spRPIGameApplication()
 
 void spRPIGameApplication::AfterCoreSystemsStartup()
 {
-  ezLog::Debug(ezFileSystem::GetSdkRootDirectory());
+  ezLog::Info("Initializing RPI Game Application");
+  ezLog::Info(ezFileSystem::GetSdkRootDirectory());
 
   ExecuteInitFunctions();
 
@@ -189,21 +190,27 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
 
   spMaterialResourceDescriptor descMaterial1;
   descMaterial1.GetMaterial().SetRootMaterialResource(ezResourceManager::LoadResource<spRootMaterialResource>(":shaders/Materials/Lit.slangm"));
-  descMaterial1.GetMaterial().GetData().m_AlbedoColor = ezColor::Red;
-  descMaterial1.GetMaterial().GetData().m_Roughness = 0.f;
-  descMaterial1.GetMaterial().GetData().m_Metalness = 1.f;
+  descMaterial1.GetMaterial().SetProperty("Color", ezColor::Red);
+  descMaterial1.GetMaterial().SetProperty("RoughnessValue", 0.f);
+  descMaterial1.GetMaterial().SetProperty("MetalnessValue", 1.f);
+  descMaterial1.GetMaterial().SetProperty("SpecularColor", ezColor::White);
+  descMaterial1.GetMaterial().SetProperty("EmissiveColor", ezColor::Red);
 
   spMaterialResourceDescriptor descMaterial2;
   descMaterial2.GetMaterial().SetRootMaterialResource(ezResourceManager::LoadResource<spRootMaterialResource>(":shaders/Materials/Lit.slangm"));
-  descMaterial2.GetMaterial().GetData().m_AlbedoColor = ezColor::Green;
-  descMaterial2.GetMaterial().GetData().m_Roughness = 0.f;
-  descMaterial2.GetMaterial().GetData().m_Metalness = 1.f;
+  descMaterial2.GetMaterial().SetProperty("Color", ezColor::Green);
+  descMaterial2.GetMaterial().SetProperty("RoughnessValue", 0.f);
+  descMaterial2.GetMaterial().SetProperty("MetalnessValue", 1.f);
+  descMaterial2.GetMaterial().SetProperty("SpecularColor", ezColor::White);
+  descMaterial2.GetMaterial().SetProperty("EmissiveColor", ezColor::Green);
 
   spMaterialResourceDescriptor descMaterial3;
   descMaterial3.GetMaterial().SetRootMaterialResource(ezResourceManager::LoadResource<spRootMaterialResource>(":shaders/Materials/Lit.slangm"));
-  descMaterial3.GetMaterial().GetData().m_AlbedoColor = ezColor::Blue;
-  descMaterial3.GetMaterial().GetData().m_Roughness = 0.f;
-  descMaterial3.GetMaterial().GetData().m_Metalness = 1.f;
+  descMaterial3.GetMaterial().SetProperty("Color", ezColor::Blue);
+  descMaterial3.GetMaterial().SetProperty("RoughnessValue", 0.f);
+  descMaterial3.GetMaterial().SetProperty("MetalnessValue", 1.f);
+  descMaterial3.GetMaterial().SetProperty("SpecularColor", ezColor::White);
+  descMaterial3.GetMaterial().SetProperty("EmissiveColor", ezColor::Blue);
 
   auto material1 = ezResourceManager::CreateResource<spMaterialResource, spMaterialResourceDescriptor>("TestMaterial1", std::move(descMaterial1));
   auto material2 = ezResourceManager::CreateResource<spMaterialResource, spMaterialResourceDescriptor>("TestMaterial2", std::move(descMaterial2));
@@ -224,7 +231,7 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
       ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[0]);
       if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
       {
-        pComponent->SetMeshFile(":project/objects/teapot.spMesh");
+        pComponent->SetMeshFile("objects/teapot.spMesh");
         pComponent->SetMaterial(material1);
       }
     }
@@ -239,7 +246,7 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
       ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[0]);
       if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
       {
-        pComponent->SetMeshFile(":project/objects/teapot.spMesh");
+        pComponent->SetMeshFile("objects/teapot.spMesh");
         pComponent->SetMaterial(material1);
       }
     }
@@ -254,7 +261,7 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
       ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[1]);
       if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
       {
-        pComponent->SetMeshFile(":project/objects/teapot.spMesh");
+        pComponent->SetMeshFile("objects/teapot.spMesh");
         pComponent->SetMaterial(material2);
       }
     }
@@ -269,7 +276,7 @@ void spRPIGameApplication::AfterCoreSystemsStartup()
       ezComponentHandle hComponent = m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->CreateComponent(m_Objects[2]);
       if (spMeshComponent* pComponent = nullptr; m_pWorld->GetOrCreateComponentManager<spMeshComponentManager>()->TryGetComponent(hComponent, pComponent))
       {
-        pComponent->SetMeshFile(":project/objects/male_lod.spMesh");
+        pComponent->SetMeshFile("objects/male_lod.spMesh");
         pComponent->SetLODMaxDistance(100);
         pComponent->SetMaterial(material3);
       }

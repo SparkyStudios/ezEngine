@@ -30,8 +30,9 @@ namespace RPI
   {
   }
 
-  ezVariant spMaterialFunctor_ref::Evaluate(const ezArrayPtr<ezVariant>& arguments) const
+  ezVariant spMaterialFunctor_ref::Evaluate(const spMaterial* pMaterial, const ezArrayPtr<ezVariant>& arguments) const
   {
-    return arguments.GetCount() == 1 && arguments[0].IsValid();
+    const auto& propertyName = arguments[0].Get<ezString>();
+    return pMaterial->GetProperty(ezTempHashedString(propertyName));
   }
 } // namespace RPI

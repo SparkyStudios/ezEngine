@@ -142,7 +142,7 @@ namespace RPI
 
   /// \brief A view to a constant buffer storage.
   ///
-  /// This class allow to access the data of a constant buffer storage in a read-only or write-only manner.
+  /// This class allows accessing the data of a constant buffer storage in a read-only or write-only manner.
   /// The buffer is guaranteed to be unmapped when the view goes out of scope.
   ///
   /// \tparam T The data type of the buffer. It's recommended to be a struct with 16-bit alignment.

@@ -31,7 +31,7 @@ static constexpr uint k_HasTextureAlphaMask     = 9;
 static constexpr uint k_HasTextureHeightMask    = 10;
 
 /// The maximum value for reserved flag masks. You should use this value
-/// for your custom flags, by adding at least one.
+/// for your custom flags by adding at least one.
 /// Example:
 ///```slang
 /// static constexpr uint k_MyCustomMaterialMask1 = k_MaxReservedMaterialMask + 1;

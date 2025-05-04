@@ -57,8 +57,6 @@ namespace RPI
 
   static const ezRTTI* GetMaterialPropertyValueType(ezTempHashedString sTypeName)
   {
-    InitializePropertyValueTypes();
-
     const ezRTTI* pType = nullptr;
     s_MaterialPropertyValueTypes.Get().TryGetValue(sTypeName, pType);
     return pType;
@@ -69,7 +67,7 @@ namespace RPI
   {
   }
 
-  ezVariant spMaterialFunctor_init::Evaluate(const ezArrayPtr<ezVariant>& arguments) const
+  ezVariant spMaterialFunctor_init::Evaluate(const spMaterial* pMaterial, const ezArrayPtr<ezVariant>& arguments) const
   {
     if (arguments.GetCount() == 0)
       return {};
