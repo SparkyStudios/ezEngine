@@ -50,7 +50,7 @@ namespace RPI
       ezHashedString m_sName;
       ezVariant m_Value;
 
-      EZ_ALWAYS_INLINE bool operator==(const Property& rhs) const { return m_eType == rhs.m_eType && m_sName == rhs.m_sName && m_Value == rhs.m_Value; }
+      EZ_ALWAYS_INLINE bool operator==(const Property& rhs) const { return m_eType == rhs.m_eType && m_sName == rhs.m_sName; }
     };
 
     spMaterial();
@@ -87,3 +87,5 @@ namespace RPI
     ezDynamicArray<Property> m_Properties;
   };
 }; // namespace RPI
+
+#include <RPI/Assets/Material.inl>

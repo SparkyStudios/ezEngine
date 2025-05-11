@@ -51,10 +51,7 @@ namespace RPI
 
     inout_stream << m_Material.m_hRootMaterialResource;
 
-    inout_stream << m_Material.m_Data;
-
-    // inout_stream.WriteArray(m_Material.m_SpecializationConstants).AssertSuccess();
-    // inout_stream.WriteArray(m_Material.m_Properties).AssertSuccess();
+    inout_stream.WriteArray(m_Material.m_Properties).AssertSuccess();
 
     return EZ_SUCCESS;
   }
@@ -79,10 +76,7 @@ namespace RPI
 
     inout_stream >> m_Material.m_hRootMaterialResource;
 
-    inout_stream >> m_Material.m_Data;
-
-    // inout_stream.ReadArray(m_Material.m_SpecializationConstants).AssertSuccess();
-    // inout_stream.ReadArray(m_Material.m_Properties).AssertSuccess();
+    inout_stream.ReadArray(m_Material.m_Properties).AssertSuccess();
 
     return EZ_SUCCESS;
   }
@@ -166,7 +160,7 @@ namespace RPI
     res.m_uiQualityLevelsLoadable = 0;
     res.m_State = ezResourceState::Loaded;
 
-    const ezResourceLock rootMaterialResource(descriptor.GetRootMaterialResource(), ezResourceAcquireMode::BlockTillLoaded_NeverFail);
+    const ezResourceLock rootMaterialResource(m_Descriptor.GetRootMaterialResource(), ezResourceAcquireMode::BlockTillLoaded_NeverFail);
     if (!rootMaterialResource.IsValid())
     {
       ezLog::Error("Unable to get the root material resource for material {0}!", GetResourceID());
@@ -174,13 +168,13 @@ namespace RPI
       return res;
     }
 
-    auto& material = descriptor.GetMaterial();
-    const auto& rootMaterial = rootMaterialResource.GetPointerNonConst()->GetDescriptor().GetRootMaterial();
+    auto& material = m_Descriptor.GetMaterial();
+    const auto& rootMaterial = rootMaterialResource.GetPointer()->GetDescriptor().GetRootMaterial();
 
     const auto& metadata = rootMaterial.GetMetadata();
     auto& data = material.GetData();
 
-    // Update Material Data
+    // Update Data
     {
       for (auto it = metadata.m_Data.GetIterator(); it.IsValid(); it.Next())
       {
@@ -277,7 +271,7 @@ namespace RPI
       }
     }
 
-    // Update material Flags
+    // Update Flags
     {
       ezUInt32 flags = 0;
 
