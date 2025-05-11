@@ -87,12 +87,14 @@ namespace RHI
     {
       ezUInt32 m_uiSlot{0};
       ezBitflags<spShaderStage> m_eStages;
+      ezUInt32 m_uiBaseMipLevel{0};
+      ezUInt32 m_uiMipCount{0};
       ezUInt32 m_uiResourceSet{0};
     };
 
     void ClearState();
     void ResetManagedState();
-    void ClearSets(ezDynamicArray<spCommandListResourceSet>& sets);
+    static void ClearSets(ezDynamicArray<spCommandListResourceSet>& sets);
     void ActivateResourceSet(ezUInt32 uiSlot, const spCommandListResourceSet& resourceSet, bool bCompute);
     ezSharedPtr<spBufferD3D11> GetFreeStagingBuffer(ezUInt32 uiSize);
     ezUInt32 GetConstantBufferBase(ezUInt32 uiSlot, bool bCompute) const;
@@ -103,10 +105,10 @@ namespace RHI
     void BindConstantBuffer(ezSharedPtr<spBufferRangeD3D11> pBufferRange, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
     void BindStorageBufferView(ezSharedPtr<spBufferRangeD3D11> pBufferRange, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
     void BindTextureView(ezSharedPtr<spTextureViewD3D11> pTextureView, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot);
-    void BindUnorderedAccessView(ezSharedPtr<spTextureD3D11> pTexture, ezSharedPtr<spBufferD3D11> pBuffer, ID3D11UnorderedAccessView* pUAV, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot);
+    void BindUnorderedAccessView(ezSharedPtr<spTextureViewD3D11> pTexture, ezSharedPtr<spBufferD3D11> pBuffer, ID3D11UnorderedAccessView* pUAV, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot);
     void BindSampler(ezSharedPtr<spSamplerD3D11> pSampler, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages);
-    void UnbindSRVTexture(const spTextureViewDescription& desc);
-    void UnbindUAVTexture(const spTextureViewDescription& desc);
+    void UnbindSRVTexture(const spTextureViewDescription& desc, ezUInt32 uiBaseMipLevel = 0, ezUInt32 uiMipCount = 0);
+    void UnbindUAVTexture(const spTextureViewDescription& desc, ezUInt32 uiBaseMipLevel = 0, ezUInt32 uiMipCount = 0);
     void UnbindUAVBuffer(ezSharedPtr<spBufferD3D11> pBuffer);
     void UnbindUAVBufferPipeline(ezSharedPtr<spBufferD3D11> pBuffer, bool bCompute);
     void PreDraw();

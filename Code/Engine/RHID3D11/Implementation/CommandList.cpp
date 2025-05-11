@@ -724,16 +724,15 @@ namespace RHI
         case spShaderResourceType::ReadOnlyTexture:
         {
           const ezSharedPtr<spTextureViewD3D11> pTextureView = spTextureSamplerManager::GetTextureView(m_pDevice, pResource.value).Downcast<spTextureViewD3D11>();
-          UnbindUAVTexture(pTextureView->GetDescription());
+          UnbindUAVTexture(pTextureView->GetDescription(), pTextureView->GetBaseMipLevel(), pTextureView->GetMipCount());
           BindTextureView(pTextureView, uiTextureBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
           break;
         }
         case spShaderResourceType::ReadWriteTexture:
         {
           const ezSharedPtr<spTextureViewD3D11> pTextureView = spTextureSamplerManager::GetTextureView(m_pDevice, pResource.value).Downcast<spTextureViewD3D11>();
-          const ezSharedPtr<spTextureD3D11> pTexture = m_pDevice->GetResourceManager()->GetResource<spTextureD3D11>(pTextureView->GetTexture());
-          UnbindSRVTexture(pTextureView->GetDescription());
-          BindUnorderedAccessView(pTexture, nullptr, pTextureView->GetUnorderedAccessView(), uiUnorderedAccessViewBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
+          UnbindSRVTexture(pTextureView->GetDescription(), pTextureView->GetBaseMipLevel(), pTextureView->GetMipCount());
+          BindUnorderedAccessView(pTextureView, nullptr, pTextureView->GetUnorderedAccessView(), uiUnorderedAccessViewBase + layoutBindingInfo.m_uiSlot, layoutBindingInfo.m_eShaderStage, uiSlot);
           break;
         }
         case spShaderResourceType::Sampler:
@@ -1029,7 +1028,7 @@ namespace RHI
 
     if (eStages.IsSet(spShaderStage::VertexShader))
     {
-      bool bBind = true;
+      bool bBind = false;
       if (uiSlot < s_uiMaxCachedTextureViews)
       {
         if (uiSlot >= m_CachedVertexTextureViews.GetCount())
@@ -1071,7 +1070,7 @@ namespace RHI
 
     if (eStages.IsSet(spShaderStage::PixelShader))
     {
-      bool bBind = true;
+      bool bBind = false;
       if (uiSlot < s_uiMaxCachedTextureViews)
       {
         if (uiSlot >= m_CachedPixelTextureViews.GetCount())
@@ -1102,18 +1101,18 @@ namespace RHI
     }
   }
 
-  void spCommandListD3D11::BindUnorderedAccessView(ezSharedPtr<spTextureD3D11> pTexture, ezSharedPtr<spBufferD3D11> pBuffer, ID3D11UnorderedAccessView* pUAV, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot)
+  void spCommandListD3D11::BindUnorderedAccessView(ezSharedPtr<spTextureViewD3D11> pTextureView, ezSharedPtr<spBufferD3D11> pBuffer, ID3D11UnorderedAccessView* pUAV, ezUInt32 uiSlot, const ezBitflags<spShaderStage>& eStages, ezUInt32 uiSetSlot)
   {
-    pTexture->EnsureResourceCreated();
+    pTextureView->EnsureResourceCreated();
 
     const bool bCompute = eStages == spShaderStage::ComputeShader;
     EZ_ASSERT_DEV(bCompute || !eStages.IsSet(spShaderStage::ComputeShader), "Unordered access views cannot be bound on compute and graphic stages at the same time.");
-    EZ_ASSERT_DEV(pTexture == nullptr || pBuffer == nullptr, "Cannot bind unordered access views to textures and buffers at the same time.");
+    EZ_ASSERT_DEV(pTextureView == nullptr || pBuffer == nullptr, "Cannot bind unordered access views to textures and buffers at the same time.");
 
-    if (pTexture != nullptr && pUAV != nullptr)
+    if (pTextureView != nullptr && pUAV != nullptr)
     {
-      BoundTextureInfo info{uiSlot, eStages, uiSetSlot};
-      spTextureViewDescription desc(pTexture->GetHandle());
+      BoundTextureInfo info{uiSlot, eStages, pTextureView->GetBaseMipLevel(), pTextureView->GetMipCount(), uiSetSlot};
+      spTextureViewDescription desc(pTextureView->GetHandle());
       m_BoundUAVs.Insert(desc, info);
     }
 
@@ -1212,13 +1211,22 @@ namespace RHI
     }
   }
 
-  void spCommandListD3D11::UnbindSRVTexture(const spTextureViewDescription& desc)
+  void spCommandListD3D11::UnbindSRVTexture(const spTextureViewDescription& desc, ezUInt32 uiBaseMipLevel, ezUInt32 uiMipCount)
   {
+    bool bAllRemoved = true;
+
     for (ezUInt32 i = 0, l = m_BoundSRVs.GetCount(); i < l; ++i)
     {
       if (m_BoundSRVs.GetKey(i) == desc)
       {
         const BoundTextureInfo& info = m_BoundSRVs.GetValue(i);
+
+        if (info.m_uiBaseMipLevel + info.m_uiMipCount <= uiBaseMipLevel || info.m_uiBaseMipLevel >= uiBaseMipLevel + uiMipCount)
+        {
+          bAllRemoved = false;
+          continue;
+        }
+
         BindTextureView(nullptr, info.m_uiSlot, info.m_eStages, 0);
 
         if (info.m_eStages.IsSet(spShaderStage::ComputeShader))
@@ -1228,6 +1236,10 @@ namespace RHI
       }
     }
 
+    // If all UAVs for the given texture view were removed, remove the entry from the cache
+    if (!bAllRemoved)
+      return;
+
     while (m_BoundSRVs.RemoveAndCopy(desc))
     {
     }
@@ -1235,13 +1247,22 @@ namespace RHI
     m_BoundSRVs.Compact();
   }
 
-  void spCommandListD3D11::UnbindUAVTexture(const spTextureViewDescription& desc)
+  void spCommandListD3D11::UnbindUAVTexture(const spTextureViewDescription& desc, ezUInt32 uiBaseMipLevel, ezUInt32 uiMipCount)
   {
+    bool bAllRemoved = true;
+
     for (ezUInt32 i = 0, l = m_BoundUAVs.GetCount(); i < l; ++i)
     {
       if (m_BoundUAVs.GetKey(i) == desc)
       {
         const BoundTextureInfo& info = m_BoundUAVs.GetValue(i);
+
+        if (info.m_uiBaseMipLevel + info.m_uiMipCount <= uiBaseMipLevel || info.m_uiBaseMipLevel >= uiBaseMipLevel + uiMipCount)
+        {
+          bAllRemoved = false;
+          continue;
+        }
+
         BindUnorderedAccessView(nullptr, nullptr, nullptr, info.m_uiSlot, info.m_eStages, info.m_uiResourceSet);
 
         if (info.m_eStages.IsSet(spShaderStage::ComputeShader))
@@ -1250,6 +1271,10 @@ namespace RHI
           m_InvalidatedGraphicResourceSets[info.m_uiResourceSet] = true;
       }
     }
+
+    // If all UAVs for the given texture view were removed, remove the entry from the cache
+    if (!bAllRemoved)
+      return;
 
     while (m_BoundUAVs.RemoveAndCopy(desc))
     {
