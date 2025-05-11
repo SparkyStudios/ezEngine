@@ -303,6 +303,29 @@ namespace RPI
 
       data.m_Flags = flags;
     }
+
+    // Update Specialization Constants
+    {
+      for (auto it = metadata.m_SpecializationConstants.GetIterator(); it.IsValid(); it.Next())
+      {
+        ezVariant value = it.Value();
+
+        if (it.Value().IsA<spMaterialFunctorEvaluator>())
+        {
+          const auto& evaluator = it.Value().Get<spMaterialFunctorEvaluator>();
+          value = evaluator(&material);
+        }
+
+        if (!value.IsValid())
+        {
+          ezLog::Error("Unsupported material specialization constant: {0}", it.Key());
+          continue;
+        }
+
+        material.AddSpecializationConstant(spShaderSpecializationConstant(it.Key(), value));
+      }
+    }
+
     return res;
   }
 

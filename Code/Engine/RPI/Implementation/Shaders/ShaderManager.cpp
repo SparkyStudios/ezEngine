@@ -102,28 +102,28 @@ EZ_IMPLEMENT_SINGLETON(RPI::spShaderManager);
 
 namespace RPI
 {
-  static ezStringView GetSlangType(ezEnum<RHI::spShaderSpecializationConstantType> eType)
+  static ezStringView GetSlangType(ezEnum<spShaderSpecializationConstantType> eType)
   {
     switch (eType)
     {
-      case RHI::spShaderSpecializationConstantType::Bool:
+      case spShaderSpecializationConstantType::Bool:
         return "bool"_ezsv;
-      case RHI::spShaderSpecializationConstantType::UInt16:
+      case spShaderSpecializationConstantType::UInt16:
         return "uint16_t"_ezsv;
-      case RHI::spShaderSpecializationConstantType::Int16:
+      case spShaderSpecializationConstantType::Int16:
         return "int16_t"_ezsv;
-      case RHI::spShaderSpecializationConstantType::UInt32:
+      case spShaderSpecializationConstantType::UInt32:
         return "uint"_ezsv;
       default:
-      case RHI::spShaderSpecializationConstantType::Int32:
+      case spShaderSpecializationConstantType::Int32:
         return "int"_ezsv;
-      case RHI::spShaderSpecializationConstantType::UInt64:
+      case spShaderSpecializationConstantType::UInt64:
         return "uint64_t"_ezsv;
-      case RHI::spShaderSpecializationConstantType::Int64:
+      case spShaderSpecializationConstantType::Int64:
         return "int64_t"_ezsv;
-      case RHI::spShaderSpecializationConstantType::Float:
+      case spShaderSpecializationConstantType::Float:
         return "float"_ezsv;
-      case RHI::spShaderSpecializationConstantType::Double:
+      case spShaderSpecializationConstantType::Double:
         return "double"_ezsv;
     }
   }
@@ -142,7 +142,7 @@ namespace RPI
     for (const auto& constant : m_SpecializationConstants)
     {
       uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32String(constant.m_sName));
-      RHI::spShaderSpecializationConstantType::Enum eType = constant.m_eType;
+      spShaderSpecializationConstantType::Enum eType = constant.m_eType;
       uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32(&eType, sizeof(eType)));
       uiHash = ezHashingUtils::CombineHashValues32(uiHash, ezHashingUtils::xxHash32(&constant.m_uiValue, sizeof(constant.m_uiValue)));
     }
@@ -380,7 +380,7 @@ namespace RPI
   {
     ezStringBuilder shaderCode;
 
-    ezDynamicArray<RHI::spShaderSpecializationConstant> specializationConstants = compilerSetup.m_SpecializationConstants;
+    ezDynamicArray<spShaderSpecializationConstant> specializationConstants = compilerSetup.m_SpecializationConstants;
 
     // TODO: Apply specialization constants from the material instance.
     // if (compilerSetup.m_hRootMaterialResource.IsValid())
@@ -397,32 +397,32 @@ namespace RPI
 
       switch (specialization.m_eType)
       {
-        case RHI::spShaderSpecializationConstantType::Bool:
-          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<bool>(specialization.m_uiValue));
+        case spShaderSpecializationConstantType::Bool:
+          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<bool>(specialization.m_uiValue));
           break;
-        case RHI::spShaderSpecializationConstantType::Float:
-          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<float>(specialization.m_uiValue));
+        case spShaderSpecializationConstantType::Float:
+          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<float>(specialization.m_uiValue));
           break;
-        case RHI::spShaderSpecializationConstantType::Double:
-          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<double>(specialization.m_uiValue));
+        case spShaderSpecializationConstantType::Double:
+          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<double>(specialization.m_uiValue));
           break;
-        case RHI::spShaderSpecializationConstantType::Int16:
-          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezInt16>(specialization.m_uiValue));
+        case spShaderSpecializationConstantType::Int16:
+          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezInt16>(specialization.m_uiValue));
           break;
-        case RHI::spShaderSpecializationConstantType::Int32:
-          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezInt32>(specialization.m_uiValue));
+        case spShaderSpecializationConstantType::Int32:
+          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezInt32>(specialization.m_uiValue));
           break;
-        case RHI::spShaderSpecializationConstantType::Int64:
-          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezInt64>(specialization.m_uiValue));
+        case spShaderSpecializationConstantType::Int64:
+          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezInt64>(specialization.m_uiValue));
           break;
-        case RHI::spShaderSpecializationConstantType::UInt16:
-          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezUInt16>(specialization.m_uiValue));
+        case spShaderSpecializationConstantType::UInt16:
+          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezUInt16>(specialization.m_uiValue));
           break;
-        case RHI::spShaderSpecializationConstantType::UInt32:
-          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezUInt32>(specialization.m_uiValue));
+        case spShaderSpecializationConstantType::UInt32:
+          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezUInt32>(specialization.m_uiValue));
           break;
-        case RHI::spShaderSpecializationConstantType::UInt64:
-          shaderCode.AppendFormat("{};", RHI::spShaderSpecializationConstant::Get<ezUInt64>(specialization.m_uiValue));
+        case spShaderSpecializationConstantType::UInt64:
+          shaderCode.AppendFormat("{};", spShaderSpecializationConstant::Get<ezUInt64>(specialization.m_uiValue));
           break;
         default:
           shaderCode.AppendFormat("0;");

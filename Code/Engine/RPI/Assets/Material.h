@@ -18,8 +18,7 @@
 
 #include <RPI/Materials/MaterialData.h>
 #include <RPI/Resources/RootMaterialResource.h>
-
-#include <RHI/Core.h>
+#include <RPI/Shaders/ShaderSpecializationConstant.h>
 
 namespace RPI
 {
@@ -61,10 +60,10 @@ namespace RPI
     void Clear();
 
     [[nodiscard]] bool HasSpecializationConstant(const ezTempHashedString& sName) const;
-    void AddSpecializationConstant(const RHI::spShaderSpecializationConstant& constant);
+    void AddSpecializationConstant(const spShaderSpecializationConstant& constant);
     void RemoveSpecializationConstant(const ezTempHashedString& sName);
-    [[nodiscard]] const RHI::spShaderSpecializationConstant* GetSpecializationConstant(const ezTempHashedString& sName) const;
-    [[nodiscard]] EZ_ALWAYS_INLINE const ezDynamicArray<RHI::spShaderSpecializationConstant>& GetSpecializationConstants() const { return m_SpecializationConstants; }
+    [[nodiscard]] const spShaderSpecializationConstant* GetSpecializationConstant(const ezTempHashedString& sName) const;
+    [[nodiscard]] EZ_ALWAYS_INLINE const ezDynamicArray<spShaderSpecializationConstant>& GetSpecializationConstants() const { return m_SpecializationConstants; }
 
     void SetProperty(const ezStringView& sName, const ezVariant& value);
     [[nodiscard]] ezVariant GetProperty(const ezTempHashedString& sName) const;
@@ -84,7 +83,7 @@ namespace RPI
     spRootMaterialResourceHandle m_hRootMaterialResource;
     spMaterialData m_Data;
 
-    ezDynamicArray<RHI::spShaderSpecializationConstant> m_SpecializationConstants;
+    ezDynamicArray<spShaderSpecializationConstant> m_SpecializationConstants;
     ezDynamicArray<Property> m_Properties;
   };
 }; // namespace RPI

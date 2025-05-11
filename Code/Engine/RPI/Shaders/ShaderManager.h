@@ -40,7 +40,7 @@ namespace RPI
     ezDynamicArray<slang::PreprocessorMacroDesc> m_PredefinedMacros;
 
     /// \brief The list of specialization constants for this shader.
-    ezDynamicArray<RHI::spShaderSpecializationConstant> m_SpecializationConstants;
+    ezDynamicArray<spShaderSpecializationConstant> m_SpecializationConstants;
 
     /// \brief The material resource this shader is compiled for.
     /// This is used to link the shader with the material resource. If no material resource is needed,
